@@ -1,84 +1,82 @@
 /* ================================================================== *
- * CARD — fibbers-back
+ * CARD — fibbers-back  (Lit + Tailwind)
+ *
+ * "Terug naar X", where X is where you actually came from (read from the
+ * navigation stack), falling back to `fallback` on a cold deep-link.
  * ================================================================== */
-import { T } from "../tokens.js";
+import { LitElement, html, css } from "lit";
+import { twSheet } from "../tw.js";
 import { norm } from "../util.js";
 import { nav, previous, goBack } from "../nav-stack.js";
+import "../icon.js";
 
-export class FibbersBack extends HTMLElement {
+export class FibbersBack extends LitElement {
+  static properties = {
+    _config: { state: true },
+    _label: { state: true },
+  };
+  static styles = [
+    twSheet,
+    css`
+      :host {
+        display: block;
+      }
+    `,
+  ];
+
   static getStubConfig() {
     return { type: "custom:fibbers-back", fallback: "/dashboard-thuis/huis" };
   }
 
   setConfig(config) {
     this._config = config || {};
-    this._render();
-    this._onRoute = () => this._label();
-    nav.listeners.add(this._onRoute);
+    this._compute();
   }
 
   set hass(_hass) {}
 
-  _render() {
-    const c = this._config;
-    this.innerHTML = `
-      <style>
-        .row {
-          display: flex; align-items: center; gap: 8px;
-          background: ${T.card}; border: 1px solid ${T.line};
-          border-radius: 12px; padding: 12px 14px;
-          color: ${T.ink2}; font-size: 12.5px; font-weight: 500;
-          cursor: pointer; -webkit-tap-highlight-color: transparent;
-          touch-action: manipulation;
-        }
-        .row[data-pressed="true"] { background: ${T.card2}; }
-        .row fib-icon { --mdc-icon-size: 18px; width: 18px; height: 18px; color: ${T.muted}; }
-      </style>
-      <div class="row" role="button" tabindex="0">
-        <fib-icon icon="${c.icon || "solar:alt-arrow-left-bold-duotone"}"></fib-icon>
-        <span class="lbl"></span>
-      </div>`;
-    const row = this.querySelector(".row");
-    row.addEventListener("pointerdown", () =>
-      row.setAttribute("data-pressed", "true"),
-    );
-    ["pointerup", "pointercancel", "pointerleave"].forEach((ev) =>
-      row.addEventListener(ev, () => row.removeAttribute("data-pressed")),
-    );
-    const go = () => goBack(this._config.fallback);
-    row.addEventListener("click", go);
-    row.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        go();
-      }
-    });
-    this._label();
+  connectedCallback() {
+    super.connectedCallback();
+    this._onRoute = () => this._compute();
+    nav.listeners.add(this._onRoute);
+    this._compute();
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this._onRoute) nav.listeners.delete(this._onRoute);
   }
 
-  /** "Terug naar X", where X is where you actually came from */
-  _label() {
-    const el = this.querySelector(".lbl");
-    if (!el) return;
-    const c = this._config;
+  _compute() {
+    const c = this._config || {};
     if (c.label) {
-      el.textContent = c.label;
+      this._label = c.label;
       return;
     }
     const prev = previous() || c.fallback;
     const names = c.labels || {};
     const name = prev ? names[norm(prev)] || names[prev] : null;
-    el.textContent = name ? `Terug naar ${name}` : "Terug";
+    this._label = name ? `Terug naar ${name}` : "Terug";
   }
 
-  disconnectedCallback() {
-    if (this._onRoute) nav.listeners.delete(this._onRoute);
+  render() {
+    const c = this._config || {};
+    return html`<button
+      type="button"
+      class="flex w-full items-center gap-2 rounded-xl border border-line bg-card
+             px-3.5 py-3 text-[12.5px] font-medium text-ink2 active:bg-card2"
+      @click=${() => goBack(c.fallback)}
+    >
+      <fib-icon
+        class="h-[18px] w-[18px] [--mdc-icon-size:18px] text-muted"
+        icon=${c.icon || "solar:alt-arrow-left-bold-duotone"}
+      ></fib-icon>
+      <span>${this._label}</span>
+    </button>`;
   }
 
   getCardSize() {
     return 1;
   }
-
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 1 };
   }

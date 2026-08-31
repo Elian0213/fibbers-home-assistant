@@ -20,7 +20,10 @@ export const Default = {
   render: () => {
     // seed a navigation stack so it reads "Terug naar Huis"
     if (window.FIBBERS) {
-      window.FIBBERS.nav.stack = ["/dashboard-thuis/huis", "/dashboard-thuis/licht"];
+      window.FIBBERS.nav.stack = [
+        "/dashboard-thuis/huis",
+        "/dashboard-thuis/licht",
+      ];
     }
     return renderCard(BACK);
   },

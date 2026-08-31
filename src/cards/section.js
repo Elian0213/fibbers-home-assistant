@@ -1,12 +1,23 @@
 /* ================================================================== *
- * CARD — fibbers-section
+ * CARD — fibbers-section  (Lit + Tailwind)
  *
  * The uppercase mono section label. Replaces the HA `heading` card plus its
  * card-mod block. Nothing else.
  * ================================================================== */
-import { styleBlock } from "../tokens.js";
+import { LitElement, html, css } from "lit";
+import { twSheet } from "../tw.js";
 
-export class FibbersSection extends HTMLElement {
+export class FibbersSection extends LitElement {
+  static properties = { _config: { state: true } };
+  static styles = [
+    twSheet,
+    css`
+      :host {
+        display: block;
+      }
+    `,
+  ];
+
   static getStubConfig() {
     return { type: "custom:fibbers-section", label: "Kamers" };
   }
@@ -16,34 +27,22 @@ export class FibbersSection extends HTMLElement {
       throw new Error("fibbers-section: `label` is required");
     }
     this._config = config;
-    this._render();
   }
 
   set hass(_hass) {}
 
-  _render() {
-    if (!this.shadowRoot) this.attachShadow({ mode: "open" });
-    this.shadowRoot.innerHTML = `
-      <style>
-        ${styleBlock()}
-        .label {
-          font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-          font-size: 9.5px;
-          font-weight: 500;
-          letter-spacing: .11em;
-          text-transform: uppercase;
-          color: var(--fib-muted);
-          padding: 2px 2px 0;
-        }
-      </style>
-      <div class="label"></div>`;
-    this.shadowRoot.querySelector(".label").textContent = this._config.label;
+  render() {
+    if (!this._config) return html``;
+    return html`<div
+      class="px-0.5 pt-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.11em] text-muted"
+    >
+      ${this._config.label}
+    </div>`;
   }
 
   getCardSize() {
     return 1;
   }
-
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 1 };
   }

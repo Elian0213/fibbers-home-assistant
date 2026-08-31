@@ -1,10 +1,29 @@
 /* ================================================================== *
- * CARD — fibbers-nav
+ * CARD — fibbers-nav  (Lit controller)
+ *
+ * A thin controller: it validates config and drives the singleton bar
+ * (rendered into document.body by body-layer.js), and reserves a spacer of the
+ * bar's height so page content isn't hidden behind it. No visible UI of its own.
  * ================================================================== */
+import { LitElement, html, css } from "lit";
 import { nav } from "../nav-stack.js";
 import { bar, attach, detach, renderBar } from "../body-layer.js";
 
-export class FibbersNav extends HTMLElement {
+export class FibbersNav extends LitElement {
+  static properties = { _spacerH: { state: true } };
+  static styles = [
+    css`
+      :host {
+        display: block;
+      }
+    `,
+  ];
+
+  constructor() {
+    super();
+    this._spacerH = 0;
+  }
+
   static getStubConfig() {
     return {
       type: "custom:fibbers-nav",
@@ -52,20 +71,16 @@ export class FibbersNav extends HTMLElement {
       );
     }
     this._config = config;
-    if (!this._spacer) {
-      this._spacer = document.createElement("div");
-      this.appendChild(this._spacer);
-    }
     this._syncSpacer();
     if (this.isConnected) attach(this, this._config);
   }
 
+  /** called by body-layer when the bar height changes */
   _syncSpacer() {
-    if (!this._spacer) return;
     const cfg = this._config || {};
     const offset = Number(cfg.offset_bottom) || 0;
     const base = cfg.reserve != null ? cfg.reserve : bar.height || 74;
-    this._spacer.style.height = `${Math.round(base + offset)}px`;
+    this._spacerH = Math.round(base + offset);
   }
 
   set hass(hass) {
@@ -75,17 +90,21 @@ export class FibbersNav extends HTMLElement {
   }
 
   connectedCallback() {
+    super.connectedCallback();
     if (this._config) attach(this, this._config);
   }
-
   disconnectedCallback() {
+    super.disconnectedCallback();
     detach(this);
+  }
+
+  render() {
+    return html`<div style="height:${this._spacerH || 0}px"></div>`;
   }
 
   getCardSize() {
     return 1;
   }
-
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 1 };
   }

@@ -2,5 +2,7 @@
 dist/
 # generated icon registry (produced by scripts/gen-icons.mjs)
 src/icons.gen.js
+# generated Tailwind CSS (produced by scripts/gen-tw.mjs)
+src/tailwind.gen.js
 node_modules/
 bun.lock

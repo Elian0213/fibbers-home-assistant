@@ -1,12 +1,14 @@
 /* ================================================================== *
- * CARD — fibbers-alert
+ * CARD — fibbers-alert  (Lit + Tailwind)
  *
  * The "Aandacht nodig" card as real logic instead of 20 lines of Jinja. Runs a
  * list of checks against hass; shows an amber-tinted card with one line per
  * finding when anything fires, or a neutral card with a green tick and "Alles
  * in orde" when all is well. Tapping a finding opens more-info for its entity.
  * ================================================================== */
-import { styleBlock } from "../tokens.js";
+import { LitElement, html, css } from "lit";
+import { twSheet } from "../tw.js";
+import "../icon.js";
 
 const friendly = (s) =>
   (s.attributes && s.attributes.friendly_name) || s.entity_id;
@@ -91,7 +93,20 @@ function runCheck(check, hass) {
   return out;
 }
 
-export class FibbersAlert extends HTMLElement {
+export class FibbersAlert extends LitElement {
+  static properties = {
+    hass: { attribute: false },
+    _config: { state: true },
+  };
+  static styles = [
+    twSheet,
+    css`
+      :host {
+        display: block;
+      }
+    `,
+  ];
+
   static getStubConfig() {
     return {
       type: "custom:fibbers-alert",
@@ -104,20 +119,14 @@ export class FibbersAlert extends HTMLElement {
       throw new Error("fibbers-alert: `checks` must be a list");
     }
     this._config = config;
-    this._render();
-  }
-
-  set hass(hass) {
-    this._hass = hass;
-    this._paint();
   }
 
   _findings() {
-    if (!this._hass) return [];
+    if (!this.hass) return [];
     const out = [];
     this._config.checks.forEach((c) => {
       try {
-        out.push(...runCheck(c, this._hass));
+        out.push(...runCheck(c, this.hass));
       } catch (_) {
         /* a bad check never breaks the card */
       }
@@ -125,89 +134,65 @@ export class FibbersAlert extends HTMLElement {
     return out;
   }
 
-  _render() {
-    if (!this.shadowRoot) this.attachShadow({ mode: "open" });
-    this.shadowRoot.innerHTML = `
-      <style>
-        ${styleBlock()}
-        * { box-sizing: border-box; }
-        .card {
-          border-radius: 12px;
-          border: 1px solid var(--fib-line);
-          background: var(--fib-card);
-          padding: 12px 13px;
-        }
-        .card[data-alert="true"] {
-          background: var(--fib-amber-bg);
-          border-color: var(--fib-amber-line);
-        }
-        .head { display: flex; align-items: center; gap: 8px; }
-        .head fib-icon { --mdc-icon-size: 16px; width: 16px; height: 16px; color: var(--fib-green); }
-        .card[data-alert="true"] .head fib-icon { color: var(--fib-amber); }
-        .heading { font-size: 12px; font-weight: 600; color: var(--fib-green); }
-        .card[data-alert="true"] .heading { color: var(--fib-amber); }
-        .list { margin-top: 8px; display: flex; flex-direction: column; gap: 5px; }
-        .finding {
-          font-size: 11.5px; line-height: 1.42; color: var(--fib-amber-tx);
-          cursor: pointer; -webkit-tap-highlight-color: transparent;
-        }
-        .finding b { color: var(--fib-amber); font-weight: 600; }
-      </style>
-      <div class="card">
-        <div class="head">
-          <fib-icon></fib-icon>
-          <span class="heading"></span>
-        </div>
-        <div class="list"></div>
-      </div>`;
-    this._paint();
+  _moreInfo(entity) {
+    if (!entity) return;
+    this.dispatchEvent(
+      new CustomEvent("hass-more-info", {
+        detail: { entityId: entity },
+        bubbles: true,
+        composed: true,
+      }),
+    );
   }
 
-  _paint() {
-    if (!this.shadowRoot) return;
-    const card = this.shadowRoot.querySelector(".card");
-    if (!card) return;
+  render() {
+    if (!this._config) return html``;
     const findings = this._findings();
     const alert = findings.length > 0;
-    card.setAttribute("data-alert", String(alert));
-    this.shadowRoot
-      .querySelector(".head fib-icon")
-      .setAttribute(
-        "icon",
+    return html`<div
+      class="rounded-xl border p-3
+             ${alert ? "border-amberline bg-amberbg" : "border-line bg-card"}"
+    >
+      <div class="flex items-center gap-2">
+        <fib-icon
+          class="h-4 w-4 [--mdc-icon-size:16px] ${
+            alert ? "text-amber" : "text-green"
+          }"
+          icon=${
+            alert
+              ? "solar:danger-triangle-bold-duotone"
+              : "solar:check-circle-bold-duotone"
+          }
+        ></fib-icon>
+        <span
+          class="text-[12px] font-semibold ${
+            alert ? "text-amber" : "text-green"
+          }"
+          >${alert ? "Aandacht nodig" : "Alles in orde"}</span
+        >
+      </div>
+      ${
         alert
-          ? "solar:danger-triangle-bold-duotone"
-          : "solar:check-circle-bold-duotone",
-      );
-    this.shadowRoot.querySelector(".heading").textContent = alert
-      ? "Aandacht nodig"
-      : "Alles in orde";
-
-    const list = this.shadowRoot.querySelector(".list");
-    list.textContent = "";
-    findings.forEach((f) => {
-      const row = document.createElement("div");
-      row.className = "finding";
-      const b = document.createElement("b");
-      b.textContent = f.label;
-      row.append(b, document.createTextNode(` — ${f.detail}`));
-      if (f.entity)
-        row.addEventListener("click", () =>
-          this.dispatchEvent(
-            new CustomEvent("hass-more-info", {
-              detail: { entityId: f.entity },
-              bubbles: true,
-              composed: true,
-            }),
-          ),
-        );
-      list.appendChild(row);
-    });
+          ? html`<div class="mt-2 flex flex-col gap-[5px]">
+              ${findings.map(
+                (f) =>
+                  html`<div
+                    class="cursor-pointer text-[11.5px] leading-[1.42] text-ambertx"
+                    @click=${() => this._moreInfo(f.entity)}
+                  >
+                    <b class="font-semibold text-amber">${f.label}</b> —
+                    ${f.detail}
+                  </div>`,
+              )}
+            </div>`
+          : ""
+      }
+    </div>`;
   }
 
   getCardSize() {
     return 2;
   }
-
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 2 };
   }

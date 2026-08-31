@@ -1,10 +1,20 @@
 /* ================================================================== *
- * BODY LAYER — the singleton bar
+ * BODY LAYER — the singleton bar  (lit-html markup + Tailwind, kept iOS CSS)
+ *
+ * The bar is a body-appended singleton (so `position: fixed` pins to the
+ * viewport, not Lovelace's transformed containing block). Its buttons render
+ * via lit-html with Tailwind utilities from the shared adopted sheet; the
+ * container's iOS-tuned rules (safe-area padding, the box-shadow overscroll
+ * floor, translateZ layer) stay as hand-written CSS — deliberately not
+ * disturbed.
  * ================================================================== */
+import { render, html, nothing } from "lit";
+import { twSheet } from "./tw.js";
 import { T } from "./tokens.js";
 import { norm, here, navigate } from "./util.js";
 import { nav, registerTabs } from "./nav-stack.js";
 import { setTabHiding, removeTabHiding } from "./hide-tabs.js";
+import "./icon.js";
 
 export const bar = {
   host: null,
@@ -15,12 +25,10 @@ export const bar = {
   lastScroll: 0,
 };
 
-const BAR_CSS = `
+/* load-bearing container CSS (see file header) — buttons are Tailwind */
+const HOST_CSS = `
   :host {
-    position: fixed;
-    left: 0; right: 0; bottom: 0;
-    z-index: 6;
-    display: block;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; display: block;
     -webkit-tap-highlight-color: transparent;
     -webkit-user-select: none; user-select: none;
     touch-action: manipulation;
@@ -28,69 +36,17 @@ const BAR_CSS = `
   }
   :host([data-hidden="true"]) { transform: translateY(110%); }
   @media (prefers-reduced-motion: reduce) { :host { transition: none; } }
-
   .bar {
-    display: flex;
-    align-items: stretch;
-    gap: 2px;
+    display: flex; align-items: stretch; gap: 2px;
     background: ${T.nav};
     border-top: 1px solid ${T.line};
-    /* env() is 0 unless the webview sets viewport-fit=cover, hence the 9px
-       floor rather than trusting the inset alone */
     padding: 7px 6px calc(9px + env(safe-area-inset-bottom, 0px));
-    /* Solid block painted below the bar. iOS rubber-band overscroll can drag
-       the page past it; without this you get a seam of app background.
-       Deliberately NOT backdrop-filter, which flickers in WKWebView on a
-       fixed element — that was the original artefact. */
     box-shadow: 0 60px 0 60px ${T.nav};
-    /* own compositing layer: stops judder during momentum scroll */
     transform: translateZ(0);
   }
-
-  button {
-    flex: 1 1 0;
-    min-width: 0;
-    appearance: none;
-    border: 0;
-    background: none;
-    color: ${T.muted};
-    font: inherit;
-    font-size: 9.5px;
-    font-weight: 500;
-    line-height: 1.1;
-    letter-spacing: .01em;
-    padding: 5px 2px 3px;
-    border-radius: 9px;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    position: relative;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-  }
-  button fib-icon {
-    --mdc-icon-size: 17px;
-    width: 17px; height: 17px;
-    color: inherit;
-    pointer-events: none;
-  }
-  button span { pointer-events: none; }
-  /* :active is unreliable in WKWebView, so pressed state is driven from JS */
-  button[data-pressed="true"] { background: rgba(255,255,255,.06); }
-  button[aria-current="page"] { color: ${T.accent}; background: ${T.accentSoft}; }
-  button:focus-visible { outline: 2px solid ${T.accent}; outline-offset: -2px; }
-
-  .dot {
-    position: absolute;
-    top: 4px; left: 50%;
-    margin-left: 7px;
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    background: ${T.accent};
-  }
 `;
+const hostSheet = new CSSStyleSheet();
+hostSheet.replaceSync(HOST_CSS);
 
 export function measureBar() {
   if (!bar.host) return;
@@ -107,14 +63,12 @@ function buildBar() {
   host.id = "fibbers-nav";
   host.setAttribute("role", "navigation");
   const shadow = host.attachShadow({ mode: "open" });
-  const style = document.createElement("style");
-  style.textContent = BAR_CSS;
+  shadow.adoptedStyleSheets = [twSheet, hostSheet];
   const div = document.createElement("div");
   div.className = "bar";
-  shadow.append(style, div);
+  shadow.append(div);
   document.body.appendChild(host);
 
-  // keep the reserved spacer honest across rotation and font-size changes
   if (window.ResizeObserver)
     new ResizeObserver(() => measureBar()).observe(div);
   window.addEventListener("orientationchange", () =>
@@ -125,7 +79,6 @@ function buildBar() {
   return host;
 }
 
-/** prefix match so a subview can highlight the tab it belongs to */
 function tabMatches(tab, path) {
   const target = norm(tab.path);
   if (tab.match === "prefix")
@@ -138,7 +91,6 @@ function activeIndex(tabs, path) {
   if (exact !== -1) return exact;
   const pre = tabs.findIndex((t) => tabMatches(t, path));
   if (pre !== -1) return pre;
-  // a subview keeps its originating tab lit
   const root = nav.stack.length ? norm(nav.stack[0]) : null;
   return root ? tabs.findIndex((t) => norm(t.path) === root) : -1;
 }
@@ -150,55 +102,61 @@ function badgeActive(badge, hass) {
   return !["off", "unavailable", "unknown"].includes(st.state);
 }
 
+const press = (e, on) =>
+  on
+    ? e.currentTarget.setAttribute("data-pressed", "true")
+    : e.currentTarget.removeAttribute("data-pressed");
+
 export function renderBar() {
   if (!bar.host || !bar.config) return;
-  const root = bar.host.shadowRoot.querySelector(".bar");
+  const div = bar.host.shadowRoot.querySelector(".bar");
   const tabs = bar.config.tabs || [];
-
-  if (root.childElementCount !== tabs.length) {
-    root.textContent = "";
-    tabs.forEach((tab) => {
-      const b = document.createElement("button");
-      b.type = "button";
-      const icon = document.createElement("fib-icon");
-      icon.setAttribute("icon", tab.icon || "solar:record-circle-bold-duotone");
-      const span = document.createElement("span");
-      span.textContent = tab.name || "";
-      b.append(icon, span);
-      b.addEventListener("pointerdown", () =>
-        b.setAttribute("data-pressed", "true"),
-      );
-      ["pointerup", "pointercancel", "pointerleave"].forEach((ev) =>
-        b.addEventListener(ev, () => b.removeAttribute("data-pressed")),
-      );
-      b.addEventListener("click", () => {
-        if (norm(tab.path) === here()) return;
-        navigate(tab.path);
-      });
-      root.appendChild(b);
-    });
-    measureBar();
-  }
-
   const active = activeIndex(tabs, here());
-  [...root.children].forEach((b, i) => {
-    if (i === active) b.setAttribute("aria-current", "page");
-    else b.removeAttribute("aria-current");
 
-    const badge = tabs[i] && tabs[i].badge;
-    const existing = b.querySelector(".dot");
-    const show = badge && badgeActive(badge, nav.hassRef);
-    if (show && !existing) {
-      const d = document.createElement("span");
-      d.className = "dot";
-      b.appendChild(d);
-    } else if (!show && existing) {
-      existing.remove();
-    }
-  });
+  render(
+    html`${tabs.map((tab, i) => {
+      const badge = tab.badge && badgeActive(tab.badge, nav.hassRef);
+      return html`<button
+        type="button"
+        aria-current=${i === active ? "page" : nothing}
+        class="relative flex min-w-0 flex-1 flex-col items-center gap-[3px] rounded-[9px]
+               px-0.5 pb-[3px] pt-[5px] text-[9.5px] font-medium leading-[1.1] tracking-[0.01em]
+               focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent
+               focus-visible:[outline-offset:-2px]
+               data-[pressed=true]:bg-[rgba(255,255,255,0.06)]
+               ${
+                 i === active
+                   ? "bg-[rgba(116,185,138,0.10)] text-accent"
+                   : "text-muted"
+               }"
+        @pointerdown=${(e) => press(e, true)}
+        @pointerup=${(e) => press(e, false)}
+        @pointercancel=${(e) => press(e, false)}
+        @pointerleave=${(e) => press(e, false)}
+        @click=${() => {
+          if (norm(tab.path) === here()) return;
+          navigate(tab.path);
+        }}
+      >
+        <fib-icon
+          class="pointer-events-none h-[17px] w-[17px] [--mdc-icon-size:17px]"
+          icon=${tab.icon || "solar:record-circle-bold-duotone"}
+        ></fib-icon>
+        <span class="pointer-events-none">${tab.name || ""}</span>
+        ${
+          badge
+            ? html`<span
+                class="absolute left-1/2 top-1 ml-[7px] h-[5px] w-[5px] rounded-full bg-accent"
+              ></span>`
+            : ""
+        }
+      </button>`;
+    })}`,
+    div,
+  );
+  measureBar();
 }
 
-/* hide on scroll down, reveal on scroll up — opt in via auto_hide: true */
 let autoHideBound = false;
 function enableAutoHide() {
   if (autoHideBound) return;
@@ -225,15 +183,11 @@ export function attach(owner, config) {
   bar.config = config;
   registerTabs((config.tabs || []).map((t) => t.path));
   if (!bar.host || !document.body.contains(bar.host)) bar.host = buildBar();
-  // Lift the whole bar above the OS/companion-app tab strip that may run under
-  // it. The box-shadow floor (60px) still covers the gap for typical offsets;
-  // the reserved spacer grows by the same amount (see FibbersNav._syncSpacer).
   const offset = Number(config.offset_bottom) || 0;
   bar.host.style.bottom = offset ? offset + "px" : "";
   renderBar();
   measureBar();
   if (config.auto_hide) enableAutoHide();
-  // follow the current config's HA-tab-hiding preference
   setTabHiding(config.hide_ha_tabs);
 }
 
@@ -243,8 +197,6 @@ export function detach(owner) {
     bar.host.remove();
     bar.host = null;
     bar.height = 0;
-    // last bar gone — restore HA's own chrome so a bar-less dashboard is never
-    // left with hidden, unnavigable tabs.
     removeTabHiding();
   }
 }

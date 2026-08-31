@@ -6,4 +6,7 @@ export default {
 };
 
 /** The uppercase mono section label — replaces the HA heading card + card-mod. */
-export const Default = story({ type: "custom:fibbers-section", label: "Kamers" });
+export const Default = story({
+  type: "custom:fibbers-section",
+  label: "Kamers",
+});

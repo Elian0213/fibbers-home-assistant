@@ -1,13 +1,28 @@
 /* ================================================================== *
- * CARD — fibbers-chips
+ * CARD — fibbers-chips  (Lit + Tailwind)
  *
  * A pill row. Each chip carries a standard HA action object; an optional
  * `active_when: {entity, state}` gives it a blue tint while that state holds.
  * ================================================================== */
-import { styleBlock } from "../tokens.js";
+import { LitElement, html, css } from "lit";
+import { twSheet } from "../tw.js";
 import { runAction } from "../actions.js";
+import "../icon.js";
 
-export class FibbersChips extends HTMLElement {
+export class FibbersChips extends LitElement {
+  static properties = {
+    hass: { attribute: false },
+    _config: { state: true },
+  };
+  static styles = [
+    twSheet,
+    css`
+      :host {
+        display: block;
+      }
+    `,
+  ];
+
   static getStubConfig() {
     return {
       type: "custom:fibbers-chips",
@@ -26,88 +41,58 @@ export class FibbersChips extends HTMLElement {
       throw new Error("fibbers-chips: `chips` must be a list");
     }
     this._config = config;
-    this._render();
   }
 
-  set hass(hass) {
-    this._hass = hass;
-    this._paintActive();
+  _active(chip) {
+    const aw = chip.active_when;
+    if (!aw || !aw.entity || !this.hass) return false;
+    const st = this.hass.states[aw.entity];
+    return !!(
+      st && (aw.state != null ? st.state === aw.state : st.state === "on")
+    );
   }
 
-  _render() {
-    if (!this.shadowRoot) this.attachShadow({ mode: "open" });
-    this.shadowRoot.innerHTML = `
-      <style>
-        ${styleBlock()}
-        * { box-sizing: border-box; }
-        .row { display: flex; flex-wrap: wrap; gap: 7px; }
-        .chip {
-          display: inline-flex; align-items: center; gap: 5px;
-          font-size: 10.5px; font-weight: 500;
-          color: var(--fib-ink-2);
-          background: var(--fib-card-2);
-          border: 1px solid var(--fib-line);
-          border-radius: 999px;
-          padding: 5px 10px;
-          cursor: pointer;
-          -webkit-tap-highlight-color: transparent;
-          touch-action: manipulation;
-        }
-        .chip[data-active="true"] {
-          color: var(--fib-blue-ink);
-          background: var(--fib-blue-bg);
-          border-color: var(--fib-blue-line);
-        }
-        .chip fib-icon { --mdc-icon-size: 13px; width: 13px; height: 13px; }
-      </style>
-      <div class="row"></div>`;
-    const row = this.shadowRoot.querySelector(".row");
-    this._config.chips.forEach((chip, i) => {
-      const el = document.createElement("button");
-      el.className = "chip";
-      el.type = "button";
-      el.dataset.i = String(i);
-      if (chip.icon) {
-        const ic = document.createElement("fib-icon");
-        ic.setAttribute("icon", chip.icon);
-        el.appendChild(ic);
-      }
-      const span = document.createElement("span");
-      span.textContent = chip.name || "";
-      el.appendChild(span);
-      el.addEventListener("click", () => {
-        if (this._hass)
-          runAction(
-            chip.action || chip.tap_action,
-            this._hass,
-            this,
-            chip.entity,
-          );
-      });
-      row.appendChild(el);
-    });
-    this._paintActive();
-  }
-
-  _paintActive() {
-    if (!this.shadowRoot || !this._hass) return;
-    this.shadowRoot.querySelectorAll(".chip").forEach((el) => {
-      const chip = this._config.chips[+el.dataset.i];
-      const aw = chip.active_when;
-      let active = false;
-      if (aw && aw.entity) {
-        const st = this._hass.states[aw.entity];
-        active =
-          st && (aw.state != null ? st.state === aw.state : st.state === "on");
-      }
-      el.setAttribute("data-active", String(!!active));
-    });
+  render() {
+    const cfg = this._config;
+    if (!cfg) return html``;
+    return html`<div class="flex flex-wrap gap-[7px]">
+      ${cfg.chips.map((chip) => {
+        const active = this._active(chip);
+        return html`<button
+          type="button"
+          class="inline-flex items-center gap-[5px] rounded-full border px-2.5 py-[5px]
+                 text-[10.5px] font-medium
+                 ${
+                   active
+                     ? "border-blueline bg-bluebg text-blueink"
+                     : "border-line bg-card2 text-ink2"
+                 }"
+          @click=${() =>
+            this.hass &&
+            runAction(
+              chip.action || chip.tap_action,
+              this.hass,
+              this,
+              chip.entity,
+            )}
+        >
+          ${
+            chip.icon
+              ? html`<fib-icon
+                  class="h-[13px] w-[13px] [--mdc-icon-size:13px]"
+                  icon=${chip.icon}
+                ></fib-icon>`
+              : ""
+          }
+          <span>${chip.name || ""}</span>
+        </button>`;
+      })}
+    </div>`;
   }
 
   getCardSize() {
     return 1;
   }
-
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 1 };
   }

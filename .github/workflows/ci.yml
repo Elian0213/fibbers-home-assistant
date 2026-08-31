@@ -25,8 +25,8 @@ jobs:
       - name: Build
         run: bun run build
 
-      - name: dist/ and icons.gen.js are in sync with src/
-        run: git diff --exit-code dist/fibbers.js src/icons.gen.js
+      - name: dist/ and generated files are in sync with src/
+        run: git diff --exit-code dist/fibbers.js src/icons.gen.js src/tailwind.gen.js
 
       - name: Bundle parses
         run: node -e "new Function(require('fs').readFileSync('dist/fibbers.js','utf8'))"

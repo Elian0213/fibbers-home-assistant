@@ -16,7 +16,12 @@ export function renderCard(config, hass = HASS) {
 }
 
 const toYaml = (config) =>
-  yaml.dump(config, { indent: 2, lineWidth: -1, quotingType: '"', noRefs: true });
+  yaml.dump(config, {
+    indent: 2,
+    lineWidth: -1,
+    quotingType: '"',
+    noRefs: true,
+  });
 
 /** Build a story: renders the card, and shows its YAML config in Docs. */
 export function story(config, opts = {}) {

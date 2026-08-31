@@ -8,5 +8,5 @@
 
 - [ ] Edited `src/` (not `dist/`), then ran `bun run build` and committed `dist/fibbers.js`.
 - [ ] `bun run check` passes (prettier + build + parse).
-- [ ] Verified in `docs/preview.html` (and `?test=1` if navigation/singleton behaviour changed).
+- [ ] Verified in Storybook (or `docs/fixture.html` / `docs/hatabs-fixture.html` for nav-pin / hide_ha_tabs behaviour).
 - [ ] Updated `README.md` / `CHANGELOG.md` if user-facing.

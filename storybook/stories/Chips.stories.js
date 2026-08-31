@@ -27,7 +27,10 @@ export const Default = story({
     {
       name: "Muziek",
       icon: "solar:music-note-bold-duotone",
-      action: { action: "navigate", navigation_path: "/dashboard-thuis/muziek" },
+      action: {
+        action: "navigate",
+        navigation_path: "/dashboard-thuis/muziek",
+      },
     },
   ],
 });

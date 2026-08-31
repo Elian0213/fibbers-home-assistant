@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+/* Scan the card sources so only used utilities are emitted. */
+@source "../src/**/*.js";
+
+/* Fibbers palette → Tailwind theme, so `bg-card`, `text-accent`, `border-line`
+   etc. resolve. Kept in sync with src/tokens.js (the runtime `--fib-*` vars stay
+   for global-css.js / HA theming). */
+@theme {
+  --color-bg: #111516;
+  --color-card: #1d2426;
+  --color-card2: #262f31;
+  --color-line: #333e41;
+  --color-ink: #edf1f1;
+  --color-ink2: #a9b6b9;
+  --color-muted: #7d8b8e;
+  --color-accent: #74b98a;
+  --color-accentbg: #17281c;
+  --color-accentline: #2b4a34;
+  --color-accenttx: #cfe6d5;
+  --color-amber: #e8a33d;
+  --color-amberbg: #3a2b12;
+  --color-amberline: #4e3a18;
+  --color-ambertx: #ebd9bc;
+  --color-blue: #5aafd6;
+  --color-bluebg: #152b36;
+  --color-blueline: #2c5a70;
+  --color-blueink: #9bd2ea;
+  --color-green: #63c295;
+  --color-red: #ec8377;
+  --color-sheet: #171e20;
+}

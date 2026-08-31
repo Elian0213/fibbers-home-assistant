@@ -1,13 +1,16 @@
 /* ================================================================== *
- * BODY SHEET — the singleton modal layer
+ * BODY SHEET — the singleton modal layer  (lit-html head + Tailwind)
  *
  * A bottom sheet rendered into document.body (so `position: fixed` pins to the
  * viewport, same reason as the nav bar). One host is shared by every
- * fibbers-sheet card on the page and reference-counted: created when the first
- * sheet card mounts, removed when the last unmounts. Only one sheet is open at a
- * time, keyed off the URL hash (`#<id>`).
+ * fibbers-sheet card, reference-counted. The container CSS (positioning,
+ * animation, the self-contained font and the crisp centring / no-blur fixes) is
+ * kept as hand-written CSS; the header content renders via lit-html + Tailwind.
  * ================================================================== */
-import { styleBlock } from "./tokens.js";
+import { render, html } from "lit";
+import { twSheet } from "./tw.js";
+import { T } from "./tokens.js";
+import "./icon.js";
 
 const layer = {
   host: null,
@@ -16,7 +19,7 @@ const layer = {
   panel: null,
   headEl: null,
   bodyEl: null,
-  sheets: new Map(), // id -> card element (owns config + hass)
+  sheets: new Map(),
   openId: null,
   savedScrollY: 0,
   drag: null,
@@ -27,125 +30,89 @@ const reduceMotion = () =>
   window.matchMedia &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+/* container CSS — load-bearing (self-contained font; crisp margin-auto centring
+   with no will-change so it never rasterises blurry on fractional DPR). */
 const SHEET_CSS = `
-  ${styleBlock()}
-  * { box-sizing: border-box; }
   :host {
-    position: fixed;
-    inset: 0;
-    z-index: 9;
-    display: none;
+    position: fixed; inset: 0; z-index: 9; display: none;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: ${T.ink};
+    -webkit-font-smoothing: antialiased;
   }
   :host([data-open="true"]) { display: block; }
 
   .backdrop {
     position: absolute; inset: 0;
     background: rgba(6, 9, 10, .72);
-    -webkit-backdrop-filter: blur(3px);
-    backdrop-filter: blur(3px);
-    opacity: 0;
-    transition: opacity .24s ease;
+    -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+    opacity: 0; transition: opacity .24s ease;
   }
   :host([data-shown="true"]) .backdrop { opacity: 1; }
 
   .sheet {
-    position: absolute;
-    left: 0; right: 0; bottom: 0;
-    max-height: 88vh;
-    display: flex;
-    flex-direction: column;
-    background: var(--fib-sheet);
-    border-top: 1px solid var(--fib-line);
+    position: absolute; left: 0; right: 0; bottom: 0;
+    max-height: 88vh; display: flex; flex-direction: column;
+    background: ${T.sheet};
+    border-top: 1px solid ${T.line};
     border-radius: 24px 24px 0 0;
     padding: 8px 16px calc(16px + env(safe-area-inset-bottom, 0px));
     transform: translateY(100%);
     transition: transform .28s cubic-bezier(.22, 1, .36, 1);
-    will-change: transform;
   }
   :host([data-shown="true"]) .sheet { transform: translateY(0); }
-  @media (prefers-reduced-motion: reduce) {
-    .backdrop, .sheet { transition: none; }
-  }
+  @media (prefers-reduced-motion: reduce) { .backdrop, .sheet { transition: none; } }
 
   .grab {
-    width: 34px; height: 4px;
-    border-radius: 2px;
-    background: var(--fib-grab);
-    margin: 4px auto 10px;
-    flex: 0 0 auto;
-    touch-action: none;
-    cursor: grab;
+    width: 34px; height: 4px; border-radius: 2px;
+    background: ${T.grab};
+    margin: 4px auto 10px; flex: 0 0 auto;
+    touch-action: none; cursor: grab;
   }
   .head {
     display: flex; align-items: center; gap: 10px;
-    padding: 0 2px 12px;
-    flex: 0 0 auto;
-    touch-action: none;
-  }
-  .head fib-icon { --mdc-icon-size: 20px; width: 20px; height: 20px; color: var(--fib-accent); }
-  .titles { flex: 1 1 auto; min-width: 0; }
-  .title { font-size: 16px; font-weight: 600; letter-spacing: -.015em; color: var(--fib-ink); }
-  .sub { font-size: 11px; color: var(--fib-muted); margin-top: 2px; }
-  .close {
-    flex: 0 0 auto;
-    width: 30px; height: 30px;
-    border: 0; border-radius: 999px;
-    background: var(--fib-card-2);
-    color: var(--fib-ink-2);
-    font-size: 15px; line-height: 1;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
+    padding: 0 2px 12px; flex: 0 0 auto; touch-action: none;
   }
   .body {
-    flex: 1 1 auto;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    display: flex; flex-direction: column; gap: 10px;
-    padding-bottom: 6px;
+    flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    display: flex; flex-direction: column; gap: 10px; padding-bottom: 6px;
   }
 
   @media (min-width: 640px) {
     .sheet {
-      left: 50%; right: auto; bottom: auto; top: 50%;
-      transform: translate(-50%, -50%) scale(.98);
+      inset: 0; margin: auto; height: fit-content; max-height: 88vh;
       width: min(460px, calc(100vw - 32px));
-      border-radius: 24px;
-      border: 1px solid var(--fib-line);
-      opacity: 0;
+      border-radius: 24px; border: 1px solid ${T.line};
+      opacity: 0; transform: translateY(8px);
       transition: opacity .2s ease, transform .2s ease;
     }
-    :host([data-shown="true"]) .sheet { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    :host([data-shown="true"]) .sheet { transform: translateY(0); opacity: 1; }
   }
 `;
+const sheetSheet = new CSSStyleSheet();
+sheetSheet.replaceSync(SHEET_CSS);
 
 function build() {
   if (layer.built) return;
   const host = document.createElement("div");
   host.id = "fibbers-sheet";
   const shadow = host.attachShadow({ mode: "open" });
-  const style = document.createElement("style");
-  style.textContent = SHEET_CSS;
+  shadow.adoptedStyleSheets = [twSheet, sheetSheet];
 
   const backdrop = document.createElement("div");
   backdrop.className = "backdrop";
-
   const sheet = document.createElement("div");
   sheet.className = "sheet";
   sheet.setAttribute("role", "dialog");
   sheet.setAttribute("aria-modal", "true");
-
   const grab = document.createElement("div");
   grab.className = "grab";
-
   const head = document.createElement("div");
   head.className = "head";
-
   const body = document.createElement("div");
   body.className = "body";
 
   sheet.append(grab, head, body);
-  shadow.append(style, backdrop, sheet);
+  shadow.append(backdrop, sheet);
   document.body.appendChild(host);
 
   backdrop.addEventListener("click", () => closeSheet());
@@ -161,10 +128,9 @@ function build() {
   layer.built = true;
 }
 
-/* drag-down-to-dismiss on a given handle, moving the sheet panel */
 function bindDrag(handle, sheet) {
   handle.addEventListener("pointerdown", (e) => {
-    if (window.innerWidth >= 640) return; // dialog mode: no drag
+    if (window.innerWidth >= 640) return;
     layer.drag = { startY: e.clientY, dy: 0 };
     sheet.style.transition = "none";
     handle.setPointerCapture && handle.setPointerCapture(e.pointerId);
@@ -199,7 +165,6 @@ function lockScroll() {
   b.style.right = "0";
   b.style.width = "100%";
 }
-
 function unlockScroll() {
   const b = document.body;
   b.style.position = "";
@@ -212,31 +177,40 @@ function unlockScroll() {
 
 async function renderContent(card) {
   const cfg = card._config;
-  const head = layer.headEl;
-  head.textContent = "";
-  if (cfg.icon) {
-    const ic = document.createElement("fib-icon");
-    ic.setAttribute("icon", cfg.icon);
-    head.appendChild(ic);
-  }
-  const titles = document.createElement("div");
-  titles.className = "titles";
-  const title = document.createElement("div");
-  title.className = "title";
-  title.textContent = cfg.title || "";
-  titles.appendChild(title);
-  if (cfg.subtitle) {
-    const sub = document.createElement("div");
-    sub.className = "sub";
-    sub.textContent = cfg.subtitle;
-    titles.appendChild(sub);
-  }
-  const close = document.createElement("button");
-  close.className = "close";
-  close.setAttribute("aria-label", "Sluiten");
-  close.textContent = "✕";
-  close.addEventListener("click", () => closeSheet());
-  head.append(titles, close);
+  render(
+    html`
+      ${
+        cfg.icon
+          ? html`<fib-icon
+              class="h-5 w-5 flex-none [--mdc-icon-size:20px] text-accent"
+              icon=${cfg.icon}
+            ></fib-icon>`
+          : ""
+      }
+      <div class="min-w-0 flex-1">
+        <div class="text-[16px] font-semibold tracking-[-0.015em] text-ink">
+          ${cfg.title || ""}
+        </div>
+        ${
+          cfg.subtitle
+            ? html`<div class="mt-0.5 text-[11px] text-muted">
+                ${cfg.subtitle}
+              </div>`
+            : ""
+        }
+      </div>
+      <button
+        type="button"
+        aria-label="Sluiten"
+        class="flex h-[30px] w-[30px] flex-none cursor-pointer items-center justify-center
+               rounded-full border-0 bg-card2 text-[15px] leading-none text-ink2"
+        @click=${() => closeSheet()}
+      >
+        ✕
+      </button>
+    `,
+    layer.headEl,
+  );
 
   const body = layer.bodyEl;
   body.textContent = "";
@@ -253,7 +227,7 @@ async function renderContent(card) {
     }
   } catch (_) {
     const msg = document.createElement("div");
-    msg.style.cssText = "color:var(--fib-muted);font-size:12px;padding:8px";
+    msg.className = "px-2 py-2 text-[12px] text-muted";
     msg.textContent = "Kaarten konden niet geladen worden.";
     body.appendChild(msg);
   }
@@ -267,11 +241,8 @@ export function openSheet(id) {
   layer.host.setAttribute("data-open", "true");
   lockScroll();
   renderContent(card);
-  // next frame so the transition runs from the hidden state
   requestAnimationFrame(() =>
-    requestAnimationFrame(() =>
-      layer.host.setAttribute("data-shown", reduceMotion() ? "true" : "true"),
-    ),
+    requestAnimationFrame(() => layer.host.setAttribute("data-shown", "true")),
   );
 }
 
@@ -280,7 +251,6 @@ export function closeSheet() {
   const id = layer.openId;
   layer.openId = null;
   if (layer.host) layer.host.removeAttribute("data-shown");
-  // strip the hash so it does not immediately reopen, without a history entry
   if (window.location.hash === "#" + id) {
     history.replaceState(
       null,
@@ -289,7 +259,7 @@ export function closeSheet() {
     );
   }
   const finish = () => {
-    if (layer.openId != null) return; // reopened meanwhile
+    if (layer.openId != null) return;
     if (layer.host) layer.host.removeAttribute("data-open");
     if (layer.bodyEl) layer.bodyEl.textContent = "";
     unlockScroll();
@@ -320,7 +290,6 @@ export function unregisterSheet(id, card) {
   }
 }
 
-/** Push fresh hass into the open sheet's child cards. */
 export function updateSheetHass(id, hass) {
   if (layer.openId !== id) return;
   const card = layer.sheets.get(id);

@@ -30,8 +30,19 @@ import { FibbersLightRow } from "./cards/light-row.js";
 import { FibbersAlert } from "./cards/alert.js";
 import { FibbersChips } from "./cards/chips.js";
 import { FibbersScene } from "./cards/scene.js";
+import { FibbersStat } from "./cards/stat.js";
+import { FibbersGraph } from "./cards/graph.js";
+import { FibbersEntities } from "./cards/entities.js";
+import { FibbersPresence } from "./cards/presence.js";
+import { FibbersBackup } from "./cards/backup.js";
+import { FibbersWeather } from "./cards/weather.js";
+import { FibbersMedia } from "./cards/media.js";
+import { FibbersSysmon } from "./cards/sysmon.js";
+import { FibbersScheduler } from "./cards/scheduler.js";
+import { FibbersRemote } from "./cards/remote.js";
+import { FibbersClimate } from "./cards/climate.js";
 
-const VERSION = "0.1.0";
+const VERSION = "0.2.0";
 
 /* ================================================================== *
  * REGISTRY
@@ -85,6 +96,72 @@ const CARDS = [
     FibbersScene,
     "Fibbers Scene",
     "Scene tiles that highlight the active scene.",
+  ],
+  [
+    "fibbers-stat",
+    FibbersStat,
+    "Fibbers Stat",
+    "Single value tile — icon, label, value and unit.",
+  ],
+  [
+    "fibbers-graph",
+    FibbersGraph,
+    "Fibbers Graph",
+    "Single-entity sparkline of recent history.",
+  ],
+  [
+    "fibbers-entities",
+    FibbersEntities,
+    "Fibbers Entities",
+    "Self-maintaining filtered list of entities.",
+  ],
+  [
+    "fibbers-presence",
+    FibbersPresence,
+    "Fibbers Presence",
+    "Who's home — person tiles with a summary.",
+  ],
+  [
+    "fibbers-backup",
+    FibbersBackup,
+    "Fibbers Backup",
+    "Backup status — last run, result and next.",
+  ],
+  [
+    "fibbers-weather",
+    FibbersWeather,
+    "Fibbers Weather",
+    "Current conditions and a short forecast.",
+  ],
+  [
+    "fibbers-media",
+    FibbersMedia,
+    "Fibbers Media",
+    "Media player — now-playing, transport, volume, sources.",
+  ],
+  [
+    "fibbers-sysmon",
+    FibbersSysmon,
+    "Fibbers Sysmon",
+    "Host telemetry tiles with an optional sparkline.",
+  ],
+  [
+    "fibbers-scheduler",
+    FibbersScheduler,
+    "Fibbers Scheduler",
+    "Wake/alarm control driven by HA helpers.",
+  ],
+  [
+    "fibbers-remote",
+    FibbersRemote,
+    "Fibbers Remote",
+    "Universal remote — D-pad and buttons.",
+  ],
+  [
+    "fibbers-climate",
+    FibbersClimate,
+    "Fibbers Climate",
+    "Thermostat — setpoint and hvac modes.",
   ],
 ];
 

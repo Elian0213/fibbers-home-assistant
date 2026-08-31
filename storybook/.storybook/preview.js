@@ -28,7 +28,19 @@ const preview = {
             "Alert",
             "Chips",
             "Scene",
+            "Stat",
+            "Graph",
+            "Entities",
+            "Presence",
+            "Backup",
+            "Weather",
+            "Media",
+            "Sysmon",
+            "Scheduler",
+            "Remote",
+            "Climate",
           ],
+          "Pages",
         ],
       },
     },
@@ -37,10 +49,10 @@ const preview = {
     (story, ctx) => {
       const font =
         "font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif";
-      // Nav + Sheet render into document.body and pin to the iframe viewport, so they
-      // want a full-bleed canvas (their metas set layout:"fullscreen"). Everything else
-      // renders inline and looks best in a centered phone-screen panel.
-      const bodyRendered = /Nav|Sheet/i.test(ctx.title || "");
+      // Nav + Sheet render into document.body and pin to the iframe viewport, and the
+      // Pages/* composed views want the full canvas too. Everything else renders inline
+      // and looks best in a centered phone-screen panel.
+      const bodyRendered = /Nav|Sheet|Pages/i.test(ctx.title || "");
 
       // clear a stale hash so a sheet from a previous story closes
       if (!/Sheet/i.test(ctx.title || "") && window.location.hash) {

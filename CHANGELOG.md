@@ -3,6 +3,43 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] — 2026-09-01
+
+Rebuilt on a real component framework and rounded out the card set.
+
+### Cards
+
+- **`fibbers-media`** — a `media_player` card: now-playing (art/title/artist), transport
+  (prev / play-pause / next), a drag volume slider, favourite `sources` chips, and a compact
+  "Nu bezig" variant.
+- **`fibbers-sysmon`** — host/Pi telemetry tiles (cpu / temp / disk / ram / …) with an optional
+  history sparkline.
+- **`fibbers-climate`** — a thermostat: current temp + hvac action, setpoint −/+
+  (`climate.set_temperature`), and hvac-mode chips.
+- **`fibbers-scheduler`** — a wake/alarm control over `input_datetime` / `input_boolean` /
+  `input_number` helpers: time, enable toggle, fade window, weekday chips.
+- **`fibbers-remote`** — a universal remote: power, D-pad, back/home/menu and volume/playback
+  via `remote.send_command`.
+
+That brings the set to **20 cards**, all sharing one Tailwind design-token set.
+
+### Changed
+
+- **Migrated the whole plugin to Lit + Tailwind CSS v4.** Every card is a `LitElement`; styling
+  comes from one shared adopted `CSSStyleSheet` per shadow root (compiled from
+  `styles/tailwind.css`, with Tailwind v4's `@property` rules hoisted to the document so
+  shadow-DOM `box-shadow` works). The bundle now depends on `lit` at runtime — the previous
+  "vanilla / zero runtime dependencies" claim no longer applies.
+- README rewritten for the 20-card set and the real Lit/Tailwind build pipeline; new
+  card-gallery hero screenshot.
+
+### Fixed
+
+- **`fibbers-room`** — the long-press timer is now cleared on disconnect, so a pending hold can
+  no longer open more-info on an unmounted tile.
+- **`fibbers-graph`** — colours survive Tailwind's purge: the stroke class is now a static
+  full-string map, so `text-blue` (and the other accents) render instead of being stripped.
+
 ## [0.1.0] — 2026-08-31
 
 First public release.

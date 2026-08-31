@@ -27,12 +27,11 @@ bun run watch       # rebuild on change
 bun run check       # prettier --check + build + parse
 ```
 
-There is no Home Assistant instance required to develop. Open these standalone harnesses in a
-browser (they load `../dist/fibbers.js` against a stubbed `hass`, no network):
+There is no Home Assistant instance required to develop. **Storybook** (`cd storybook && npm i &&
+npm run storybook`) is the primary tool — every card, each state as its own story, YAML under
+**Show code**. Two standalone harnesses cover behaviour Storybook can't (they load
+`../dist/fibbers.js` against a stubbed `hass`, no network):
 
-- **`docs/preview.html`** — every card, with toggles for lit / offline / low-battery / update
-  states. Append **`?test=1`** to run scripted stack + duplicate-bar + detach + offset
-  assertions in-page.
 - **`docs/fixture.html`** — proves the nav bar pins by reproducing Lovelace's containing block
   (a transformed ancestor), with a deliberately-naive in-tree control that _must_ fail.
 - **`docs/hatabs-fixture.html`** — asserts the six `hide_ha_tabs` acceptance criteria.
