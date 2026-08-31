@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="68" viewBox="0 0 150 34" fill="none">
+  <!-- green accent tile with a small "bottom bar" motif -->
+  <rect x="1" y="4" width="26" height="26" rx="7" fill="#17281C" stroke="#2B4A34"/>
+  <rect x="6" y="22" width="16" height="3.5" rx="1.75" fill="#74B98A"/>
+  <circle cx="9" cy="12" r="2.4" fill="#74B98A"/>
+  <circle cx="14" cy="12" r="2.4" fill="#CFE6D5"/>
+  <circle cx="19" cy="12" r="2.4" fill="#2B4A34"/>
+  <!-- wordmark -->
+  <text x="37" y="23" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+        font-size="19" font-weight="600" letter-spacing="-0.02em" fill="#EDF1F1">Fibbers</text>
+</svg>

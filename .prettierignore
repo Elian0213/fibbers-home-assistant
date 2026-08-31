@@ -1,0 +1,6 @@
+# generated / committed build artifact
+dist/
+# generated icon registry (produced by scripts/gen-icons.mjs)
+src/icons.gen.js
+node_modules/
+bun.lock

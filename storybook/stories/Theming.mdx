@@ -1,0 +1,49 @@
+import { Meta } from "@storybook/blocks";
+
+<Meta title="Getting Started/Theming" />
+
+# Theming
+
+Loading the plugin injects the full dark theme **globally** — it appends a
+`<style id="fibbers-global">` to `document.head` and sets Home Assistant's own theme custom
+properties on `html` with `!important` (HA applies themes as inline styles on the root, so a
+stylesheet can't win without it). Because custom properties inherit into shadow DOM, this also
+restyles more-info dialogs, switches and sliders. **No separate theme repository, no `card-mod`.**
+
+## The palette
+
+Green is the brand/active colour; amber is kept for warnings only.
+
+| Token | Value | Role |
+|---|---|---|
+| `--fib-bg` | `#111516` | page ground |
+| `--fib-card` | `#1D2426` | card surface |
+| `--fib-sheet` | `#171E20` | modal sheet surface |
+| `--fib-line` | `#333E41` | borders |
+| `--fib-ink` | `#EDF1F1` | primary text |
+| `--fib-muted` | `#7D8B8E` | labels / inactive |
+| `--fib-accent` | `#74B98A` | **brand accent — soft forest green** (active / lit / on) |
+| `--fib-accent-bg` | `#17281C` | green tint (icon-on box) |
+| `--fib-amber` | `#E8A33D` | **warning only** (the alert card) |
+| `--fib-green` | `#63C295` | success |
+| `--fib-red` | `#EC8377` | error / offline |
+| `--fib-blue` | `#5AAFD6` | info / active-secondary |
+
+Semantics: **green** = brand / active / positive, **amber** = attention, **red** = error,
+**blue** = info. Lit rooms and active scenes glow
+`linear-gradient(145deg, #1E3427, #132016)` with a `#2E5238` border.
+
+## A user-selectable theme instead
+
+The injector is the default, but a standalone theme file is available if you'd rather select one
+in your profile: copy
+[`docs/optional-theme.yaml`](https://github.com/Elian0213/fibbers-home-assistant/blob/main/docs/optional-theme.yaml)
+to `/config/themes/fibbers.yaml` and pick it under **Profile → Theme**. It sets the same values.
+
+## Turning the injector off
+
+Set this before the plugin loads (for example if you already run a theme you like):
+
+```js
+window.FIBBERS_DISABLE_GLOBAL_CSS = true;
+```

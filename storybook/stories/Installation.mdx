@@ -1,0 +1,45 @@
+import { Meta } from "@storybook/blocks";
+
+<Meta title="Getting Started/Installation" />
+
+# Installation
+
+Fibbers is a HACS **Dashboard** plugin — one JavaScript resource, no integration, no restart.
+
+## Via HACS (recommended)
+
+1. **HACS → ⋮ → Custom repositories.** Add the repository URL
+   `https://github.com/Elian0213/fibbers-home-assistant` with category **Dashboard**.
+2. Find **Fibbers** in HACS and **Download**.
+3. HACS usually registers the Lovelace resource for you. If not, add it manually under
+   **Settings → Dashboards → ⋮ → Resources → Add**:
+
+   ```text
+   URL:  /hacsfiles/fibbers-home-assistant/fibbers.js
+   Type: JavaScript module
+   ```
+
+4. **Hard-reload** the browser (Ctrl / Cmd + Shift + R).
+
+The cards and the dark theming load together — there's nothing else to install (no `card-mod`,
+no `kiosk-mode`, no separate theme repository).
+
+> **Tip.** In this Storybook, every card story has a **Show code** button (and a **Docs** tab)
+> that shows the exact Lovelace YAML — copy it straight into a card on your dashboard.
+
+## Requirements
+
+- Home Assistant **2024.11** or newer (verified on 2026.8.x).
+- Any modern browser; the bottom bar is tuned for the iOS companion app.
+
+## Turning theming off
+
+Loading the plugin injects a dark theme globally. To opt out (e.g. you already run a theme),
+set this before the plugin loads:
+
+```js
+window.FIBBERS_DISABLE_GLOBAL_CSS = true;
+```
+
+See [Theming](?path=/docs/getting-started-theming--docs) for what the injector covers, and
+[Usage](?path=/docs/getting-started-usage--docs) for a full dashboard example.

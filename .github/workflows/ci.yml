@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Format check
+        run: bunx prettier --check "src/**/*.js" "docs/*.html"
+
+      - name: Generate icons
+        run: bun run gen-icons
+
+      - name: Build
+        run: bun run build
+
+      - name: dist/ and icons.gen.js are in sync with src/
+        run: git diff --exit-code dist/fibbers.js src/icons.gen.js
+
+      - name: Bundle parses
+        run: node -e "new Function(require('fs').readFileSync('dist/fibbers.js','utf8'))"
+
+  storybook:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # the stories import the built bundle
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Build Storybook
+        working-directory: storybook
+        run: |
+          npm ci
+          npm run build-storybook

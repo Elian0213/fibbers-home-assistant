@@ -1,0 +1,18 @@
+# dependencies
+node_modules/
+.bun/
+
+# editor / tooling / OS
+.claude/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# build output
+_site/
+storybook/storybook-static/
+
+# NOTE: dist/fibbers.js is a build artifact but is committed on purpose — HACS
+# serves it directly. bun.lock is committed too, for reproducible CI installs.

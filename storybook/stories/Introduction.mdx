@@ -1,0 +1,71 @@
+import { Meta } from "@storybook/blocks";
+import hero from "./hero.png";
+
+<Meta title="Introduction" />
+
+<div className="sb-unstyled" style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+  <img
+    src={hero}
+    alt="Fibbers dashboard"
+    width={300}
+    style={{ borderRadius: 22, border: "1px solid #333e41" }}
+  />
+</div>
+
+# Fibbers
+
+A bottom-nav dashboard for Home Assistant that actually feels like an app — a
+**viewport-pinned bottom bar**, a real back-stack, drag-to-dismiss **modal sheets**,
+self-computing **room tiles**, an **alert card** with real logic, and dark theming.
+
+Vanilla web components, **zero runtime dependencies**. This Storybook renders the real shipped
+bundle (`dist/fibbers.js`) against a stubbed Home Assistant — every card in the sidebar is live.
+Open a card's **Docs** tab, or hit **Show code**, to copy its exact **Lovelace YAML**.
+
+## Install
+
+Fibbers is a HACS **Dashboard** plugin (a Lovelace resource):
+
+```text
+HACS → ⋮ → Custom repositories → add
+  Elian0213/fibbers-home-assistant   (category: Dashboard)
+→ Download → hard-reload the browser
+```
+
+Full steps, including the resource path, are on the
+[Installation](?path=/docs/getting-started-installation--docs) page.
+
+## Use it
+
+One card is a few lines of YAML. A room tile that reads its own lights:
+
+```yaml
+type: custom:fibbers-room
+name: Woonkamer
+icon: solar:sofa-2-bold-duotone
+sheet: woonkamer
+entities:
+  - light.tv_led_strip
+  - light.kitchen
+  - light.woonkamer_computer
+```
+
+See [Usage](?path=/docs/getting-started-usage--docs) for a full copy-paste "Huis" view built
+only from Fibbers cards, and [Theming](?path=/docs/getting-started-theming--docs) for the
+palette and the global CSS injector.
+
+## What's inside
+
+- **fibbers-nav** — the bottom bar (pins to the viewport, real back-stack, `hide_ha_tabs`, badges)
+- **fibbers-back** — a back control that names where you came from
+- **fibbers-sheet** — a hash-routed modal bottom sheet
+- **fibbers-section** — the uppercase mono section label
+- **fibbers-room** — a tile that computes its own light state
+- **fibbers-light-row** — a light with a brightness slider + configurable icon button
+- **fibbers-alert** — "Aandacht nodig" as real checks, not Jinja
+- **fibbers-chips** — an action pill row
+- **fibbers-scene** — scene tiles that highlight what's active
+
+Every card has its own section in the sidebar with live examples and its YAML.
+
+Built by [Elian Heutink](https://github.com/Elian0213/fibbers-home-assistant) · MIT.

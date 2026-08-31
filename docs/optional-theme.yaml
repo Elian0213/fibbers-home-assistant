@@ -1,0 +1,114 @@
+##############################################################################
+#  Fibbers  —  dark theme with a soft forest-green accent, built to match the
+#  Thuis dashboard. Green = brand/active; amber is kept for warnings only.
+#
+#  Installed by HACS to /config/themes/fibbers.yaml
+#  Select it in: Profile → Theme → Fibbers
+##############################################################################
+
+Fibbers:
+  # ---- ground & surfaces --------------------------------------------------
+  primary-background-color: "#111516"
+  secondary-background-color: "#161C1E"
+  card-background-color: "#1D2426"
+  ha-card-background: "#1D2426"
+  app-header-background-color: "#111516"
+  app-header-text-color: "#EDF1F1"
+  sidebar-background-color: "#0E1315"
+  sidebar-icon-color: "#7D8B8E"
+  sidebar-text-color: "#A9B6B9"
+  sidebar-selected-icon-color: "#74B98A"
+  sidebar-selected-text-color: "#EDF1F1"
+  divider-color: "#333E41"
+  table-row-background-color: "#1D2426"
+  table-row-alternative-background-color: "#212A2C"
+
+  # ---- text ---------------------------------------------------------------
+  primary-text-color: "#EDF1F1"
+  secondary-text-color: "#8B999C"
+  disabled-text-color: "#5C6A6D"
+  text-primary-color: "#111516"
+
+  # ---- accent (forest green); amber is kept for warning-color only ---------
+  primary-color: "#74B98A"
+  accent-color: "#74B98A"
+  state-icon-color: "#8B999C"
+  state-icon-active-color: "#74B98A"
+  paper-item-icon-color: "#8B999C"
+  paper-item-icon-active-color: "#74B98A"
+  label-badge-background-color: "#1D2426"
+  label-badge-text-color: "#EDF1F1"
+  label-badge-red: "#EC8377"
+  error-color: "#EC8377"
+  warning-color: "#E8A33D"
+  success-color: "#63C295"
+  info-color: "#5AAFD6"
+
+  # ---- cards --------------------------------------------------------------
+  ha-card-border-radius: "15px"
+  ha-card-border-width: "1px"
+  ha-card-border-color: "#333E41"
+  ha-card-box-shadow: "none"
+
+  # ---- dialogs (this is what you see when tapping a light) ----------------
+  ha-dialog-border-radius: "22px"
+  mdc-dialog-scrim-color: "rgba(6,9,10,.72)"
+  mdc-theme-surface: "#171E20"
+  ha-dialog-surface-background: "#171E20"
+  more-info-header-background: "#171E20"
+
+  # ---- controls -----------------------------------------------------------
+  switch-checked-color: "#74B98A"
+  switch-checked-button-color: "#EDF1F1"
+  switch-checked-track-color: "#2E5238"
+  switch-unchecked-button-color: "#8B999C"
+  switch-unchecked-track-color: "#333E41"
+  paper-slider-active-color: "#74B98A"
+  paper-slider-knob-color: "#74B98A"
+  paper-slider-knob-start-color: "#74B98A"
+  paper-slider-pin-color: "#74B98A"
+  paper-slider-container-color: "#2C3639"
+  paper-toggle-button-checked-button-color: "#74B98A"
+
+  # ---- code editor / misc -------------------------------------------------
+  code-editor-background-color: "#161C1E"
+  markdown-code-background-color: "#262F31"
+  input-fill-color: "#212A2C"
+  input-ink-color: "#EDF1F1"
+  input-label-ink-color: "#8B999C"
+  input-idle-line-color: "#333E41"
+
+  # ---- Mushroom -----------------------------------------------------------
+  mush-border-radius: 15
+  mush-card-border-radius: 15
+  mush-card-border-width: 1
+  mush-icon-border-radius: 8
+  mush-title-font-weight: 600
+  mush-rgb-amber: 232, 163, 61
+  mush-rgb-accent: 116, 185, 138
+  mush-rgb-grey: 139, 153, 156
+  mush-rgb-disabled: 92, 106, 109
+  mush-rgb-red: 236, 131, 119
+  mush-rgb-green: 99, 194, 149
+  mush-rgb-blue: 90, 175, 214
+  mush-rgb-state-light-on: 116, 185, 138
+
+  # ---- card-mod: global CSS, the bit dashboard config cannot reach --------
+  # Requires thomasloven/lovelace-card-mod (already installed).
+  card-mod-theme: Fibbers
+  card-mod-root: |
+    /* section headings on sections views, everywhere at once */
+    hui-heading-card .container .content {
+      font-size: 9.5px !important;
+      font-weight: 500 !important;
+      letter-spacing: .11em !important;
+      text-transform: uppercase !important;
+      color: #7D8B8E !important;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace !important;
+    }
+  card-mod-more-info-yaml: |
+    .: |
+      ha-dialog {
+        --mdc-theme-surface: #171E20;
+        --dialog-backdrop-filter: blur(3px);
+      }

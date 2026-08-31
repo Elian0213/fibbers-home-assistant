@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fibbers — hide_ha_tabs fixture</title>
+
+    <!--
+      Standalone fixture for hide_ha_tabs. It fakes just enough of HA's real DOM
+      (verified on 2026.8.3) to exercise the injection mechanics without an HA
+      instance:
+
+        partial-panel-resolver          ← MutationObserver target
+          hui-root                       ← injection target (has a shadow root)
+            (shadow) div.narrow > .header > .toolbar
+                       ├─ ha-menu-button   (must stay visible)
+                       ├─ ha-tab-group     (the thing we hide)
+                       └─ div.action-items (must stay visible)
+
+      Asserts acceptance criteria 1–4 and 6 here; criterion 5 (detach restores
+      the tabs) is asserted here AND confirmed on the live Lab dashboard.
+    -->
+    <style>
+      body {
+        margin: 0;
+        background: #0a0d0e;
+        color: #edf1f1;
+        font:
+          13px/1.4 ui-monospace,
+          Menlo,
+          monospace;
+      }
+      #verdict {
+        padding: 10px 14px;
+        border-bottom: 1px solid #333e41;
+        white-space: pre-wrap;
+      }
+      #verdict.pass {
+        background: #63c295;
+        color: #0b120e;
+        font-weight: 700;
+      }
+      #verdict.fail {
+        background: #ec8377;
+        color: #120a09;
+        font-weight: 700;
+      }
+      .rows {
+        padding: 10px 14px;
+      }
+      .rows div {
+        margin: 4px 0;
+      }
+      /* give the fake HA toolbar a real look so the effect is visible */
+      .stage {
+        padding: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="verdict">running…</div>
+    <div class="rows" id="rows"></div>
+    <div class="stage" id="stage"></div>
+
+    <!-- fake HA custom elements, defined before the plugin loads -->
+    <script>
+      (function () {
+        // ha-tab-group / ha-menu-button: plain shells with a visible default
+        class TabGroup extends HTMLElement {
+          connectedCallback() {
+            this.style.display = this.style.display || "block";
+            this.textContent = "Tab A   Tab B   Tab C";
+          }
+        }
+        class MenuButton extends HTMLElement {
+          connectedCallback() {
+            this.textContent = "≡";
+          }
+        }
+        // hui-root: builds the real-ish header structure in its shadow root
+        class HuiRoot extends HTMLElement {
+          connectedCallback() {
+            if (this.shadowRoot) return;
+            const sr = this.attachShadow({ mode: "open" });
+            sr.innerHTML = `
+              <style>
+                .header { background:#161c1e; border-bottom:1px solid #333e41; }
+                .toolbar { display:flex; align-items:center; gap:8px; height:56px; padding:0 8px; }
+                ha-menu-button { color:#a9b6b9; }
+                ha-tab-group { flex:1; color:#e8a33d; }
+                .action-items { color:#a9b6b9; }
+              </style>
+              <div class="narrow">
+                <div class="header">
+                  <div class="toolbar">
+                    <ha-menu-button></ha-menu-button>
+                    <ha-tab-group></ha-tab-group>
+                    <div class="action-items">⋮ ✎</div>
+                  </div>
+                </div>
+              </div>`;
+          }
+        }
+        class PanelResolver extends HTMLElement {}
+        [
+          ["ha-tab-group", TabGroup],
+          ["ha-menu-button", MenuButton],
+          ["hui-root", HuiRoot],
+          ["partial-panel-resolver", PanelResolver],
+        ].forEach(([t, c]) => {
+          if (!customElements.get(t)) customElements.define(t, c);
+        });
+
+        // build the fake HA shell
+        const panel = document.createElement("partial-panel-resolver");
+        const huiRoot = document.createElement("hui-root");
+        panel.appendChild(huiRoot);
+        document.getElementById("stage").appendChild(panel);
+      })();
+    </script>
+
+    <!-- the real plugin -->
+    <script src="../dist/fibbers.js"></script>
+
+    <!-- fixture harness -->
+    <script>
+      (function () {
+        const F = window.FIBBERS;
+        const results = [];
+        const rec = (n, pass, detail) => results.push({ n, pass, detail });
+        const $stage = document.getElementById("stage");
+
+        const TABS = [
+          { name: "Huis", icon: "mdi:home", path: "/lab/huis" },
+          { name: "Licht", icon: "mdi:lightbulb-group", path: "/lab/licht" },
+          { name: "Meer", icon: "mdi:dots-horizontal", path: "/lab/meer" },
+        ];
+
+        const huiRoot = () =>
+          [...document.querySelectorAll("*")]
+            .concat(
+              [...document.querySelectorAll("partial-panel-resolver")].flatMap(
+                (p) => [...p.children],
+              ),
+            )
+            .find((e) => e.localName === "hui-root") ||
+          document.querySelector("hui-root");
+        const tabGroup = () =>
+          huiRoot().shadowRoot.querySelector("ha-tab-group");
+        const headerEl = () => huiRoot().shadowRoot.querySelector(".header");
+        const menuBtn = () =>
+          huiRoot().shadowRoot.querySelector("ha-menu-button");
+        const actions = () =>
+          huiRoot().shadowRoot.querySelector(".action-items");
+        const styleCount = () =>
+          huiRoot().shadowRoot.querySelectorAll("#fibbers-hide-tabs").length;
+        const disp = (el) => (el ? getComputedStyle(el).display : "(missing)");
+
+        function makeNav(cfg) {
+          const el = document.createElement("fibbers-nav");
+          el.setConfig(
+            Object.assign({ type: "custom:fibbers-nav", tabs: TABS }, cfg),
+          );
+          $stage.appendChild(el);
+          return el;
+        }
+        function removeAllNav() {
+          document.querySelectorAll("fibbers-nav").forEach((n) => n.remove());
+        }
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+        async function run() {
+          results.length = 0;
+          removeAllNav();
+
+          // 3) omitted → nothing changes
+          let nav = makeNav({});
+          rec(
+            "3. omitted → ha-tab-group stays visible, no style injected",
+            disp(tabGroup()) !== "none" && styleCount() === 0,
+            `display=${disp(tabGroup())}, styles=${styleCount()}`,
+          );
+          nav.remove();
+
+          // 1) true → ha-tab-group hidden, menu + actions visible
+          nav = makeNav({ hide_ha_tabs: true });
+          await wait(20);
+          rec(
+            "1. true → ha-tab-group display:none; menu + actions visible",
+            disp(tabGroup()) === "none" &&
+              disp(menuBtn()) !== "none" &&
+              disp(actions()) !== "none",
+            `tab=${disp(tabGroup())}, menu=${disp(menuBtn())}, actions=${disp(actions())}`,
+          );
+
+          // 4) 20 tab switches → exactly one style element
+          for (let i = 0; i < 20; i++) F.navigate(TABS[i % TABS.length].path);
+          await wait(120);
+          rec(
+            "4. exactly one #fibbers-hide-tabs after 20 switches",
+            styleCount() === 1,
+            `style count = ${styleCount()}`,
+          );
+
+          // 6) hui-root replaced (config-save re-render) → tabs re-hidden by observer
+          const panel = document.querySelector("partial-panel-resolver");
+          panel.removeChild(panel.querySelector("hui-root"));
+          panel.appendChild(document.createElement("hui-root"));
+          await wait(150); // debounce (60) + margin
+          rec(
+            "6. hui-root re-render → observer re-injects, tabs stay hidden",
+            disp(tabGroup()) === "none" && styleCount() === 1,
+            `display=${disp(tabGroup())}, styles=${styleCount()}`,
+          );
+
+          // 2) "header" → .header hidden
+          nav.remove();
+          nav = makeNav({ hide_ha_tabs: "header" });
+          await wait(20);
+          rec(
+            '2. "header" → .header display:none',
+            disp(headerEl()) === "none",
+            `header display=${disp(headerEl())}`,
+          );
+
+          // 5) remove the last nav card → detach restores the tabs
+          removeAllNav();
+          await wait(20);
+          rec(
+            "5. no fibbers-nav → detach() restores tabs (style removed)",
+            styleCount() === 0 &&
+              disp(tabGroup()) !== "none" &&
+              disp(headerEl()) !== "none",
+            `styles=${styleCount()}, tab=${disp(tabGroup())}, header=${disp(headerEl())}`,
+          );
+
+          const allPass = results.every((r) => r.pass);
+          window.__HATABS__ = { allPass, results };
+          paint(allPass);
+          return window.__HATABS__;
+        }
+
+        function paint(allPass) {
+          const v = document.getElementById("verdict");
+          v.className = allPass ? "pass" : "fail";
+          v.textContent =
+            "hide_ha_tabs: " + (allPass ? "ALL CRITERIA PASS" : "FAIL");
+          document.getElementById("rows").innerHTML = results
+            .map(
+              (r) =>
+                `<div><span style="color:${r.pass ? "#63c295" : "#ec8377"}">${r.pass ? "✓" : "✗"}</span> ${r.n}<br><span style="color:#7d8b8e">${r.detail}</span></div>`,
+            )
+            .join("");
+        }
+
+        window.__runHatabs = run;
+        requestAnimationFrame(() => requestAnimationFrame(run));
+      })();
+    </script>
+  </body>
+</html>

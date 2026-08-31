@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Fibbers — shots</title>
+    <!--
+      Marketing screenshot stage. Renders a realistic "Huis" dashboard built only
+      from Fibbers cards, with the real bottom nav bar, on a clean 390px phone
+      screen (no harness chrome). Not shipped to users; a capture surface for the
+      README images. `?open=demo-sheet` opens the sheet for that shot.
+    -->
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: #111516;
+        color: #edf1f1;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .screen {
+        max-width: 390px;
+        margin: 0 auto;
+        padding: 18px 16px 0;
+      }
+      .greet {
+        margin: 6px 2px 16px;
+      }
+      .greet h1 {
+        margin: 0;
+        font-size: 19px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .greet p {
+        margin: 3px 0 0;
+        font-size: 11.5px;
+        color: #7d8b8e;
+      }
+      .stack > * {
+        display: block;
+        margin-bottom: 12px;
+      }
+      .rooms {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .rooms fibbers-room {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="screen">
+      <div class="greet">
+        <h1>Goedemiddag, Elian</h1>
+        <p>21,4 °C in de woonkamer · 2 van 6 lampen aan</p>
+      </div>
+      <div class="stack" id="stack"></div>
+    </div>
+
+    <script>
+      (function () {
+        class HaIconStub extends HTMLElement {
+          static get observedAttributes() {
+            return ["icon"];
+          }
+          connectedCallback() {
+            this._r();
+          }
+          attributeChangedCallback() {
+            this._r();
+          }
+          _r() {
+            const G = {
+              "solar:home-2-bold-duotone": "⌂",
+              "solar:lightbulb-bolt-bold-duotone": "☀",
+              "solar:music-note-bold-duotone": "♪",
+              "solar:tv-bold-duotone": "▭",
+              "solar:menu-dots-bold-duotone": "⋯",
+              "solar:sofa-2-bold-duotone": "🛋",
+              "solar:bed-bold-duotone": "🛏",
+              "solar:chef-hat-minimalistic-bold-duotone": "🍴",
+              "solar:bath-bold-duotone": "🚿",
+              "solar:alarm-bold-duotone": "⏰",
+              "solar:power-bold-duotone": "⏻",
+              "solar:moon-bold-duotone": "☾",
+              "solar:sun-bold-duotone": "☀",
+              "solar:clapperboard-play-bold-duotone": "🎬",
+              "mdi:alert": "⚠",
+              "mdi:check-circle": "✓",
+              "solar:lightbulb-bold-duotone": "○",
+            };
+            this.textContent = G[this.getAttribute("icon")] || "●";
+            this.style.cssText =
+              "display:inline-flex;align-items:center;justify-content:center;line-height:1";
+            requestAnimationFrame(() => {
+              this.style.fontSize =
+                Math.round((this.clientWidth || 16) * 0.9) + "px";
+            });
+          }
+        }
+        customElements.define("ha-icon", HaIconStub);
+        window.loadCardHelpers = async () => ({
+          createCardElement: (cfg) => {
+            const el = document.createElement(cfg.type.replace(/^custom:/, ""));
+            el.setConfig(cfg);
+            return el;
+          },
+        });
+      })();
+    </script>
+    <script src="../dist/fibbers.js"></script>
+    <script>
+      (function () {
+        const NOW = "2026-08-31T15:00:00+00:00";
+        const S = {};
+        const add = (id, state, attributes = {}) =>
+          (S[id] = {
+            entity_id: id,
+            state,
+            attributes,
+            last_changed: NOW,
+            last_updated: NOW,
+          });
+        add("light.tv_led_strip", "on", {
+          friendly_name: "TV LED",
+          brightness: 204,
+          color_mode: "hs",
+        });
+        add("light.kitchen", "on", {
+          friendly_name: "Gitaarlamp",
+          brightness: 178,
+        });
+        add("light.woonkamer_computer", "off", { friendly_name: "Computer" });
+        add("light.kitchen_lsc_led_strip", "off", {
+          friendly_name: "Keuken LED",
+        });
+        add("light.hue_go_1", "unavailable", {
+          friendly_name: "Slaapkamerlamp",
+        });
+        add("light.hue_lightstrip_plus_1", "unavailable", {
+          friendly_name: "Bedroom LED",
+        });
+        add("light.all_color_lights", "on", { friendly_name: "Alle lampen" });
+        add("sensor.hue_motion_sensor_1_battery", "8", {
+          friendly_name: "Batterij bewegingssensor",
+          unit_of_measurement: "%",
+          device_class: "battery",
+        });
+        add("update.home_assistant_core", "on", {
+          friendly_name: "Home Assistant Core",
+          device_class: "update",
+        });
+        add("input_boolean.wake_alarm_enabled", "on", {
+          friendly_name: "Wekker",
+        });
+        add("scene.avond", "2026-08-31T19:12:00+00:00", {
+          friendly_name: "Avond",
+        });
+        add("scene.helder", "2026-08-31T08:03:00+00:00", {
+          friendly_name: "Helder",
+        });
+        add("scene.film", "2026-08-30T21:40:00+00:00", {
+          friendly_name: "Film",
+        });
+        const hass = {
+          states: S,
+          language: "nl",
+          callService: (d, s, x) => console.log("callService", d + "." + s, x),
+          callWS: async () => ({}),
+        };
+
+        const CARDS = [
+          { type: "custom:fibbers-section", label: "Aandacht" },
+          {
+            type: "custom:fibbers-alert",
+            checks: [
+              { type: "unavailable_lights" },
+              { type: "low_battery", below: 20 },
+              { type: "updates" },
+            ],
+          },
+          {
+            type: "custom:fibbers-chips",
+            chips: [
+              {
+                name: "Wekker",
+                icon: "solar:alarm-bold-duotone",
+                action: {
+                  action: "toggle",
+                  entity: "input_boolean.wake_alarm_enabled",
+                },
+                active_when: {
+                  entity: "input_boolean.wake_alarm_enabled",
+                  state: "on",
+                },
+              },
+              {
+                name: "Alles uit",
+                icon: "solar:power-bold-duotone",
+                action: { action: "call-service", service: "light.turn_off" },
+              },
+              {
+                name: "Muziek",
+                icon: "solar:music-note-bold-duotone",
+                action: { action: "navigate", navigation_path: "/x" },
+              },
+            ],
+          },
+          { type: "custom:fibbers-section", label: "Sferen" },
+          {
+            type: "custom:fibbers-scene",
+            scenes: [
+              {
+                name: "Avond",
+                icon: "solar:moon-bold-duotone",
+                scene: "scene.avond",
+              },
+              {
+                name: "Helder",
+                icon: "solar:sun-bold-duotone",
+                scene: "scene.helder",
+              },
+              {
+                name: "Film",
+                icon: "solar:clapperboard-play-bold-duotone",
+                scene: "scene.film",
+              },
+            ],
+          },
+          { type: "custom:fibbers-section", label: "Kamers" },
+        ];
+
+        const ROOMS = [
+          {
+            name: "Woonkamer",
+            icon: "solar:sofa-2-bold-duotone",
+            entities: [
+              "light.tv_led_strip",
+              "light.kitchen",
+              "light.woonkamer_computer",
+            ],
+            sheet: "demo-sheet",
+          },
+          {
+            name: "Keuken",
+            icon: "solar:chef-hat-minimalistic-bold-duotone",
+            entities: ["light.kitchen_lsc_led_strip"],
+            sheet: "keuken",
+          },
+          {
+            name: "Slaapkamer",
+            icon: "solar:bed-bold-duotone",
+            entities: ["light.hue_go_1", "light.hue_lightstrip_plus_1"],
+            sheet: "slaapkamer",
+          },
+          {
+            name: "Badkamer",
+            icon: "solar:bath-bold-duotone",
+            entities: ["light.kitchen"],
+            sheet: "badkamer",
+          },
+        ];
+
+        const NAV = {
+          type: "custom:fibbers-nav",
+          tabs: [
+            {
+              name: "Huis",
+              icon: "solar:home-2-bold-duotone",
+              path: "/x/huis",
+            },
+            {
+              name: "Licht",
+              icon: "solar:lightbulb-bolt-bold-duotone",
+              path: "/x/licht",
+            },
+            {
+              name: "Muziek",
+              icon: "solar:music-note-bold-duotone",
+              path: "/x/muziek",
+            },
+            { name: "TV", icon: "solar:tv-bold-duotone", path: "/x/tv" },
+            {
+              name: "Meer",
+              icon: "solar:menu-dots-bold-duotone",
+              path: "/x/meer",
+              badge: { entity: "update.home_assistant_core", when: "on" },
+            },
+          ],
+        };
+        const SHEET = {
+          type: "custom:fibbers-sheet",
+          id: "demo-sheet",
+          title: "Woonkamer",
+          icon: "solar:sofa-2-bold-duotone",
+          subtitle: "3 lampen · 21,4 °C",
+          cards: [
+            { type: "custom:fibbers-section", label: "Verlichting" },
+            { type: "custom:fibbers-light-row", entity: "light.tv_led_strip" },
+            { type: "custom:fibbers-light-row", entity: "light.kitchen" },
+            { type: "custom:fibbers-light-row", entity: "light.hue_go_1" },
+          ],
+        };
+
+        const stack = document.getElementById("stack");
+        const mk = (cfg) => {
+          const el = document.createElement(cfg.type.replace(/^custom:/, ""));
+          el.setConfig(cfg);
+          el.hass = hass;
+          return el;
+        };
+        CARDS.forEach((c) => stack.appendChild(mk(c)));
+        const grid = document.createElement("div");
+        grid.className = "rooms";
+        ROOMS.forEach((r) =>
+          grid.appendChild(mk({ type: "custom:fibbers-room", ...r })),
+        );
+        stack.appendChild(grid);
+        // seed a fake stack so the active tab lights up
+        window.FIBBERS.nav.stack = ["/x/huis"];
+        history.replaceState(null, "", "/x/huis");
+        window.dispatchEvent(
+          new CustomEvent("location-changed", { detail: {} }),
+        );
+        stack.appendChild(mk(NAV));
+        const sheet = mk(SHEET);
+        document.body.appendChild(sheet);
+
+        const params = new URLSearchParams(location.search);
+        if (params.get("open")) {
+          setTimeout(() => (window.location.hash = params.get("open")), 60);
+        }
+        window.__ready = true;
+      })();
+    </script>
+  </body>
+</html>

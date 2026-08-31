@@ -1,0 +1,42 @@
+name: Bug report
+description: Something in a Fibbers card isn't behaving.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Card YAML
+      description: The card config that reproduces it.
+      render: yaml
+  - type: input
+    id: ha
+    attributes:
+      label: Home Assistant version
+      placeholder: e.g. 2026.8.3
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Browser / device
+      placeholder: e.g. iOS Safari 18, Chrome 141 desktop, HA companion app
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Fibbers version
+      placeholder: e.g. v0.1.0
+  - type: textarea
+    id: console
+    attributes:
+      label: Console errors
+      description: Anything in the browser console (F12).
+      render: shell

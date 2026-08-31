@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Fibbers — HA containing-block fixture</title>
+
+    <!--
+      The HA fixture (required for any positional test).
+
+      The whole architecture rests on one claim: `position: fixed` does NOT pin to
+      the viewport when an ancestor establishes a containing block (any non-`none`
+      `transform`, `filter`, `contain`, or `will-change`). A plain page cannot
+      reproduce that, so Phase 0's "bar is pinned" assertion passed for the wrong
+      reason. This page reproduces the real mechanism and proves it with a
+      deliberately-naive negative control.
+
+      WHY THIS STRUCTURE (and not the literal one sketched in navigation.md):
+      Inspecting the live HA (v2026.8.3) showed the transform lives on ancestors
+      that are TALLER than the viewport (ha-card and the card subtree carry a
+      transform; even an identity matrix(1,0,0,1,0,0) establishes a containing
+      block). If instead you put the transform on the 100dvh scroll-port itself,
+      a fixed child pins to that port and the bug does NOT appear — the control
+      would pass and the fixture would be lying. So the containing block here is a
+      transformed element TALLER than the viewport, scrolled by an outer box:
+
+        .scroller   overflow-y:auto; height:100dvh          (scrolls)
+          .ha-fixture  transform: translateZ(0); min-height:260vh   (containing block, taller than viewport)
+            …content…
+            <fibbers-nav-naive> → appends its bar IN-TREE  → trapped by .ha-fixture
+        <fibbers-nav> (real)   → appends its bar to document.body → pinned to window
+
+      Assert AFTER scrolling the container. An unscrolled container hides the bug.
+    -->
+
+    <style>
+      :root {
+        --fib-bg: #111516;
+        --fib-nav: #161c1e;
+        --fib-line: #333e41;
+        --fib-ink: #edf1f1;
+        --fib-muted: #7d8b8e;
+        --fib-green: #63c295;
+        --fib-red: #ec8377;
+        --fib-amber: #e8a33d;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: #0a0d0e;
+        color: var(--fib-ink);
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+      }
+
+      /* result banner, pinned to the top of the WINDOW (real fixed, outside the fixture) */
+      #verdict {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        padding: 10px 14px;
+        font:
+          600 13px/1.35 ui-monospace,
+          Menlo,
+          monospace;
+        border-bottom: 1px solid var(--fib-line);
+        background: #12181a;
+        white-space: pre-wrap;
+      }
+      #verdict.pass {
+        color: #0b120e;
+        background: var(--fib-green);
+      }
+      #verdict.fail {
+        color: #120a09;
+        background: var(--fib-red);
+      }
+
+      /* the outer scroller */
+      .scroller {
+        position: relative;
+        height: 100dvh;
+        overflow-y: auto;
+        padding-top: 52px; /* clear the verdict banner */
+      }
+      /* the transformed containing block, deliberately taller than the viewport */
+      .ha-fixture {
+        transform: translateZ(
+          0
+        ); /* == establishes containing block for fixed descendants */
+        min-height: 260vh;
+        background: linear-gradient(180deg, #141a1b, #0e1213);
+        padding: 18px;
+      }
+      .ha-view h1 {
+        font-size: 15px;
+        margin: 0 0 8px;
+      }
+      .ha-view p {
+        color: var(--fib-muted);
+        font-size: 12px;
+        max-width: 60ch;
+      }
+      .filler {
+        margin: 40px 0;
+        padding: 16px;
+        border: 1px dashed var(--fib-line);
+        border-radius: 12px;
+        color: var(--fib-muted);
+        font-size: 12px;
+      }
+
+      /* the naive control's in-tree bar — same fixed CSS as a naive card would use */
+      .naive-bar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 5;
+        display: flex;
+        gap: 2px;
+        background: #2a1c1c; /* reddish so it's visually distinct from the real bar */
+        border-top: 1px solid #5a3a3a;
+        padding: 7px 6px 9px;
+      }
+      .naive-bar button {
+        flex: 1;
+        border: 0;
+        background: none;
+        color: #d8a; /* clearly the control */
+        font: 500 9.5px/1.1 inherit;
+        padding: 5px 2px 3px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="verdict">running fixture…</div>
+
+    <div class="scroller" id="scroller">
+      <div class="ha-fixture" id="fixture">
+        <div class="ha-view">
+          <h1>HA containing-block fixture</h1>
+          <p>
+            This element carries <code>transform: translateZ(0)</code> and is
+            taller than the viewport — the real reproduction of Lovelace's
+            containing block. The real <code>fibbers-nav</code> renders its bar
+            into <code>document.body</code> (should stay pinned to the window).
+            The naive control appends its bar in-tree here (should get trapped
+            and scroll away). Scroll down to see both.
+          </p>
+
+          <!-- real card: its bar escapes to document.body -->
+          <fibbers-nav id="realnav"></fibbers-nav>
+          <!-- negative control: its bar stays in-tree, trapped by .ha-fixture -->
+          <fibbers-nav-naive id="naivenav"></fibbers-nav-naive>
+
+          <div class="filler">
+            …tall content so the container actually scrolls…
+          </div>
+          <div class="filler">…more content…</div>
+          <div class="filler">…and more, pushing past one viewport height…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ha-icon stub (defined before the plugin) -->
+    <script>
+      (function () {
+        class HaIconStub extends HTMLElement {
+          connectedCallback() {
+            this.textContent = "•";
+            this.style.cssText =
+              "display:inline-flex;align-items:center;justify-content:center";
+          }
+        }
+        if (!customElements.get("ha-icon"))
+          customElements.define("ha-icon", HaIconStub);
+      })();
+    </script>
+
+    <!-- the real plugin -->
+    <script src="../dist/fibbers.js"></script>
+
+    <!-- fixture harness -->
+    <script>
+      (function () {
+        const TABS = [
+          { name: "Huis", icon: "mdi:home", path: "/dashboard-thuis/huis" },
+          {
+            name: "Licht",
+            icon: "mdi:lightbulb-group",
+            path: "/dashboard-thuis/licht",
+          },
+          {
+            name: "Muziek",
+            icon: "mdi:music",
+            path: "/dashboard-thuis/muziek",
+          },
+          { name: "TV", icon: "mdi:television", path: "/dashboard-thuis/tv" },
+          {
+            name: "Meer",
+            icon: "mdi:dots-horizontal",
+            path: "/dashboard-thuis/meer",
+          },
+        ];
+
+        // Negative control: identical intent to fibbers-nav, but appends its bar
+        // IN-TREE instead of into document.body. This is the mistake the whole
+        // architecture avoids; inside the fixture it must FAIL the pin assertion.
+        class FibbersNavNaive extends HTMLElement {
+          setConfig() {}
+          set hass(_h) {}
+          connectedCallback() {
+            if (this._bar) return;
+            const bar = document.createElement("div");
+            bar.className = "naive-bar";
+            bar.id = "naive-bar";
+            TABS.forEach((t) => {
+              const b = document.createElement("button");
+              b.textContent = t.name;
+              bar.appendChild(b);
+            });
+            // in-tree: appended to THIS element, inside the transformed .ha-fixture
+            this.appendChild(bar);
+            this._bar = bar;
+          }
+        }
+        if (!customElements.get("fibbers-nav-naive"))
+          customElements.define("fibbers-nav-naive", FibbersNavNaive);
+
+        // configure the real card
+        const real = document.getElementById("realnav");
+        real.setConfig({ type: "custom:fibbers-nav", tabs: TABS });
+
+        const pinned = (el) =>
+          el
+            ? Math.abs(el.getBoundingClientRect().bottom - window.innerHeight) <
+              2
+            : false;
+
+        function runFixture() {
+          const scroller = document.getElementById("scroller");
+          // scroll the CONTAINER (not the window) to mid-range
+          const mid = Math.round(
+            (scroller.scrollHeight - scroller.clientHeight) / 2,
+          );
+          scroller.scrollTop = mid;
+
+          // measure after layout settles
+          return new Promise((resolve) => {
+            requestAnimationFrame(() =>
+              requestAnimationFrame(() => {
+                const realBar = document.getElementById("fibbers-nav"); // singleton on body
+                const naiveBar = document.getElementById("naive-bar"); // in-tree
+                const realPinned = pinned(realBar);
+                const naivePinned = pinned(naiveBar);
+                const result = {
+                  valid: realPinned && !naivePinned,
+                  realPinned,
+                  naivePinned,
+                  scrollTop: scroller.scrollTop,
+                  innerHeight: window.innerHeight,
+                  realBottom: realBar
+                    ? Math.round(realBar.getBoundingClientRect().bottom)
+                    : null,
+                  naiveBottom: naiveBar
+                    ? Math.round(naiveBar.getBoundingClientRect().bottom)
+                    : null,
+                };
+                window.__FIXTURE_RESULT__ = result;
+
+                const v = document.getElementById("verdict");
+                if (result.valid) {
+                  v.className = "pass";
+                  v.textContent =
+                    "FIXTURE VALID ✓  body-rendered bar stays pinned (bottom=" +
+                    result.realBottom +
+                    "≈vh=" +
+                    result.innerHeight +
+                    "); in-tree control is trapped and FAILS (bottom=" +
+                    result.naiveBottom +
+                    "). This is the proof the bar is Lovelace-independent.";
+                } else {
+                  v.className = "fail";
+                  v.textContent =
+                    "FIXTURE INVALID ✗  realPinned=" +
+                    result.realPinned +
+                    " naivePinned=" +
+                    result.naivePinned +
+                    " — if the control also pins, the fixture is wrong (fix it before the code).";
+                }
+                resolve(result);
+              }),
+            );
+          });
+        }
+
+        window.__runFixture = runFixture;
+        // auto-run once the bar has been built
+        requestAnimationFrame(() => requestAnimationFrame(runFixture));
+      })();
+    </script>
+  </body>
+</html>

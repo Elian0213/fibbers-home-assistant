@@ -1,0 +1,75 @@
+import { Meta } from "@storybook/blocks";
+
+<Meta title="Getting Started/Usage" />
+
+# Usage
+
+A Fibbers dashboard is a normal Lovelace **sections** dashboard built from `custom:fibbers-*`
+cards. Two things to know:
+
+- Put **one `fibbers-nav`** on **every** view, with the same `tabs`. It's a shared singleton, so
+  it never stacks duplicates, and the active tab lights up from the URL.
+- **Sheets open by URL hash.** A `fibbers-room` with `sheet: woonkamer` opens the
+  `fibbers-sheet` whose `id: woonkamer` — put the sheet card anywhere in the view.
+
+## The cards
+
+| Card | What it does | Minimal YAML |
+|---|---|---|
+| `fibbers-nav` | Viewport-pinned bottom bar | `type: custom:fibbers-nav`<br/>`tabs: [{ name: Huis, icon: solar:home-2-bold-duotone, path: /d/huis }]` |
+| `fibbers-back` | Back control on a real stack | `type: custom:fibbers-back`<br/>`fallback: /d/huis` |
+| `fibbers-section` | Uppercase mono label | `type: custom:fibbers-section`<br/>`label: Kamers` |
+| `fibbers-room` | Self-computing room tile | `type: custom:fibbers-room`<br/>`name: Woonkamer`<br/>`entities: [light.x]` |
+| `fibbers-light-row` | Light + brightness slider | `type: custom:fibbers-light-row`<br/>`entity: light.x` |
+| `fibbers-sheet` | Hash-routed modal | `type: custom:fibbers-sheet`<br/>`id: woonkamer`<br/>`cards: [...]` |
+| `fibbers-alert` | "Aandacht nodig" checks | `type: custom:fibbers-alert`<br/>`checks: [{ type: updates }]` |
+| `fibbers-chips` | Action pill row | `type: custom:fibbers-chips`<br/>`chips: [{ name: X, action: {...} }]` |
+| `fibbers-scene` | Scene tiles | `type: custom:fibbers-scene`<br/>`scenes: [{ name: Avond, scene: scene.avond }]` |
+
+Each card's own sidebar page shows every option and its live YAML.
+
+## A full "Huis" view
+
+Paste into a new **sections** view — built only from Fibbers cards:
+
+```yaml
+type: sections
+path: huis
+sections:
+  - type: grid
+    cards:
+      - { type: custom:fibbers-section, label: Aandacht }
+      - type: custom:fibbers-alert
+        checks:
+          - { type: unavailable_lights }
+          - { type: low_battery, below: 20 }
+          - { type: updates }
+      - type: custom:fibbers-chips
+        chips:
+          - { name: Wekker, icon: solar:alarm-bold-duotone, action: { action: toggle, entity: input_boolean.wake_alarm_enabled }, active_when: { entity: input_boolean.wake_alarm_enabled, state: "on" } }
+          - { name: Alles uit, icon: solar:power-bold-duotone, action: { action: call-service, service: light.turn_off, target: { entity_id: light.all_color_lights } } }
+      - { type: custom:fibbers-section, label: Kamers }
+      - { type: custom:fibbers-room, name: Woonkamer, icon: solar:sofa-2-bold-duotone, sheet: woonkamer, entities: [light.tv_led_strip, light.kitchen, light.woonkamer_computer] }
+      - { type: custom:fibbers-room, name: Slaapkamer, icon: solar:bed-bold-duotone, sheet: slaapkamer, entities: [light.hue_go_1, light.hue_lightstrip_plus_1] }
+      # the sheet a room opens:
+      - type: custom:fibbers-sheet
+        id: woonkamer
+        title: Woonkamer
+        icon: solar:sofa-2-bold-duotone
+        cards:
+          - { type: custom:fibbers-section, label: Verlichting }
+          - { type: custom:fibbers-light-row, entity: light.tv_led_strip }
+          - { type: custom:fibbers-light-row, entity: light.kitchen }
+      # the bottom bar — repeat on every view with the same tabs:
+      - type: custom:fibbers-nav
+        hide_ha_tabs: true
+        tabs:
+          - { name: Huis, icon: solar:home-2-bold-duotone, path: /dashboard-thuis/huis }
+          - { name: Licht, icon: solar:lightbulb-bolt-bold-duotone, path: /dashboard-thuis/licht }
+          - { name: Meer, icon: solar:menu-dots-bold-duotone, path: /dashboard-thuis/meer }
+```
+
+## Icons
+
+Cards default to **Solar Bold Duotone** icons (`solar:*`). Any Home Assistant icon works too —
+give a card `icon: mdi:…` and it falls back to HA's own renderer.

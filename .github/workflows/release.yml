@@ -1,0 +1,31 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Build
+        run: bun run build
+
+      - name: dist/ is in sync with src/
+        run: git diff --exit-code dist/fibbers.js
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/fibbers.js
+          generate_release_notes: true

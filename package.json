@@ -1,0 +1,24 @@
+{
+  "name": "fibbers",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A bottom-nav dashboard plugin for Home Assistant: a viewport-pinned bottom bar, modal sheets, self-computing room tiles, and dark theming. Vanilla web components, zero runtime dependencies.",
+  "homepage": "https://elian0213.github.io/fibbers-home-assistant/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Elian0213/fibbers-home-assistant.git"
+  },
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "bun build src/index.js --outfile dist/fibbers.js --format=iife --target=browser --banner=\"/*! Fibbers v0.1.0 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */\"",
+    "watch": "bun build src/index.js --outfile dist/fibbers.js --format=iife --target=browser --banner=\"/*! Fibbers v0.1.0 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */\" --watch",
+    "gen-icons": "bun scripts/gen-icons.mjs",
+    "format": "prettier --write \"src/**/*.js\" \"docs/*.html\"",
+    "check": "prettier --check \"src/**/*.js\" \"docs/*.html\" && bun run build && node -e \"new Function(require('fs').readFileSync('dist/fibbers.js','utf8'))\""
+  },
+  "devDependencies": {
+    "@iconify-json/solar": "^1.2.10",
+    "prettier": "^3"
+  }
+}
