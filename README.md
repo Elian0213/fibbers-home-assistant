@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/images/logo.svg" alt="Fibbers" width="260">
+<img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/logo.svg" alt="Fibbers" width="260">
 
 ### A bottom-nav dashboard for Home Assistant that actually feels like an app.
 
@@ -16,14 +16,14 @@ No theme repo. No `kiosk-mode`. One file.
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-<img src="docs/images/hero.png" alt="Fibbers dashboard" width="300"> &nbsp; <img src="docs/images/sheet.png" alt="Fibbers light sheet" width="300">
+<img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/hero.png" alt="Fibbers dashboard" width="300"> &nbsp; <img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/sheet.png" alt="Fibbers light sheet" width="300">
 
 ### [▶ Try the live demo →](https://elian0213.github.io/fibbers-home-assistant/)
 
 Every card running in your browser, each with its copy-paste Lovelace YAML — no Home
 Assistant needed. This is the reference; the README just gets you started.
 
-<a href="https://elian0213.github.io/fibbers-home-assistant/"><img src="docs/images/storybook.png" alt="Fibbers Storybook — every card with its YAML" width="760"></a>
+<a href="https://elian0213.github.io/fibbers-home-assistant/"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/storybook.png" alt="Fibbers Storybook — every card with its YAML" width="760"></a>
 
 </div>
 
