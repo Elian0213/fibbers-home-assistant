@@ -1,4 +1,4 @@
-/*! Fibbers v0.6.0 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */
+/*! Fibbers v0.7.0 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */
 (() => {
 
   // src/icons.gen.js
@@ -12663,7 +12663,7 @@ ${BASE_CSS}`);
    * Registers ~25 cards (see the CARDS table below) plus the body-appended nav bar
    * and modal sheet, then injects the theme. Edit src/, run `bun run build`.
    */
-  var VERSION = "0.6.0";
+  var VERSION = "0.7.0";
   var CARDS = [
     [
       "fibbers-nav",

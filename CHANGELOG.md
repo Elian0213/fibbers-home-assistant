@@ -3,6 +3,49 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.7.0] — 2026-09-01
+
+Accessibility, and the two media cards.
+
+### Added
+
+- **Accessibility.** The whole set is now keyboard-operable and screen-reader
+  legible:
+  - Sliders (light-row/light-group brightness, number, media & remote volume) are
+    real `role="slider"` widgets with `aria-valuenow`/`aria-valuetext` and
+    arrow / Home / End / PageUp-Down keys.
+  - `role="button"` rows/tiles get `tabindex` + Enter/Space; icon-only controls
+    get an `aria-label`; a shared accent `:focus-visible` ring reads on both
+    palettes.
+  - `fibbers-nav` is a tablist (`role="tab"`, `aria-selected`, roving arrow
+    keys); `fibbers-sheet` is a dialog that moves focus in, traps it, and returns
+    it to the opener on close.
+  - `prefers-reduced-motion` is honoured across the cards, nav and sheet.
+  - New `docs/accessibility.md`.
+- **`fibbers-remote` rewrite.** A round d-pad (≥44px targets) with a centre OK; an
+  optional `media_player:` drives a now-playing header, a `select_source` grid
+  (`sources: auto` from `source_list`, `favourites:` to pin) and a volume slider
+  with mute; channel/volume have press-and-hold repeat; transport is split from
+  navigation; `device:` (philips|appletv|generic) distinguishes two remotes.
+- **`fibbers-media`**: a drift-corrected seek bar (`media_position` +
+  `media_position_updated_at`, live tick) with elapsed/remaining and `media_seek`;
+  speaker grouping via `group:` (join/unjoin); a `favourites:` grid
+  (`play_media`); a content-derived compact icon (a TV playing Netflix no longer
+  shows a music note); an accent play/pause button in compact.
+- README **TV** and **Muziek** worked example views (two-column).
+
+### Fixed
+
+- Two Dutch strings that escaped 0.6.0's i18n — `fibbers-scene`'s drawer
+  ("Minder" / "Alle N scènes") and the sheet's close/error labels. `check-i18n`
+  now also scans the body-portal modules so they can't regress.
+
+### Known
+
+- `fibbers-remote` sources/volume and `fibbers-media` seek/grouping/`play_media`
+  need a real device to verify. The `hacs/default` submission PR (and the repo
+  topic fix) are still open — see `docs/HACS_SUBMISSION.md`.
+
 ## [0.6.0] — 2026-09-01
 
 "Installs clean, works for strangers" — the release that makes Fibbers safe to hand to someone who
