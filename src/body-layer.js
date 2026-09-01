@@ -11,6 +11,7 @@ import { applyTheme, removeTheme } from "./theme.js";
 import { T } from "./tokens.js";
 import { twSheet } from "./tw.js";
 import { norm, here, navigate, deepFind } from "./util.js";
+import { setViewReserve, removeViewReserve } from "./view-reserve.js";
 import "./icon.js";
 
 export const bar = {
@@ -54,8 +55,21 @@ export function measureBar() {
   const h = div ? div.getBoundingClientRect().height : 0;
   if (h && Math.abs(h - bar.height) > 0.5) {
     bar.height = h;
-    bar.owners.forEach((o) => o._syncSpacer && o._syncSpacer());
+    syncViewReserve();
   }
+}
+
+// Reserve bottom space on the view so the bar never covers the last card.
+// `reserve` is an absolute override (as before); otherwise it's the measured bar
+// height plus optional `extra_bottom` breathing room. `offset_bottom` (which
+// lifts the bar off the viewport floor) is added on top either way.
+function syncViewReserve() {
+  const cfg = bar.config || {};
+  const offset = Number(cfg.offset_bottom) || 0;
+  const extra = Number(cfg.extra_bottom) || 0;
+  const base =
+    cfg.reserve != null ? Number(cfg.reserve) : (bar.height || 74) + extra;
+  setViewReserve(base + offset);
 }
 
 // Named module-level handlers so re-adding on a rebuild is a no-op (the browser
@@ -257,6 +271,7 @@ export function attach(owner, config) {
   bar.host.style.bottom = offset ? `${offset}px` : "";
   renderBar();
   measureBar();
+  syncViewReserve(); // apply on (re)config even if the height didn't change
   syncSidebarInset();
   setTimeout(scheduleInset, 200); // HA's shell may mount the sidebar a beat later
   if (config.auto_hide) enableAutoHide();
@@ -280,6 +295,7 @@ export function detach(owner) {
     }
     removeTabHiding();
     removeTheme();
+    removeViewReserve();
   }
 }
 

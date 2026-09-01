@@ -7365,6 +7365,81 @@ ${decls}
     twSheet = unsafeCSS(TW_CSS.replace(/:root/g, ":host"));
   }
 
+  // src/view-reserve.js
+  var STYLE_ID4 = "fibbers-view-reserve";
+  var state3 = { px: 0, scheduled: false, observer: null };
+  var findHuiRoot3 = () => deepFind("hui-root");
+  var findResolvedPanel3 = () => deepFind("partial-panel-resolver");
+  function paint3() {
+    if (!state3.px)
+      return removeStyle3();
+    const root = findHuiRoot3();
+    if (!root || !root.shadowRoot)
+      return;
+    const css2 = `#view { padding-bottom: ${state3.px}px !important; }`;
+    let style = root.shadowRoot.getElementById(STYLE_ID4);
+    if (style) {
+      if (style.textContent !== css2)
+        style.textContent = css2;
+      return;
+    }
+    style = document.createElement("style");
+    style.id = STYLE_ID4;
+    style.textContent = css2;
+    root.shadowRoot.appendChild(style);
+  }
+  function removeStyle3() {
+    const root = findHuiRoot3();
+    const style = root && root.shadowRoot && root.shadowRoot.getElementById(STYLE_ID4);
+    if (style)
+      style.remove();
+  }
+  function schedulePaint3() {
+    if (state3.scheduled)
+      return;
+    state3.scheduled = true;
+    setTimeout(() => {
+      state3.scheduled = false;
+      paint3();
+    }, 60);
+  }
+  function startObserver3() {
+    if (state3.observer)
+      return;
+    const panel = findResolvedPanel3() || document.body;
+    try {
+      state3.observer = new MutationObserver(schedulePaint3);
+      state3.observer.observe(panel, { childList: true, subtree: true });
+    } catch (_) {}
+  }
+  function stopObserver3() {
+    if (state3.observer) {
+      state3.observer.disconnect();
+      state3.observer = null;
+    }
+  }
+  function setViewReserve(px) {
+    const next = Math.max(0, Math.round(px || 0));
+    if (next === state3.px && state3.observer) {
+      paint3();
+      return;
+    }
+    state3.px = next;
+    if (!next) {
+      removeViewReserve();
+      return;
+    }
+    paint3();
+    startObserver3();
+  }
+  function removeViewReserve() {
+    state3.px = 0;
+    stopObserver3();
+    removeStyle3();
+  }
+  window.addEventListener("location-changed", schedulePaint3);
+  window.addEventListener("popstate", schedulePaint3);
+
   // src/body-layer.js
   var bar = {
     host: null,
@@ -7405,8 +7480,15 @@ ${decls}
     const h = div ? div.getBoundingClientRect().height : 0;
     if (h && Math.abs(h - bar.height) > 0.5) {
       bar.height = h;
-      bar.owners.forEach((o) => o._syncSpacer && o._syncSpacer());
+      syncViewReserve();
     }
+  }
+  function syncViewReserve() {
+    const cfg = bar.config || {};
+    const offset = Number(cfg.offset_bottom) || 0;
+    const extra = Number(cfg.extra_bottom) || 0;
+    const base = cfg.reserve != null ? Number(cfg.reserve) : (bar.height || 74) + extra;
+    setViewReserve(base + offset);
   }
   var onOrientationChange = () => {
     setTimeout(measureBar, 250);
@@ -7579,6 +7661,7 @@ ${decls}
     bar.host.style.bottom = offset ? `${offset}px` : "";
     renderBar();
     measureBar();
+    syncViewReserve();
     syncSidebarInset();
     setTimeout(scheduleInset, 200);
     if (config.auto_hide)
@@ -7602,6 +7685,7 @@ ${decls}
       }
       removeTabHiding();
       removeTheme();
+      removeViewReserve();
     }
   }
   nav.listeners.add(renderBar);
@@ -9769,7 +9853,6 @@ ${decls}
 
   // src/cards/nav.js
   class FibbersNav extends LitElement {
-    static properties = { _spacerH: { state: true } };
     static styles = [
       css`
       :host {
@@ -9777,10 +9860,6 @@ ${decls}
       }
     `
     ];
-    constructor() {
-      super();
-      this._spacerH = 0;
-    }
     static getStubConfig() {
       return {
         type: "custom:fibbers-nav",
@@ -9818,16 +9897,15 @@ ${decls}
       if (config.theme != null && !["none", "fibbers", "fibbers-light", "auto"].includes(config.theme)) {
         throw new Error('fibbers-nav: `theme` must be "fibbers", "fibbers-light", "auto", or "none"');
       }
+      if (config.reserve != null && !Number.isFinite(Number(config.reserve))) {
+        throw new Error("fibbers-nav: `reserve` must be a number of pixels");
+      }
+      if (config.extra_bottom != null && !Number.isFinite(Number(config.extra_bottom))) {
+        throw new Error("fibbers-nav: `extra_bottom` must be a number of pixels");
+      }
       this._config = config;
-      this._syncSpacer();
       if (this.isConnected)
         attach(this, this._config);
-    }
-    _syncSpacer() {
-      const cfg = this._config || {};
-      const offset = Number(cfg.offset_bottom) || 0;
-      const base = cfg.reserve != null ? cfg.reserve : bar.height || 74;
-      this._spacerH = Math.round(base + offset);
     }
     set hass(hass) {
       nav.hassRef = hass;
@@ -9844,7 +9922,7 @@ ${decls}
       detach(this);
     }
     render() {
-      return html`<div style="height:${this._spacerH || 0}px"></div>`;
+      return html``;
     }
     getCardSize() {
       return 1;

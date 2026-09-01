@@ -1,14 +1,13 @@
 /* ================================================================== *
- * fibbers-nav — thin controller for the singleton bar (body-layer.js); reserves
- * a spacer of the bar's height. No UI of its own.
+ * fibbers-nav — thin controller for the singleton bar (body-layer.js). No UI of
+ * its own; the bar reserves its own bottom space on the view (view-reserve.js).
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
-import { bar, attach, detach, renderBar } from "../body-layer.js";
+import { attach, detach, renderBar } from "../body-layer.js";
 import { nav } from "../nav-stack.js";
 
 export class FibbersNav extends LitElement {
-  static properties = { _spacerH: { state: true } };
   static styles = [
     css`
       :host {
@@ -16,11 +15,6 @@ export class FibbersNav extends LitElement {
       }
     `,
   ];
-
-  constructor() {
-    super();
-    this._spacerH = 0;
-  }
 
   static getStubConfig() {
     return {
@@ -82,17 +76,17 @@ export class FibbersNav extends LitElement {
         'fibbers-nav: `theme` must be "fibbers", "fibbers-light", "auto", or "none"',
       );
     }
+    if (config.reserve != null && !Number.isFinite(Number(config.reserve))) {
+      throw new Error("fibbers-nav: `reserve` must be a number of pixels");
+    }
+    if (
+      config.extra_bottom != null &&
+      !Number.isFinite(Number(config.extra_bottom))
+    ) {
+      throw new Error("fibbers-nav: `extra_bottom` must be a number of pixels");
+    }
     this._config = config;
-    this._syncSpacer();
     if (this.isConnected) attach(this, this._config);
-  }
-
-  /** called by body-layer when the bar height changes */
-  _syncSpacer() {
-    const cfg = this._config || {};
-    const offset = Number(cfg.offset_bottom) || 0;
-    const base = cfg.reserve != null ? cfg.reserve : bar.height || 74;
-    this._spacerH = Math.round(base + offset);
   }
 
   set hass(hass) {
@@ -111,7 +105,7 @@ export class FibbersNav extends LitElement {
   }
 
   render() {
-    return html`<div style="height:${this._spacerH || 0}px"></div>`;
+    return html``;
   }
 
   getCardSize() {
