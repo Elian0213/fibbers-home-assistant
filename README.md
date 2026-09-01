@@ -203,6 +203,69 @@ Home Assistant language (English by default, Dutch translation included); config
 
 ---
 
+## Example views
+
+Two views people copy first — both two-column so they fill a desktop instead of a narrow
+ribbon. Swap the entity ids for your own.
+
+**TV** — the remote on the left; now-playing, the app grid and the light scenes on the right
+(where they belong, next to the TV):
+
+```yaml
+type: sections
+max_columns: 2
+sections:
+  - type: grid
+    cards:
+      - type: custom:fibbers-remote
+        entity: remote.living_room
+        media_player: media_player.living_room # now-playing, sources, volume
+        device: appletv
+        sources: auto # from the player's source_list
+        favourites: [Netflix, YouTube, Plex, Disney+]
+  - type: grid
+    cards:
+      - type: custom:fibbers-media
+        entity: media_player.living_room
+        compact: true
+      - type: custom:fibbers-section
+        label: Light
+      - type: custom:fibbers-scene
+        scenes:
+          - { name: Movie, icon: solar:moon-bold-duotone, scene: scene.movie_light }
+          - { name: Bright, icon: solar:sun-bold-duotone, scene: scene.bright }
+```
+
+**Muziek** — a now-playing hero with artwork + seek bar and speaker grouping, with the TV
+players in a clearly separate section:
+
+```yaml
+type: sections
+max_columns: 2
+sections:
+  - type: grid
+    cards:
+      - type: custom:fibbers-media
+        entity: media_player.living_room
+        name: Living room
+        group: # "play this here too"
+          - media_player.kitchen
+          - media_player.bedroom
+        favourites:
+          - name: Focus
+            media_content_id: "spotify:playlist:37i9dQZF1DWZeKCadgRdKQ"
+            media_content_type: playlist
+  - type: grid
+    cards:
+      - type: custom:fibbers-section
+        label: TV
+      - type: custom:fibbers-media
+        entity: media_player.living_room_tv
+        compact: true
+```
+
+---
+
 ## Theming
 
 Installing Fibbers **changes nothing** about the rest of Home Assistant — your sidebar, header and
