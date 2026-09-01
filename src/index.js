@@ -206,8 +206,10 @@ CARDS.forEach(([tag, , name, description]) => {
   }
 });
 
-/* injects the dark theme globally — replaces the theme repo (honours window.FIBBERS_DISABLE_GLOBAL_CSS) */
-injectGlobalCss();
+/* 0.6.0: the global restyle is no longer applied on load — installing Fibbers
+ * leaves the rest of Home Assistant untouched. Per-dashboard theming is opt-in
+ * via `theme:` on fibbers-nav (see src/theme.js). `injectGlobalCss` stays exposed
+ * on window.FIBBERS for anyone who wants the old "restyle everything" behaviour. */
 
 /* exposed for the preview harness and console debugging */
 window.FIBBERS = {

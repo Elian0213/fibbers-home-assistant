@@ -1,14 +1,19 @@
 /* ================================================================== *
- * GLOBAL CSS — replaces the theme repo. Sets HA's theme vars on <html> with
- * !important; they inherit into shadow DOM, so more-info dialogs match too.
- * Mirrors docs/optional-theme.yaml.
- * Escape hatch: window.FIBBERS_DISABLE_GLOBAL_CSS = true before load.
+ * GLOBAL CSS — the "restyle all of Home Assistant" route, kept as an opt-in.
+ * Sets HA's theme vars on <html> with !important; they inherit into shadow DOM,
+ * so more-info dialogs match too. Mirrors docs/optional-theme.yaml.
+ *
+ * As of 0.6.0 this is NOT called on load (installing Fibbers no longer repaints
+ * the whole UI). The dark palette (`DARK_VARS`) is reused by src/theme.js for the
+ * per-dashboard `theme:` option. Anyone who wants the old global behaviour can
+ * still call `window.FIBBERS.injectGlobalCss()`; the escape hatch
+ * `window.FIBBERS_DISABLE_GLOBAL_CSS = true` continues to work.
  * ================================================================== */
 import { T } from "./tokens.js";
 
 const STYLE_ID = "fibbers-global";
 
-const VARS = {
+export const DARK_VARS = {
   // grounds & surfaces
   "--primary-background-color": T.bg,
   "--secondary-background-color": T.nav,
@@ -63,7 +68,7 @@ export function injectGlobalCss() {
   if (window.FIBBERS_DISABLE_GLOBAL_CSS) return;
   if (document.getElementById(STYLE_ID)) return; // idempotent
 
-  const decls = Object.entries(VARS)
+  const decls = Object.entries(DARK_VARS)
     .map(([k, v]) => `  ${k}: ${v} !important;`)
     .join("\n");
 

@@ -7,6 +7,7 @@ import { render, html, nothing } from "lit";
 
 import { setTabHiding, removeTabHiding } from "./hide-tabs.js";
 import { nav, registerTabs } from "./nav-stack.js";
+import { applyTheme, removeTheme } from "./theme.js";
 import { T } from "./tokens.js";
 import { twSheet } from "./tw.js";
 import { norm, here, navigate, deepFind } from "./util.js";
@@ -260,6 +261,7 @@ export function attach(owner, config) {
   setTimeout(scheduleInset, 200); // HA's shell may mount the sidebar a beat later
   if (config.auto_hide) enableAutoHide();
   setTabHiding(config.hide_ha_tabs);
+  applyTheme(config.theme);
 }
 
 export function detach(owner) {
@@ -277,6 +279,7 @@ export function detach(owner) {
       drawerMO = null;
     }
     removeTabHiding();
+    removeTheme();
   }
 }
 

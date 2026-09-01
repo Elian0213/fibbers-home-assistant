@@ -74,6 +74,14 @@ export class FibbersNav extends LitElement {
     ) {
       throw new Error("fibbers-nav: `respect_sidebar` must be true or false");
     }
+    if (
+      config.theme != null &&
+      !["none", "fibbers", "fibbers-light", "auto"].includes(config.theme)
+    ) {
+      throw new Error(
+        'fibbers-nav: `theme` must be "fibbers", "fibbers-light", "auto", or "none"',
+      );
+    }
     this._config = config;
     this._syncSpacer();
     if (this.isConnected) attach(this, this._config);
