@@ -220,17 +220,27 @@ export class FibbersNumber extends LitElement {
       }"
     >
       ${head}
-      ${sliderTrack({
-        pct,
-        disabled: unavail,
-        cls: "mt-2.5",
-        onDown: this._down,
-        onMove: this._move,
-        onUp: this._up,
-        onCancel: () => {
-          this._dragging = false;
-        },
-      })}
+      ${(() => {
+        const b = this._bounds();
+        return sliderTrack({
+          pct,
+          disabled: unavail,
+          cls: "mt-2.5",
+          label: name,
+          value: v,
+          min: b.min,
+          max: b.max,
+          step: b.step,
+          valueText: val,
+          onInput: (nv) => this._setValue(this._snap(nv)),
+          onDown: this._down,
+          onMove: this._move,
+          onUp: this._up,
+          onCancel: () => {
+            this._dragging = false;
+          },
+        });
+      })()}
     </div>`;
   }
 

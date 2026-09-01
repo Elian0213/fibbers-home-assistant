@@ -2,7 +2,41 @@
  * UI — shared lit-html widget templates (pillSwitch, sliderTrack).
  * One source for each control's look; import what you need.
  * ================================================================== */
-import { html } from "lit";
+import { html, nothing } from "lit";
+
+// Arrow/Home/End/PageUp-Down → a new value, clamped to [min,max]. Shared by every
+// slider so keyboard behaviour is identical. PageUp/Down jump by a tenth of the
+// range (or one step, whichever is larger). Returns null when the key isn't one
+// we handle, so the caller can ignore it.
+export function stepFromKey(key, { value, min, max, step }) {
+  const big = Math.max(step, (max - min) / 10);
+  let next;
+  switch (key) {
+    case "ArrowRight":
+    case "ArrowUp":
+      next = value + step;
+      break;
+    case "ArrowLeft":
+    case "ArrowDown":
+      next = value - step;
+      break;
+    case "PageUp":
+      next = value + big;
+      break;
+    case "PageDown":
+      next = value - big;
+      break;
+    case "Home":
+      next = min;
+      break;
+    case "End":
+      next = max;
+      break;
+    default:
+      return null;
+  }
+  return Math.min(max, Math.max(min, next));
+}
 
 /**
  * The pill toggle (as first grown inside fibbers-scheduler): a 36×20 track with
@@ -23,14 +57,42 @@ export function sliderTrack({
   onMove,
   onUp,
   onCancel,
+  // Accessibility (optional but recommended). Give the value-space (value/min/max/
+  // step) + onInput(newValue) and the track becomes a real, keyboard-driven
+  // role="slider"; label/valueText feed the screen-reader announcement.
+  label,
+  value,
+  min = 0,
+  max = 100,
+  step = 1,
+  valueText,
+  onInput,
 }) {
+  const keydown =
+    disabled || !onInput
+      ? undefined
+      : (e) => {
+          const next = stepFromKey(e.key, { value, min, max, step });
+          if (next == null) return;
+          e.preventDefault();
+          if (next !== value) onInput(next);
+        };
   return html`<div
     class="relative h-1.5 cursor-pointer touch-none rounded-[3px] bg-[#2C3639]
            ${cls} ${disabled ? "pointer-events-none" : ""}"
+    role="slider"
+    tabindex=${disabled ? -1 : 0}
+    aria-label=${label || "slider"}
+    aria-valuemin=${min}
+    aria-valuemax=${max}
+    aria-valuenow=${value != null ? value : Math.round(pct)}
+    aria-valuetext=${valueText != null ? valueText : nothing}
+    aria-disabled=${disabled ? "true" : "false"}
     @pointerdown=${onDown}
     @pointermove=${onMove}
     @pointerup=${onUp}
     @pointercancel=${onCancel || onUp}
+    @keydown=${keydown}
   >
     ${
       disabled

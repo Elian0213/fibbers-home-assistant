@@ -194,6 +194,13 @@ export class FibbersMedia extends LitElement {
         ${sliderTrack({
           pct: this._vol(),
           cls: "flex-1",
+          label: "Volume",
+          value: this._vol(),
+          min: 0,
+          max: 100,
+          step: 5,
+          valueText: `${this._vol()}%`,
+          onInput: (v) => this._svc("volume_set", { volume_level: v / 100 }),
           onDown: this._down,
           onMove: this._move,
           onUp: this._up,

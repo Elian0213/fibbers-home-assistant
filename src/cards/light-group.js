@@ -7,6 +7,7 @@ import { LitElement, html, css } from "lit";
 
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
+import { stepFromKey } from "../ui.js";
 import { store, isUnavail, pctFromX, debounce, pickEntity } from "../util.js";
 import "../icon.js";
 
@@ -189,6 +190,17 @@ export class FibbersLightGroup extends LitElement {
     this._commit(pct);
   }
 
+  // Keyboard control for the master slider (arrows/Home/End/PageUp-Down by 5%).
+  _onKey(e) {
+    const s = this._state();
+    if (s.allOff) return;
+    const cur = this._dragging ? this._dragPct : s.pct;
+    const next = stepFromKey(e.key, { value: cur, min: 0, max: 100, step: 5 });
+    if (next == null) return;
+    e.preventDefault();
+    if (next !== cur) this._commit(next);
+  }
+
   _toggle() {
     this._open = !this._open;
     if (this._config.expanded === "remember")
@@ -279,10 +291,19 @@ export class FibbersLightGroup extends LitElement {
       <div
         class="relative mt-3 h-2.5 cursor-pointer touch-none rounded-full bg-[#2C3639]
                ${s.allOff ? "pointer-events-none opacity-50" : ""}"
+        role="slider"
+        tabindex=${s.allOff ? -1 : 0}
+        aria-label=${name}
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow=${pct}
+        aria-valuetext=${`${pct}%`}
+        aria-disabled=${s.allOff ? "true" : "false"}
         @pointerdown=${this._down}
         @pointermove=${this._move}
         @pointerup=${this._up}
         @pointercancel=${() => (this._dragging = false)}
+        @keydown=${this._onKey}
       >
         ${
           s.allOff

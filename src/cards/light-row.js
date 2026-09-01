@@ -191,6 +191,13 @@ export class FibbersLightRow extends LitElement {
         ${sliderTrack({
           pct,
           disabled: unavail,
+          label: name,
+          value: pct,
+          min: 0,
+          max: 100,
+          step: 5,
+          valueText: `${pct}%`,
+          onInput: (v) => this._commit(Math.round(v)),
           onDown: this._down,
           onMove: this._move,
           onUp: this._up,
