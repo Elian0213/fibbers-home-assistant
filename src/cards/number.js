@@ -7,7 +7,14 @@ import { LitElement, html, css } from "lit";
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import { sliderTrack } from "../ui.js";
-import { fmtNum, clamp, debounce, isUnavail, pctFromX } from "../util.js";
+import {
+  fmtNum,
+  clamp,
+  debounce,
+  isUnavail,
+  pctFromX,
+  pickEntity,
+} from "../util.js";
 import "../icon.js";
 
 export class FibbersNumber extends LitElement {
@@ -27,8 +34,16 @@ export class FibbersNumber extends LitElement {
     `,
   ];
 
-  static getStubConfig() {
-    return { type: "custom:fibbers-number", entity: "input_number.wake_fade" };
+  static getStubConfig(hass, entities, entitiesFallback) {
+    return {
+      type: "custom:fibbers-number",
+      entity: pickEntity(
+        "input_number",
+        entities,
+        entitiesFallback,
+        "input_number.example",
+      ),
+    };
   }
 
   setConfig(config) {

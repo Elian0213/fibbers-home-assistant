@@ -8,7 +8,7 @@ import { runAction } from "../actions.js";
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import { sliderTrack } from "../ui.js";
-import { moreInfo, isUnavail, pctFromX } from "../util.js";
+import { moreInfo, isUnavail, pctFromX, pickEntity } from "../util.js";
 import "../icon.js";
 
 export class FibbersLightRow extends LitElement {
@@ -28,8 +28,11 @@ export class FibbersLightRow extends LitElement {
     `,
   ];
 
-  static getStubConfig() {
-    return { type: "custom:fibbers-light-row", entity: "light.tv_led_strip" };
+  static getStubConfig(hass, entities, entitiesFallback) {
+    return {
+      type: "custom:fibbers-light-row",
+      entity: pickEntity("light", entities, entitiesFallback, "light.example"),
+    };
   }
 
   setConfig(config) {

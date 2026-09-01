@@ -24,7 +24,7 @@ export class FibbersBack extends LitElement {
   ];
 
   static getStubConfig() {
-    return { type: "custom:fibbers-back", fallback: "/dashboard-thuis/huis" };
+    return { type: "custom:fibbers-back", fallback: "/lovelace/0" };
   }
 
   setConfig(config) {

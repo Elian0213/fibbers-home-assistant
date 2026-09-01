@@ -6,7 +6,7 @@ import { LitElement, html, css } from "lit";
 
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
-import { moreInfo, fmtState } from "../util.js";
+import { moreInfo, fmtState, pickEntity } from "../util.js";
 import "../icon.js";
 
 const hhmm = (s) => (typeof s === "string" ? s.slice(0, 5) : "");
@@ -26,10 +26,15 @@ export class FibbersDateTime extends LitElement {
     `,
   ];
 
-  static getStubConfig() {
+  static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-datetime",
-      entity: "input_datetime.wake_time",
+      entity: pickEntity(
+        "input_datetime",
+        entities,
+        entitiesFallback,
+        "input_datetime.example",
+      ),
     };
   }
 

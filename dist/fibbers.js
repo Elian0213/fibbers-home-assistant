@@ -6861,6 +6861,10 @@
       return n.toLocaleString("en", opts);
     }
   };
+  function pickEntity(domain, entities, entitiesFallback, fallback) {
+    const inDomain = (list) => (list || []).find((id) => typeof id === "string" && id.startsWith(`${domain}.`));
+    return inDomain(entities) || inDomain(entitiesFallback) || fallback;
+  }
   var isUnavail = (st) => !st || st.state === "unavailable" || st.state === "unknown";
   var clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
   function fmtState(hass, st) {
@@ -7783,6 +7787,9 @@ ${decls}
       more: "more",
       less: "less"
     },
+    remote: {
+      default_name: "Remote"
+    },
     scheduler: {
       default_name: "Alarm",
       duration: "{n} min"
@@ -7907,6 +7914,9 @@ ${decls}
       unavailable: "Onbereikbaar",
       more: "meer",
       less: "minder"
+    },
+    remote: {
+      default_name: "Afstandsbediening"
     },
     scheduler: {
       default_name: "Wekker",
@@ -8143,7 +8153,7 @@ ${decls}
     `
     ];
     static getStubConfig() {
-      return { type: "custom:fibbers-back", fallback: "/dashboard-thuis/huis" };
+      return { type: "custom:fibbers-back", fallback: "/lovelace/0" };
     }
     setConfig(config) {
       this._config = config || {};
@@ -8454,8 +8464,11 @@ ${decls}
       }
     `
     ];
-    static getStubConfig() {
-      return { type: "custom:fibbers-climate", entity: "climate.woonkamer" };
+    static getStubConfig(hass, entities, entitiesFallback) {
+      return {
+        type: "custom:fibbers-climate",
+        entity: pickEntity("climate", entities, entitiesFallback, "climate.example")
+      };
     }
     setConfig(config) {
       if (!config || !config.entity) {
@@ -8602,10 +8615,10 @@ ${decls}
       }
     `
     ];
-    static getStubConfig() {
+    static getStubConfig(hass, entities, entitiesFallback) {
       return {
         type: "custom:fibbers-datetime",
-        entity: "input_datetime.wake_time"
+        entity: pickEntity("input_datetime", entities, entitiesFallback, "input_datetime.example")
       };
     }
     setConfig(config) {
@@ -8902,10 +8915,10 @@ ${decls}
       }
     `
     ];
-    static getStubConfig() {
+    static getStubConfig(hass, entities, entitiesFallback) {
       return {
         type: "custom:fibbers-graph",
-        entity: "sensor.hue_motion_sensor_1_temperature",
+        entity: pickEntity("sensor", entities, entitiesFallback, "sensor.example"),
         hours: 24
       };
     }
@@ -9068,10 +9081,10 @@ ${decls}
       }
     `
     ];
-    static getStubConfig() {
+    static getStubConfig(hass, entities, entitiesFallback) {
       return {
         type: "custom:fibbers-greeting",
-        lights: "light.all_color_lights"
+        lights: pickEntity("light", entities, entitiesFallback, "light.example")
       };
     }
     setConfig(config) {
@@ -9195,11 +9208,13 @@ ${decls}
       }
     `
     ];
-    static getStubConfig() {
+    static getStubConfig(hass, entities, entitiesFallback) {
       return {
         type: "custom:fibbers-light-group",
-        entity: "light.woonkamer_lampen",
-        name: "Woonkamer"
+        entities: [
+          pickEntity("light", entities, entitiesFallback, "light.example")
+        ],
+        name: "Lights"
       };
     }
     setConfig(config) {
@@ -9505,8 +9520,11 @@ ${decls}
       }
     `
     ];
-    static getStubConfig() {
-      return { type: "custom:fibbers-light-row", entity: "light.tv_led_strip" };
+    static getStubConfig(hass, entities, entitiesFallback) {
+      return {
+        type: "custom:fibbers-light-row",
+        entity: pickEntity("light", entities, entitiesFallback, "light.example")
+      };
     }
     setConfig(config) {
       if (!config || !config.entity) {
@@ -9674,10 +9692,10 @@ ${decls}
       }
     `
     ];
-    static getStubConfig() {
+    static getStubConfig(hass, entities, entitiesFallback) {
       return {
         type: "custom:fibbers-media",
-        entity: "media_player.woonkamer_spotify"
+        entity: pickEntity("media_player", entities, entitiesFallback, "media_player.example")
       };
     }
     setConfig(config) {
@@ -9853,6 +9871,7 @@ ${decls}
 
   // src/cards/nav.js
   class FibbersNav extends LitElement {
+    static properties = { preview: { type: Boolean, reflect: true } };
     static styles = [
       css`
       :host {
@@ -9865,14 +9884,14 @@ ${decls}
         type: "custom:fibbers-nav",
         tabs: [
           {
-            name: "Huis",
+            name: "Home",
             icon: "solar:home-2-bold-duotone",
-            path: "/dashboard-thuis/huis"
+            path: "/lovelace/0"
           },
           {
-            name: "Licht",
+            name: "Lights",
             icon: "solar:lightbulb-bolt-bold-duotone",
-            path: "/dashboard-thuis/licht"
+            path: "/lovelace/1"
           }
         ]
       };
@@ -9904,7 +9923,7 @@ ${decls}
         throw new Error("fibbers-nav: `extra_bottom` must be a number of pixels");
       }
       this._config = config;
-      if (this.isConnected)
+      if (this.isConnected && !this.preview)
         attach(this, this._config);
     }
     set hass(hass) {
@@ -9914,15 +9933,35 @@ ${decls}
     }
     connectedCallback() {
       super.connectedCallback();
+      if (this.preview)
+        return;
       if (this._config)
         attach(this, this._config);
     }
     disconnectedCallback() {
       super.disconnectedCallback();
-      detach(this);
+      if (!this.preview)
+        detach(this);
     }
     render() {
-      return html``;
+      if (!this.preview)
+        return html``;
+      const tabs = this._config && this._config.tabs || [];
+      return html`<div
+      style="display:flex;gap:2px;background:#1d2426;border:1px solid #262f31;
+             border-radius:12px;padding:7px 6px"
+    >
+      ${tabs.map((tab, i) => html`<div
+            style="flex:1;display:flex;flex-direction:column;align-items:center;
+                 gap:3px;font:500 10px system-ui;color:${i === 0 ? "#74b98a" : "#8b999c"}"
+          >
+            <fib-icon
+              style="--mdc-icon-size:20px"
+              icon=${tab.icon || "solar:widget-bold-duotone"}
+            ></fib-icon>
+            <span>${tab.name || ""}</span>
+          </div>`)}
+    </div>`;
     }
     getCardSize() {
       return 1;
@@ -9951,8 +9990,11 @@ ${decls}
       }
     `
     ];
-    static getStubConfig() {
-      return { type: "custom:fibbers-number", entity: "input_number.wake_fade" };
+    static getStubConfig(hass, entities, entitiesFallback) {
+      return {
+        type: "custom:fibbers-number",
+        entity: pickEntity("input_number", entities, entitiesFallback, "input_number.example")
+      };
     }
     setConfig(config) {
       if (!config || !config.entity) {
@@ -10270,8 +10312,11 @@ ${decls}
       }
     `
     ];
-    static getStubConfig() {
-      return { type: "custom:fibbers-remote", entity: "remote.woonkamer_tv" };
+    static getStubConfig(hass, entities, entitiesFallback) {
+      return {
+        type: "custom:fibbers-remote",
+        entity: pickEntity("remote", entities, entitiesFallback, "remote.example")
+      };
     }
     setConfig(config) {
       if (!config || !config.entity) {
@@ -10308,13 +10353,14 @@ ${decls}
       const cfg = this._config;
       if (!cfg)
         return html``;
+      const hl = cfg.language || this.hass;
       return html`<div
       class="flex flex-col items-center gap-3 rounded-[14px] border border-line bg-card p-[13px]"
     >
       <div class="flex w-full items-center justify-between">
         <span
           class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-          >${cfg.name || "Afstandsbediening"}</span
+          >${cfg.name || t(hl, "remote.default_name")}</span
         >
         ${this._btn("power", "solar:power-bold-duotone", {
         size: "h-9 w-9",
@@ -10375,13 +10421,14 @@ ${decls}
       }
     `
     ];
-    static getStubConfig() {
+    static getStubConfig(hass, entities, entitiesFallback) {
       return {
         type: "custom:fibbers-room",
-        name: "Woonkamer",
+        name: "Room",
         icon: "solar:sofa-2-bold-duotone",
-        entities: ["light.tv_led_strip"],
-        sheet: "woonkamer"
+        entities: [
+          pickEntity("light", entities, entitiesFallback, "light.example")
+        ]
       };
     }
     setConfig(config) {
@@ -10646,12 +10693,12 @@ ${decls}
       }
     `
     ];
-    static getStubConfig() {
+    static getStubConfig(hass, entities, entitiesFallback) {
       return {
         type: "custom:fibbers-scheduler",
         name: "Alarm",
-        time: "input_datetime.wake_time",
-        enable: "input_boolean.wake_enabled"
+        time: pickEntity("input_datetime", entities, entitiesFallback, "input_datetime.example"),
+        enable: pickEntity("input_boolean", entities, entitiesFallback, "input_boolean.example")
       };
     }
     setConfig(config) {
@@ -10794,8 +10841,11 @@ ${decls}
       }
     `
     ];
-    static getStubConfig() {
-      return { type: "custom:fibbers-select", entity: "input_select.wake_days" };
+    static getStubConfig(hass, entities, entitiesFallback) {
+      return {
+        type: "custom:fibbers-select",
+        entity: pickEntity("input_select", entities, entitiesFallback, "input_select.example")
+      };
     }
     setConfig(config) {
       if (!config || !config.entity) {
@@ -11222,18 +11272,22 @@ ${decls}
 
   // src/cards/sheet.js
   class FibbersSheet extends LitElement {
+    static properties = { preview: { type: Boolean, reflect: true } };
     static styles = [
       css`
       :host {
         display: none;
+      }
+      :host([preview]) {
+        display: block;
       }
     `
     ];
     static getStubConfig() {
       return {
         type: "custom:fibbers-sheet",
-        id: "woonkamer",
-        title: "Woonkamer",
+        id: "room",
+        title: "Room",
         icon: "solar:sofa-2-bold-duotone",
         cards: []
       };
@@ -11245,11 +11299,11 @@ ${decls}
       if (config.cards != null && !Array.isArray(config.cards)) {
         throw new Error("fibbers-sheet: `cards` must be a list");
       }
-      if (this._config && this._config.id !== config.id && this.isConnected) {
+      if (this._config && this._config.id !== config.id && this.isConnected && !this.preview) {
         unregisterSheet(this._config.id, this);
       }
       this._config = config;
-      if (this.isConnected)
+      if (this.isConnected && !this.preview)
         registerSheet(config.id, this);
     }
     set hass(hass) {
@@ -11259,16 +11313,42 @@ ${decls}
     }
     connectedCallback() {
       super.connectedCallback();
+      if (this.preview)
+        return;
       if (this._config)
         registerSheet(this._config.id, this);
     }
     disconnectedCallback() {
       super.disconnectedCallback();
+      if (this.preview)
+        return;
       if (this._config)
         unregisterSheet(this._config.id, this);
     }
     render() {
-      return html``;
+      if (!this.preview)
+        return html``;
+      const c = this._config || {};
+      return html`<div
+      style="display:flex;align-items:center;gap:10px;background:#1d2426;
+             border:1px solid #262f31;border-radius:14px;padding:13px"
+    >
+      <div
+        style="display:flex;width:36px;height:36px;align-items:center;
+               justify-content:center;border-radius:10px;background:#173524"
+      >
+        <fib-icon
+          style="--mdc-icon-size:19px;color:#74b98a"
+          icon=${c.icon || "solar:widget-bold-duotone"}
+        ></fib-icon>
+      </div>
+      <div style="font:600 13px system-ui;color:#e7ecea">
+        ${c.title || c.id || "Sheet"}
+        <div style="font:500 11px system-ui;color:#8b999c">
+          opens on #${c.id || "id"}
+        </div>
+      </div>
+    </div>`;
     }
     getCardSize() {
       return 1;
@@ -11308,10 +11388,10 @@ ${decls}
       }
     `
     ];
-    static getStubConfig() {
+    static getStubConfig(hass, entities, entitiesFallback) {
       return {
         type: "custom:fibbers-stat",
-        entity: "sensor.hue_motion_sensor_1_temperature"
+        entity: pickEntity("sensor", entities, entitiesFallback, "sensor.example")
       };
     }
     setConfig(config) {
@@ -11568,10 +11648,10 @@ ${decls}
       }
     `
     ];
-    static getStubConfig() {
+    static getStubConfig(hass, entities, entitiesFallback) {
       return {
         type: "custom:fibbers-toggle",
-        entity: "input_boolean.wake_alarm_enabled"
+        entity: pickEntity("input_boolean", entities, entitiesFallback, "input_boolean.example")
       };
     }
     setConfig(config) {
@@ -11688,8 +11768,11 @@ ${decls}
       }
     `
     ];
-    static getStubConfig() {
-      return { type: "custom:fibbers-weather", entity: "weather.thuis" };
+    static getStubConfig(hass, entities, entitiesFallback) {
+      return {
+        type: "custom:fibbers-weather",
+        entity: pickEntity("weather", entities, entitiesFallback, "weather.example")
+      };
     }
     setConfig(config) {
       if (!config || !config.entity) {
@@ -11935,10 +12018,17 @@ ${decls}
     if (!customElements.get(tag2))
       customElements.define(tag2, cls);
   });
+  var DOCS_URL = "https://elian0213.github.io/fibbers-home-assistant/";
   window.customCards = window.customCards || [];
   CARDS.forEach(([tag2, , name, description]) => {
     if (!window.customCards.some((c) => c.type === tag2)) {
-      window.customCards.push({ type: tag2, name, description, preview: false });
+      window.customCards.push({
+        type: tag2,
+        name,
+        description,
+        preview: true,
+        documentationURL: DOCS_URL
+      });
     }
   });
   window.FIBBERS = {

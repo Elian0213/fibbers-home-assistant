@@ -6,6 +6,7 @@ import { LitElement, html, css } from "lit";
 
 import { t, langOf } from "../i18n.js";
 import { twSheet } from "../tw.js";
+import { pickEntity } from "../util.js";
 import "../icon.js";
 
 const COND_ICON = {
@@ -50,8 +51,16 @@ export class FibbersWeather extends LitElement {
     `,
   ];
 
-  static getStubConfig() {
-    return { type: "custom:fibbers-weather", entity: "weather.thuis" };
+  static getStubConfig(hass, entities, entitiesFallback) {
+    return {
+      type: "custom:fibbers-weather",
+      entity: pickEntity(
+        "weather",
+        entities,
+        entitiesFallback,
+        "weather.example",
+      ),
+    };
   }
 
   setConfig(config) {

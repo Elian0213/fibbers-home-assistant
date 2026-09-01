@@ -7,7 +7,7 @@ import { LitElement, html, css } from "lit";
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import { pillSwitch } from "../ui.js";
-import { moreInfo } from "../util.js";
+import { moreInfo, pickEntity } from "../util.js";
 import "../icon.js";
 
 const hhmm = (s) => (typeof s === "string" ? s.slice(0, 5) : "");
@@ -32,12 +32,22 @@ export class FibbersScheduler extends LitElement {
     `,
   ];
 
-  static getStubConfig() {
+  static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-scheduler",
       name: "Alarm",
-      time: "input_datetime.wake_time",
-      enable: "input_boolean.wake_enabled",
+      time: pickEntity(
+        "input_datetime",
+        entities,
+        entitiesFallback,
+        "input_datetime.example",
+      ),
+      enable: pickEntity(
+        "input_boolean",
+        entities,
+        entitiesFallback,
+        "input_boolean.example",
+      ),
     };
   }
 

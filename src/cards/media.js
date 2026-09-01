@@ -7,7 +7,7 @@ import { LitElement, html, css } from "lit";
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import { sliderTrack } from "../ui.js";
-import { pctFromX } from "../util.js";
+import { pctFromX, pickEntity } from "../util.js";
 import "../icon.js";
 
 export class FibbersMedia extends LitElement {
@@ -26,10 +26,15 @@ export class FibbersMedia extends LitElement {
     `,
   ];
 
-  static getStubConfig() {
+  static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-media",
-      entity: "media_player.woonkamer_spotify",
+      entity: pickEntity(
+        "media_player",
+        entities,
+        entitiesFallback,
+        "media_player.example",
+      ),
     };
   }
 

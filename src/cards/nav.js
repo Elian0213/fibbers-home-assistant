@@ -6,8 +6,10 @@ import { LitElement, html, css } from "lit";
 
 import { attach, detach, renderBar } from "../body-layer.js";
 import { nav } from "../nav-stack.js";
+import "../icon.js";
 
 export class FibbersNav extends LitElement {
+  static properties = { preview: { type: Boolean, reflect: true } };
   static styles = [
     css`
       :host {
@@ -21,14 +23,14 @@ export class FibbersNav extends LitElement {
       type: "custom:fibbers-nav",
       tabs: [
         {
-          name: "Huis",
+          name: "Home",
           icon: "solar:home-2-bold-duotone",
-          path: "/dashboard-thuis/huis",
+          path: "/lovelace/0",
         },
         {
-          name: "Licht",
+          name: "Lights",
           icon: "solar:lightbulb-bolt-bold-duotone",
-          path: "/dashboard-thuis/licht",
+          path: "/lovelace/1",
         },
       ],
     };
@@ -86,7 +88,7 @@ export class FibbersNav extends LitElement {
       throw new Error("fibbers-nav: `extra_bottom` must be a number of pixels");
     }
     this._config = config;
-    if (this.isConnected) attach(this, this._config);
+    if (this.isConnected && !this.preview) attach(this, this._config);
   }
 
   set hass(hass) {
@@ -97,15 +99,41 @@ export class FibbersNav extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    // In the card picker HA sets `preview` — never spawn the real body-portal bar.
+    if (this.preview) return;
     if (this._config) attach(this, this._config);
   }
   disconnectedCallback() {
     super.disconnectedCallback();
-    detach(this);
+    if (!this.preview) detach(this);
   }
 
   render() {
-    return html``;
+    if (!this.preview) return html``;
+    // Inert inline mock for the card picker — a static bar, no body portal, no
+    // singleton. Literal colours (the real bar's palette) so this otherwise
+    // UI-less controller needn't pull in Tailwind.
+    const tabs = (this._config && this._config.tabs) || [];
+    return html`<div
+      style="display:flex;gap:2px;background:#1d2426;border:1px solid #262f31;
+             border-radius:12px;padding:7px 6px"
+    >
+      ${tabs.map(
+        (tab, i) =>
+          html`<div
+            style="flex:1;display:flex;flex-direction:column;align-items:center;
+                 gap:3px;font:500 10px system-ui;color:${
+                   i === 0 ? "#74b98a" : "#8b999c"
+                 }"
+          >
+            <fib-icon
+              style="--mdc-icon-size:20px"
+              icon=${tab.icon || "solar:widget-bold-duotone"}
+            ></fib-icon>
+            <span>${tab.name || ""}</span>
+          </div>`,
+      )}
+    </div>`;
   }
 
   getCardSize() {

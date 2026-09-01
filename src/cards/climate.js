@@ -6,6 +6,7 @@ import { LitElement, html, css } from "lit";
 
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
+import { pickEntity } from "../util.js";
 import "../icon.js";
 
 const MODE = {
@@ -40,8 +41,16 @@ export class FibbersClimate extends LitElement {
     `,
   ];
 
-  static getStubConfig() {
-    return { type: "custom:fibbers-climate", entity: "climate.woonkamer" };
+  static getStubConfig(hass, entities, entitiesFallback) {
+    return {
+      type: "custom:fibbers-climate",
+      entity: pickEntity(
+        "climate",
+        entities,
+        entitiesFallback,
+        "climate.example",
+      ),
+    };
   }
 
   setConfig(config) {

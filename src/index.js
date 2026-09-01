@@ -199,10 +199,17 @@ CARDS.forEach(([tag, cls]) => {
   if (!customElements.get(tag)) customElements.define(tag, cls);
 });
 
+const DOCS_URL = "https://elian0213.github.io/fibbers-home-assistant/";
 window.customCards = window.customCards || [];
 CARDS.forEach(([tag, , name, description]) => {
   if (!window.customCards.some((c) => c.type === tag)) {
-    window.customCards.push({ type: tag, name, description, preview: false });
+    window.customCards.push({
+      type: tag,
+      name,
+      description,
+      preview: true, // live thumbnail in the card picker (getStubConfig)
+      documentationURL: DOCS_URL,
+    });
   }
 });
 

@@ -6,7 +6,7 @@ import { LitElement, html, css } from "lit";
 
 import { runAction } from "../actions.js";
 import { twSheet } from "../tw.js";
-import { fmtNum, fmtState, isUnavail } from "../util.js";
+import { fmtNum, fmtState, isUnavail, pickEntity } from "../util.js";
 import "../icon.js"; // registers <fib-icon>
 
 const COLORS = ["accent", "amber", "blue", "green", "red"];
@@ -41,10 +41,15 @@ export class FibbersStat extends LitElement {
     `,
   ];
 
-  static getStubConfig() {
+  static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-stat",
-      entity: "sensor.hue_motion_sensor_1_temperature",
+      entity: pickEntity(
+        "sensor",
+        entities,
+        entitiesFallback,
+        "sensor.example",
+      ),
     };
   }
 

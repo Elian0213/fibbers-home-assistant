@@ -6,7 +6,7 @@ import { LitElement, html, css } from "lit";
 
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
-import { fmtNum, fetchHistory } from "../util.js";
+import { fmtNum, fetchHistory, pickEntity } from "../util.js";
 
 const COLORS = ["accent", "amber", "blue", "green", "red"];
 /* full class strings so Tailwind's scanner emits every one (a dynamic
@@ -35,10 +35,15 @@ export class FibbersGraph extends LitElement {
     `,
   ];
 
-  static getStubConfig() {
+  static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-graph",
-      entity: "sensor.hue_motion_sensor_1_temperature",
+      entity: pickEntity(
+        "sensor",
+        entities,
+        entitiesFallback,
+        "sensor.example",
+      ),
       hours: 24,
     };
   }

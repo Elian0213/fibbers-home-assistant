@@ -7,7 +7,7 @@ import { LitElement, html, css } from "lit";
 
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
-import { fmtNum, fmtState, isUnavail } from "../util.js";
+import { fmtNum, fmtState, isUnavail, pickEntity } from "../util.js";
 import "../icon.js";
 
 const PERIODS = [
@@ -42,10 +42,10 @@ export class FibbersGreeting extends LitElement {
     `,
   ];
 
-  static getStubConfig() {
+  static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-greeting",
-      lights: "light.all_color_lights",
+      lights: pickEntity("light", entities, entitiesFallback, "light.example"),
     };
   }
 

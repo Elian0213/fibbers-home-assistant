@@ -90,6 +90,9 @@
     "more": "more",
     "less": "less"
   },
+  "remote": {
+    "default_name": "Remote"
+  },
   "scheduler": {
     "default_name": "Alarm",
     "duration": "{n} min"

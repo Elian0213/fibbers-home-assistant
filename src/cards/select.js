@@ -6,6 +6,7 @@ import { LitElement, html, css } from "lit";
 
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
+import { pickEntity } from "../util.js";
 import "../icon.js";
 
 export class FibbersSelect extends LitElement {
@@ -24,8 +25,16 @@ export class FibbersSelect extends LitElement {
     `,
   ];
 
-  static getStubConfig() {
-    return { type: "custom:fibbers-select", entity: "input_select.wake_days" };
+  static getStubConfig(hass, entities, entitiesFallback) {
+    return {
+      type: "custom:fibbers-select",
+      entity: pickEntity(
+        "input_select",
+        entities,
+        entitiesFallback,
+        "input_select.example",
+      ),
+    };
   }
 
   setConfig(config) {

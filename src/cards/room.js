@@ -6,7 +6,7 @@ import { LitElement, html, css } from "lit";
 
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
-import { moreInfo, isUnavail } from "../util.js";
+import { moreInfo, isUnavail, pickEntity } from "../util.js";
 import "../icon.js";
 
 const isLight = (id) => typeof id === "string" && id.startsWith("light.");
@@ -25,13 +25,14 @@ export class FibbersRoom extends LitElement {
     `,
   ];
 
-  static getStubConfig() {
+  static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-room",
-      name: "Woonkamer",
+      name: "Room",
       icon: "solar:sofa-2-bold-duotone",
-      entities: ["light.tv_led_strip"],
-      sheet: "woonkamer",
+      entities: [
+        pickEntity("light", entities, entitiesFallback, "light.example"),
+      ],
     };
   }
 

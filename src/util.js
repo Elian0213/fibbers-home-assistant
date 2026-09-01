@@ -66,6 +66,17 @@ export const fmtNum = (hass, n, d) => {
   }
 };
 
+// Pick a real entity id of `domain` for a card's getStubConfig — HA passes the
+// user's curated `entities` then a broader `entitiesFallback`. Falls back to a
+// neutral placeholder so a stub is never hard-coded to one person's house.
+export function pickEntity(domain, entities, entitiesFallback, fallback) {
+  const inDomain = (list) =>
+    (list || []).find(
+      (id) => typeof id === "string" && id.startsWith(`${domain}.`),
+    );
+  return inDomain(entities) || inDomain(entitiesFallback) || fallback;
+}
+
 export const isUnavail = (st) =>
   !st || st.state === "unavailable" || st.state === "unknown";
 

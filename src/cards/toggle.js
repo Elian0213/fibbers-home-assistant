@@ -7,7 +7,7 @@ import { LitElement, html, css } from "lit";
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import { pillSwitch } from "../ui.js";
-import { fmtState } from "../util.js";
+import { fmtState, pickEntity } from "../util.js";
 import "../icon.js";
 
 export class FibbersToggle extends LitElement {
@@ -25,10 +25,15 @@ export class FibbersToggle extends LitElement {
     `,
   ];
 
-  static getStubConfig() {
+  static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-toggle",
-      entity: "input_boolean.wake_alarm_enabled",
+      entity: pickEntity(
+        "input_boolean",
+        entities,
+        entitiesFallback,
+        "input_boolean.example",
+      ),
     };
   }
 

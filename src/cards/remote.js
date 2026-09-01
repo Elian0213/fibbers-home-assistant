@@ -4,7 +4,9 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
+import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
+import { pickEntity } from "../util.js";
 import "../icon.js";
 
 const DEFAULTS = {
@@ -36,8 +38,16 @@ export class FibbersRemote extends LitElement {
     `,
   ];
 
-  static getStubConfig() {
-    return { type: "custom:fibbers-remote", entity: "remote.woonkamer_tv" };
+  static getStubConfig(hass, entities, entitiesFallback) {
+    return {
+      type: "custom:fibbers-remote",
+      entity: pickEntity(
+        "remote",
+        entities,
+        entitiesFallback,
+        "remote.example",
+      ),
+    };
   }
 
   setConfig(config) {
@@ -79,13 +89,14 @@ export class FibbersRemote extends LitElement {
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
+    const hl = cfg.language || this.hass;
     return html`<div
       class="flex flex-col items-center gap-3 rounded-[14px] border border-line bg-card p-[13px]"
     >
       <div class="flex w-full items-center justify-between">
         <span
           class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-          >${cfg.name || "Afstandsbediening"}</span
+          >${cfg.name || t(hl, "remote.default_name")}</span
         >
         ${this._btn("power", "solar:power-bold-duotone", {
           size: "h-9 w-9",
