@@ -3,6 +3,51 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] — 2026-09-01
+
+"Installs clean, works for strangers" — the release that makes Fibbers safe to hand to someone who
+isn't the author, on any language and theme.
+
+### Added
+
+- **Internationalisation.** Every on-screen string now flows through a tiny `t()` layer
+  (`src/i18n.js`) with per-card English (`en.json`) and Dutch (`nl.json`) catalogs — **English is
+  the default**, Dutch is a translation. Language resolves from `hass.locale.language` (with
+  base-language then English fallback); numbers and dates follow the user's locale. Optional per-card
+  `language:` override. A build guard (`check-i18n`) fails on a hard-coded Dutch string.
+- **Opt-in theming.** A `theme:` option on `fibbers-nav` (`fibbers` | `fibbers-light` | `auto` |
+  `none`, default `none`) applies the dark palette or a new, contrast-checked **light** palette,
+  scoped to that dashboard's `hui-root` and removed when you leave. `auto` follows
+  `prefers-color-scheme`.
+- **Zero-config sizing.** Every card implements `getGridOptions()` (content cards size to
+  `rows: "auto"`), so a Sections view lays out bare cards with no hand-written `grid_options`.
+- **Card-picker previews.** All 26 cards register `preview: true` with a `documentationURL`, and
+  `getStubConfig(hass, entities, entitiesFallback)` derives a real entity from the user's system
+  instead of a hard-coded id.
+- **Visual editors.** `nav`, `room`, `light-group`, `light-row`, `stat`, `toggle`, `number`,
+  `select`, `datetime` and `section` open an `ha-form` editor in the picker (shared `src/editor.js`,
+  byte-identical round-trip); the rest stay YAML-only.
+- **`extra_bottom`** on `fibbers-nav` — breathing room added on top of the *measured* bar height
+  (`reserve` remains the absolute override).
+
+### Changed
+
+- **Installing Fibbers no longer restyles Home Assistant.** The load-time global theme injector is
+  off by default (still callable via `window.FIBBERS.injectGlobalCss()`; `FIBBERS_DISABLE_GLOBAL_CSS`
+  still honoured). Cards carry their own palette, so they look right with zero global effect.
+- **The nav bar reserves its space on the view, not via an in-flow spacer.** On a multi-column
+  Sections view the last card is no longer hidden behind the bar, and the `column_span` workaround
+  is unnecessary.
+
+### Fixed
+
+- **`fibbers-stat`** rendered a `device_class: timestamp` as an overflowing absolute date; it now
+  shows relative time (`<ha-relative-time>`), with `absolute_time: true` to opt out.
+
+### Tooling
+
+- `bun run check` gains the `check-i18n` guard; ESLint resolves the `.json` translation imports.
+
 ## [0.5.0] — 2026-09-01
 
 ### Added
