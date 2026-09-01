@@ -12,18 +12,19 @@ const supportsAdopt =
   "adoptedStyleSheets" in Document.prototype &&
   "replaceSync" in CSSStyleSheet.prototype;
 
-// One keyboard-focus ring for every card (accent-coloured, so it reads on the
-// dark and light palettes). Applied here rather than per-control so nothing that
-// gains focus is left without a visible ring.
-const FOCUS_RING =
-  ":focus-visible{outline:2px solid var(--color-accent,#74B98A);outline-offset:2px}";
+// Baseline a11y CSS shared by every card: one accent focus ring (reads on the
+// dark and light palettes) so nothing that gains focus is left without one, plus
+// a prefers-reduced-motion reset so no card animates for a user who asked not to
+// see motion (the nav bar and sheet honour it in their own stylesheets already).
+const BASE_CSS = `:focus-visible{outline:2px solid var(--color-accent,#74B98A);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*,::before,::after{transition-duration:.01ms !important;animation-duration:.01ms !important}}`;
 
 /** The shared utility sheet, ready to drop into a Lit card's `static styles`. */
 export let twSheet;
 
 if (supportsAdopt) {
   const sheet = new CSSStyleSheet();
-  sheet.replaceSync(`${TW_CSS.replace(/:root/g, ":host")}\n${FOCUS_RING}`);
+  sheet.replaceSync(`${TW_CSS.replace(/:root/g, ":host")}\n${BASE_CSS}`);
 
   // hoist @property rules to the document so custom props register globally
   try {
@@ -44,5 +45,5 @@ if (supportsAdopt) {
   twSheet = sheet;
 } else {
   // very old engine: fall back to an inline <style> string wrapped as a Lit result
-  twSheet = unsafeCSS(`${TW_CSS.replace(/:root/g, ":host")}\n${FOCUS_RING}`);
+  twSheet = unsafeCSS(`${TW_CSS.replace(/:root/g, ":host")}\n${BASE_CSS}`);
 }

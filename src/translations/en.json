@@ -101,6 +101,10 @@
     "default_name": "Alarm",
     "duration": "{n} min"
   },
+  "sheet": {
+    "close": "Close",
+    "load_error": "Couldn't load the cards."
+  },
   "weather": {
     "default_name": "Weather",
     "conditions": {

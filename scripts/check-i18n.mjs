@@ -27,7 +27,7 @@ const DUTCH = [
   "Helder", "Zonnig", "Bewolkt", "bewolkt", "Stortregen", "Onweer", "Sneeuw",
   "Hagel", "Winderig", "inklappen", "uitklappen", "historie", "Aandacht",
   "orde", "spelen", "volgende", "Afstandsbediening", "Minder", "Alle",
-  "scènes", "Avond",
+  "scènes", "Avond", "Sluiten", "Kaarten", "geladen",
 ];
 const DENY = new RegExp(`\\b(${DUTCH.join("|")})\\b`);
 
@@ -42,10 +42,14 @@ const stripComments = (src) =>
 // Every "…", '…' and `…` literal (templates may span lines).
 const LITERAL = /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`/gs;
 
+// Every card, plus the body-portal modules that also render user-facing text.
+const files = readdirSync(cardsDir)
+  .filter((e) => e.endsWith(".js"))
+  .map((e) => join(cardsDir, e));
+files.push(join(root, "src/body-sheet.js"), join(root, "src/body-layer.js"));
+
 const hits = [];
-for (const entry of readdirSync(cardsDir)) {
-  if (!entry.endsWith(".js")) continue;
-  const file = join(cardsDir, entry);
+for (const file of files) {
   const code = stripComments(readFileSync(file, "utf8"));
   for (const lit of code.match(LITERAL) || []) {
     const m = lit.match(DENY);

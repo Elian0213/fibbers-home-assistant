@@ -7383,12 +7383,13 @@ ${decls}
 
   // src/tw.js
   var supportsAdopt = "adoptedStyleSheets" in Document.prototype && "replaceSync" in CSSStyleSheet.prototype;
-  var FOCUS_RING = ":focus-visible{outline:2px solid var(--color-accent,#74B98A);outline-offset:2px}";
+  var BASE_CSS = `:focus-visible{outline:2px solid var(--color-accent,#74B98A);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*,::before,::after{transition-duration:.01ms !important;animation-duration:.01ms !important}}`;
   var twSheet;
   if (supportsAdopt) {
     const sheet = new CSSStyleSheet;
     sheet.replaceSync(`${TW_CSS.replace(/:root/g, ":host")}
-${FOCUS_RING}`);
+${BASE_CSS}`);
     try {
       const doc = new CSSStyleSheet;
       let hoisted = 0;
@@ -7404,7 +7405,7 @@ ${FOCUS_RING}`);
     twSheet = sheet;
   } else {
     twSheet = unsafeCSS(`${TW_CSS.replace(/:root/g, ":host")}
-${FOCUS_RING}`);
+${BASE_CSS}`);
   }
 
   // src/view-reserve.js
@@ -7596,6 +7597,8 @@ ${FOCUS_RING}`);
     shadow.adoptedStyleSheets = [twSheet, hostSheet];
     const div = document.createElement("div");
     div.className = "bar";
+    div.setAttribute("role", "tablist");
+    div.setAttribute("aria-label", "Dashboard sections");
     shadow.append(div);
     document.body.appendChild(host);
     if (window.ResizeObserver)
@@ -7630,6 +7633,24 @@ ${FOCUS_RING}`);
     return !["off", "unavailable", "unknown"].includes(st.state);
   }
   var press = (e, on) => on ? e.currentTarget.setAttribute("data-pressed", "true") : e.currentTarget.removeAttribute("data-pressed");
+  function onTabKey(e) {
+    const delta = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
+    const btns = [
+      ...e.currentTarget.parentElement.querySelectorAll('[role="tab"]')
+    ];
+    const idx = btns.indexOf(e.currentTarget);
+    let next;
+    if (e.key in delta)
+      next = (idx + delta[e.key] + btns.length) % btns.length;
+    else if (e.key === "Home")
+      next = 0;
+    else if (e.key === "End")
+      next = btns.length - 1;
+    else
+      return;
+    e.preventDefault();
+    btns[next].focus();
+  }
   function renderBar() {
     if (!bar.host || !bar.config)
       return;
@@ -7640,10 +7661,14 @@ ${FOCUS_RING}`);
       const badge = tab.badge && badgeActive(tab.badge, nav.hassRef);
       return html`<button
         type="button"
+        role="tab"
+        aria-selected=${i === active ? "true" : "false"}
         aria-current=${i === active ? "page" : nothing}
+        tabindex=${i === active ? 0 : -1}
         class="group relative flex min-w-0 flex-1 flex-col items-center pb-[3px] pt-[5px]
                focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent
                focus-visible:[outline-offset:-2px]"
+        @keydown=${onTabKey}
         @pointerdown=${(e) => press(e, true)}
         @pointerup=${(e) => press(e, false)}
         @pointercancel=${(e) => press(e, false)}
@@ -7836,6 +7861,10 @@ ${FOCUS_RING}`);
       default_name: "Alarm",
       duration: "{n} min"
     },
+    sheet: {
+      close: "Close",
+      load_error: "Couldn't load the cards."
+    },
     weather: {
       default_name: "Weather",
       conditions: {
@@ -7967,6 +7996,10 @@ ${FOCUS_RING}`);
     scheduler: {
       default_name: "Wekker",
       duration: "{n} min"
+    },
+    sheet: {
+      close: "Sluiten",
+      load_error: "Kaarten konden niet geladen worden."
     },
     weather: {
       default_name: "Weer",
@@ -11306,6 +11339,19 @@ ${FOCUS_RING}`);
     built: false
   };
   var reduceMotion = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function deepActiveElement() {
+    let el = document.activeElement;
+    while (el && el.shadowRoot && el.shadowRoot.activeElement)
+      el = el.shadowRoot.activeElement;
+    return el;
+  }
+  function onFocusIn(e) {
+    if (layer.openId == null || !layer.host || !layer.panel)
+      return;
+    if (e.composedPath().includes(layer.host))
+      return;
+    layer.panel.focus();
+  }
   var SHEET_CSS = `
   :host {
     position: fixed; inset: 0; z-index: 9; display: none;
@@ -11377,6 +11423,7 @@ ${FOCUS_RING}`);
     sheet.className = "sheet";
     sheet.setAttribute("role", "dialog");
     sheet.setAttribute("aria-modal", "true");
+    sheet.setAttribute("tabindex", "-1");
     const grab = document.createElement("div");
     grab.className = "grab";
     const head = document.createElement("div");
@@ -11449,6 +11496,8 @@ ${FOCUS_RING}`);
   }
   async function renderContent(card) {
     const cfg = card._config;
+    if (layer.panel)
+      layer.panel.setAttribute("aria-label", cfg.title || "Dialog");
     render(html`
       ${cfg.icon ? html`<fib-icon
               class="h-5 w-5 flex-none [--mdc-icon-size:20px] text-accent"
@@ -11464,7 +11513,7 @@ ${FOCUS_RING}`);
       </div>
       <button
         type="button"
-        aria-label="Sluiten"
+        aria-label=${t(card._hass, "sheet.close")}
         class="flex h-[30px] w-[30px] flex-none cursor-pointer items-center justify-center
                rounded-full border-0 bg-card2 text-[15px] leading-none text-ink2"
         @click=${() => closeSheet()}
@@ -11490,7 +11539,7 @@ ${FOCUS_RING}`);
     } catch (_) {
       const msg = document.createElement("div");
       msg.className = "px-2 py-2 text-[12px] text-muted";
-      msg.textContent = "Kaarten konden niet geladen worden.";
+      msg.textContent = t(card._hass, "sheet.load_error");
       body.appendChild(msg);
     }
   }
@@ -11498,12 +11547,17 @@ ${FOCUS_RING}`);
     const card = layer.sheets.get(id);
     if (!card || layer.openId === id)
       return;
+    layer.opener = deepActiveElement();
     build();
     layer.openId = id;
     layer.host.setAttribute("data-open", "true");
     lockScroll();
     renderContent(card);
-    requestAnimationFrame(() => requestAnimationFrame(() => layer.host.setAttribute("data-shown", "true")));
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      layer.host.setAttribute("data-shown", "true");
+      if (layer.panel)
+        layer.panel.focus();
+    }));
   }
   function closeSheet() {
     if (layer.openId == null)
@@ -11523,6 +11577,10 @@ ${FOCUS_RING}`);
       if (layer.bodyEl)
         layer.bodyEl.textContent = "";
       unlockScroll();
+      const opener = layer.opener;
+      layer.opener = null;
+      if (opener && opener.focus)
+        opener.focus();
     };
     if (reduceMotion())
       finish();
@@ -11563,6 +11621,7 @@ ${FOCUS_RING}`);
       });
   }
   window.addEventListener("hashchange", syncFromHash);
+  window.addEventListener("focusin", onFocusIn);
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape")
       closeSheet();

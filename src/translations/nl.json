@@ -101,6 +101,10 @@
     "default_name": "Wekker",
     "duration": "{n} min"
   },
+  "sheet": {
+    "close": "Sluiten",
+    "load_error": "Kaarten konden niet geladen worden."
+  },
   "weather": {
     "default_name": "Weer",
     "conditions": {

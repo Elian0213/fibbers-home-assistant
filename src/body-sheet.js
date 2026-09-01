@@ -5,6 +5,7 @@
  * ================================================================== */
 import { render, html } from "lit";
 
+import { t } from "./i18n.js";
 import { T } from "./tokens.js";
 import { twSheet } from "./tw.js";
 import "./icon.js";
@@ -26,6 +27,24 @@ const layer = {
 const reduceMotion = () =>
   window.matchMedia &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// Deepest focused element across shadow roots, so focus can be returned to the
+// exact control that opened the sheet — not just its outer shadow host.
+function deepActiveElement() {
+  let el = document.activeElement;
+  while (el && el.shadowRoot && el.shadowRoot.activeElement)
+    el = el.shadowRoot.activeElement;
+  return el;
+}
+
+// Focus trap: while the sheet is open, if focus escapes it (Tab past the last
+// control), pull it back onto the dialog. composedPath() lets this work across
+// the nested shadow roots of the child cards.
+function onFocusIn(e) {
+  if (layer.openId == null || !layer.host || !layer.panel) return;
+  if (e.composedPath().includes(layer.host)) return;
+  layer.panel.focus();
+}
 
 /* container CSS — load-bearing (self-contained font; crisp margin-auto centring
    with no will-change so it never rasterises blurry on fractional DPR). */
@@ -101,6 +120,7 @@ function build() {
   sheet.className = "sheet";
   sheet.setAttribute("role", "dialog");
   sheet.setAttribute("aria-modal", "true");
+  sheet.setAttribute("tabindex", "-1"); // focusable so focus can move onto the dialog
   const grab = document.createElement("div");
   grab.className = "grab";
   const head = document.createElement("div");
@@ -174,6 +194,8 @@ function unlockScroll() {
 
 async function renderContent(card) {
   const cfg = card._config;
+  if (layer.panel)
+    layer.panel.setAttribute("aria-label", cfg.title || "Dialog");
   render(
     html`
       ${
@@ -198,7 +220,7 @@ async function renderContent(card) {
       </div>
       <button
         type="button"
-        aria-label="Sluiten"
+        aria-label=${t(card._hass, "sheet.close")}
         class="flex h-[30px] w-[30px] flex-none cursor-pointer items-center justify-center
                rounded-full border-0 bg-card2 text-[15px] leading-none text-ink2"
         @click=${() => closeSheet()}
@@ -225,7 +247,7 @@ async function renderContent(card) {
   } catch (_) {
     const msg = document.createElement("div");
     msg.className = "px-2 py-2 text-[12px] text-muted";
-    msg.textContent = "Kaarten konden niet geladen worden.";
+    msg.textContent = t(card._hass, "sheet.load_error");
     body.appendChild(msg);
   }
 }
@@ -233,13 +255,17 @@ async function renderContent(card) {
 export function openSheet(id) {
   const card = layer.sheets.get(id);
   if (!card || layer.openId === id) return;
+  layer.opener = deepActiveElement(); // to restore focus on close
   build();
   layer.openId = id;
   layer.host.setAttribute("data-open", "true");
   lockScroll();
   renderContent(card);
   requestAnimationFrame(() =>
-    requestAnimationFrame(() => layer.host.setAttribute("data-shown", "true")),
+    requestAnimationFrame(() => {
+      layer.host.setAttribute("data-shown", "true");
+      if (layer.panel) layer.panel.focus(); // move focus onto the dialog
+    }),
   );
 }
 
@@ -260,6 +286,9 @@ export function closeSheet() {
     if (layer.host) layer.host.removeAttribute("data-open");
     if (layer.bodyEl) layer.bodyEl.textContent = "";
     unlockScroll();
+    const opener = layer.opener;
+    layer.opener = null;
+    if (opener && opener.focus) opener.focus(); // return focus to the trigger
   };
   if (reduceMotion()) finish();
   else setTimeout(finish, 300);
@@ -297,6 +326,7 @@ export function updateSheetHass(id, hass) {
 }
 
 window.addEventListener("hashchange", syncFromHash);
+window.addEventListener("focusin", onFocusIn);
 window.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeSheet();
 });

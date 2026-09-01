@@ -145,6 +145,8 @@ function buildBar() {
   shadow.adoptedStyleSheets = [twSheet, hostSheet];
   const div = document.createElement("div");
   div.className = "bar";
+  div.setAttribute("role", "tablist");
+  div.setAttribute("aria-label", "Dashboard sections");
   shadow.append(div);
   document.body.appendChild(host);
 
@@ -185,6 +187,23 @@ const press = (e, on) =>
     ? e.currentTarget.setAttribute("data-pressed", "true")
     : e.currentTarget.removeAttribute("data-pressed");
 
+// Roving arrow-key focus across the tabs (manual activation — Enter/Space, i.e. a
+// button click, still does the navigation; arrows only move focus).
+function onTabKey(e) {
+  const delta = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
+  const btns = [
+    ...e.currentTarget.parentElement.querySelectorAll('[role="tab"]'),
+  ];
+  const idx = btns.indexOf(e.currentTarget);
+  let next;
+  if (e.key in delta) next = (idx + delta[e.key] + btns.length) % btns.length;
+  else if (e.key === "Home") next = 0;
+  else if (e.key === "End") next = btns.length - 1;
+  else return;
+  e.preventDefault();
+  btns[next].focus();
+}
+
 export function renderBar() {
   if (!bar.host || !bar.config) return;
   const div = bar.host.shadowRoot.querySelector(".bar");
@@ -196,10 +215,14 @@ export function renderBar() {
       const badge = tab.badge && badgeActive(tab.badge, nav.hassRef);
       return html`<button
         type="button"
+        role="tab"
+        aria-selected=${i === active ? "true" : "false"}
         aria-current=${i === active ? "page" : nothing}
+        tabindex=${i === active ? 0 : -1}
         class="group relative flex min-w-0 flex-1 flex-col items-center pb-[3px] pt-[5px]
                focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent
                focus-visible:[outline-offset:-2px]"
+        @keydown=${onTabKey}
         @pointerdown=${(e) => press(e, true)}
         @pointerup=${(e) => press(e, false)}
         @pointercancel=${(e) => press(e, false)}
