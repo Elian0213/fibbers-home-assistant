@@ -3,9 +3,10 @@
  * isn't baked into src/icons.gen.js.
  *
  * An un-baked `solar:` name renders as a silent blank in Home Assistant (HA has
- * no `solar` iconset), so this guard keeps src/ and the stories honest. Run via
- * `bun run check`. Add a missing name to scripts/icon-map.json + `bun run
- * gen-icons`, or use an mdi: name.
+ * no `solar` iconset), so this guard keeps src/ and the stories honest. The full
+ * Solar bold-duotone style is shipped, so in practice this catches a non-duotone
+ * style (e.g. `-linear`) or a typo. Run via `bun run check`; use a
+ * `solar:<name>-bold-duotone` name, or an mdi: name.
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -50,7 +51,7 @@ if (missing.size) {
   for (const [name, files] of missing)
     console.error(`  ${name}  (${files.join(", ")})`);
   console.error(
-    "\nAdd them to scripts/icon-map.json and run `bun run gen-icons`, or use an mdi: name.",
+    "\nOnly the Solar bold-duotone style is shipped — use a `solar:<name>-bold-duotone` name, or an mdi: name.",
   );
   process.exit(1);
 }

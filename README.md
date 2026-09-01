@@ -142,16 +142,16 @@ there's **no separate theme repo to install or select.**
 
 ## Icons
 
-Fibbers ships **Solar Bold Duotone** icons (`solar:*`), inlined into the bundle at build
-time — no network, no icon font. Any HA icon still works too: give a card `icon: mdi:…`
-(or `hass:…`, a custom set) and it falls back to HA’s own `ha-icon` renderer. Only the Solar
-icons the project actually uses are bundled (a few KB), listed in
-[`scripts/icon-map.json`](scripts/icon-map.json); add a line there and run `bun run
-gen-icons` to inline another.
+Fibbers bundles the **entire Solar Bold Duotone style** (~1,325 icons) at build time — inlined,
+no network, no icon font — so any `solar:<name>-bold-duotone` you put in a card works out of the
+box, even on a HACS install where you can't rebuild. It adds ~½ MB gzipped to the one file HACS
+serves (a one-time, per-version cached download). Any HA icon still works too: give a card
+`icon: mdi:…` (or `hass:…`, a custom set) and it falls back to HA’s own `ha-icon` renderer.
 
-Reference a `solar:` name that _isn't_ bundled and it can't render — HA has no `solar` iconset —
-so `<fib-icon>` warns once in the console and draws a placeholder glyph instead of a silent
-blank. `bun run check` fails if anything in `src/` or the stories uses an un-baked `solar:` name.
+Reference a name that _isn't_ bundled — a non-duotone Solar style (`-linear`, `-outline`, …) or a
+typo — and it can't render (HA has no `solar` iconset), so `<fib-icon>` warns once in the console
+and draws a placeholder glyph instead of a silent blank. `bun run check` fails if anything in
+`src/` or the stories references an unshipped `solar:` name.
 
 ## Development
 
@@ -160,13 +160,13 @@ IIFE at `dist/fibbers.js` — still one file HACS serves, no external fetch. Two
 are committed so the bundle is reproducible: Tailwind is compiled from `styles/tailwind.css`
 (`@theme` maps the Fibbers palette) into `src/tailwind.gen.js`, then `src/tw.js` builds one
 shared adopted stylesheet for every card’s shadow root (hoisting Tailwind v4’s `@property` rules
-to the document so shadow-DOM `box-shadow` works); Solar icons are inlined into
-`src/icons.gen.js`.
+to the document so shadow-DOM `box-shadow` works); the full Solar bold-duotone style is inlined
+into `src/icons.gen.js`.
 
 ```bash
 bun install         # runtime: lit · dev: tailwindcss, prettier, @iconify-json/solar
 bun run gen-tw      # styles/tailwind.css -> src/tailwind.gen.js   (build runs this too)
-bun run gen-icons   # scripts/icon-map.json -> src/icons.gen.js    (when adding icons)
+bun run gen-icons   # @iconify-json/solar -> src/icons.gen.js      (full bold-duotone style)
 bun run build       # gen-tw + src/ -> dist/fibbers.js  (single IIFE)
 bun run watch       # rebuild on change
 bun run check       # prettier + build + parse

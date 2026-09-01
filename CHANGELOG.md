@@ -3,6 +3,25 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] — 2026-09-01
+
+### Fixed
+
+- **Icons no longer go blank on HACS installs.** Fibbers now bundles the **entire Solar Bold
+  Duotone style** (~1,325 icons) instead of a hand-curated ~57-icon subset, so any
+  `solar:<name>-bold-duotone` referenced in a dashboard renders out of the box — no rebuild
+  needed. Previously only the icons the maintainer had baked in shipped, so any other Solar name
+  rendered as an empty glyph (invisible on desktop, a missing icon on the phone/app). Adds ~½ MB
+  gzipped to the bundle — a one-time, per-version cached download; still one file, still no
+  external network.
+
+### Changed
+
+- Retired `scripts/icon-map.json`: `gen-icons` now emits the whole bold-duotone style from
+  `@iconify-json/solar`, so coverage is no longer curated by hand. `<fib-icon>`'s warn +
+  placeholder and the `bun run check` guard now catch only non-duotone styles (`-linear`, …) or
+  typos.
+
 ## [0.2.0] — 2026-09-01
 
 Rebuilt on a real component framework and rounded out the card set.

@@ -46,14 +46,15 @@ class FibIcon extends HTMLElement {
     }
     // A `solar:` name we didn't bundle can never render via <ha-icon> — HA ships
     // only MDI natively, so it would be a silent blank. Warn once and show a
-    // visible placeholder instead of handing it off.
+    // visible placeholder instead of handing it off. The full Solar bold-duotone
+    // style is bundled, so a miss here means a non-duotone style or a typo.
     if (name.startsWith("solar:")) {
       if (!warned.has(name)) {
         warned.add(name);
         console.warn(
-          `[fibbers] icon "${name}" is not in the bundled Solar set, so it ` +
-            `renders blank in Home Assistant. Add it to scripts/icon-map.json ` +
-            "and run `bun run gen-icons`, or use an mdi: name.",
+          `[fibbers] icon "${name}" is not bundled, so it renders blank in Home ` +
+            "Assistant. Only the Solar bold-duotone style ships — use a " +
+            "`solar:<name>-bold-duotone` name, or an mdi: name.",
         );
       }
       this.innerHTML = iconSvg(MISSING) || "";
