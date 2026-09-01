@@ -3,6 +3,33 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.7.1] — 2026-09-01
+
+Small follow-up to 0.7.0.
+
+### Added
+
+- **Source drawer** on `fibbers-remote` and `fibbers-media`: the cards show the
+  collapsed row (the remote's `favourites`, or the first 8 for media) plus a
+  drawer toggle — reusing `fibbers-scene`'s "All {n}" / "Less" wording — that
+  reveals the full `source_list`, so every app is reachable without editing YAML.
+  The active source is highlighted in both, and the drawer is keyboard-operable
+  (arrows between chips, Escape to close). `fibbers-media` gains `sources: auto`.
+
+### Fixed
+
+- **Accessibility stragglers.** The last mouse-only tap targets — `fibbers-light-row`'s
+  name/value area and `fibbers-alert`'s finding rows — are now real controls
+  (`role="button"`, `tabindex`, Enter/Space, an aria-label naming what they open).
+  `fib-icon` glyphs are `pointer-events: none`, so hit-testing sees one target per
+  control instead of a stack of SVG paths.
+
+### Known
+
+- The `hacs/default` submission PR (and the repo topic fix: drop `hacs-integration`,
+  add `lovelace` + `custom-cards`) is still the maintainer's to file — see
+  `docs/HACS_SUBMISSION.md`.
+
 ## [0.7.0] — 2026-09-01
 
 Accessibility, and the two media cards.
