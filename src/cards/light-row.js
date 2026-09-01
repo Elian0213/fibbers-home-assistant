@@ -191,8 +191,12 @@ export class FibbersLightRow extends LitElement {
         </div>
 
         <div
+          role="button"
+          tabindex="0"
+          aria-label=${`${name} — ${t(hl, "common.more_info")}`}
           class="flex cursor-pointer items-baseline justify-between gap-2"
           @click=${() => this._moreInfo()}
+          @keydown=${activateOnKey(() => this._moreInfo())}
         >
           <span class="text-[12px] font-medium text-ink">${name}</span>
           <span class="whitespace-nowrap text-[10.5px] text-muted">${val}</span>

@@ -1,6 +1,8 @@
 {
   "common": {
     "and": "and",
+    "more_info": "more info",
+    "show_all": "All {n}",
     "not_available": "Not available",
     "minutes_ago": "{n} min ago",
     "hours_ago": "{n} hr ago",

@@ -6,6 +6,7 @@ import { LitElement, html, css } from "lit";
 
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
+import { activateOnKey } from "../ui.js";
 import { moreInfo, isUnavail } from "../util.js";
 import "../icon.js";
 
@@ -187,8 +188,12 @@ export class FibbersAlert extends LitElement {
               ${findings.map(
                 (f) =>
                   html`<div
+                    role="button"
+                    tabindex="0"
+                    aria-label=${`${f.label} — ${t(hl, "common.more_info")}`}
                     class="cursor-pointer text-[11.5px] leading-[1.42] text-ambertx"
                     @click=${() => this._moreInfo(f.entity)}
+                    @keydown=${activateOnKey(() => this._moreInfo(f.entity))}
                   >
                     <b class="font-semibold text-amber">${f.label}</b> —
                     ${f.detail}

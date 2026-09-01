@@ -1,6 +1,8 @@
 {
   "common": {
     "and": "en",
+    "more_info": "meer info",
+    "show_all": "Alle {n}",
     "not_available": "Niet beschikbaar",
     "minutes_ago": "{n} min geleden",
     "hours_ago": "{n} uur geleden",

@@ -24,6 +24,7 @@ class FibIcon extends HTMLElement {
     this.style.display = "inline-flex";
     this.style.alignItems = "center";
     this.style.justifyContent = "center";
+    this.style.pointerEvents = "none"; // decorative glyph — never its own hit target
     this._render();
   }
   attributeChangedCallback() {

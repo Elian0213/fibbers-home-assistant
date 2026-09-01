@@ -5323,6 +5323,7 @@
       this.style.display = "inline-flex";
       this.style.alignItems = "center";
       this.style.justifyContent = "center";
+      this.style.pointerEvents = "none";
       this._render();
     }
     attributeChangedCallback() {
@@ -7761,6 +7762,8 @@ ${BASE_CSS}`);
   var en_default = {
     common: {
       and: "and",
+      more_info: "more info",
+      show_all: "All {n}",
       not_available: "Not available",
       minutes_ago: "{n} min ago",
       hours_ago: "{n} hr ago",
@@ -7898,6 +7901,8 @@ ${BASE_CSS}`);
   var nl_default = {
     common: {
       and: "en",
+      more_info: "meer info",
+      show_all: "Alle {n}",
       not_available: "Niet beschikbaar",
       minutes_ago: "{n} min geleden",
       hours_ago: "{n} uur geleden",
@@ -8064,6 +8069,113 @@ ${BASE_CSS}`);
     return interpolate(str, vars);
   }
 
+  // src/ui.js
+  function activateOnKey(fn) {
+    return (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        fn(e);
+      }
+    };
+  }
+  function stepFromKey(key, { value, min, max, step }) {
+    const big = Math.max(step, (max - min) / 10);
+    let next;
+    switch (key) {
+      case "ArrowRight":
+      case "ArrowUp":
+        next = value + step;
+        break;
+      case "ArrowLeft":
+      case "ArrowDown":
+        next = value - step;
+        break;
+      case "PageUp":
+        next = value + big;
+        break;
+      case "PageDown":
+        next = value - big;
+        break;
+      case "Home":
+        next = min;
+        break;
+      case "End":
+        next = max;
+        break;
+      default:
+        return null;
+    }
+    return Math.min(max, Math.max(min, next));
+  }
+  function sliderTrack({
+    pct,
+    disabled = false,
+    cls = "",
+    onDown,
+    onMove,
+    onUp,
+    onCancel,
+    label,
+    value,
+    min = 0,
+    max = 100,
+    step = 1,
+    valueText,
+    onInput
+  }) {
+    const keydown = disabled || !onInput ? undefined : (e) => {
+      const next = stepFromKey(e.key, { value, min, max, step });
+      if (next == null)
+        return;
+      e.preventDefault();
+      if (next !== value)
+        onInput(next);
+    };
+    return html`<div
+    class="relative h-1.5 cursor-pointer touch-none rounded-[3px] bg-[#2C3639]
+           ${cls} ${disabled ? "pointer-events-none" : ""}"
+    role="slider"
+    tabindex=${disabled ? -1 : 0}
+    aria-label=${label || "slider"}
+    aria-valuemin=${min}
+    aria-valuemax=${max}
+    aria-valuenow=${value != null ? value : Math.round(pct)}
+    aria-valuetext=${valueText != null ? valueText : nothing}
+    aria-disabled=${disabled ? "true" : "false"}
+    @pointerdown=${onDown}
+    @pointermove=${onMove}
+    @pointerup=${onUp}
+    @pointercancel=${onCancel || onUp}
+    @keydown=${keydown}
+  >
+    ${disabled ? "" : html`<div
+              class="absolute bottom-0 left-0 top-0 rounded-[3px] bg-accent"
+              style="width:${pct}%"
+            ></div>
+            <div
+              class="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2
+                   rounded-full bg-accent shadow-[0_1px_3px_rgba(0,0,0,.4)]"
+              style="left:${pct}%"
+            ></div>`}
+  </div>`;
+  }
+  function pillSwitch({ on, onClick, label = "" }) {
+    return html`<button
+    type="button"
+    class="relative h-5 w-9 flex-none rounded-full transition-colors
+           ${on ? "bg-accent" : "bg-card2"}"
+    role="switch"
+    aria-checked=${on ? "true" : "false"}
+    aria-label=${label || "toggle"}
+    @click=${onClick}
+  >
+    <span
+      class="absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all
+             ${on ? "left-[18px]" : "left-0.5"}"
+    ></span>
+  </button>`;
+  }
+
   // src/cards/alert.js
   var friendly = (s) => s.attributes && s.attributes.friendly_name || s.entity_id;
   function compileCheck(check) {
@@ -8199,8 +8311,12 @@ ${BASE_CSS}`);
       </div>
       ${alert ? html`<div class="mt-2 flex flex-col gap-[5px]">
               ${findings.map((f) => html`<div
+                    role="button"
+                    tabindex="0"
+                    aria-label=${`${f.label} — ${t(hl, "common.more_info")}`}
                     class="cursor-pointer text-[11.5px] leading-[1.42] text-ambertx"
                     @click=${() => this._moreInfo(f.entity)}
+                    @keydown=${activateOnKey(() => this._moreInfo(f.entity))}
                   >
                     <b class="font-semibold text-amber">${f.label}</b> —
                     ${f.detail}
@@ -8779,113 +8895,6 @@ ${BASE_CSS}`);
     getGridOptions() {
       return { columns: "full", rows: "auto" };
     }
-  }
-
-  // src/ui.js
-  function activateOnKey(fn) {
-    return (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        fn(e);
-      }
-    };
-  }
-  function stepFromKey(key, { value, min, max, step }) {
-    const big = Math.max(step, (max - min) / 10);
-    let next;
-    switch (key) {
-      case "ArrowRight":
-      case "ArrowUp":
-        next = value + step;
-        break;
-      case "ArrowLeft":
-      case "ArrowDown":
-        next = value - step;
-        break;
-      case "PageUp":
-        next = value + big;
-        break;
-      case "PageDown":
-        next = value - big;
-        break;
-      case "Home":
-        next = min;
-        break;
-      case "End":
-        next = max;
-        break;
-      default:
-        return null;
-    }
-    return Math.min(max, Math.max(min, next));
-  }
-  function sliderTrack({
-    pct,
-    disabled = false,
-    cls = "",
-    onDown,
-    onMove,
-    onUp,
-    onCancel,
-    label,
-    value,
-    min = 0,
-    max = 100,
-    step = 1,
-    valueText,
-    onInput
-  }) {
-    const keydown = disabled || !onInput ? undefined : (e) => {
-      const next = stepFromKey(e.key, { value, min, max, step });
-      if (next == null)
-        return;
-      e.preventDefault();
-      if (next !== value)
-        onInput(next);
-    };
-    return html`<div
-    class="relative h-1.5 cursor-pointer touch-none rounded-[3px] bg-[#2C3639]
-           ${cls} ${disabled ? "pointer-events-none" : ""}"
-    role="slider"
-    tabindex=${disabled ? -1 : 0}
-    aria-label=${label || "slider"}
-    aria-valuemin=${min}
-    aria-valuemax=${max}
-    aria-valuenow=${value != null ? value : Math.round(pct)}
-    aria-valuetext=${valueText != null ? valueText : nothing}
-    aria-disabled=${disabled ? "true" : "false"}
-    @pointerdown=${onDown}
-    @pointermove=${onMove}
-    @pointerup=${onUp}
-    @pointercancel=${onCancel || onUp}
-    @keydown=${keydown}
-  >
-    ${disabled ? "" : html`<div
-              class="absolute bottom-0 left-0 top-0 rounded-[3px] bg-accent"
-              style="width:${pct}%"
-            ></div>
-            <div
-              class="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2
-                   rounded-full bg-accent shadow-[0_1px_3px_rgba(0,0,0,.4)]"
-              style="left:${pct}%"
-            ></div>`}
-  </div>`;
-  }
-  function pillSwitch({ on, onClick, label = "" }) {
-    return html`<button
-    type="button"
-    class="relative h-5 w-9 flex-none rounded-full transition-colors
-           ${on ? "bg-accent" : "bg-card2"}"
-    role="switch"
-    aria-checked=${on ? "true" : "false"}
-    aria-label=${label || "toggle"}
-    @click=${onClick}
-  >
-    <span
-      class="absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all
-             ${on ? "left-[18px]" : "left-0.5"}"
-    ></span>
-  </button>`;
   }
 
   // src/cards/entities.js
@@ -9847,8 +9856,12 @@ ${BASE_CSS}`);
         </div>
 
         <div
+          role="button"
+          tabindex="0"
+          aria-label=${`${name} — ${t(hl, "common.more_info")}`}
           class="flex cursor-pointer items-baseline justify-between gap-2"
           @click=${() => this._moreInfo()}
+          @keydown=${activateOnKey(() => this._moreInfo())}
         >
           <span class="text-[12px] font-medium text-ink">${name}</span>
           <span class="whitespace-nowrap text-[10.5px] text-muted">${val}</span>
