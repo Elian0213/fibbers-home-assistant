@@ -6,7 +6,8 @@
 
 One HACS plugin: a bottom bar that stays pinned to the screen, a back button that remembers where
 you came from, drag-away sheets, room tiles that count their own lights, and an alert card built
-from real checks instead of Jinja. Dark theme included.
+from real checks instead of Jinja. It reads in your language, sizes itself, and leaves the rest of
+Home Assistant untouched.
 
 26 cards, one file. No theme repo, no `kiosk-mode`, no wall of `card-mod`.
 
@@ -40,13 +41,17 @@ scattering `card-mod` across your config. Fibbers handles those:
   page; Fibbers renders the bar into `document.body` so it pins to the window on desktop and
   mobile, survives momentum scroll, and respects the iOS safe-area.
 - **Back remembers.** HA's back arrow always returns to the dashboard root. Fibbers keeps its own
-  stack in `sessionStorage`, so _Terug_ goes where you actually came from.
+  stack in `sessionStorage`, so _Back_ goes where you actually came from.
 - **Sheets behave.** Hash-routed bottom sheets drag to dismiss, lock and restore page scroll, and
   become centered dialogs on desktop.
-- **Cards do their own math.** Room tiles read your lights (_Uit_ / _N van M aan_ / _Offline_)
-  with no Jinja; the alert card runs real checks — offline lights, low batteries, pending updates.
-- **The theme is built in.** The dark theme loads globally, so even a light's _more-info_ dialog
-  matches. Nothing extra to install or select.
+- **Cards do their own math.** Room tiles read your lights (_Off_ / _N of M on_ / _Offline_) with
+  no Jinja; the alert card runs real checks — offline lights, low batteries, pending updates.
+- **It reads in your language.** Every string follows your Home Assistant language — English by
+  default, with a Dutch translation included; numbers and dates use your locale.
+- **It sizes itself.** Cards report their own grid size, so a Sections view lays them out with no
+  `grid_options` to hand-write.
+- **It stays out of the way.** Installing Fibbers changes nothing else in your UI. An optional dark
+  or light palette can be switched on per dashboard (`theme:` on the nav) — never globally.
 
 Verified on **Home Assistant 2026.8.x**.
 
@@ -64,14 +69,54 @@ Fibbers is a **Dashboard** plugin (a Lovelace resource), installed through HACS.
    Add**, URL `/hacsfiles/fibbers-home-assistant/fibbers.js`, type **JavaScript module**.
 4. Hard-refresh the browser (Ctrl/Cmd-Shift-R).
 
-Done. The cards and the theming load together.
+Done — the 26 cards are in the card picker (search "fibbers"). Nothing else about your Home
+Assistant changes.
+
+---
+
+## A starter view
+
+Paste this as a new **Sections** view — no `grid_options` anywhere, the cards size themselves:
+
+```yaml
+type: sections
+sections:
+  - type: grid
+    cards:
+      - type: custom:fibbers-greeting
+      - type: custom:fibbers-section
+        label: Rooms
+      - type: custom:fibbers-room
+        name: Living room
+        icon: solar:sofa-2-bold-duotone
+        entities:
+          - light.living_room
+      - type: custom:fibbers-alert
+        checks:
+          - type: unavailable_lights
+          - type: updates
+  - type: grid
+    cards:
+      - type: custom:fibbers-nav
+        theme: fibbers # optional: dark palette for just this dashboard
+        hide_ha_tabs: true
+        tabs:
+          - { name: Home, icon: solar:home-2-bold-duotone, path: /lovelace/0 }
+          - { name: Lights, icon: solar:lightbulb-bolt-bold-duotone, path: /lovelace/1 }
+```
+
+Most first-run cards — `nav`, `room`, `light-group`, `light-row`, `stat`, `toggle`, `number`,
+`select`, `datetime`, `section` — also open a **visual editor** in the picker (click _Add_, fill in
+the form). The rest are YAML-only for now; several are list-shaped (the alert checks, chip rows,
+entity filters) where a plain form can't help. Every card has a live example and copy-paste config
+in the [Storybook](https://elian0213.github.io/fibbers-home-assistant/).
 
 ---
 
 ## The cards
 
-26 cards sharing one design-token set, so they match out of the box. User-facing strings are
-Dutch (it’s a home dashboard); config keys are English.
+26 cards sharing one design-token set, so they match out of the box. On-screen strings follow your
+Home Assistant language (English by default, Dutch translation included); config keys are English.
 
 **Shell & navigation** — the app shell: a pinned bottom bar (sidebar-aware on desktop), a back button, drag-away modal sheets, a section label, and the greeting header. (The bar and an open sheet are up top.)
 
@@ -160,14 +205,24 @@ Dutch (it’s a home dashboard); config keys are English.
 
 ## Theming
 
-Loading the plugin injects the dark theme globally (`<style id="fibbers-global">` on
-`document.head`, HA theme vars set on `html` with `!important` so it beats HA's inline theme).
-Tapping a light opens a _more-info_ dialog on the same dark surface with green controls, so
-there's **no separate theme repo to install or select.**
+Installing Fibbers **changes nothing** about the rest of Home Assistant — your sidebar, header and
+other dashboards keep your own theme. The palette is opt-in, per dashboard, via `theme:` on the nav
+card:
 
-- Turn it off with `window.FIBBERS_DISABLE_GLOBAL_CSS = true` before the plugin loads.
-- Want a real, user-selectable HA theme instead? [`docs/optional-theme.yaml`](docs/optional-theme.yaml)
-  is the same palette as a standalone theme. Optional, and it stays that way.
+```yaml
+type: custom:fibbers-nav
+theme: fibbers # fibbers (dark) · fibbers-light · auto · none (default)
+tabs: [...]
+```
+
+It's injected into `hui-root` only while that Fibbers dashboard is mounted and removed when you
+leave, so it never leaks into unrelated views. `auto` follows `prefers-color-scheme`.
+
+- Want the palette **everywhere** — every dashboard and every dialog? That's what a real HA theme
+  is for: [`docs/optional-theme.yaml`](docs/optional-theme.yaml) is the same palette as a standalone
+  theme you select under **Profile → Theme**.
+- The old load-time global injector is still there for anyone who relied on it —
+  `window.FIBBERS.injectGlobalCss()` — and `window.FIBBERS_DISABLE_GLOBAL_CSS = true` still opts out.
 
 ---
 
