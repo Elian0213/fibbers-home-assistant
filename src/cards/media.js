@@ -7,7 +7,7 @@ import { LitElement, html, css } from "lit";
 
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
-import { sliderTrack } from "../ui.js";
+import { sliderTrack, overflowChips } from "../ui.js";
 import { pctFromX, pickEntity } from "../util.js";
 import "../icon.js";
 
@@ -30,6 +30,7 @@ export class FibbersMedia extends LitElement {
     _dragVol: { state: true },
     _seeking: { state: true },
     _dragSeek: { state: true },
+    _srcOpen: { state: true },
   };
   static styles = [
     twSheet,
@@ -56,8 +57,12 @@ export class FibbersMedia extends LitElement {
     if (!config || !config.entity) {
       throw new Error("fibbers-media: `entity` (a media_player.*) is required");
     }
-    if (config.sources != null && !Array.isArray(config.sources)) {
-      throw new Error("fibbers-media: `sources` must be a list");
+    if (
+      config.sources != null &&
+      config.sources !== "auto" &&
+      !Array.isArray(config.sources)
+    ) {
+      throw new Error('fibbers-media: `sources` must be "auto" or a list');
     }
     if (config.group != null && !Array.isArray(config.group)) {
       throw new Error("fibbers-media: `group` must be a list of media_players");
@@ -70,6 +75,7 @@ export class FibbersMedia extends LitElement {
     this._dragVol = 0;
     this._seeking = false;
     this._dragSeek = 0;
+    this._srcOpen = false;
   }
 
   // A seek bar showing live elapsed time needs its own 1s tick while playing —
@@ -138,6 +144,18 @@ export class FibbersMedia extends LitElement {
     )
       return "solar:tv-bold-duotone";
     return "solar:music-note-bold-duotone";
+  }
+
+  // The full source list: explicit `sources`, or `auto` from source_list.
+  _allSources() {
+    const cfg = this._config;
+    if (!cfg.sources) return [];
+    const a = (this._st() && this._st().attributes) || {};
+    return cfg.sources === "auto"
+      ? (a.source_list || []).map((s) => ({ name: s, source: s }))
+      : cfg.sources.map((s) =>
+          typeof s === "string" ? { name: s, source: s } : s,
+        );
   }
 
   _svc(service, data) {
@@ -366,30 +384,25 @@ export class FibbersMedia extends LitElement {
         ></fib-icon>
       </div>
 
-      ${
-        Array.isArray(cfg.sources) && cfg.sources.length
-          ? html`<div class="mt-3 flex flex-wrap gap-[7px]">
-              ${cfg.sources.map((s) => {
-                const active = a.source === (s.source || s.name);
-                return html`<button
-                  type="button"
-                  aria-label=${s.name}
-                  aria-pressed=${active ? "true" : "false"}
-                  class="inline-flex items-center rounded-full border px-2.5 py-[5px] text-[10.5px]
-                       font-medium ${
-                         active
-                           ? "border-accentline bg-accentbg text-accent"
-                           : "border-line bg-card2 text-ink2"
-                       }"
-                  @click=${() =>
-                    this._svc("select_source", { source: s.source || s.name })}
-                >
-                  ${s.name}
-                </button>`;
-              })}
-            </div>`
-          : ""
-      }
+      ${(() => {
+        const all = this._allSources();
+        if (!all.length) return "";
+        const collapsed = all.length > 8 ? all.slice(0, 8) : null;
+        return html`<div class="mt-3">
+          ${overflowChips({
+            hl,
+            all,
+            collapsed,
+            activeValue: a.source,
+            open: this._srcOpen,
+            onToggle: () => {
+              this._srcOpen = !this._srcOpen;
+            },
+            onSelect: (s) =>
+              this._svc("select_source", { source: s.source || s.name }),
+          })}
+        </div>`;
+      })()}
       ${this._groupRow(a)} ${this._favouritesGrid()}
     </div>`;
   }

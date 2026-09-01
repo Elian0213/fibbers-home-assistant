@@ -8159,6 +8159,72 @@ ${BASE_CSS}`);
             ></div>`}
   </div>`;
   }
+  function chipKeyNav(e, onClose) {
+    if (e.key === "Escape") {
+      if (onClose)
+        onClose();
+      return;
+    }
+    const delta = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
+    if (!(e.key in delta))
+      return;
+    const btns = [...e.currentTarget.querySelectorAll("button")];
+    const focused = e.composedPath().find((el) => btns.includes(el));
+    const idx = btns.indexOf(focused);
+    if (idx < 0)
+      return;
+    e.preventDefault();
+    btns[(idx + delta[e.key] + btns.length) % btns.length].focus();
+  }
+  function overflowChips({
+    hl,
+    all,
+    collapsed,
+    activeValue,
+    open,
+    onToggle,
+    onSelect
+  }) {
+    const valueOf = (s) => s.source || s.name;
+    const hasMore = collapsed && all.length > collapsed.length;
+    const shown = open || !collapsed ? all : collapsed;
+    const chip = (s) => {
+      const active = activeValue != null && activeValue === valueOf(s);
+      return html`<button
+      type="button"
+      aria-label=${s.name}
+      aria-pressed=${active ? "true" : "false"}
+      class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[5px]
+             text-[10.5px] font-medium ${active ? "border-accentline bg-accentbg text-accent" : "border-line bg-card2 text-ink2"}"
+      @click=${() => onSelect(s)}
+    >
+      ${s.icon ? html`<fib-icon
+              class="h-[13px] w-[13px] [--mdc-icon-size:13px]"
+              icon=${s.icon}
+            ></fib-icon>` : ""}
+      ${s.name}
+    </button>`;
+    };
+    return html`<div
+    class="flex flex-wrap gap-1.5"
+    @keydown=${(e) => chipKeyNav(e, open ? onToggle : null)}
+  >
+    ${shown.map(chip)}
+    ${hasMore ? html`<button
+            type="button"
+            aria-expanded=${open ? "true" : "false"}
+            class="inline-flex items-center gap-1 rounded-full border border-line bg-transparent
+                 px-2.5 py-[5px] text-[10.5px] font-medium text-ink2"
+            @click=${onToggle}
+          >
+            ${open ? t(hl, "scene.show_less") : t(hl, "common.show_all", { n: all.length })}
+            <fib-icon
+              class="h-[13px] w-[13px] [--mdc-icon-size:13px] transition-transform ${open ? "rotate-180" : ""}"
+              icon="solar:alt-arrow-down-bold-duotone"
+            ></fib-icon>
+          </button>` : ""}
+  </div>`;
+  }
   function pillSwitch({ on, onClick, label = "" }) {
     return html`<button
     type="button"
@@ -9916,7 +9982,8 @@ ${BASE_CSS}`);
       _dragging: { state: true },
       _dragVol: { state: true },
       _seeking: { state: true },
-      _dragSeek: { state: true }
+      _dragSeek: { state: true },
+      _srcOpen: { state: true }
     };
     static styles = [
       twSheet,
@@ -9936,8 +10003,8 @@ ${BASE_CSS}`);
       if (!config || !config.entity) {
         throw new Error("fibbers-media: `entity` (a media_player.*) is required");
       }
-      if (config.sources != null && !Array.isArray(config.sources)) {
-        throw new Error("fibbers-media: `sources` must be a list");
+      if (config.sources != null && config.sources !== "auto" && !Array.isArray(config.sources)) {
+        throw new Error('fibbers-media: `sources` must be "auto" or a list');
       }
       if (config.group != null && !Array.isArray(config.group)) {
         throw new Error("fibbers-media: `group` must be a list of media_players");
@@ -9950,6 +10017,7 @@ ${BASE_CSS}`);
       this._dragVol = 0;
       this._seeking = false;
       this._dragSeek = 0;
+      this._srcOpen = false;
     }
     updated() {
       const p = this._pos();
@@ -10010,6 +10078,13 @@ ${BASE_CSS}`);
       if (VIDEO_TYPES.includes(a.media_content_type) || VIDEO_APPS.test(a.app_name || ""))
         return "solar:tv-bold-duotone";
       return "solar:music-note-bold-duotone";
+    }
+    _allSources() {
+      const cfg = this._config;
+      if (!cfg.sources)
+        return [];
+      const a = this._st() && this._st().attributes || {};
+      return cfg.sources === "auto" ? (a.source_list || []).map((s) => ({ name: s, source: s })) : cfg.sources.map((s) => typeof s === "string" ? { name: s, source: s } : s);
     }
     _svc(service, data) {
       if (this.hass)
@@ -10209,21 +10284,25 @@ ${BASE_CSS}`);
         ></fib-icon>
       </div>
 
-      ${Array.isArray(cfg.sources) && cfg.sources.length ? html`<div class="mt-3 flex flex-wrap gap-[7px]">
-              ${cfg.sources.map((s) => {
-        const active = a.source === (s.source || s.name);
-        return html`<button
-                  type="button"
-                  aria-label=${s.name}
-                  aria-pressed=${active ? "true" : "false"}
-                  class="inline-flex items-center rounded-full border px-2.5 py-[5px] text-[10.5px]
-                       font-medium ${active ? "border-accentline bg-accentbg text-accent" : "border-line bg-card2 text-ink2"}"
-                  @click=${() => this._svc("select_source", { source: s.source || s.name })}
-                >
-                  ${s.name}
-                </button>`;
-      })}
-            </div>` : ""}
+      ${(() => {
+        const all = this._allSources();
+        if (!all.length)
+          return "";
+        const collapsed = all.length > 8 ? all.slice(0, 8) : null;
+        return html`<div class="mt-3">
+          ${overflowChips({
+          hl,
+          all,
+          collapsed,
+          activeValue: a.source,
+          open: this._srcOpen,
+          onToggle: () => {
+            this._srcOpen = !this._srcOpen;
+          },
+          onSelect: (s) => this._svc("select_source", { source: s.source || s.name })
+        })}
+        </div>`;
+      })()}
       ${this._groupRow(a)} ${this._favouritesGrid()}
     </div>`;
     }
@@ -10808,7 +10887,8 @@ ${BASE_CSS}`);
       hass: { attribute: false },
       _config: { state: true },
       _dragging: { state: true },
-      _dragVol: { state: true }
+      _dragVol: { state: true },
+      _srcOpen: { state: true }
     };
     static styles = [
       twSheet,
@@ -10837,6 +10917,7 @@ ${BASE_CSS}`);
       this._config = config;
       this._dragging = false;
       this._dragVol = 0;
+      this._srcOpen = false;
     }
     disconnectedCallback() {
       super.disconnectedCallback();
@@ -10871,18 +10952,22 @@ ${BASE_CSS}`);
       clearInterval(this._repeat);
       this._repeat = null;
     }
-    _sources() {
+    _allSources() {
       const cfg = this._config;
       if (!cfg.sources)
         return [];
       const mp = this._mp();
-      let list = cfg.sources === "auto" ? (mp && mp.attributes.source_list || []).map((s) => ({
+      return cfg.sources === "auto" ? (mp && mp.attributes.source_list || []).map((s) => ({
         name: s,
         source: s
       })) : cfg.sources.map((s) => typeof s === "string" ? { name: s, source: s } : s);
-      if (Array.isArray(cfg.favourites) && cfg.favourites.length)
-        list = list.filter((s) => cfg.favourites.includes(s.source || s.name));
-      return list;
+    }
+    _favSources(all) {
+      const favs = this._config.favourites;
+      if (!Array.isArray(favs) || !favs.length)
+        return null;
+      const byValue = new Map(all.map((s) => [s.source || s.name, s]));
+      return favs.map((f) => byValue.get(f) || { name: f, source: f });
     }
     _volDown(e) {
       this._dragging = true;
@@ -11047,7 +11132,8 @@ ${BASE_CSS}`);
       const mp = this._mp();
       const on = mp ? !["off", "unavailable", "standby"].includes(mp.state) : null;
       const nowLine = mp ? mp.attributes.media_title || mp.attributes.app_name || mp.attributes.source || (on ? "On" : "Off") : "";
-      const sources = this._sources();
+      const all = this._allSources();
+      const collapsed = this._favSources(all);
       const activeSource = mp && mp.attributes.source;
       return html`<div
       class="flex flex-col gap-3 rounded-[14px] border border-line bg-card p-[13px]"
@@ -11072,28 +11158,19 @@ ${BASE_CSS}`);
       </div>
 
       ${this._dpad()} ${this._transport()} ${this._volume()}
-      ${sources.length ? html`<div class="flex flex-wrap gap-1.5">
-              ${sources.map((s) => {
-        const active = activeSource === (s.source || s.name);
-        return html`<button
-                  type="button"
-                  aria-label=${s.name}
-                  aria-pressed=${active ? "true" : "false"}
-                  class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[5px]
-                       text-[10.5px] font-medium
-                       ${active ? "border-accentline bg-accentbg text-accent" : "border-line bg-card2 text-ink2"}"
-                  @click=${() => this._mpService("select_source", {
+      ${all.length ? overflowChips({
+        hl,
+        all,
+        collapsed,
+        activeValue: activeSource,
+        open: this._srcOpen,
+        onToggle: () => {
+          this._srcOpen = !this._srcOpen;
+        },
+        onSelect: (s) => this._mpService("select_source", {
           source: s.source || s.name
-        })}
-                >
-                  ${s.icon ? html`<fib-icon
-                          class="h-[13px] w-[13px] [--mdc-icon-size:13px]"
-                          icon=${s.icon}
-                        ></fib-icon>` : ""}
-                  ${s.name}
-                </button>`;
-      })}
-            </div>` : ""}
+        })
+      }) : ""}
     </div>`;
     }
     getCardSize() {

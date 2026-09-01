@@ -9,7 +9,7 @@ import { LitElement, html, css } from "lit";
 
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
-import { sliderTrack } from "../ui.js";
+import { sliderTrack, overflowChips } from "../ui.js";
 import { pickEntity, pctFromX } from "../util.js";
 import "../icon.js";
 
@@ -45,6 +45,7 @@ export class FibbersRemote extends LitElement {
     _config: { state: true },
     _dragging: { state: true },
     _dragVol: { state: true },
+    _srcOpen: { state: true },
   };
   static styles = [
     twSheet,
@@ -86,6 +87,7 @@ export class FibbersRemote extends LitElement {
     this._config = config;
     this._dragging = false;
     this._dragVol = 0;
+    this._srcOpen = false;
   }
 
   disconnectedCallback() {
@@ -128,24 +130,29 @@ export class FibbersRemote extends LitElement {
     this._repeat = null;
   }
 
-  // Source list: explicit `sources` (strings or {name, source, icon}), or `auto`
-  // from the player's source_list; narrowed to `favourites` when given.
-  _sources() {
+  // The full source list: explicit `sources` (strings or {name, source, icon}),
+  // or `auto` from the player's source_list.
+  _allSources() {
     const cfg = this._config;
     if (!cfg.sources) return [];
     const mp = this._mp();
-    let list =
-      cfg.sources === "auto"
-        ? ((mp && mp.attributes.source_list) || []).map((s) => ({
-            name: s,
-            source: s,
-          }))
-        : cfg.sources.map((s) =>
-            typeof s === "string" ? { name: s, source: s } : s,
-          );
-    if (Array.isArray(cfg.favourites) && cfg.favourites.length)
-      list = list.filter((s) => cfg.favourites.includes(s.source || s.name));
-    return list;
+    return cfg.sources === "auto"
+      ? ((mp && mp.attributes.source_list) || []).map((s) => ({
+          name: s,
+          source: s,
+        }))
+      : cfg.sources.map((s) =>
+          typeof s === "string" ? { name: s, source: s } : s,
+        );
+  }
+
+  // The collapsed row: `favourites` in their listed order (each resolved against
+  // the full list). null → no favourites, so no drawer and everything shows.
+  _favSources(all) {
+    const favs = this._config.favourites;
+    if (!Array.isArray(favs) || !favs.length) return null;
+    const byValue = new Map(all.map((s) => [s.source || s.name, s]));
+    return favs.map((f) => byValue.get(f) || { name: f, source: f });
   }
 
   _volDown(e) {
@@ -394,7 +401,8 @@ export class FibbersRemote extends LitElement {
         mp.attributes.source ||
         (on ? "On" : "Off")
       : "";
-    const sources = this._sources();
+    const all = this._allSources();
+    const collapsed = this._favSources(all);
     const activeSource = mp && mp.attributes.source;
 
     return html`<div
@@ -426,38 +434,21 @@ export class FibbersRemote extends LitElement {
 
       ${this._dpad()} ${this._transport()} ${this._volume()}
       ${
-        sources.length
-          ? html`<div class="flex flex-wrap gap-1.5">
-              ${sources.map((s) => {
-                const active = activeSource === (s.source || s.name);
-                return html`<button
-                  type="button"
-                  aria-label=${s.name}
-                  aria-pressed=${active ? "true" : "false"}
-                  class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[5px]
-                       text-[10.5px] font-medium
-                       ${
-                         active
-                           ? "border-accentline bg-accentbg text-accent"
-                           : "border-line bg-card2 text-ink2"
-                       }"
-                  @click=${() =>
-                    this._mpService("select_source", {
-                      source: s.source || s.name,
-                    })}
-                >
-                  ${
-                    s.icon
-                      ? html`<fib-icon
-                          class="h-[13px] w-[13px] [--mdc-icon-size:13px]"
-                          icon=${s.icon}
-                        ></fib-icon>`
-                      : ""
-                  }
-                  ${s.name}
-                </button>`;
-              })}
-            </div>`
+        all.length
+          ? overflowChips({
+              hl,
+              all,
+              collapsed,
+              activeValue: activeSource,
+              open: this._srcOpen,
+              onToggle: () => {
+                this._srcOpen = !this._srcOpen;
+              },
+              onSelect: (s) =>
+                this._mpService("select_source", {
+                  source: s.source || s.name,
+                }),
+            })
           : ""
       }
     </div>`;
