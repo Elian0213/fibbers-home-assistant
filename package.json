@@ -16,7 +16,7 @@
     "gen-icons": "bun scripts/gen-icons.mjs",
     "gen-tw": "bun scripts/gen-tw.mjs",
     "format": "prettier --write \"src/**/*.js\" \"docs/*.html\"",
-    "check": "prettier --check \"src/**/*.js\" \"docs/*.html\" && bun run build && node -e \"new Function(require('fs').readFileSync('dist/fibbers.js','utf8'))\""
+    "check": "prettier --check \"src/**/*.js\" \"docs/*.html\" && bun run build && bun scripts/check-icons.mjs && node -e \"new Function(require('fs').readFileSync('dist/fibbers.js','utf8'))\""
   },
   "devDependencies": {
     "@iconify-json/solar": "^1.2.10",

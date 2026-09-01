@@ -39,6 +39,9 @@ That brings the set to **20 cards**, all sharing one Tailwind design-token set.
   no longer open more-info on an unmounted tile.
 - **`fibbers-graph`** — colours survive Tailwind's purge: the stroke class is now a static
   full-string map, so `text-blue` (and the other accents) render instead of being stripped.
+- **`fib-icon`** — an un-bundled `solar:` name no longer renders as a silent blank (HA has no
+  `solar` iconset): it now warns once and draws a placeholder glyph. A new build guard fails
+  `bun run check` if `src/` or the stories reference an un-baked `solar:` name.
 
 ## [0.1.0] — 2026-08-31
 

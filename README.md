@@ -149,6 +149,10 @@ icons the project actually uses are bundled (a few KB), listed in
 [`scripts/icon-map.json`](scripts/icon-map.json); add a line there and run `bun run
 gen-icons` to inline another.
 
+Reference a `solar:` name that _isn't_ bundled and it can't render — HA has no `solar` iconset —
+so `<fib-icon>` warns once in the console and draws a placeholder glyph instead of a silent
+blank. `bun run check` fails if anything in `src/` or the stories uses an un-baked `solar:` name.
+
 ## Development
 
 Built with **Lit** (web components) + **Tailwind CSS v4**, bundled by **Bun** into a single

@@ -55,5 +55,6 @@
   "clim_plus": "add-circle-bold-duotone",
   "clim_minus": "minus-circle-bold-duotone",
   "rem_up": "alt-arrow-up-bold-duotone",
-  "rem_right": "alt-arrow-right-bold-duotone"
+  "rem_right": "alt-arrow-right-bold-duotone",
+  "icon_fallback": "question-circle-bold-duotone"
 }
