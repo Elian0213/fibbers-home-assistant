@@ -1,10 +1,6 @@
 /* ================================================================== *
- * NAVIGATION STACK
- *
- * Default HA has no notion of "where did I come from" — a subview's back arrow
- * always returns to the dashboard root. This keeps a real stack, so a back
- * control returns to the view you actually came from, while switching tabs
- * resets it (tabs are roots, not history).
+ * NAVIGATION STACK — a real "where did I come from" stack (HA has none), so a
+ * back control returns to the previous view. Switching tabs resets it (tabs are roots).
  * ================================================================== */
 import { store, norm, here, navigate } from "./util.js";
 
@@ -33,12 +29,14 @@ export function onRouteChange() {
     nav.stack = s.concat([path]);
   }
 
-  if (nav.stack.length > 20) nav.stack = nav.stack.slice(-20);
+  if (nav.stack.length > 20) nav.stack = nav.stack.slice(-20); // cap depth
   store.set(NAV_KEY, nav.stack);
   nav.listeners.forEach((fn) => {
     try {
       fn();
-    } catch (_) {}
+    } catch (_) {
+      /* a throwing listener must not stop the others */
+    }
   });
 }
 

@@ -1,13 +1,11 @@
 /* ================================================================== *
- * CARD — fibbers-sysmon  (Lit + Tailwind)
- *
- * Host / Raspberry-Pi telemetry: a grid of metric tiles (cpu, temp, disk, ram,
- * uptime…) plus an optional history sparkline. Each metric reads an entity;
- * `graph` adds a sparkline over `graph_hours`.
+ * fibbers-sysmon — host telemetry tiles (cpu/temp/disk/ram/…) + an optional
+ * history sparkline (`graph` over `graph_hours`).
  * ================================================================== */
 import { LitElement, html, css } from "lit";
+
 import { twSheet } from "../tw.js";
-import { nl } from "../util.js";
+import { nl, fmtState, isUnavail, fetchHistory } from "../util.js";
 import "../icon.js";
 
 const W = 300;
@@ -45,6 +43,7 @@ export class FibbersSysmon extends LitElement {
     this._config = config;
     this._series = null;
     this._fetchedFor = null;
+    this._lastTry = 0;
   }
 
   updated(changed) {
@@ -53,35 +52,36 @@ export class FibbersSysmon extends LitElement {
   async _maybeFetch() {
     const id = this._config.graph;
     if (!this.hass || this._fetchedFor === id || !this.hass.callWS) return;
-    this._fetchedFor = id;
-    const hours = this._config.graph_hours || 24;
-    const end = new Date();
-    const start = new Date(end.getTime() - hours * 3600e3);
+    // Back off so a genuinely history-less entity doesn't refetch on every state
+    // change, but a cold-load miss still retries on a later hass update.
+    const now = Date.now();
+    if (this._lastTry && now - this._lastTry < 8000) return;
+    this._lastTry = now;
     try {
-      const res = await this.hass.callWS({
-        type: "history/history_during_period",
-        start_time: start.toISOString(),
-        end_time: end.toISOString(),
-        entity_ids: [id],
-        minimal_response: true,
-        no_attributes: true,
-      });
-      const nums = ((res && res[id]) || [])
-        .map((r) => Number(r.s != null ? r.s : r.state))
-        .filter((n) => Number.isFinite(n));
-      if (nums.length) this._series = nums;
+      const nums = await fetchHistory(
+        this.hass,
+        id,
+        this._config.graph_hours || 24,
+      );
+      // Only mark done once we actually got rows — an empty cold-load response
+      // must not disable the sparkline permanently.
+      if (nums.length) {
+        this._series = nums;
+        this._fetchedFor = id;
+      }
     } catch (_e) {
-      /* history unavailable */
+      /* history unavailable — retry after the backoff */
     }
   }
 
   _val(m) {
     const st = this.hass && this.hass.states[m.entity];
-    if (!st || st.state === "unavailable" || st.state === "unknown")
-      return { text: "—", unit: "" };
+    if (isUnavail(st)) return { text: "—", unit: "" };
+    const n = Number(st.state);
+    if (!Number.isFinite(n)) return { text: fmtState(this.hass, st), unit: "" };
     const unit =
       m.unit != null ? m.unit : st.attributes.unit_of_measurement || "";
-    return { text: nl(Number(st.state), m.decimals) || st.state, unit };
+    return { text: nl(n, m.decimals), unit };
   }
 
   _sparkline() {

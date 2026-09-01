@@ -1,13 +1,11 @@
 /* ================================================================== *
- * CARD — fibbers-scheduler  (Lit + Tailwind)
- *
- * A wake/alarm control, frontend-only: it drives existing helpers. Reads a
- * `time` (input_datetime) and shows it big (tap → more-info to edit); an
- * `enable` (input_boolean) toggle; an optional `duration` (input_number,
- * minutes) that renders the wake window; and optional weekday chips.
+ * fibbers-scheduler — wake control over input_datetime/boolean/number helpers:
+ * big time (tap → more-info), enable toggle, fade window, weekday chips.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
+
 import { twSheet } from "../tw.js";
+import { pillSwitch } from "../ui.js";
 import { moreInfo } from "../util.js";
 import "../icon.js";
 
@@ -78,23 +76,15 @@ export class FibbersScheduler extends LitElement {
         >
         ${
           cfg.enable
-            ? html`<button
-                type="button"
-                class="relative h-5 w-9 flex-none rounded-full transition-colors
-                     ${on ? "bg-accent" : "bg-card2"}"
-                role="switch"
-                aria-checked=${on}
-                @click=${() =>
+            ? pillSwitch({
+                on,
+                label: cfg.name || "Wekker",
+                onClick: () =>
                   this.hass &&
                   this.hass.callService("input_boolean", "toggle", {
                     entity_id: cfg.enable,
-                  })}
-              >
-                <span
-                  class="absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all
-                       ${on ? "left-[18px]" : "left-0.5"}"
-                ></span>
-              </button>`
+                  }),
+              })
             : ""
         }
       </div>

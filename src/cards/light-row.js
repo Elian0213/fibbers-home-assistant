@@ -1,18 +1,13 @@
 /* ================================================================== *
- * CARD — fibbers-light-row  (Lit + Tailwind)
- *
- * The light row used inside sheets: a 28px icon box, a name, a live value
- * (`Warm · 70%`), and a 6px drag slider bound to brightness_pct. Dragging the
- * track never scrolls the sheet (touch-none). Unavailable lights read
- * `Onbereikbaar` with a disabled slider.
- *
- * Interactive proof for the Lit + Tailwind stack: pointer capture + drag inside
- * a shadow root under Lit, with reactive drag state driving the knob.
+ * fibbers-light-row — the light row for sheets: icon, name, live value
+ * (`Warm · 70%`), and a drag slider bound to brightness_pct.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
-import { twSheet } from "../tw.js";
+
 import { runAction } from "../actions.js";
-import { moreInfo, clamp } from "../util.js";
+import { twSheet } from "../tw.js";
+import { sliderTrack } from "../ui.js";
+import { moreInfo, isUnavail, pctFromX } from "../util.js";
 import "../icon.js";
 
 export class FibbersLightRow extends LitElement {
@@ -58,8 +53,7 @@ export class FibbersLightRow extends LitElement {
     return this.hass && this.hass.states[this._config.entity];
   }
   _unavail() {
-    const st = this._st();
-    return !st || st.state === "unavailable" || st.state === "unknown";
+    return isUnavail(this._st());
   }
   _pctFromHass() {
     const st = this._st();
@@ -88,25 +82,20 @@ export class FibbersLightRow extends LitElement {
     return "Koel";
   }
 
-  _pctFromX(clientX, track) {
-    const r = track.getBoundingClientRect();
-    return Math.round(clamp(((clientX - r.left) / r.width) * 100, 0, 100));
-  }
-
   _down(e) {
     if (this._unavail()) return;
     const track = e.currentTarget;
     this._dragging = true;
     track.setPointerCapture && track.setPointerCapture(e.pointerId);
-    this._dragPct = this._pctFromX(e.clientX, track);
+    this._dragPct = Math.round(pctFromX(e.clientX, track));
   }
   _move(e) {
     if (!this._dragging) return;
-    this._dragPct = this._pctFromX(e.clientX, e.currentTarget);
+    this._dragPct = Math.round(pctFromX(e.clientX, e.currentTarget));
   }
   _up(e) {
     if (!this._dragging) return;
-    const pct = this._pctFromX(e.clientX, e.currentTarget);
+    const pct = Math.round(pctFromX(e.clientX, e.currentTarget));
     this._dragging = false;
     this._commit(pct);
   }
@@ -181,30 +170,16 @@ export class FibbersLightRow extends LitElement {
           <span class="whitespace-nowrap text-[10.5px] text-muted">${val}</span>
         </div>
 
-        <div
-          class="relative h-1.5 cursor-pointer touch-none rounded-[3px] bg-[#2C3639]
-                 ${unavail ? "pointer-events-none" : ""}"
-          @pointerdown=${this._down}
-          @pointermove=${this._move}
-          @pointerup=${this._up}
-          @pointercancel=${() => (this._dragging = false)}
-        >
-          ${
-            unavail
-              ? ""
-              : html`
-                  <div
-                    class="absolute bottom-0 left-0 top-0 rounded-[3px] bg-accent"
-                    style="width:${pct}%"
-                  ></div>
-                  <div
-                    class="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2
-                         rounded-full bg-accent shadow-[0_1px_3px_rgba(0,0,0,.4)]"
-                    style="left:${pct}%"
-                  ></div>
-                `
-          }
-        </div>
+        ${sliderTrack({
+          pct,
+          disabled: unavail,
+          onDown: this._down,
+          onMove: this._move,
+          onUp: this._up,
+          onCancel: () => {
+            this._dragging = false;
+          },
+        })}
       </div>
     `;
   }

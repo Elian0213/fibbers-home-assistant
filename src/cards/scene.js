@@ -1,12 +1,9 @@
 /* ================================================================== *
- * CARD — fibbers-scene  (Lit + Tailwind)
- *
- * A grid of scene tiles. Tapping one activates it; the most recently applied
- * scene (highest last_activated across the set) is highlighted. With
- * `favourites: N`, the first N tiles show and the rest collapse behind an
- * "Alle N scènes" drawer.
+ * fibbers-scene — scene tiles; the most-recently-applied one is highlighted.
+ * `favourites: N` shows the first N and collapses the rest behind a drawer.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
+
 import { twSheet } from "../tw.js";
 import "../icon.js";
 

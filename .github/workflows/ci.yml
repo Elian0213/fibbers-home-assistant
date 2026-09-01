@@ -16,20 +16,14 @@ jobs:
       - name: Install
         run: bun install --frozen-lockfile
 
-      - name: Format check
-        run: bunx prettier --check "src/**/*.js" "docs/*.html"
-
-      - name: Generate icons
+      - name: Regenerate icons
         run: bun run gen-icons
 
-      - name: Build
-        run: bun run build
+      - name: Check (prettier + eslint + build + icon guard + parse)
+        run: bun run check
 
       - name: dist/ and generated files are in sync with src/
         run: git diff --exit-code dist/fibbers.js src/icons.gen.js src/tailwind.gen.js
-
-      - name: Bundle parses
-        run: node -e "new Function(require('fs').readFileSync('dist/fibbers.js','utf8'))"
 
   storybook:
     runs-on: ubuntu-latest

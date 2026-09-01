@@ -1,12 +1,9 @@
 /* ================================================================== *
- * CARD — fibbers-sheet  (Lit controller)
- *
- * A hash-routed modal. The card itself is invisible; it registers its
- * {id, title, cards[]} with the singleton sheet layer (body-sheet.js), which
- * opens when the URL hash matches `#<id>`. Open one with a link/tap to `#<id>`
- * (e.g. a fibbers-room's `sheet:` config).
+ * fibbers-sheet — invisible card; registers {id, title, cards[]} with the sheet
+ * layer (body-sheet.js), which opens on hash `#<id>`.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
+
 import {
   registerSheet,
   unregisterSheet,

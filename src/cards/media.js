@@ -1,14 +1,12 @@
 /* ================================================================== *
- * CARD — fibbers-media  (Lit + Tailwind)
- *
- * A media_player: now-playing (art, title, artist), transport
- * (prev / play-pause / next), a drag volume bar, and optional favourite
- * `sources` as one-tap chips. `compact: true` gives the tight "Nu bezig" row
- * for the home view. Replaces custom-sonos-card / mini-media-player.
+ * fibbers-media — media_player: now-playing, transport, drag volume, and
+ * optional `sources` chips. `compact: true` is the tight "Nu bezig" row.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
+
 import { twSheet } from "../tw.js";
-import { clamp } from "../util.js";
+import { sliderTrack } from "../ui.js";
+import { pctFromX } from "../util.js";
 import "../icon.js";
 
 export class FibbersMedia extends LitElement {
@@ -72,23 +70,19 @@ export class FibbersMedia extends LitElement {
       });
   }
 
-  _volFromX(clientX, track) {
-    const r = track.getBoundingClientRect();
-    return Math.round(clamp(((clientX - r.left) / r.width) * 100, 0, 100));
-  }
   _down(e) {
     this._dragging = true;
     e.currentTarget.setPointerCapture &&
       e.currentTarget.setPointerCapture(e.pointerId);
-    this._dragVol = this._volFromX(e.clientX, e.currentTarget);
+    this._dragVol = Math.round(pctFromX(e.clientX, e.currentTarget));
   }
   _move(e) {
     if (this._dragging)
-      this._dragVol = this._volFromX(e.clientX, e.currentTarget);
+      this._dragVol = Math.round(pctFromX(e.clientX, e.currentTarget));
   }
   _up(e) {
     if (!this._dragging) return;
-    const v = this._volFromX(e.clientX, e.currentTarget);
+    const v = Math.round(pctFromX(e.clientX, e.currentTarget));
     this._dragging = false;
     this._svc("volume_set", { volume_level: v / 100 });
   }
@@ -187,23 +181,16 @@ export class FibbersMedia extends LitElement {
           class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-muted"
           icon="solar:volume-small-bold-duotone"
         ></fib-icon>
-        <div
-          class="relative h-1.5 flex-1 cursor-pointer touch-none rounded-[3px] bg-[#2C3639]"
-          @pointerdown=${this._down}
-          @pointermove=${this._move}
-          @pointerup=${this._up}
-          @pointercancel=${() => (this._dragging = false)}
-        >
-          <div
-            class="absolute bottom-0 left-0 top-0 rounded-[3px] bg-accent"
-            style="width:${this._vol()}%"
-          ></div>
-          <div
-            class="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full
-                   bg-accent shadow-[0_1px_3px_rgba(0,0,0,.4)]"
-            style="left:${this._vol()}%"
-          ></div>
-        </div>
+        ${sliderTrack({
+          pct: this._vol(),
+          cls: "flex-1",
+          onDown: this._down,
+          onMove: this._move,
+          onUp: this._up,
+          onCancel: () => {
+            this._dragging = false;
+          },
+        })}
         <fib-icon
           class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-muted"
           icon="solar:volume-loud-bold-duotone"

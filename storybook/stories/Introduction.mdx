@@ -3,7 +3,10 @@ import hero from "./hero.png";
 
 <Meta title="Introduction" />
 
-<div className="sb-unstyled" style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+<div
+  className="sb-unstyled"
+  style={{ textAlign: "center", marginBottom: "1.5rem" }}
+>
   <img
     src={hero}
     alt="Fibbers dashboard"
@@ -14,13 +17,13 @@ import hero from "./hero.png";
 
 # Fibbers
 
-A bottom-nav dashboard for Home Assistant that actually feels like an app — a
-**viewport-pinned bottom bar**, a real back-stack, drag-to-dismiss **modal sheets**,
-self-computing **room tiles**, an **alert card** with real logic, and dark theming.
+A phone-first, bottom-nav dashboard for Home Assistant: a **viewport-pinned bottom bar**, a
+back-stack, drag-away **modal sheets**, self-computing **room tiles**, an **alert card** built
+from real checks, and dark theming.
 
-Vanilla web components, **zero runtime dependencies**. This Storybook renders the real shipped
-bundle (`dist/fibbers.js`) against a stubbed Home Assistant — every card in the sidebar is live.
-Open a card's **Docs** tab, or hit **Show code**, to copy its exact **Lovelace YAML**.
+Built with Lit. This Storybook renders the real shipped bundle (`dist/fibbers.js`) against a
+stubbed Home Assistant, so every card in the sidebar is live. Open a card's **Docs** tab, or hit
+**Show code**, to copy its exact **Lovelace YAML**.
 
 ## Install
 
@@ -56,16 +59,14 @@ palette and the global CSS injector.
 
 ## What's inside
 
-- **fibbers-nav** — the bottom bar (pins to the viewport, real back-stack, `hide_ha_tabs`, badges)
-- **fibbers-back** — a back control that names where you came from
-- **fibbers-sheet** — a hash-routed modal bottom sheet
-- **fibbers-section** — the uppercase mono section label
-- **fibbers-room** — a tile that computes its own light state
-- **fibbers-light-row** — a light with a brightness slider + configurable icon button
-- **fibbers-alert** — "Aandacht nodig" as real checks, not Jinja
-- **fibbers-chips** — an action pill row
-- **fibbers-scene** — scene tiles that highlight what's active
+25 cards, grouped in the sidebar:
 
-Every card has its own section in the sidebar with live examples and its YAML.
+- **Shell & navigation** — nav, back, sheet, section, greeting
+- **Rooms, lights & scenes** — room, light-row, scene, chips
+- **Status & data** — alert, stat, graph, entities, presence, backup, weather, sysmon
+- **Devices** — media, climate, scheduler, remote
+- **Inputs & controls** — number, select, toggle, datetime
+
+Each has its own sidebar section with live examples and copy-paste YAML.
 
 Built by [Elian Heutink](https://github.com/Elian0213/fibbers-home-assistant) · MIT.

@@ -1,18 +1,12 @@
 /* ================================================================== *
- * CARD — fibbers-stat  (Lit + Tailwind)
- *
- * One value tile: an icon box, a label, a big value + unit, and an optional
- * secondary line and trend arrow. The shared building block for sysmon /
- * climate / weather. Reads `entity` (state + unit + friendly_name) or takes a
- * literal `value`. Tapping runs `tap_action` (defaults to more-info).
- *
- * First card on the Lit + Tailwind stack: utilities come from the shared
- * adopted sheet (src/tw.js); box-shadow here exercises the @property hoist.
+ * fibbers-stat — value tile: icon, label, value + unit, optional trend.
+ * Reads `entity` or a literal `value`; tap runs `tap_action` (default more-info).
  * ================================================================== */
 import { LitElement, html, css } from "lit";
-import { twSheet } from "../tw.js";
+
 import { runAction } from "../actions.js";
-import { nl } from "../util.js";
+import { twSheet } from "../tw.js";
+import { nl, fmtState, isUnavail } from "../util.js";
 import "../icon.js"; // registers <fib-icon>
 
 const COLORS = ["accent", "amber", "blue", "green", "red"];
@@ -74,8 +68,7 @@ export class FibbersStat extends LitElement {
 
   _offline() {
     if (!this._config.entity) return false;
-    const st = this._st();
-    return !st || st.state === "unavailable" || st.state === "unknown";
+    return isUnavail(this._st());
   }
 
   _tap() {
@@ -96,9 +89,18 @@ export class FibbersStat extends LitElement {
       cfg.icon || (st && st.attributes.icon) || "solar:widget-bold-duotone";
     const label =
       cfg.name || (st && st.attributes.friendly_name) || cfg.entity || "";
-    const value = offline
-      ? "—"
-      : fmt(cfg.value != null ? cfg.value : st.state, cfg.decimals);
+    // Numeric states format with our nl-NL helper; a config `value` override is
+    // kept verbatim through `fmt`. A non-numeric entity state (motion, timestamp,
+    // enum) is handed to HA's own localiser instead of printing the raw slug.
+    let value;
+    if (offline) value = "—";
+    else if (cfg.value != null) value = fmt(cfg.value, cfg.decimals);
+    else {
+      const n = Number(String(st.state).replace(",", "."));
+      value = Number.isFinite(n)
+        ? nl(n, cfg.decimals)
+        : fmtState(this.hass, st);
+    }
     const unit = offline
       ? ""
       : cfg.unit != null

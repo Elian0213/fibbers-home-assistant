@@ -1,11 +1,9 @@
 /* ================================================================== *
- * CARD — fibbers-backup  (Lit + Tailwind)
- *
- * Backup status: when the last one ran, whether it succeeded, and when the next
- * is due. Reads a timestamp `entity` for the last backup; goes amber when it's
- * older than `stale_hours` or the optional `result` entity reports a failure.
+ * fibbers-backup — last/next backup and result; amber when stale
+ * (> `stale_hours`) or the `result` entity reports a failure.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
+
 import { twSheet } from "../tw.js";
 import { isUnavail } from "../util.js";
 import "../icon.js";

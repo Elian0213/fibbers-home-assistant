@@ -1,15 +1,7 @@
 /* ================================================================== *
- * ICON — <fib-icon>
- *
- * Renders a Solar duotone icon inline (from the bundled registry) when the
- * name is `solar:…`, or delegates to HA's own `ha-icon` for anything else
- * (`mdi:…`, `hass:…`, custom sets) so user configs keep working. No network:
- * the Solar bodies are inlined at build time by scripts/gen-icons.mjs.
- *
- * Sizing/colour come from the host card's CSS on the `fib-icon` selector
- * (width/height + `--mdc-icon-size`, which the fallback `ha-icon` inherits);
- * the inline svg fills the box and paints with `currentColor`, so the duotone
- * secondary (a path at opacity .5) tints along with the primary.
+ * ICON — <fib-icon>. Inlines a bundled Solar duotone SVG for `solar:…`, else
+ * delegates to HA's <ha-icon> (mdi:/hass:/custom). No network; the svg paints
+ * with currentColor, so the duotone secondary tints along with the primary.
  * ================================================================== */
 import { ICONS } from "./icons.gen.js";
 

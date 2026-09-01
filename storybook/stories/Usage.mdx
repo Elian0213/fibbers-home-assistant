@@ -14,17 +14,17 @@ cards. Two things to know:
 
 ## The cards
 
-| Card | What it does | Minimal YAML |
-|---|---|---|
-| `fibbers-nav` | Viewport-pinned bottom bar | `type: custom:fibbers-nav`<br/>`tabs: [{ name: Huis, icon: solar:home-2-bold-duotone, path: /d/huis }]` |
-| `fibbers-back` | Back control on a real stack | `type: custom:fibbers-back`<br/>`fallback: /d/huis` |
-| `fibbers-section` | Uppercase mono label | `type: custom:fibbers-section`<br/>`label: Kamers` |
-| `fibbers-room` | Self-computing room tile | `type: custom:fibbers-room`<br/>`name: Woonkamer`<br/>`entities: [light.x]` |
-| `fibbers-light-row` | Light + brightness slider | `type: custom:fibbers-light-row`<br/>`entity: light.x` |
-| `fibbers-sheet` | Hash-routed modal | `type: custom:fibbers-sheet`<br/>`id: woonkamer`<br/>`cards: [...]` |
-| `fibbers-alert` | "Aandacht nodig" checks | `type: custom:fibbers-alert`<br/>`checks: [{ type: updates }]` |
-| `fibbers-chips` | Action pill row | `type: custom:fibbers-chips`<br/>`chips: [{ name: X, action: {...} }]` |
-| `fibbers-scene` | Scene tiles | `type: custom:fibbers-scene`<br/>`scenes: [{ name: Avond, scene: scene.avond }]` |
+| Card                | What it does                 | Minimal YAML                                                                                            |
+| ------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `fibbers-nav`       | Viewport-pinned bottom bar   | `type: custom:fibbers-nav`<br/>`tabs: [{ name: Huis, icon: solar:home-2-bold-duotone, path: /d/huis }]` |
+| `fibbers-back`      | Back control on a real stack | `type: custom:fibbers-back`<br/>`fallback: /d/huis`                                                     |
+| `fibbers-section`   | Uppercase mono label         | `type: custom:fibbers-section`<br/>`label: Kamers`                                                      |
+| `fibbers-room`      | Self-computing room tile     | `type: custom:fibbers-room`<br/>`name: Woonkamer`<br/>`entities: [light.x]`                             |
+| `fibbers-light-row` | Light + brightness slider    | `type: custom:fibbers-light-row`<br/>`entity: light.x`                                                  |
+| `fibbers-sheet`     | Hash-routed modal            | `type: custom:fibbers-sheet`<br/>`id: woonkamer`<br/>`cards: [...]`                                     |
+| `fibbers-alert`     | "Aandacht nodig" checks      | `type: custom:fibbers-alert`<br/>`checks: [{ type: updates }]`                                          |
+| `fibbers-chips`     | Action pill row              | `type: custom:fibbers-chips`<br/>`chips: [{ name: X, action: {...} }]`                                  |
+| `fibbers-scene`     | Scene tiles                  | `type: custom:fibbers-scene`<br/>`scenes: [{ name: Avond, scene: scene.avond }]`                        |
 
 Each card's own sidebar page shows every option and its live YAML.
 
@@ -46,11 +46,40 @@ sections:
           - { type: updates }
       - type: custom:fibbers-chips
         chips:
-          - { name: Wekker, icon: solar:alarm-bold-duotone, action: { action: toggle, entity: input_boolean.wake_alarm_enabled }, active_when: { entity: input_boolean.wake_alarm_enabled, state: "on" } }
-          - { name: Alles uit, icon: solar:power-bold-duotone, action: { action: call-service, service: light.turn_off, target: { entity_id: light.all_color_lights } } }
+          - {
+              name: Wekker,
+              icon: solar:alarm-bold-duotone,
+              action:
+                { action: toggle, entity: input_boolean.wake_alarm_enabled },
+              active_when:
+                { entity: input_boolean.wake_alarm_enabled, state: "on" },
+            }
+          - {
+              name: Alles uit,
+              icon: solar:power-bold-duotone,
+              action:
+                {
+                  action: call-service,
+                  service: light.turn_off,
+                  target: { entity_id: light.all_color_lights },
+                },
+            }
       - { type: custom:fibbers-section, label: Kamers }
-      - { type: custom:fibbers-room, name: Woonkamer, icon: solar:sofa-2-bold-duotone, sheet: woonkamer, entities: [light.tv_led_strip, light.kitchen, light.woonkamer_computer] }
-      - { type: custom:fibbers-room, name: Slaapkamer, icon: solar:bed-bold-duotone, sheet: slaapkamer, entities: [light.hue_go_1, light.hue_lightstrip_plus_1] }
+      - {
+          type: custom:fibbers-room,
+          name: Woonkamer,
+          icon: solar:sofa-2-bold-duotone,
+          sheet: woonkamer,
+          entities:
+            [light.tv_led_strip, light.kitchen, light.woonkamer_computer],
+        }
+      - {
+          type: custom:fibbers-room,
+          name: Slaapkamer,
+          icon: solar:bed-bold-duotone,
+          sheet: slaapkamer,
+          entities: [light.hue_go_1, light.hue_lightstrip_plus_1],
+        }
       # the sheet a room opens:
       - type: custom:fibbers-sheet
         id: woonkamer
@@ -64,9 +93,21 @@ sections:
       - type: custom:fibbers-nav
         hide_ha_tabs: true
         tabs:
-          - { name: Huis, icon: solar:home-2-bold-duotone, path: /dashboard-thuis/huis }
-          - { name: Licht, icon: solar:lightbulb-bolt-bold-duotone, path: /dashboard-thuis/licht }
-          - { name: Meer, icon: solar:menu-dots-bold-duotone, path: /dashboard-thuis/meer }
+          - {
+              name: Huis,
+              icon: solar:home-2-bold-duotone,
+              path: /dashboard-thuis/huis,
+            }
+          - {
+              name: Licht,
+              icon: solar:lightbulb-bolt-bold-duotone,
+              path: /dashboard-thuis/licht,
+            }
+          - {
+              name: Meer,
+              icon: solar:menu-dots-bold-duotone,
+              path: /dashboard-thuis/meer,
+            }
 ```
 
 ## Icons

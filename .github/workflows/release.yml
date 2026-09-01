@@ -2,7 +2,8 @@ name: Release
 
 on:
   push:
-    tags: ["v*"]
+    # Accept both conventions — `v0.4.0` and bare `0.4.0` (this repo's existing tags).
+    tags: ["v*", "[0-9]*"]
 
 permissions:
   contents: write
@@ -18,8 +19,8 @@ jobs:
       - name: Install
         run: bun install --frozen-lockfile
 
-      - name: Build
-        run: bun run build
+      - name: Check (prettier + eslint + build + icon guard + parse)
+        run: bun run check
 
       - name: dist/ is in sync with src/
         run: git diff --exit-code dist/fibbers.js

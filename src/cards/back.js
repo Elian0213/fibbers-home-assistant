@@ -1,13 +1,11 @@
 /* ================================================================== *
- * CARD — fibbers-back  (Lit + Tailwind)
- *
- * "Terug naar X", where X is where you actually came from (read from the
- * navigation stack), falling back to `fallback` on a cold deep-link.
+ * fibbers-back — "Terug naar X" from the nav stack; `fallback` on cold deep-link.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
+
+import { nav, previous, goBack } from "../nav-stack.js";
 import { twSheet } from "../tw.js";
 import { norm } from "../util.js";
-import { nav, previous, goBack } from "../nav-stack.js";
 import "../icon.js";
 
 export class FibbersBack extends LitElement {

@@ -182,6 +182,62 @@ export function makeHass(flags = {}) {
   add("input_number.wake_fade", "20", {
     friendly_name: "Wek-fade",
     unit_of_measurement: "min",
+    min: 0,
+    max: 60,
+    step: 1,
+  });
+  add("input_number.opkomst_duur", "20", {
+    friendly_name: "Opkomst duur",
+    unit_of_measurement: "min",
+    min: 1,
+    max: 60,
+    step: 1,
+  });
+
+  // input_select — a 3-option (chips) and a 12-option (dropdown) helper
+  add("input_select.wake_days", "Werkdagen", {
+    friendly_name: "Wek-dagen",
+    options: ["Elke dag", "Werkdagen", "Weekend"],
+  });
+  add("input_select.keuken_kleur_dag", "Warm wit", {
+    friendly_name: "Kleur overdag",
+    options: [
+      "Warm wit",
+      "Koel wit",
+      "Daglicht",
+      "Rood",
+      "Oranje",
+      "Geel",
+      "Groen",
+      "Cyaan",
+      "Blauw",
+      "Paars",
+      "Roze",
+      "Magenta",
+    ],
+  });
+
+  add("input_boolean.wake_radio_enabled", "on", { friendly_name: "Radio aan" });
+
+  add("input_datetime.keuken_dag_start", "07:00:00", {
+    friendly_name: "Dag begint om",
+    has_time: true,
+    has_date: false,
+  });
+  add("input_datetime.vakantie_start", "2026-12-20", {
+    friendly_name: "Vakantie",
+    has_time: false,
+    has_date: true,
+  });
+
+  // non-numeric states for the stat/sysmon formatting stories
+  add("binary_sensor.hue_motion_sensor_1_motion", "off", {
+    friendly_name: "Beweging woonkamer",
+    device_class: "motion",
+  });
+  add("sensor.system_monitor_last_boot", "2026-08-29T22:26:37+00:00", {
+    friendly_name: "Laatste herstart",
+    device_class: "timestamp",
   });
 
   // remote + climate
@@ -223,6 +279,28 @@ export function makeHass(flags = {}) {
       return {};
     },
     localize: (k) => k,
+    // A minimal stand-in for HA's own localiser, enough for the stories to show
+    // motion / timestamp / numeric states the way the real frontend would.
+    formatEntityState: (st) => {
+      if (!st) return "";
+      const a = st.attributes || {};
+      if (a.device_class === "motion")
+        return st.state === "on" ? "Gedetecteerd" : "Vrij";
+      if (a.device_class === "timestamp") {
+        const t = Date.parse(st.state);
+        if (!isNaN(t)) {
+          const mins = Math.max(0, Math.round((Date.now() - t) / 6e4));
+          if (mins < 60) return `${mins} min geleden`;
+          const hrs = Math.round(mins / 60);
+          if (hrs < 24) return `${hrs} uur geleden`;
+          return `${Math.round(hrs / 24)} dagen geleden`;
+        }
+      }
+      const n = Number(st.state);
+      if (Number.isFinite(n))
+        return a.unit_of_measurement ? `${n} ${a.unit_of_measurement}` : `${n}`;
+      return st.state;
+    },
     themes: { darkMode: true },
     user: { name: "Elian", is_admin: true },
   };

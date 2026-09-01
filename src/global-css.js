@@ -1,13 +1,8 @@
 /* ================================================================== *
- * GLOBAL CSS
- *
- * Replaces the separate theme repo. Sets HA's own theme custom properties on
- * `html` with `!important` (HA applies themes as inline styles on
- * documentElement, so a stylesheet cannot win without it). Because custom
- * properties inherit into shadow DOM, this restyles more-info dialogs, switches
- * and sliders without touching them directly. Mirrors docs/optional-theme.yaml.
- *
- * Escape hatch: set `window.FIBBERS_DISABLE_GLOBAL_CSS = true` before load.
+ * GLOBAL CSS — replaces the theme repo. Sets HA's theme vars on <html> with
+ * !important; they inherit into shadow DOM, so more-info dialogs match too.
+ * Mirrors docs/optional-theme.yaml.
+ * Escape hatch: window.FIBBERS_DISABLE_GLOBAL_CSS = true before load.
  * ================================================================== */
 import { T } from "./tokens.js";
 

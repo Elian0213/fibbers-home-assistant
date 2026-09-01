@@ -1,49 +1,41 @@
 /*!
- * Fibbers — custom cards + theming for the Thuis Home Assistant dashboard.
- *
- * Ships ~20 custom cards (see the CARDS registry below) plus the body-appended
- * nav bar and modal sheet, and injects the dark theme globally. The two most
- * load-bearing pieces are `fibbers-nav` (viewport-pinned bottom bar) and
- * `fibbers-back` (a back control driven by a real navigation stack).
- *
- * WHY THE BAR RENDERS INTO document.body
- * Inside a Lovelace view, `position: fixed` resolves against the scrolling
- * content box rather than the window, so a bar "fixed to the bottom" lands at
- * the bottom of the page instead of the screen. Rendering into document.body is
- * the only reliable escape, and it is also what keeps the bar working
- * independent of Lovelace's own DOM. Everything else here follows from that.
- *
- * Source is modular under src/. `bun run build` bundles it into an IIFE at
- * dist/fibbers.js — edit src/, never the bundle.
+ * Fibbers — custom cards + dark theming for Home Assistant.
+ * Registers ~25 cards (see the CARDS table below) plus the body-appended nav bar
+ * and modal sheet, then injects the theme. Edit src/, run `bun run build`.
  */
+import "./icon.js"; // registers <fib-icon>
+import { bar } from "./body-layer.js";
+import { FibbersAlert } from "./cards/alert.js";
+import { FibbersBack } from "./cards/back.js";
+import { FibbersBackup } from "./cards/backup.js";
+import { FibbersChips } from "./cards/chips.js";
+import { FibbersClimate } from "./cards/climate.js";
+import { FibbersDateTime } from "./cards/datetime.js";
+import { FibbersEntities } from "./cards/entities.js";
+import { FibbersGraph } from "./cards/graph.js";
+import { FibbersGreeting } from "./cards/greeting.js";
+import { FibbersLightRow } from "./cards/light-row.js";
+import { FibbersMedia } from "./cards/media.js";
+import { FibbersNav } from "./cards/nav.js";
+import { FibbersNumber } from "./cards/number.js";
+import { FibbersPresence } from "./cards/presence.js";
+import { FibbersRemote } from "./cards/remote.js";
+import { FibbersRoom } from "./cards/room.js";
+import { FibbersScene } from "./cards/scene.js";
+import { FibbersScheduler } from "./cards/scheduler.js";
+import { FibbersSection } from "./cards/section.js";
+import { FibbersSelect } from "./cards/select.js";
+import { FibbersSheet } from "./cards/sheet.js";
+import { FibbersStat } from "./cards/stat.js";
+import { FibbersSysmon } from "./cards/sysmon.js";
+import { FibbersToggle } from "./cards/toggle.js";
+import { FibbersWeather } from "./cards/weather.js";
+import { injectGlobalCss } from "./global-css.js";
+import { nav, goBack, previous } from "./nav-stack.js";
 import { T, styleBlock } from "./tokens.js";
 import { navigate } from "./util.js";
-import { nav, goBack, previous } from "./nav-stack.js";
-import { bar } from "./body-layer.js";
-import { injectGlobalCss } from "./global-css.js";
-import "./icon.js"; // registers <fib-icon>
-import { FibbersNav } from "./cards/nav.js";
-import { FibbersBack } from "./cards/back.js";
-import { FibbersSheet } from "./cards/sheet.js";
-import { FibbersSection } from "./cards/section.js";
-import { FibbersRoom } from "./cards/room.js";
-import { FibbersLightRow } from "./cards/light-row.js";
-import { FibbersAlert } from "./cards/alert.js";
-import { FibbersChips } from "./cards/chips.js";
-import { FibbersScene } from "./cards/scene.js";
-import { FibbersStat } from "./cards/stat.js";
-import { FibbersGraph } from "./cards/graph.js";
-import { FibbersEntities } from "./cards/entities.js";
-import { FibbersPresence } from "./cards/presence.js";
-import { FibbersBackup } from "./cards/backup.js";
-import { FibbersWeather } from "./cards/weather.js";
-import { FibbersMedia } from "./cards/media.js";
-import { FibbersSysmon } from "./cards/sysmon.js";
-import { FibbersScheduler } from "./cards/scheduler.js";
-import { FibbersRemote } from "./cards/remote.js";
-import { FibbersClimate } from "./cards/climate.js";
 
-const VERSION = "0.3.0";
+const VERSION = "0.4.0";
 
 /* ================================================================== *
  * REGISTRY
@@ -164,6 +156,36 @@ const CARDS = [
     "Fibbers Climate",
     "Thermostat — setpoint and hvac modes.",
   ],
+  [
+    "fibbers-number",
+    FibbersNumber,
+    "Fibbers Number",
+    "Slider / stepper for input_number and number.",
+  ],
+  [
+    "fibbers-select",
+    FibbersSelect,
+    "Fibbers Select",
+    "Option picker (chips or dropdown) for input_select and select.",
+  ],
+  [
+    "fibbers-toggle",
+    FibbersToggle,
+    "Fibbers Toggle",
+    "Switch row for input_boolean, switch and automation.",
+  ],
+  [
+    "fibbers-datetime",
+    FibbersDateTime,
+    "Fibbers Datetime",
+    "Time / date row for input_datetime.",
+  ],
+  [
+    "fibbers-greeting",
+    FibbersGreeting,
+    "Fibbers Greeting",
+    "Time-of-day header with a lights / presence / sensor subline.",
+  ],
 ];
 
 CARDS.forEach(([tag, cls]) => {
@@ -177,7 +199,7 @@ CARDS.forEach(([tag, , name, description]) => {
   }
 });
 
-/* global theming — replaces the theme repo (honours FIBBERS_DISABLE_GLOBAL_CSS) */
+/* injects the dark theme globally — replaces the theme repo (honours window.FIBBERS_DISABLE_GLOBAL_CSS) */
 injectGlobalCss();
 
 /* exposed for the preview harness and console debugging */

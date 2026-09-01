@@ -1,14 +1,9 @@
 /**
  * gen-icons.mjs — inline the whole Solar Bold Duotone style into src/icons.gen.js.
  *
- * Pulls every `*-bold-duotone` icon body from @iconify-json/solar (a devDependency)
- * and writes a committed registry keyed `solar:<name>`. Run with: `bun run gen-icons`.
- * No network at runtime — this is build-time only.
- *
- * We ship the entire bold-duotone style (~1,325 icons) so that any
- * `solar:<name>-bold-duotone` a user puts in their dashboard renders on a HACS
- * install without a rebuild. `<fib-icon>` resolves names from this registry; other
- * styles (`-linear`, …) and typos fall through to its warn + placeholder.
+ * Ships every `*-bold-duotone` body (~1,325) from @iconify-json/solar so any
+ * `solar:<name>-bold-duotone` renders on a HACS install without a rebuild.
+ * Build-time only, no runtime network. Run: `bun run gen-icons`.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";

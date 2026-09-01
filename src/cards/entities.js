@@ -1,12 +1,9 @@
 /* ================================================================== *
- * CARD — fibbers-entities  (Lit + Tailwind)
- *
- * A self-maintaining list (the auto-entities replacement). You describe what
- * belongs in it — a set of `filters` matched by domain / state / attribute /
- * entity_id regex / numeric threshold / staleness — and the card fills itself
- * from hass. Tapping a row opens more-info.
+ * fibbers-entities — the auto-entities replacement: a list filled from `filters`
+ * (domain/state/attribute/entity_id regex/threshold/staleness). Row → more-info.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
+
 import { twSheet } from "../tw.js";
 import { moreInfo } from "../util.js";
 import "../icon.js";
@@ -49,7 +46,7 @@ function compileFilters(filters, label) {
 }
 
 function matches(st, f) {
-  if (f.domain && !st.entity_id.startsWith(f.domain + ".")) return false;
+  if (f.domain && !st.entity_id.startsWith(`${f.domain}.`)) return false;
   if (f._re && !f._re.test(st.entity_id)) return false;
   if (f.state != null) {
     const want = Array.isArray(f.state) ? f.state : [f.state];

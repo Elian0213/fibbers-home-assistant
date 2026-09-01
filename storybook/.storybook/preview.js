@@ -9,6 +9,7 @@ const preview = {
       default: "fibbers",
       values: [{ name: "fibbers", value: "#111516" }],
     },
+    // stories are config-driven (each is a fixed YAML), so there are no args/controls
     controls: { hideNoControlsWarning: true },
     docs: { toc: true, theme, source: { language: "yaml" } },
     options: {
@@ -39,8 +40,14 @@ const preview = {
             "Scheduler",
             "Remote",
             "Climate",
+            "Number",
+            "Select",
+            "Toggle",
+            "Datetime",
+            "Greeting",
           ],
           "Pages",
+          ["Dashboard", "Gallery"],
         ],
       },
     },

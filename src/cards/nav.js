@@ -1,13 +1,11 @@
 /* ================================================================== *
- * CARD — fibbers-nav  (Lit controller)
- *
- * A thin controller: it validates config and drives the singleton bar
- * (rendered into document.body by body-layer.js), and reserves a spacer of the
- * bar's height so page content isn't hidden behind it. No visible UI of its own.
+ * fibbers-nav — thin controller for the singleton bar (body-layer.js); reserves
+ * a spacer of the bar's height. No UI of its own.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
-import { nav } from "../nav-stack.js";
+
 import { bar, attach, detach, renderBar } from "../body-layer.js";
+import { nav } from "../nav-stack.js";
 
 export class FibbersNav extends LitElement {
   static properties = { _spacerH: { state: true } };

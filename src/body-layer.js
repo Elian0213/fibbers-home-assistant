@@ -1,19 +1,15 @@
 /* ================================================================== *
- * BODY LAYER — the singleton bar  (lit-html markup + Tailwind, kept iOS CSS)
- *
- * The bar is a body-appended singleton (so `position: fixed` pins to the
- * viewport, not Lovelace's transformed containing block). Its buttons render
- * via lit-html with Tailwind utilities from the shared adopted sheet; the
- * container's iOS-tuned rules (safe-area padding, the box-shadow overscroll
- * floor, translateZ layer) stay as hand-written CSS — deliberately not
- * disturbed.
+ * BODY LAYER — the singleton nav bar.
+ * Rendered into document.body so position:fixed pins to the viewport (not
+ * Lovelace's transformed container). The iOS-tuned container CSS is load-bearing.
  * ================================================================== */
 import { render, html, nothing } from "lit";
-import { twSheet } from "./tw.js";
-import { T } from "./tokens.js";
-import { norm, here, navigate } from "./util.js";
-import { nav, registerTabs } from "./nav-stack.js";
+
 import { setTabHiding, removeTabHiding } from "./hide-tabs.js";
+import { nav, registerTabs } from "./nav-stack.js";
+import { T } from "./tokens.js";
+import { twSheet } from "./tw.js";
+import { norm, here, navigate } from "./util.js";
 import "./icon.js";
 
 export const bar = {
@@ -85,7 +81,7 @@ function buildBar() {
 function tabMatches(tab, path) {
   const target = norm(tab.path);
   if (tab.match === "prefix")
-    return path === target || path.startsWith(target + "/");
+    return path === target || path.startsWith(`${target}/`);
   return path === target;
 }
 
@@ -122,16 +118,9 @@ export function renderBar() {
       return html`<button
         type="button"
         aria-current=${i === active ? "page" : nothing}
-        class="relative flex min-w-0 flex-1 flex-col items-center gap-[3px] rounded-[9px]
-               px-0.5 pb-[3px] pt-[5px] text-[9.5px] font-medium leading-[1.1] tracking-[0.01em]
+        class="group relative flex min-w-0 flex-1 flex-col items-center pb-[3px] pt-[5px]
                focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent
-               focus-visible:[outline-offset:-2px]
-               data-[pressed=true]:bg-[rgba(255,255,255,0.06)]
-               ${
-                 i === active
-                   ? "bg-[rgba(116,185,138,0.10)] text-accent"
-                   : "text-muted"
-               }"
+               focus-visible:[outline-offset:-2px]"
         @pointerdown=${(e) => press(e, true)}
         @pointerup=${(e) => press(e, false)}
         @pointercancel=${(e) => press(e, false)}
@@ -141,11 +130,24 @@ export function renderBar() {
           navigate(tab.path);
         }}
       >
-        <fib-icon
-          class="pointer-events-none h-[17px] w-[17px] [--mdc-icon-size:17px]"
-          icon=${tab.icon || "solar:record-circle-bold-duotone"}
-        ></fib-icon>
-        <span class="pointer-events-none">${tab.name || ""}</span>
+        <!-- the highlight is capped to content width so it doesn't become a
+             290px slab in a wide flex cell on desktop; the button stays the tap target -->
+        <span
+          class="pointer-events-none mx-auto flex w-full max-w-[96px] flex-col items-center
+                 gap-[3px] rounded-[9px] px-3 py-1 text-[9.5px] font-medium leading-[1.1]
+                 tracking-[0.01em] group-data-[pressed=true]:bg-[rgba(255,255,255,0.06)]
+                 ${
+                   i === active
+                     ? "bg-[rgba(116,185,138,0.10)] text-accent"
+                     : "text-muted"
+                 }"
+        >
+          <fib-icon
+            class="h-[17px] w-[17px] [--mdc-icon-size:17px]"
+            icon=${tab.icon || "solar:record-circle-bold-duotone"}
+          ></fib-icon>
+          <span>${tab.name || ""}</span>
+        </span>
         ${
           badge
             ? html`<span
@@ -187,7 +189,7 @@ export function attach(owner, config) {
   registerTabs((config.tabs || []).map((t) => t.path));
   if (!bar.host || !document.body.contains(bar.host)) bar.host = buildBar();
   const offset = Number(config.offset_bottom) || 0;
-  bar.host.style.bottom = offset ? offset + "px" : "";
+  bar.host.style.bottom = offset ? `${offset}px` : "";
   renderBar();
   measureBar();
   if (config.auto_hide) enableAutoHide();

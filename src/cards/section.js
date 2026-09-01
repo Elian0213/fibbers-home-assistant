@@ -1,10 +1,8 @@
 /* ================================================================== *
- * CARD — fibbers-section  (Lit + Tailwind)
- *
- * The uppercase mono section label. Replaces the HA `heading` card plus its
- * card-mod block. Nothing else.
+ * fibbers-section — the uppercase mono section label.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
+
 import { twSheet } from "../tw.js";
 
 export class FibbersSection extends LitElement {

@@ -3,6 +3,54 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] — 2026-09-01
+
+### Added
+
+- **`fibbers-number`** — a drag slider (or −/+ stepper) for `input_number`/`number`, respecting
+  min/max/step, with debounced writes (dragging no longer fires a call per pixel).
+- **`fibbers-select`** — an option picker for `input_select`/`select`: a chip row for a few
+  options, a self-styled dropdown for many. Never falls through to `ha-select`.
+- **`fibbers-toggle`** — a switch row for `input_boolean`/`switch`/`automation` using the shared
+  pill switch (now lifted out of `fibbers-scheduler`); optional secondary line and `confirm`.
+- **`fibbers-datetime`** — a big legible `input_datetime` value (time/date/both); tap opens
+  more-info to edit.
+- **`fibbers-greeting`** — a Dutch time-of-day header with a lights / presence / sensor subline,
+  replacing a 15-line Jinja `markdown` card. Light groups are expanded to their members (a group
+  is not counted as one bulb) and offline lights are counted separately.
+
+That brings the set to **25 cards**.
+
+### Fixed
+
+- **`fibbers-stat` / `fibbers-sysmon`** printed raw internal state for non-numeric entities
+  (`binary_sensor` → `off`, timestamps → an ISO string, `NaN`). Non-numeric states now go through
+  Home Assistant's own `formatEntityState`; the numeric decimals/unit path is unchanged.
+- **`fibbers-alert`** `exclude_pattern` matched only `entity_id`, case-sensitively — so a natural
+  `iPhone` never matched a lowercase id. It is now compiled once (case-insensitive) and tested
+  against `entity_id` **and** friendly name; `unavailable_lights` gained the same option.
+- **`fibbers-graph` / `fibbers-sysmon`** cached the "fetched" flag before the request resolved, so
+  one empty cold-load response disabled the sparkline for the card's whole lifetime. The flag is
+  now set only after rows arrive, with an 8-second backoff.
+- **Nav** — the active-tab highlight is capped to content width, so it no longer becomes a ~290px
+  slab in a wide flex cell on desktop.
+
+### Internal / tooling
+
+- Added **ESLint** (flat config: `@eslint/js` + a curated set of Airbnb best-practices + import
+  ordering + kebab-case filenames + `eslint-plugin-lit`/`-wc`; Prettier owns formatting).
+  `bun run check` and CI now run it.
+- DRY: the drag slider (light-row / number / media) shares `sliderTrack` + `pctFromX`; the graph +
+  sysmon history fetch shares `fetchHistory`; five inlined `unavailable` checks now use `isUnavail`.
+- CI runs the full `bun run check` (restores the icon guard, adds lint); the release workflow now
+  fires on bare `0.x.0` tags too; build-input deps pinned for deterministic regeneration.
+
+### Known
+
+- The bundle ships the full Solar bold-duotone set (~2.2 MB, ~½ MB gzipped) — a deliberate 0.3.0
+  choice for offline/ingress robustness. A future subset+opt-in build could shrink it; not planned
+  yet.
+
 ## [0.3.0] — 2026-09-01
 
 ### Fixed

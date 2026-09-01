@@ -1,1755 +1,5 @@
-/*! Fibbers v0.3.0 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */
+/*! Fibbers v0.4.0 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */
 (() => {
-
-  // src/tokens.js
-  var T = {
-    bg: "#111516",
-    card: "#1D2426",
-    card2: "#262F31",
-    line: "#333E41",
-    ink: "#EDF1F1",
-    ink2: "#A9B6B9",
-    muted: "#7D8B8E",
-    accent: "#74B98A",
-    accentSoft: "rgba(116,185,138,.10)",
-    accentBg: "#17281C",
-    accentLine: "#2B4A34",
-    accentTx: "#CFE6D5",
-    amber: "#E8A33D",
-    amberSoft: "rgba(232,163,61,.09)",
-    amberBg: "#3A2B12",
-    amberLine: "#4E3A18",
-    amberTx: "#EBD9BC",
-    blue: "#5AAFD6",
-    blueBg: "#152B36",
-    blueLine: "#2C5A70",
-    blueInk: "#9BD2EA",
-    green: "#63C295",
-    red: "#EC8377",
-    sheet: "#171E20",
-    nav: "#161C1E",
-    grab: "#3E4A4D",
-    rowLine: "#262F31"
-  };
-  function styleBlock() {
-    return `:host {
-    --fib-bg: ${T.bg};
-    --fib-card: ${T.card};
-    --fib-card-2: ${T.card2};
-    --fib-line: ${T.line};
-    --fib-ink: ${T.ink};
-    --fib-ink-2: ${T.ink2};
-    --fib-muted: ${T.muted};
-    --fib-accent: ${T.accent};
-    --fib-accent-soft: ${T.accentSoft};
-    --fib-accent-bg: ${T.accentBg};
-    --fib-accent-line: ${T.accentLine};
-    --fib-accent-tx: ${T.accentTx};
-    --fib-amber: ${T.amber};
-    --fib-amber-bg: ${T.amberBg};
-    --fib-amber-line: ${T.amberLine};
-    --fib-amber-tx: ${T.amberTx};
-    --fib-blue: ${T.blue};
-    --fib-blue-bg: ${T.blueBg};
-    --fib-blue-line: ${T.blueLine};
-    --fib-blue-ink: ${T.blueInk};
-    --fib-green: ${T.green};
-    --fib-red: ${T.red};
-    --fib-sheet: ${T.sheet};
-    --fib-nav: ${T.nav};
-    --fib-grab: ${T.grab};
-    --fib-row-line: ${T.rowLine};
-  }`;
-  }
-
-  // src/util.js
-  var store = {
-    get(key, fallback) {
-      try {
-        const raw = sessionStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-      } catch (_) {
-        return fallback;
-      }
-    },
-    set(key, value) {
-      try {
-        sessionStorage.setItem(key, JSON.stringify(value));
-      } catch (_) {}
-    }
-  };
-  var norm = (p) => String(p || "").replace(/\/+$/, "") || "/";
-  var here = () => norm(window.location.pathname);
-  function moreInfo(host, entityId) {
-    if (!host || !entityId)
-      return;
-    host.dispatchEvent(new CustomEvent("hass-more-info", {
-      detail: { entityId },
-      bubbles: true,
-      composed: true
-    }));
-  }
-  var nl = (n, d) => Number.isFinite(n) ? n.toLocaleString("nl-NL", d != null ? { minimumFractionDigits: d, maximumFractionDigits: d } : {}) : String(n);
-  var isUnavail = (st) => !st || st.state === "unavailable" || st.state === "unknown";
-  var clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
-  function navigate(path, { replace = false } = {}) {
-    if (!path)
-      return;
-    if (String(path).startsWith("#")) {
-      window.location.hash = path;
-      return;
-    }
-    if (replace)
-      history.replaceState(null, "", path);
-    else
-      history.pushState(null, "", path);
-    window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace } }));
-  }
-
-  // src/nav-stack.js
-  var NAV_KEY = "fibbers:navstack";
-  var nav = {
-    tabs: new Set,
-    stack: store.get(NAV_KEY, []),
-    listeners: new Set,
-    hassRef: null
-  };
-  var registerTabs = (paths) => paths.forEach((p) => nav.tabs.add(norm(p)));
-  var isTab = (path) => nav.tabs.has(norm(path));
-  function onRouteChange() {
-    const path = here();
-    const s = nav.stack;
-    if (isTab(path)) {
-      nav.stack = [path];
-    } else if (s.length >= 2 && norm(s[s.length - 2]) === path) {
-      nav.stack = s.slice(0, -1);
-    } else if (norm(s[s.length - 1]) !== path) {
-      nav.stack = s.concat([path]);
-    }
-    if (nav.stack.length > 20)
-      nav.stack = nav.stack.slice(-20);
-    store.set(NAV_KEY, nav.stack);
-    nav.listeners.forEach((fn) => {
-      try {
-        fn();
-      } catch (_) {}
-    });
-  }
-  var previous = () => nav.stack.length >= 2 ? nav.stack[nav.stack.length - 2] : null;
-  function goBack(fallback) {
-    const prev = previous();
-    if (prev) {
-      nav.stack = nav.stack.slice(0, -1);
-      store.set(NAV_KEY, nav.stack);
-      navigate(prev);
-      return;
-    }
-    if (fallback) {
-      navigate(fallback);
-      return;
-    }
-    if (history.length > 1)
-      history.back();
-  }
-  window.addEventListener("location-changed", onRouteChange);
-  window.addEventListener("popstate", onRouteChange);
-  onRouteChange();
-
-  // node_modules/@lit/reactive-element/development/css-tag.js
-  var NODE_MODE = false;
-  var global = globalThis;
-  var supportsAdoptingStyleSheets = global.ShadowRoot && (global.ShadyCSS === undefined || global.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype;
-  var constructionToken = Symbol();
-  var cssTagCache = new WeakMap;
-
-  class CSSResult {
-    constructor(cssText, strings, safeToken) {
-      this["_$cssResult$"] = true;
-      if (safeToken !== constructionToken) {
-        throw new Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
-      }
-      this.cssText = cssText;
-      this._strings = strings;
-    }
-    get styleSheet() {
-      let styleSheet = this._styleSheet;
-      const strings = this._strings;
-      if (supportsAdoptingStyleSheets && styleSheet === undefined) {
-        const cacheable = strings !== undefined && strings.length === 1;
-        if (cacheable) {
-          styleSheet = cssTagCache.get(strings);
-        }
-        if (styleSheet === undefined) {
-          (this._styleSheet = styleSheet = new CSSStyleSheet).replaceSync(this.cssText);
-          if (cacheable) {
-            cssTagCache.set(strings, styleSheet);
-          }
-        }
-      }
-      return styleSheet;
-    }
-    toString() {
-      return this.cssText;
-    }
-  }
-  var textFromCSSResult = (value) => {
-    if (value["_$cssResult$"] === true) {
-      return value.cssText;
-    } else if (typeof value === "number") {
-      return value;
-    } else {
-      throw new Error(`Value passed to 'css' function must be a 'css' function result: ` + `${value}. Use 'unsafeCSS' to pass non-literal values, but take care ` + `to ensure page security.`);
-    }
-  };
-  var unsafeCSS = (value) => new CSSResult(typeof value === "string" ? value : String(value), undefined, constructionToken);
-  var css = (strings, ...values) => {
-    const cssText = strings.length === 1 ? strings[0] : values.reduce((acc, v, idx) => acc + textFromCSSResult(v) + strings[idx + 1], strings[0]);
-    return new CSSResult(cssText, strings, constructionToken);
-  };
-  var adoptStyles = (renderRoot, styles) => {
-    if (supportsAdoptingStyleSheets) {
-      renderRoot.adoptedStyleSheets = styles.map((s) => s instanceof CSSStyleSheet ? s : s.styleSheet);
-    } else {
-      for (const s of styles) {
-        const style = document.createElement("style");
-        const nonce = global["litNonce"];
-        if (nonce !== undefined) {
-          style.setAttribute("nonce", nonce);
-        }
-        style.textContent = s.cssText;
-        renderRoot.appendChild(style);
-      }
-    }
-  };
-  var cssResultFromStyleSheet = (sheet) => {
-    let cssText = "";
-    for (const rule of sheet.cssRules) {
-      cssText += rule.cssText;
-    }
-    return unsafeCSS(cssText);
-  };
-  var getCompatibleStyle = supportsAdoptingStyleSheets || NODE_MODE && global.CSSStyleSheet === undefined ? (s) => s : (s) => s instanceof CSSStyleSheet ? cssResultFromStyleSheet(s) : s;
-
-  // node_modules/@lit/reactive-element/development/reactive-element.js
-  var { is, defineProperty, getOwnPropertyDescriptor, getOwnPropertyNames, getOwnPropertySymbols, getPrototypeOf } = Object;
-  var NODE_MODE2 = false;
-  var global2 = globalThis;
-  if (NODE_MODE2) {
-    global2.customElements ??= customElements;
-  }
-  var DEV_MODE = true;
-  var issueWarning;
-  var trustedTypes = global2.trustedTypes;
-  var emptyStringForBooleanAttribute = trustedTypes ? trustedTypes.emptyScript : "";
-  var polyfillSupport = DEV_MODE ? global2.reactiveElementPolyfillSupportDevMode : global2.reactiveElementPolyfillSupport;
-  if (DEV_MODE) {
-    global2.litIssuedWarnings ??= new Set;
-    issueWarning = (code, warning) => {
-      warning += ` See https://lit.dev/msg/${code} for more information.`;
-      if (!global2.litIssuedWarnings.has(warning) && !global2.litIssuedWarnings.has(code)) {
-        console.warn(warning);
-        global2.litIssuedWarnings.add(warning);
-      }
-    };
-    queueMicrotask(() => {
-      issueWarning("dev-mode", `Lit is in dev mode. Not recommended for production!`);
-      if (global2.ShadyDOM?.inUse && polyfillSupport === undefined) {
-        issueWarning("polyfill-support-missing", `Shadow DOM is being polyfilled via \`ShadyDOM\` but ` + `the \`polyfill-support\` module has not been loaded.`);
-      }
-    });
-  }
-  var debugLogEvent = DEV_MODE ? (event) => {
-    const shouldEmit = global2.emitLitDebugLogEvents;
-    if (!shouldEmit) {
-      return;
-    }
-    global2.dispatchEvent(new CustomEvent("lit-debug", {
-      detail: event
-    }));
-  } : undefined;
-  var JSCompiler_renameProperty = (prop, _obj) => prop;
-  var defaultConverter = {
-    toAttribute(value, type) {
-      switch (type) {
-        case Boolean:
-          value = value ? emptyStringForBooleanAttribute : null;
-          break;
-        case Object:
-        case Array:
-          value = value == null ? value : JSON.stringify(value);
-          break;
-      }
-      return value;
-    },
-    fromAttribute(value, type) {
-      let fromValue = value;
-      switch (type) {
-        case Boolean:
-          fromValue = value !== null;
-          break;
-        case Number:
-          fromValue = value === null ? null : Number(value);
-          break;
-        case Object:
-        case Array:
-          try {
-            fromValue = JSON.parse(value);
-          } catch (e) {
-            fromValue = null;
-          }
-          break;
-      }
-      return fromValue;
-    }
-  };
-  var notEqual = (value, old) => !is(value, old);
-  var defaultPropertyDeclaration = {
-    attribute: true,
-    type: String,
-    converter: defaultConverter,
-    reflect: false,
-    useDefault: false,
-    hasChanged: notEqual
-  };
-  Symbol.metadata ??= Symbol("metadata");
-  global2.litPropertyMetadata ??= new WeakMap;
-
-  class ReactiveElement extends HTMLElement {
-    static addInitializer(initializer) {
-      this.__prepare();
-      (this._initializers ??= []).push(initializer);
-    }
-    static get observedAttributes() {
-      this.finalize();
-      return this.__attributeToPropertyMap && [...this.__attributeToPropertyMap.keys()];
-    }
-    static createProperty(name, options = defaultPropertyDeclaration) {
-      if (options.state) {
-        options.attribute = false;
-      }
-      this.__prepare();
-      if (this.prototype.hasOwnProperty(name)) {
-        options = Object.create(options);
-        options.wrapped = true;
-      }
-      this.elementProperties.set(name, options);
-      if (!options.noAccessor) {
-        const key = DEV_MODE ? Symbol.for(`${String(name)} (@property() cache)`) : Symbol();
-        const descriptor = this.getPropertyDescriptor(name, key, options);
-        if (descriptor !== undefined) {
-          defineProperty(this.prototype, name, descriptor);
-        }
-      }
-    }
-    static getPropertyDescriptor(name, key, options) {
-      const { get, set } = getOwnPropertyDescriptor(this.prototype, name) ?? {
-        get() {
-          return this[key];
-        },
-        set(v) {
-          this[key] = v;
-        }
-      };
-      if (DEV_MODE && get == null) {
-        if ("value" in (getOwnPropertyDescriptor(this.prototype, name) ?? {})) {
-          throw new Error(`Field ${JSON.stringify(String(name))} on ` + `${this.name} was declared as a reactive property ` + `but it's actually declared as a value on the prototype. ` + `Usually this is due to using @property or @state on a method.`);
-        }
-        issueWarning("reactive-property-without-getter", `Field ${JSON.stringify(String(name))} on ` + `${this.name} was declared as a reactive property ` + `but it does not have a getter. This will be an error in a ` + `future version of Lit.`);
-      }
-      return {
-        get,
-        set(value) {
-          const oldValue = get?.call(this);
-          set?.call(this, value);
-          this.requestUpdate(name, oldValue, options);
-        },
-        configurable: true,
-        enumerable: true
-      };
-    }
-    static getPropertyOptions(name) {
-      return this.elementProperties.get(name) ?? defaultPropertyDeclaration;
-    }
-    static __prepare() {
-      if (this.hasOwnProperty(JSCompiler_renameProperty("elementProperties", this))) {
-        return;
-      }
-      const superCtor = getPrototypeOf(this);
-      superCtor.finalize();
-      if (superCtor._initializers !== undefined) {
-        this._initializers = [...superCtor._initializers];
-      }
-      this.elementProperties = new Map(superCtor.elementProperties);
-    }
-    static finalize() {
-      if (this.hasOwnProperty(JSCompiler_renameProperty("finalized", this))) {
-        return;
-      }
-      this.finalized = true;
-      this.__prepare();
-      if (this.hasOwnProperty(JSCompiler_renameProperty("properties", this))) {
-        const props = this.properties;
-        const propKeys = [
-          ...getOwnPropertyNames(props),
-          ...getOwnPropertySymbols(props)
-        ];
-        for (const p of propKeys) {
-          this.createProperty(p, props[p]);
-        }
-      }
-      const metadata = this[Symbol.metadata];
-      if (metadata !== null) {
-        const properties = litPropertyMetadata.get(metadata);
-        if (properties !== undefined) {
-          for (const [p, options] of properties) {
-            this.elementProperties.set(p, options);
-          }
-        }
-      }
-      this.__attributeToPropertyMap = new Map;
-      for (const [p, options] of this.elementProperties) {
-        const attr = this.__attributeNameForProperty(p, options);
-        if (attr !== undefined) {
-          this.__attributeToPropertyMap.set(attr, p);
-        }
-      }
-      this.elementStyles = this.finalizeStyles(this.styles);
-      if (DEV_MODE) {
-        if (this.hasOwnProperty("createProperty")) {
-          issueWarning("no-override-create-property", "Overriding ReactiveElement.createProperty() is deprecated. " + "The override will not be called with standard decorators");
-        }
-        if (this.hasOwnProperty("getPropertyDescriptor")) {
-          issueWarning("no-override-get-property-descriptor", "Overriding ReactiveElement.getPropertyDescriptor() is deprecated. " + "The override will not be called with standard decorators");
-        }
-      }
-    }
-    static finalizeStyles(styles) {
-      const elementStyles = [];
-      if (Array.isArray(styles)) {
-        const set = new Set(styles.flat(Infinity).reverse());
-        for (const s of set) {
-          elementStyles.unshift(getCompatibleStyle(s));
-        }
-      } else if (styles !== undefined) {
-        elementStyles.push(getCompatibleStyle(styles));
-      }
-      return elementStyles;
-    }
-    static __attributeNameForProperty(name, options) {
-      const attribute = options.attribute;
-      return attribute === false ? undefined : typeof attribute === "string" ? attribute : typeof name === "string" ? name.toLowerCase() : undefined;
-    }
-    constructor() {
-      super();
-      this.__instanceProperties = undefined;
-      this.isUpdatePending = false;
-      this.hasUpdated = false;
-      this.__reflectingProperty = null;
-      this.__initialize();
-    }
-    __initialize() {
-      this.__updatePromise = new Promise((res) => this.enableUpdating = res);
-      this._$changedProperties = new Map;
-      this.__saveInstanceProperties();
-      this.requestUpdate();
-      this.constructor._initializers?.forEach((i) => i(this));
-    }
-    addController(controller) {
-      (this.__controllers ??= new Set).add(controller);
-      if (this.renderRoot !== undefined && this.isConnected) {
-        controller.hostConnected?.();
-      }
-    }
-    removeController(controller) {
-      this.__controllers?.delete(controller);
-    }
-    __saveInstanceProperties() {
-      const instanceProperties = new Map;
-      const elementProperties = this.constructor.elementProperties;
-      for (const p of elementProperties.keys()) {
-        if (this.hasOwnProperty(p)) {
-          instanceProperties.set(p, this[p]);
-          delete this[p];
-        }
-      }
-      if (instanceProperties.size > 0) {
-        this.__instanceProperties = instanceProperties;
-      }
-    }
-    createRenderRoot() {
-      const renderRoot = this.shadowRoot ?? this.attachShadow(this.constructor.shadowRootOptions);
-      adoptStyles(renderRoot, this.constructor.elementStyles);
-      return renderRoot;
-    }
-    connectedCallback() {
-      this.renderRoot ??= this.createRenderRoot();
-      this.enableUpdating(true);
-      this.__controllers?.forEach((c) => c.hostConnected?.());
-    }
-    enableUpdating(_requestedUpdate) {}
-    disconnectedCallback() {
-      this.__controllers?.forEach((c) => c.hostDisconnected?.());
-    }
-    attributeChangedCallback(name, _old, value) {
-      this._$attributeToProperty(name, value);
-    }
-    __propertyToAttribute(name, value) {
-      const elemProperties = this.constructor.elementProperties;
-      const options = elemProperties.get(name);
-      const attr = this.constructor.__attributeNameForProperty(name, options);
-      if (attr !== undefined && options.reflect === true) {
-        const converter = options.converter?.toAttribute !== undefined ? options.converter : defaultConverter;
-        const attrValue = converter.toAttribute(value, options.type);
-        if (DEV_MODE && this.constructor.enabledWarnings.includes("migration") && attrValue === undefined) {
-          issueWarning("undefined-attribute-value", `The attribute value for the ${name} property is ` + `undefined on element ${this.localName}. The attribute will be ` + `removed, but in the previous version of \`ReactiveElement\`, ` + `the attribute would not have changed.`);
-        }
-        this.__reflectingProperty = name;
-        if (attrValue == null) {
-          this.removeAttribute(attr);
-        } else {
-          this.setAttribute(attr, attrValue);
-        }
-        this.__reflectingProperty = null;
-      }
-    }
-    _$attributeToProperty(name, value) {
-      const ctor = this.constructor;
-      const propName = ctor.__attributeToPropertyMap.get(name);
-      if (propName !== undefined && this.__reflectingProperty !== propName) {
-        const options = ctor.getPropertyOptions(propName);
-        const converter = typeof options.converter === "function" ? { fromAttribute: options.converter } : options.converter?.fromAttribute !== undefined ? options.converter : defaultConverter;
-        this.__reflectingProperty = propName;
-        const convertedValue = converter.fromAttribute(value, options.type);
-        this[propName] = convertedValue ?? this.__defaultValues?.get(propName) ?? convertedValue;
-        this.__reflectingProperty = null;
-      }
-    }
-    requestUpdate(name, oldValue, options, useNewValue = false, newValue) {
-      if (name !== undefined) {
-        if (DEV_MODE && name instanceof Event) {
-          issueWarning(``, `The requestUpdate() method was called with an Event as the property name. This is probably a mistake caused by binding this.requestUpdate as an event listener. Instead bind a function that will call it with no arguments: () => this.requestUpdate()`);
-        }
-        const ctor = this.constructor;
-        if (useNewValue === false) {
-          newValue = this[name];
-        }
-        options ??= ctor.getPropertyOptions(name);
-        const changed = (options.hasChanged ?? notEqual)(newValue, oldValue) || options.useDefault && options.reflect && newValue === this.__defaultValues?.get(name) && !this.hasAttribute(ctor.__attributeNameForProperty(name, options));
-        if (changed) {
-          this._$changeProperty(name, oldValue, options);
-        } else {
-          return;
-        }
-      }
-      if (this.isUpdatePending === false) {
-        this.__updatePromise = this.__enqueueUpdate();
-      }
-    }
-    _$changeProperty(name, oldValue, { useDefault, reflect, wrapped }, initializeValue) {
-      if (useDefault && !(this.__defaultValues ??= new Map).has(name)) {
-        this.__defaultValues.set(name, initializeValue ?? oldValue ?? this[name]);
-        if (wrapped !== true || initializeValue !== undefined) {
-          return;
-        }
-      }
-      if (!this._$changedProperties.has(name)) {
-        if (!this.hasUpdated && !useDefault) {
-          oldValue = undefined;
-        }
-        this._$changedProperties.set(name, oldValue);
-      }
-      if (reflect === true && this.__reflectingProperty !== name) {
-        (this.__reflectingProperties ??= new Set).add(name);
-      }
-    }
-    async __enqueueUpdate() {
-      this.isUpdatePending = true;
-      try {
-        await this.__updatePromise;
-      } catch (e) {
-        Promise.reject(e);
-      }
-      const result = this.scheduleUpdate();
-      if (result != null) {
-        await result;
-      }
-      return !this.isUpdatePending;
-    }
-    scheduleUpdate() {
-      const result = this.performUpdate();
-      if (DEV_MODE && this.constructor.enabledWarnings.includes("async-perform-update") && typeof result?.then === "function") {
-        issueWarning("async-perform-update", `Element ${this.localName} returned a Promise from performUpdate(). ` + `This behavior is deprecated and will be removed in a future ` + `version of ReactiveElement.`);
-      }
-      return result;
-    }
-    performUpdate() {
-      if (!this.isUpdatePending) {
-        return;
-      }
-      debugLogEvent?.({ kind: "update" });
-      if (!this.hasUpdated) {
-        this.renderRoot ??= this.createRenderRoot();
-        if (DEV_MODE) {
-          const ctor = this.constructor;
-          const shadowedProperties = [...ctor.elementProperties.keys()].filter((p) => this.hasOwnProperty(p) && (p in getPrototypeOf(this)));
-          if (shadowedProperties.length) {
-            throw new Error(`The following properties on element ${this.localName} will not ` + `trigger updates as expected because they are set using class ` + `fields: ${shadowedProperties.join(", ")}. ` + `Native class fields and some compiled output will overwrite ` + `accessors used for detecting changes. See ` + `https://lit.dev/msg/class-field-shadowing ` + `for more information.`);
-          }
-        }
-        if (this.__instanceProperties) {
-          for (const [p, value] of this.__instanceProperties) {
-            this[p] = value;
-          }
-          this.__instanceProperties = undefined;
-        }
-        const elementProperties = this.constructor.elementProperties;
-        if (elementProperties.size > 0) {
-          for (const [p, options] of elementProperties) {
-            const { wrapped } = options;
-            const value = this[p];
-            if (wrapped === true && !this._$changedProperties.has(p) && value !== undefined) {
-              this._$changeProperty(p, undefined, options, value);
-            }
-          }
-        }
-      }
-      let shouldUpdate = false;
-      const changedProperties = this._$changedProperties;
-      try {
-        shouldUpdate = this.shouldUpdate(changedProperties);
-        if (shouldUpdate) {
-          this.willUpdate(changedProperties);
-          this.__controllers?.forEach((c) => c.hostUpdate?.());
-          this.update(changedProperties);
-        } else {
-          this.__markUpdated();
-        }
-      } catch (e) {
-        shouldUpdate = false;
-        this.__markUpdated();
-        throw e;
-      }
-      if (shouldUpdate) {
-        this._$didUpdate(changedProperties);
-      }
-    }
-    willUpdate(_changedProperties) {}
-    _$didUpdate(changedProperties) {
-      this.__controllers?.forEach((c) => c.hostUpdated?.());
-      if (!this.hasUpdated) {
-        this.hasUpdated = true;
-        this.firstUpdated(changedProperties);
-      }
-      this.updated(changedProperties);
-      if (DEV_MODE && this.isUpdatePending && this.constructor.enabledWarnings.includes("change-in-update")) {
-        issueWarning("change-in-update", `Element ${this.localName} scheduled an update ` + `(generally because a property was set) ` + `after an update completed, causing a new update to be scheduled. ` + `This is inefficient and should be avoided unless the next update ` + `can only be scheduled as a side effect of the previous update.`);
-      }
-    }
-    __markUpdated() {
-      this._$changedProperties = new Map;
-      this.isUpdatePending = false;
-    }
-    get updateComplete() {
-      return this.getUpdateComplete();
-    }
-    getUpdateComplete() {
-      return this.__updatePromise;
-    }
-    shouldUpdate(_changedProperties) {
-      return true;
-    }
-    update(_changedProperties) {
-      this.__reflectingProperties &&= this.__reflectingProperties.forEach((p) => this.__propertyToAttribute(p, this[p]));
-      this.__markUpdated();
-    }
-    updated(_changedProperties) {}
-    firstUpdated(_changedProperties) {}
-  }
-  ReactiveElement.elementStyles = [];
-  ReactiveElement.shadowRootOptions = { mode: "open" };
-  ReactiveElement[JSCompiler_renameProperty("elementProperties", ReactiveElement)] = new Map;
-  ReactiveElement[JSCompiler_renameProperty("finalized", ReactiveElement)] = new Map;
-  polyfillSupport?.({ ReactiveElement });
-  if (DEV_MODE) {
-    ReactiveElement.enabledWarnings = [
-      "change-in-update",
-      "async-perform-update"
-    ];
-    const ensureOwnWarnings = function(ctor) {
-      if (!ctor.hasOwnProperty(JSCompiler_renameProperty("enabledWarnings", ctor))) {
-        ctor.enabledWarnings = ctor.enabledWarnings.slice();
-      }
-    };
-    ReactiveElement.enableWarning = function(warning) {
-      ensureOwnWarnings(this);
-      if (!this.enabledWarnings.includes(warning)) {
-        this.enabledWarnings.push(warning);
-      }
-    };
-    ReactiveElement.disableWarning = function(warning) {
-      ensureOwnWarnings(this);
-      const i = this.enabledWarnings.indexOf(warning);
-      if (i >= 0) {
-        this.enabledWarnings.splice(i, 1);
-      }
-    };
-  }
-  (global2.reactiveElementVersions ??= []).push("2.1.2");
-  if (DEV_MODE && global2.reactiveElementVersions.length > 1) {
-    queueMicrotask(() => {
-      issueWarning("multiple-versions", `Multiple versions of Lit loaded. Loading multiple versions ` + `is not recommended.`);
-    });
-  }
-
-  // node_modules/lit-html/development/lit-html.js
-  var DEV_MODE2 = true;
-  var ENABLE_EXTRA_SECURITY_HOOKS = true;
-  var ENABLE_SHADYDOM_NOPATCH = true;
-  var NODE_MODE3 = false;
-  var global3 = globalThis;
-  var debugLogEvent2 = DEV_MODE2 ? (event) => {
-    const shouldEmit = global3.emitLitDebugLogEvents;
-    if (!shouldEmit) {
-      return;
-    }
-    global3.dispatchEvent(new CustomEvent("lit-debug", {
-      detail: event
-    }));
-  } : undefined;
-  var debugLogRenderId = 0;
-  var issueWarning2;
-  if (DEV_MODE2) {
-    global3.litIssuedWarnings ??= new Set;
-    issueWarning2 = (code, warning) => {
-      warning += code ? ` See https://lit.dev/msg/${code} for more information.` : "";
-      if (!global3.litIssuedWarnings.has(warning) && !global3.litIssuedWarnings.has(code)) {
-        console.warn(warning);
-        global3.litIssuedWarnings.add(warning);
-      }
-    };
-    queueMicrotask(() => {
-      issueWarning2("dev-mode", `Lit is in dev mode. Not recommended for production!`);
-    });
-  }
-  var wrap = ENABLE_SHADYDOM_NOPATCH && global3.ShadyDOM?.inUse && global3.ShadyDOM?.noPatch === true ? global3.ShadyDOM.wrap : (node) => node;
-  var trustedTypes2 = global3.trustedTypes;
-  var policy = trustedTypes2 ? trustedTypes2.createPolicy("lit-html", {
-    createHTML: (s) => s
-  }) : undefined;
-  var identityFunction = (value) => value;
-  var noopSanitizer = (_node, _name, _type) => identityFunction;
-  var setSanitizer = (newSanitizer) => {
-    if (!ENABLE_EXTRA_SECURITY_HOOKS) {
-      return;
-    }
-    if (sanitizerFactoryInternal !== noopSanitizer) {
-      throw new Error(`Attempted to overwrite existing lit-html security policy.` + ` setSanitizeDOMValueFactory should be called at most once.`);
-    }
-    sanitizerFactoryInternal = newSanitizer;
-  };
-  var _testOnlyClearSanitizerFactoryDoNotCallOrElse = () => {
-    sanitizerFactoryInternal = noopSanitizer;
-  };
-  var createSanitizer = (node, name, type) => {
-    return sanitizerFactoryInternal(node, name, type);
-  };
-  var boundAttributeSuffix = "$lit$";
-  var marker = `lit$${Math.random().toFixed(9).slice(2)}$`;
-  var markerMatch = "?" + marker;
-  var nodeMarker = `<${markerMatch}>`;
-  var d = NODE_MODE3 && global3.document === undefined ? {
-    createTreeWalker() {
-      return {};
-    }
-  } : document;
-  var createMarker = () => d.createComment("");
-  var isPrimitive = (value) => value === null || typeof value != "object" && typeof value != "function";
-  var isArray = Array.isArray;
-  var isIterable = (value) => isArray(value) || typeof value?.[Symbol.iterator] === "function";
-  var SPACE_CHAR = `[ 	
-\f\r]`;
-  var ATTR_VALUE_CHAR = `[^ 	
-\f\r"'\`<>=]`;
-  var NAME_CHAR = `[^\\s"'>=/]`;
-  var textEndRegex = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g;
-  var COMMENT_START = 1;
-  var TAG_NAME = 2;
-  var DYNAMIC_TAG_NAME = 3;
-  var commentEndRegex = /-->/g;
-  var comment2EndRegex = />/g;
-  var tagEndRegex = new RegExp(`>|${SPACE_CHAR}(?:(${NAME_CHAR}+)(${SPACE_CHAR}*=${SPACE_CHAR}*(?:${ATTR_VALUE_CHAR}|("|')|))|$)`, "g");
-  var ENTIRE_MATCH = 0;
-  var ATTRIBUTE_NAME = 1;
-  var SPACES_AND_EQUALS = 2;
-  var QUOTE_CHAR = 3;
-  var singleQuoteAttrEndRegex = /'/g;
-  var doubleQuoteAttrEndRegex = /"/g;
-  var rawTextElement = /^(?:script|style|textarea|title)$/i;
-  var HTML_RESULT = 1;
-  var SVG_RESULT = 2;
-  var MATHML_RESULT = 3;
-  var ATTRIBUTE_PART = 1;
-  var CHILD_PART = 2;
-  var PROPERTY_PART = 3;
-  var BOOLEAN_ATTRIBUTE_PART = 4;
-  var EVENT_PART = 5;
-  var ELEMENT_PART = 6;
-  var COMMENT_PART = 7;
-  var tag = (type) => (strings, ...values) => {
-    if (DEV_MODE2 && strings.some((s) => s === undefined)) {
-      console.warn(`Some template strings are undefined.
-` + "This is probably caused by illegal octal escape sequences.");
-    }
-    if (DEV_MODE2) {
-      if (values.some((val) => val?.["_$litStatic$"])) {
-        issueWarning2("", `Static values 'literal' or 'unsafeStatic' cannot be used as values to non-static templates.
-` + `Please use the static 'html' tag function. See https://lit.dev/docs/templates/expressions/#static-expressions`);
-      }
-    }
-    return {
-      ["_$litType$"]: type,
-      strings,
-      values
-    };
-  };
-  var html = tag(HTML_RESULT);
-  var svg = tag(SVG_RESULT);
-  var mathml = tag(MATHML_RESULT);
-  var noChange = Symbol.for("lit-noChange");
-  var nothing = Symbol.for("lit-nothing");
-  var templateCache = new WeakMap;
-  var walker = d.createTreeWalker(d, 129);
-  var sanitizerFactoryInternal = noopSanitizer;
-  function trustFromTemplateString(tsa, stringFromTSA) {
-    if (!isArray(tsa) || !tsa.hasOwnProperty("raw")) {
-      let message = "invalid template strings array";
-      if (DEV_MODE2) {
-        message = `
-          Internal Error: expected template strings to be an array
-          with a 'raw' field. Faking a template strings array by
-          calling html or svg like an ordinary function is effectively
-          the same as calling unsafeHtml and can lead to major security
-          issues, e.g. opening your code up to XSS attacks.
-          If you're using the html or svg tagged template functions normally
-          and still seeing this error, please file a bug at
-          https://github.com/lit/lit/issues/new?template=bug_report.md
-          and include information about your build tooling, if any.
-        `.trim().replace(/\n */g, `
-`);
-      }
-      throw new Error(message);
-    }
-    return policy !== undefined ? policy.createHTML(stringFromTSA) : stringFromTSA;
-  }
-  var getTemplateHtml = (strings, type) => {
-    const l = strings.length - 1;
-    const attrNames = [];
-    let html2 = type === SVG_RESULT ? "<svg>" : type === MATHML_RESULT ? "<math>" : "";
-    let rawTextEndRegex;
-    let regex = textEndRegex;
-    for (let i = 0;i < l; i++) {
-      const s = strings[i];
-      let attrNameEndIndex = -1;
-      let attrName;
-      let lastIndex = 0;
-      let match;
-      while (lastIndex < s.length) {
-        regex.lastIndex = lastIndex;
-        match = regex.exec(s);
-        if (match === null) {
-          break;
-        }
-        lastIndex = regex.lastIndex;
-        if (regex === textEndRegex) {
-          if (match[COMMENT_START] === "!--") {
-            regex = commentEndRegex;
-          } else if (match[COMMENT_START] !== undefined) {
-            regex = comment2EndRegex;
-          } else if (match[TAG_NAME] !== undefined) {
-            if (rawTextElement.test(match[TAG_NAME])) {
-              rawTextEndRegex = new RegExp(`</${match[TAG_NAME]}`, "g");
-            }
-            regex = tagEndRegex;
-          } else if (match[DYNAMIC_TAG_NAME] !== undefined) {
-            if (DEV_MODE2) {
-              throw new Error("Bindings in tag names are not supported. Please use static templates instead. " + "See https://lit.dev/docs/templates/expressions/#static-expressions");
-            }
-            regex = tagEndRegex;
-          }
-        } else if (regex === tagEndRegex) {
-          if (match[ENTIRE_MATCH] === ">") {
-            regex = rawTextEndRegex ?? textEndRegex;
-            attrNameEndIndex = -1;
-          } else if (match[ATTRIBUTE_NAME] === undefined) {
-            attrNameEndIndex = -2;
-          } else {
-            attrNameEndIndex = regex.lastIndex - match[SPACES_AND_EQUALS].length;
-            attrName = match[ATTRIBUTE_NAME];
-            regex = match[QUOTE_CHAR] === undefined ? tagEndRegex : match[QUOTE_CHAR] === '"' ? doubleQuoteAttrEndRegex : singleQuoteAttrEndRegex;
-          }
-        } else if (regex === doubleQuoteAttrEndRegex || regex === singleQuoteAttrEndRegex) {
-          regex = tagEndRegex;
-        } else if (regex === commentEndRegex || regex === comment2EndRegex) {
-          regex = textEndRegex;
-        } else {
-          regex = tagEndRegex;
-          rawTextEndRegex = undefined;
-        }
-      }
-      if (DEV_MODE2) {
-        console.assert(attrNameEndIndex === -1 || regex === tagEndRegex || regex === singleQuoteAttrEndRegex || regex === doubleQuoteAttrEndRegex, "unexpected parse state B");
-      }
-      const end = regex === tagEndRegex && strings[i + 1].startsWith("/>") ? " " : "";
-      html2 += regex === textEndRegex ? s + nodeMarker : attrNameEndIndex >= 0 ? (attrNames.push(attrName), s.slice(0, attrNameEndIndex) + boundAttributeSuffix + s.slice(attrNameEndIndex)) + marker + end : s + marker + (attrNameEndIndex === -2 ? i : end);
-    }
-    const htmlResult = html2 + (strings[l] || "<?>") + (type === SVG_RESULT ? "</svg>" : type === MATHML_RESULT ? "</math>" : "");
-    return [trustFromTemplateString(strings, htmlResult), attrNames];
-  };
-
-  class Template {
-    constructor({ strings, ["_$litType$"]: type }, options) {
-      this.parts = [];
-      let node;
-      let nodeIndex = 0;
-      let attrNameIndex = 0;
-      const partCount = strings.length - 1;
-      const parts = this.parts;
-      const [html2, attrNames] = getTemplateHtml(strings, type);
-      this.el = Template.createElement(html2, options);
-      walker.currentNode = this.el.content;
-      if (type === SVG_RESULT || type === MATHML_RESULT) {
-        const wrapper = this.el.content.firstChild;
-        wrapper.replaceWith(...wrapper.childNodes);
-      }
-      while ((node = walker.nextNode()) !== null && parts.length < partCount) {
-        if (node.nodeType === 1) {
-          if (DEV_MODE2) {
-            const tag2 = node.localName;
-            if (/^(?:textarea|template)$/i.test(tag2) && node.innerHTML.includes(marker)) {
-              const m = `Expressions are not supported inside \`${tag2}\` ` + `elements. See https://lit.dev/msg/expression-in-${tag2} for more ` + `information.`;
-              if (tag2 === "template") {
-                throw new Error(m);
-              } else
-                issueWarning2("", m);
-            }
-          }
-          if (node.hasAttributes()) {
-            for (const name of node.getAttributeNames()) {
-              if (name.endsWith(boundAttributeSuffix)) {
-                const realName = attrNames[attrNameIndex++];
-                const value = node.getAttribute(name);
-                const statics = value.split(marker);
-                const m = /([.?@])?(.*)/.exec(realName);
-                parts.push({
-                  type: ATTRIBUTE_PART,
-                  index: nodeIndex,
-                  name: m[2],
-                  strings: statics,
-                  ctor: m[1] === "." ? PropertyPart : m[1] === "?" ? BooleanAttributePart : m[1] === "@" ? EventPart : AttributePart
-                });
-                node.removeAttribute(name);
-              } else if (name.startsWith(marker)) {
-                parts.push({
-                  type: ELEMENT_PART,
-                  index: nodeIndex
-                });
-                node.removeAttribute(name);
-              }
-            }
-          }
-          if (rawTextElement.test(node.tagName)) {
-            const strings2 = node.textContent.split(marker);
-            const lastIndex = strings2.length - 1;
-            if (lastIndex > 0) {
-              node.textContent = trustedTypes2 ? trustedTypes2.emptyScript : "";
-              for (let i = 0;i < lastIndex; i++) {
-                node.append(strings2[i], createMarker());
-                walker.nextNode();
-                parts.push({ type: CHILD_PART, index: ++nodeIndex });
-              }
-              node.append(strings2[lastIndex], createMarker());
-            }
-          }
-        } else if (node.nodeType === 8) {
-          const data = node.data;
-          if (data === markerMatch) {
-            parts.push({ type: CHILD_PART, index: nodeIndex });
-          } else {
-            let i = -1;
-            while ((i = node.data.indexOf(marker, i + 1)) !== -1) {
-              parts.push({ type: COMMENT_PART, index: nodeIndex });
-              i += marker.length - 1;
-            }
-          }
-        }
-        nodeIndex++;
-      }
-      if (DEV_MODE2) {
-        if (attrNames.length !== attrNameIndex) {
-          throw new Error(`Detected duplicate attribute bindings. This occurs if your template ` + `has duplicate attributes on an element tag. For example ` + `"<input ?disabled=\${true} ?disabled=\${false}>" contains a ` + `duplicate "disabled" attribute. The error was detected in ` + `the following template: 
-` + "`" + strings.join("${...}") + "`");
-        }
-      }
-      debugLogEvent2 && debugLogEvent2({
-        kind: "template prep",
-        template: this,
-        clonableTemplate: this.el,
-        parts: this.parts,
-        strings
-      });
-    }
-    static createElement(html2, _options) {
-      const el = d.createElement("template");
-      el.innerHTML = html2;
-      return el;
-    }
-  }
-  function resolveDirective(part, value, parent = part, attributeIndex) {
-    if (value === noChange) {
-      return value;
-    }
-    let currentDirective = attributeIndex !== undefined ? parent.__directives?.[attributeIndex] : parent.__directive;
-    const nextDirectiveConstructor = isPrimitive(value) ? undefined : value["_$litDirective$"];
-    if (currentDirective?.constructor !== nextDirectiveConstructor) {
-      currentDirective?.["_$notifyDirectiveConnectionChanged"]?.(false);
-      if (nextDirectiveConstructor === undefined) {
-        currentDirective = undefined;
-      } else {
-        currentDirective = new nextDirectiveConstructor(part);
-        currentDirective._$initialize(part, parent, attributeIndex);
-      }
-      if (attributeIndex !== undefined) {
-        (parent.__directives ??= [])[attributeIndex] = currentDirective;
-      } else {
-        parent.__directive = currentDirective;
-      }
-    }
-    if (currentDirective !== undefined) {
-      value = resolveDirective(part, currentDirective._$resolve(part, value.values), currentDirective, attributeIndex);
-    }
-    return value;
-  }
-
-  class TemplateInstance {
-    constructor(template, parent) {
-      this._$parts = [];
-      this._$disconnectableChildren = undefined;
-      this._$template = template;
-      this._$parent = parent;
-    }
-    get parentNode() {
-      return this._$parent.parentNode;
-    }
-    get _$isConnected() {
-      return this._$parent._$isConnected;
-    }
-    _clone(options) {
-      const { el: { content }, parts } = this._$template;
-      const fragment = (options?.creationScope ?? d).importNode(content, true);
-      walker.currentNode = fragment;
-      let node = walker.nextNode();
-      let nodeIndex = 0;
-      let partIndex = 0;
-      let templatePart = parts[0];
-      while (templatePart !== undefined) {
-        if (nodeIndex === templatePart.index) {
-          let part;
-          if (templatePart.type === CHILD_PART) {
-            part = new ChildPart(node, node.nextSibling, this, options);
-          } else if (templatePart.type === ATTRIBUTE_PART) {
-            part = new templatePart.ctor(node, templatePart.name, templatePart.strings, this, options);
-          } else if (templatePart.type === ELEMENT_PART) {
-            part = new ElementPart(node, this, options);
-          }
-          this._$parts.push(part);
-          templatePart = parts[++partIndex];
-        }
-        if (nodeIndex !== templatePart?.index) {
-          node = walker.nextNode();
-          nodeIndex++;
-        }
-      }
-      walker.currentNode = d;
-      return fragment;
-    }
-    _update(values) {
-      let i = 0;
-      for (const part of this._$parts) {
-        if (part !== undefined) {
-          debugLogEvent2 && debugLogEvent2({
-            kind: "set part",
-            part,
-            value: values[i],
-            valueIndex: i,
-            values,
-            templateInstance: this
-          });
-          if (part.strings !== undefined) {
-            part._$setValue(values, part, i);
-            i += part.strings.length - 2;
-          } else {
-            part._$setValue(values[i]);
-          }
-        }
-        i++;
-      }
-    }
-  }
-
-  class ChildPart {
-    get _$isConnected() {
-      return this._$parent?._$isConnected ?? this.__isConnected;
-    }
-    constructor(startNode, endNode, parent, options) {
-      this.type = CHILD_PART;
-      this._$committedValue = nothing;
-      this._$disconnectableChildren = undefined;
-      this._$startNode = startNode;
-      this._$endNode = endNode;
-      this._$parent = parent;
-      this.options = options;
-      this.__isConnected = options?.isConnected ?? true;
-      if (ENABLE_EXTRA_SECURITY_HOOKS) {
-        this._textSanitizer = undefined;
-      }
-    }
-    get parentNode() {
-      let parentNode = wrap(this._$startNode).parentNode;
-      const parent = this._$parent;
-      if (parent !== undefined && parentNode?.nodeType === 11) {
-        parentNode = parent.parentNode;
-      }
-      return parentNode;
-    }
-    get startNode() {
-      return this._$startNode;
-    }
-    get endNode() {
-      return this._$endNode;
-    }
-    _$setValue(value, directiveParent = this) {
-      if (DEV_MODE2 && this.parentNode === null) {
-        throw new Error(`This \`ChildPart\` has no \`parentNode\` and therefore cannot accept a value. This likely means the element containing the part was manipulated in an unsupported way outside of Lit's control such that the part's marker nodes were ejected from DOM. For example, setting the element's \`innerHTML\` or \`textContent\` can do this.`);
-      }
-      value = resolveDirective(this, value, directiveParent);
-      if (isPrimitive(value)) {
-        if (value === nothing || value == null || value === "") {
-          if (this._$committedValue !== nothing) {
-            debugLogEvent2 && debugLogEvent2({
-              kind: "commit nothing to child",
-              start: this._$startNode,
-              end: this._$endNode,
-              parent: this._$parent,
-              options: this.options
-            });
-            this._$clear();
-          }
-          this._$committedValue = nothing;
-        } else if (value !== this._$committedValue && value !== noChange) {
-          this._commitText(value);
-        }
-      } else if (value["_$litType$"] !== undefined) {
-        this._commitTemplateResult(value);
-      } else if (value.nodeType !== undefined) {
-        if (DEV_MODE2 && this.options?.host === value) {
-          this._commitText(`[probable mistake: rendered a template's host in itself ` + `(commonly caused by writing \${this} in a template]`);
-          console.warn(`Attempted to render the template host`, value, `inside itself. This is almost always a mistake, and in dev mode `, `we render some warning text. In production however, we'll `, `render it, which will usually result in an error, and sometimes `, `in the element disappearing from the DOM.`);
-          return;
-        }
-        this._commitNode(value);
-      } else if (isIterable(value)) {
-        this._commitIterable(value);
-      } else {
-        this._commitText(value);
-      }
-    }
-    _insert(node) {
-      return wrap(wrap(this._$startNode).parentNode).insertBefore(node, this._$endNode);
-    }
-    _commitNode(value) {
-      if (this._$committedValue !== value) {
-        this._$clear();
-        if (ENABLE_EXTRA_SECURITY_HOOKS && sanitizerFactoryInternal !== noopSanitizer) {
-          const parentNodeName = this._$startNode.parentNode?.nodeName;
-          if (parentNodeName === "STYLE" || parentNodeName === "SCRIPT") {
-            let message = "Forbidden";
-            if (DEV_MODE2) {
-              if (parentNodeName === "STYLE") {
-                message = `Lit does not support binding inside style nodes. ` + `This is a security risk, as style injection attacks can ` + `exfiltrate data and spoof UIs. ` + `Consider instead using css\`...\` literals ` + `to compose styles, and do dynamic styling with ` + `css custom properties, ::parts, <slot>s, ` + `and by mutating the DOM rather than stylesheets.`;
-              } else {
-                message = `Lit does not support binding inside script nodes. ` + `This is a security risk, as it could allow arbitrary ` + `code execution.`;
-              }
-            }
-            throw new Error(message);
-          }
-        }
-        debugLogEvent2 && debugLogEvent2({
-          kind: "commit node",
-          start: this._$startNode,
-          parent: this._$parent,
-          value,
-          options: this.options
-        });
-        this._$committedValue = this._insert(value);
-      }
-    }
-    _commitText(value) {
-      if (this._$committedValue !== nothing && isPrimitive(this._$committedValue)) {
-        const node = wrap(this._$startNode).nextSibling;
-        if (ENABLE_EXTRA_SECURITY_HOOKS) {
-          if (this._textSanitizer === undefined) {
-            this._textSanitizer = createSanitizer(node, "data", "property");
-          }
-          value = this._textSanitizer(value);
-        }
-        debugLogEvent2 && debugLogEvent2({
-          kind: "commit text",
-          node,
-          value,
-          options: this.options
-        });
-        node.data = value;
-      } else {
-        if (ENABLE_EXTRA_SECURITY_HOOKS) {
-          const textNode = d.createTextNode("");
-          this._commitNode(textNode);
-          if (this._textSanitizer === undefined) {
-            this._textSanitizer = createSanitizer(textNode, "data", "property");
-          }
-          value = this._textSanitizer(value);
-          debugLogEvent2 && debugLogEvent2({
-            kind: "commit text",
-            node: textNode,
-            value,
-            options: this.options
-          });
-          textNode.data = value;
-        } else {
-          this._commitNode(d.createTextNode(value));
-          debugLogEvent2 && debugLogEvent2({
-            kind: "commit text",
-            node: wrap(this._$startNode).nextSibling,
-            value,
-            options: this.options
-          });
-        }
-      }
-      this._$committedValue = value;
-    }
-    _commitTemplateResult(result) {
-      const { values, ["_$litType$"]: type } = result;
-      const template = typeof type === "number" ? this._$getTemplate(result) : (type.el === undefined && (type.el = Template.createElement(trustFromTemplateString(type.h, type.h[0]), this.options)), type);
-      if (this._$committedValue?._$template === template) {
-        debugLogEvent2 && debugLogEvent2({
-          kind: "template updating",
-          template,
-          instance: this._$committedValue,
-          parts: this._$committedValue._$parts,
-          options: this.options,
-          values
-        });
-        this._$committedValue._update(values);
-      } else {
-        const instance = new TemplateInstance(template, this);
-        const fragment = instance._clone(this.options);
-        debugLogEvent2 && debugLogEvent2({
-          kind: "template instantiated",
-          template,
-          instance,
-          parts: instance._$parts,
-          options: this.options,
-          fragment,
-          values
-        });
-        instance._update(values);
-        debugLogEvent2 && debugLogEvent2({
-          kind: "template instantiated and updated",
-          template,
-          instance,
-          parts: instance._$parts,
-          options: this.options,
-          fragment,
-          values
-        });
-        this._commitNode(fragment);
-        this._$committedValue = instance;
-      }
-    }
-    _$getTemplate(result) {
-      let template = templateCache.get(result.strings);
-      if (template === undefined) {
-        templateCache.set(result.strings, template = new Template(result));
-      }
-      return template;
-    }
-    _commitIterable(value) {
-      if (!isArray(this._$committedValue)) {
-        this._$committedValue = [];
-        this._$clear();
-      }
-      const itemParts = this._$committedValue;
-      let partIndex = 0;
-      let itemPart;
-      for (const item of value) {
-        if (partIndex === itemParts.length) {
-          itemParts.push(itemPart = new ChildPart(this._insert(createMarker()), this._insert(createMarker()), this, this.options));
-        } else {
-          itemPart = itemParts[partIndex];
-        }
-        itemPart._$setValue(item);
-        partIndex++;
-      }
-      if (partIndex < itemParts.length) {
-        this._$clear(itemPart && wrap(itemPart._$endNode).nextSibling, partIndex);
-        itemParts.length = partIndex;
-      }
-    }
-    _$clear(start = wrap(this._$startNode).nextSibling, from) {
-      this._$notifyConnectionChanged?.(false, true, from);
-      while (start !== this._$endNode) {
-        const n = wrap(start).nextSibling;
-        wrap(start).remove();
-        start = n;
-      }
-    }
-    setConnected(isConnected) {
-      if (this._$parent === undefined) {
-        this.__isConnected = isConnected;
-        this._$notifyConnectionChanged?.(isConnected);
-      } else if (DEV_MODE2) {
-        throw new Error("part.setConnected() may only be called on a " + "RootPart returned from render().");
-      }
-    }
-  }
-
-  class AttributePart {
-    get tagName() {
-      return this.element.tagName;
-    }
-    get _$isConnected() {
-      return this._$parent._$isConnected;
-    }
-    constructor(element, name, strings, parent, options) {
-      this.type = ATTRIBUTE_PART;
-      this._$committedValue = nothing;
-      this._$disconnectableChildren = undefined;
-      this.element = element;
-      this.name = name;
-      this._$parent = parent;
-      this.options = options;
-      if (strings.length > 2 || strings[0] !== "" || strings[1] !== "") {
-        this._$committedValue = new Array(strings.length - 1).fill(new String);
-        this.strings = strings;
-      } else {
-        this._$committedValue = nothing;
-      }
-      if (ENABLE_EXTRA_SECURITY_HOOKS) {
-        this._sanitizer = undefined;
-      }
-    }
-    _$setValue(value, directiveParent = this, valueIndex, noCommit) {
-      const strings = this.strings;
-      let change = false;
-      if (strings === undefined) {
-        value = resolveDirective(this, value, directiveParent, 0);
-        change = !isPrimitive(value) || value !== this._$committedValue && value !== noChange;
-        if (change) {
-          this._$committedValue = value;
-        }
-      } else {
-        const values = value;
-        value = strings[0];
-        let i, v;
-        for (i = 0;i < strings.length - 1; i++) {
-          v = resolveDirective(this, values[valueIndex + i], directiveParent, i);
-          if (v === noChange) {
-            v = this._$committedValue[i];
-          }
-          change ||= !isPrimitive(v) || v !== this._$committedValue[i];
-          if (v === nothing) {
-            value = nothing;
-          } else if (value !== nothing) {
-            value += (v ?? "") + strings[i + 1];
-          }
-          this._$committedValue[i] = v;
-        }
-      }
-      if (change && !noCommit) {
-        this._commitValue(value);
-      }
-    }
-    _commitValue(value) {
-      if (value === nothing) {
-        wrap(this.element).removeAttribute(this.name);
-      } else {
-        if (ENABLE_EXTRA_SECURITY_HOOKS) {
-          if (this._sanitizer === undefined) {
-            this._sanitizer = sanitizerFactoryInternal(this.element, this.name, "attribute");
-          }
-          value = this._sanitizer(value ?? "");
-        }
-        debugLogEvent2 && debugLogEvent2({
-          kind: "commit attribute",
-          element: this.element,
-          name: this.name,
-          value,
-          options: this.options
-        });
-        wrap(this.element).setAttribute(this.name, value ?? "");
-      }
-    }
-  }
-
-  class PropertyPart extends AttributePart {
-    constructor() {
-      super(...arguments);
-      this.type = PROPERTY_PART;
-    }
-    _commitValue(value) {
-      if (ENABLE_EXTRA_SECURITY_HOOKS) {
-        if (this._sanitizer === undefined) {
-          this._sanitizer = sanitizerFactoryInternal(this.element, this.name, "property");
-        }
-        value = this._sanitizer(value);
-      }
-      debugLogEvent2 && debugLogEvent2({
-        kind: "commit property",
-        element: this.element,
-        name: this.name,
-        value,
-        options: this.options
-      });
-      this.element[this.name] = value === nothing ? undefined : value;
-    }
-  }
-
-  class BooleanAttributePart extends AttributePart {
-    constructor() {
-      super(...arguments);
-      this.type = BOOLEAN_ATTRIBUTE_PART;
-    }
-    _commitValue(value) {
-      debugLogEvent2 && debugLogEvent2({
-        kind: "commit boolean attribute",
-        element: this.element,
-        name: this.name,
-        value: !!(value && value !== nothing),
-        options: this.options
-      });
-      wrap(this.element).toggleAttribute(this.name, !!value && value !== nothing);
-    }
-  }
-
-  class EventPart extends AttributePart {
-    constructor(element, name, strings, parent, options) {
-      super(element, name, strings, parent, options);
-      this.type = EVENT_PART;
-      if (DEV_MODE2 && this.strings !== undefined) {
-        throw new Error(`A \`<${element.localName}>\` has a \`@${name}=...\` listener with ` + "invalid content. Event listeners in templates must have exactly " + "one expression and no surrounding text.");
-      }
-    }
-    _$setValue(newListener, directiveParent = this) {
-      newListener = resolveDirective(this, newListener, directiveParent, 0) ?? nothing;
-      if (newListener === noChange) {
-        return;
-      }
-      const oldListener = this._$committedValue;
-      const shouldRemoveListener = newListener === nothing && oldListener !== nothing || newListener.capture !== oldListener.capture || newListener.once !== oldListener.once || newListener.passive !== oldListener.passive;
-      const shouldAddListener = newListener !== nothing && (oldListener === nothing || shouldRemoveListener);
-      debugLogEvent2 && debugLogEvent2({
-        kind: "commit event listener",
-        element: this.element,
-        name: this.name,
-        value: newListener,
-        options: this.options,
-        removeListener: shouldRemoveListener,
-        addListener: shouldAddListener,
-        oldListener
-      });
-      if (shouldRemoveListener) {
-        this.element.removeEventListener(this.name, this, oldListener);
-      }
-      if (shouldAddListener) {
-        this.element.addEventListener(this.name, this, newListener);
-      }
-      this._$committedValue = newListener;
-    }
-    handleEvent(event) {
-      if (typeof this._$committedValue === "function") {
-        this._$committedValue.call(this.options?.host ?? this.element, event);
-      } else {
-        this._$committedValue.handleEvent(event);
-      }
-    }
-  }
-
-  class ElementPart {
-    constructor(element, parent, options) {
-      this.element = element;
-      this.type = ELEMENT_PART;
-      this._$disconnectableChildren = undefined;
-      this._$parent = parent;
-      this.options = options;
-    }
-    get _$isConnected() {
-      return this._$parent._$isConnected;
-    }
-    _$setValue(value) {
-      debugLogEvent2 && debugLogEvent2({
-        kind: "commit to element binding",
-        element: this.element,
-        value,
-        options: this.options
-      });
-      resolveDirective(this, value);
-    }
-  }
-  var polyfillSupport2 = DEV_MODE2 ? global3.litHtmlPolyfillSupportDevMode : global3.litHtmlPolyfillSupport;
-  polyfillSupport2?.(Template, ChildPart);
-  (global3.litHtmlVersions ??= []).push("3.3.3");
-  if (DEV_MODE2 && global3.litHtmlVersions.length > 1) {
-    queueMicrotask(() => {
-      issueWarning2("multiple-versions", `Multiple versions of Lit loaded. ` + `Loading multiple versions is not recommended.`);
-    });
-  }
-  var render = (value, container, options) => {
-    if (DEV_MODE2 && container == null) {
-      throw new TypeError(`The container to render into may not be ${container}`);
-    }
-    const renderId = DEV_MODE2 ? debugLogRenderId++ : 0;
-    const partOwnerNode = options?.renderBefore ?? container;
-    let part = partOwnerNode["_$litPart$"];
-    debugLogEvent2 && debugLogEvent2({
-      kind: "begin render",
-      id: renderId,
-      value,
-      container,
-      options,
-      part
-    });
-    if (part === undefined) {
-      const endNode = options?.renderBefore ?? null;
-      partOwnerNode["_$litPart$"] = part = new ChildPart(container.insertBefore(createMarker(), endNode), endNode, undefined, options ?? {});
-    }
-    part._$setValue(value);
-    debugLogEvent2 && debugLogEvent2({
-      kind: "end render",
-      id: renderId,
-      value,
-      container,
-      options,
-      part
-    });
-    return part;
-  };
-  if (ENABLE_EXTRA_SECURITY_HOOKS) {
-    render.setSanitizer = setSanitizer;
-    render.createSanitizer = createSanitizer;
-    if (DEV_MODE2) {
-      render._testOnlyClearSanitizerFactoryDoNotCallOrElse = _testOnlyClearSanitizerFactoryDoNotCallOrElse;
-    }
-  }
-
-  // node_modules/lit-element/development/lit-element.js
-  var JSCompiler_renameProperty2 = (prop, _obj) => prop;
-  var DEV_MODE3 = true;
-  var global4 = globalThis;
-  var issueWarning3;
-  if (DEV_MODE3) {
-    global4.litIssuedWarnings ??= new Set;
-    issueWarning3 = (code, warning) => {
-      warning += ` See https://lit.dev/msg/${code} for more information.`;
-      if (!global4.litIssuedWarnings.has(warning) && !global4.litIssuedWarnings.has(code)) {
-        console.warn(warning);
-        global4.litIssuedWarnings.add(warning);
-      }
-    };
-  }
-
-  class LitElement extends ReactiveElement {
-    constructor() {
-      super(...arguments);
-      this.renderOptions = { host: this };
-      this.__childPart = undefined;
-    }
-    createRenderRoot() {
-      const renderRoot = super.createRenderRoot();
-      this.renderOptions.renderBefore ??= renderRoot.firstChild;
-      return renderRoot;
-    }
-    update(changedProperties) {
-      const value = this.render();
-      if (!this.hasUpdated) {
-        this.renderOptions.isConnected = this.isConnected;
-      }
-      super.update(changedProperties);
-      this.__childPart = render(value, this.renderRoot, this.renderOptions);
-    }
-    connectedCallback() {
-      super.connectedCallback();
-      this.__childPart?.setConnected(true);
-    }
-    disconnectedCallback() {
-      super.disconnectedCallback();
-      this.__childPart?.setConnected(false);
-    }
-    render() {
-      return noChange;
-    }
-  }
-  LitElement["_$litElement$"] = true;
-  LitElement[JSCompiler_renameProperty2("finalized", LitElement)] = true;
-  global4.litElementHydrateSupport?.({ LitElement });
-  var polyfillSupport3 = DEV_MODE3 ? global4.litElementPolyfillSupportDevMode : global4.litElementPolyfillSupport;
-  polyfillSupport3?.({ LitElement });
-  (global4.litElementVersions ??= []).push("4.2.2");
-  if (DEV_MODE3 && global4.litElementVersions.length > 1) {
-    queueMicrotask(() => {
-      issueWarning3("multiple-versions", `Multiple versions of Lit loaded. Loading multiple versions ` + `is not recommended.`);
-    });
-  }
-  // src/tailwind.gen.js
-  var TW_CSS = `/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */
-@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-translate-x:0;--tw-translate-y:0;--tw-translate-z:0;--tw-rotate-x:initial;--tw-rotate-y:initial;--tw-rotate-z:initial;--tw-skew-x:initial;--tw-skew-y:initial;--tw-border-style:solid;--tw-leading:initial;--tw-font-weight:initial;--tw-tracking:initial;--tw-shadow:0 0 #0000;--tw-shadow-color:initial;--tw-shadow-alpha:100%;--tw-inset-shadow:0 0 #0000;--tw-inset-shadow-color:initial;--tw-inset-shadow-alpha:100%;--tw-ring-color:initial;--tw-ring-shadow:0 0 #0000;--tw-inset-ring-color:initial;--tw-inset-ring-shadow:0 0 #0000;--tw-ring-inset:initial;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-offset-shadow:0 0 #0000;--tw-outline-style:solid;--tw-blur:initial;--tw-brightness:initial;--tw-contrast:initial;--tw-grayscale:initial;--tw-hue-rotate:initial;--tw-invert:initial;--tw-opacity:initial;--tw-saturate:initial;--tw-sepia:initial;--tw-drop-shadow:initial;--tw-drop-shadow-color:initial;--tw-drop-shadow-alpha:100%;--tw-drop-shadow-size:initial;--tw-backdrop-blur:initial;--tw-backdrop-brightness:initial;--tw-backdrop-contrast:initial;--tw-backdrop-grayscale:initial;--tw-backdrop-hue-rotate:initial;--tw-backdrop-invert:initial;--tw-backdrop-opacity:initial;--tw-backdrop-saturate:initial;--tw-backdrop-sepia:initial;--tw-scale-x:1;--tw-scale-y:1;--tw-scale-z:1}}}@layer theme{:root,:host{--font-sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";--font-mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;--color-white:#fff;--spacing:.25rem;--font-weight-medium:500;--font-weight-semibold:600;--tracking-tight:-.025em;--leading-tight:1.25;--radius-lg:.5rem;--radius-xl:.75rem;--default-transition-duration:.15s;--default-transition-timing-function:cubic-bezier(.4, 0, .2, 1);--default-font-family:var(--font-sans);--default-mono-font-family:var(--font-mono);--color-card:#1d2426;--color-card2:#262f31;--color-line:#333e41;--color-ink:#edf1f1;--color-ink2:#a9b6b9;--color-muted:#7d8b8e;--color-accent:#74b98a;--color-accentbg:#17281c;--color-accentline:#2b4a34;--color-accenttx:#cfe6d5;--color-amber:#e8a33d;--color-amberbg:#3a2b12;--color-amberline:#4e3a18;--color-ambertx:#ebd9bc;--color-blue:#5aafd6;--color-bluebg:#152b36;--color-blueline:#2c5a70;--color-blueink:#9bd2ea;--color-green:#63c295;--color-red:#ec8377}}@layer base{*,:after,:before,::backdrop{box-sizing:border-box;border:0 solid;margin:0;padding:0}::file-selector-button{box-sizing:border-box;border:0 solid;margin:0;padding:0}html,:host{-webkit-text-size-adjust:100%;tab-size:4;line-height:1.5;font-family:var(--default-font-family,-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");font-feature-settings:var(--default-font-feature-settings,normal);font-variation-settings:var(--default-font-variation-settings,normal);-webkit-tap-highlight-color:transparent}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,samp,pre{font-family:var(--default-mono-font-family,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);font-feature-settings:var(--default-mono-font-feature-settings,normal);font-variation-settings:var(--default-mono-font-variation-settings,normal);font-size:1em}small{font-size:80%}sub,sup{vertical-align:baseline;font-size:75%;line-height:0;position:relative}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}:-moz-focusring:where(:not(iframe)){outline:auto}progress{vertical-align:baseline}summary{display:list-item}ol,ul,menu{list-style:none}img,svg,video,canvas,audio,iframe,embed,object{vertical-align:middle;display:block}img,video{max-width:100%;height:auto}button,input,select,optgroup,textarea{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}::file-selector-button{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}:where(select:is([multiple],[size])) optgroup{font-weight:bolder}:where(select:is([multiple],[size])) optgroup option{padding-inline-start:20px}::file-selector-button{margin-inline-end:4px}::placeholder{opacity:1}@supports (not ((-webkit-appearance:-apple-pay-button))) or (contain-intrinsic-size:1px){::placeholder{color:currentColor}@supports (color:color-mix(in lab, red, red)){::placeholder{color:color-mix(in oklab, currentcolor 50%, transparent)}}}textarea{resize:vertical}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-date-and-time-value{min-height:1lh;text-align:inherit}::-webkit-datetime-edit{display:inline-flex}::-webkit-datetime-edit-fields-wrapper{padding:0}::-webkit-datetime-edit{padding-block:0}::-webkit-datetime-edit-year-field{padding-block:0}::-webkit-datetime-edit-month-field{padding-block:0}::-webkit-datetime-edit-day-field{padding-block:0}::-webkit-datetime-edit-hour-field{padding-block:0}::-webkit-datetime-edit-minute-field{padding-block:0}::-webkit-datetime-edit-second-field{padding-block:0}::-webkit-datetime-edit-millisecond-field{padding-block:0}::-webkit-datetime-edit-meridiem-field{padding-block:0}::-webkit-calendar-picker-indicator{line-height:1}:-moz-ui-invalid{box-shadow:none}button,input:where([type=button],[type=reset],[type=submit]){appearance:button}::file-selector-button{appearance:button}::-webkit-inner-spin-button{height:auto}::-webkit-outer-spin-button{height:auto}[hidden]:where(:not([hidden=until-found])){display:none!important}}@layer components;@layer utilities{.pointer-events-none{pointer-events:none}.collapse{visibility:collapse}.invisible{visibility:hidden}.visible{visibility:visible}.absolute{position:absolute}.fixed{position:fixed}.relative{position:relative}.static{position:static}.top-0{top:0}.top-0\\.5{top:calc(var(--spacing) * .5)}.top-1{top:var(--spacing)}.top-1\\/2{top:50%}.bottom-0{bottom:0}.left-0{left:0}.left-0\\.5{left:calc(var(--spacing) * .5)}.left-1{left:var(--spacing)}.left-1\\/2{left:50%}.left-\\[18px\\]{left:18px}.col-start-2{grid-column-start:2}.row-span-2{grid-row:span 2/span 2}.container{width:100%}@media (min-width:40rem){.container{max-width:40rem}}@media (min-width:48rem){.container{max-width:48rem}}@media (min-width:64rem){.container{max-width:64rem}}@media (min-width:80rem){.container{max-width:80rem}}@media (min-width:96rem){.container{max-width:96rem}}.mt-0{margin-top:0}.mt-0\\.5{margin-top:calc(var(--spacing) * .5)}.mt-1{margin-top:var(--spacing)}.mt-1\\.5{margin-top:calc(var(--spacing) * 1.5)}.mt-2{margin-top:calc(var(--spacing) * 2)}.mt-3{margin-top:calc(var(--spacing) * 3)}.mb-1{margin-bottom:var(--spacing)}.mb-2{margin-bottom:calc(var(--spacing) * 2)}.mb-2\\.5{margin-bottom:calc(var(--spacing) * 2.5)}.mb-3{margin-bottom:calc(var(--spacing) * 3)}.ml-0{margin-left:0}.ml-0\\.5{margin-left:calc(var(--spacing) * .5)}.ml-2{margin-left:calc(var(--spacing) * 2)}.ml-\\[7px\\]{margin-left:7px}.ml-auto{margin-left:auto}.block{display:block}.contents{display:contents}.flex{display:flex}.grid{display:grid}.hidden{display:none}.inline{display:inline}.inline-flex{display:inline-flex}.table{display:table}.h-1{height:var(--spacing)}.h-1\\.5{height:calc(var(--spacing) * 1.5)}.h-3{height:calc(var(--spacing) * 3)}.h-3\\.5{height:calc(var(--spacing) * 3.5)}.h-4{height:calc(var(--spacing) * 4)}.h-5{height:calc(var(--spacing) * 5)}.h-6{height:calc(var(--spacing) * 6)}.h-7{height:calc(var(--spacing) * 7)}.h-9{height:calc(var(--spacing) * 9)}.h-10{height:calc(var(--spacing) * 10)}.h-11{height:calc(var(--spacing) * 11)}.h-14{height:calc(var(--spacing) * 14)}.h-\\[5px\\]{height:5px}.h-\\[13px\\]{height:13px}.h-\\[15px\\]{height:15px}.h-\\[17px\\]{height:17px}.h-\\[18px\\]{height:18px}.h-\\[19px\\]{height:19px}.h-\\[20px\\]{height:20px}.h-\\[26px\\]{height:26px}.h-\\[30px\\]{height:30px}.h-\\[34px\\]{height:34px}.h-\\[42px\\]{height:42px}.w-3{width:calc(var(--spacing) * 3)}.w-3\\.5{width:calc(var(--spacing) * 3.5)}.w-4{width:calc(var(--spacing) * 4)}.w-5{width:calc(var(--spacing) * 5)}.w-6{width:calc(var(--spacing) * 6)}.w-7{width:calc(var(--spacing) * 7)}.w-9{width:calc(var(--spacing) * 9)}.w-10{width:calc(var(--spacing) * 10)}.w-11{width:calc(var(--spacing) * 11)}.w-14{width:calc(var(--spacing) * 14)}.w-\\[5px\\]{width:5px}.w-\\[13px\\]{width:13px}.w-\\[15px\\]{width:15px}.w-\\[17px\\]{width:17px}.w-\\[18px\\]{width:18px}.w-\\[19px\\]{width:19px}.w-\\[20px\\]{width:20px}.w-\\[26px\\]{width:26px}.w-\\[30px\\]{width:30px}.w-\\[34px\\]{width:34px}.w-\\[42px\\]{width:42px}.w-full{width:100%}.min-w-0{min-width:0}.min-w-\\[68px\\]{min-width:68px}.flex-1{flex:1}.flex-none{flex:none}.-translate-x-1{--tw-translate-x:calc(var(--spacing) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-x-1\\/2{--tw-translate-x:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1{--tw-translate-y:calc(var(--spacing) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1\\/2{--tw-translate-y:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.rotate-180{rotate:180deg}.transform{transform:var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,)}.cursor-pointer{cursor:pointer}.touch-none{touch-action:none}.resize{resize:both}.auto-cols-fr{grid-auto-columns:minmax(0,1fr)}.grid-flow-col{grid-auto-flow:column}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-\\[28px_1fr\\]{grid-template-columns:28px 1fr}.grid-cols-\\[28px_1fr_auto\\]{grid-template-columns:28px 1fr auto}.grid-cols-\\[34px_1fr\\]{grid-template-columns:34px 1fr}.grid-cols-\\[repeat\\(auto-fit\\,minmax\\(84px\\,1fr\\)\\)\\]{grid-template-columns:repeat(auto-fit,minmax(84px,1fr))}.grid-rows-\\[auto_auto\\]{grid-template-rows:auto auto}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-baseline{align-items:baseline}.items-center{align-items:center}.justify-between{justify-content:space-between}.justify-center{justify-content:center}.gap-1{gap:var(--spacing)}.gap-1\\.5{gap:calc(var(--spacing) * 1.5)}.gap-2{gap:calc(var(--spacing) * 2)}.gap-2\\.5{gap:calc(var(--spacing) * 2.5)}.gap-3{gap:calc(var(--spacing) * 3)}.gap-4{gap:calc(var(--spacing) * 4)}.gap-\\[3px\\]{gap:3px}.gap-\\[5px\\]{gap:5px}.gap-\\[7px\\]{gap:7px}.gap-x-2{column-gap:calc(var(--spacing) * 2)}.gap-x-2\\.5{column-gap:calc(var(--spacing) * 2.5)}.gap-x-3{column-gap:calc(var(--spacing) * 3)}.gap-x-\\[11px\\]{column-gap:11px}.gap-y-0{row-gap:0}.gap-y-0\\.5{row-gap:calc(var(--spacing) * .5)}.gap-y-2{row-gap:calc(var(--spacing) * 2)}.truncate{text-overflow:ellipsis;white-space:nowrap;overflow:hidden}.overflow-hidden{overflow:hidden}.rounded{border-radius:.25rem}.rounded-\\[3px\\]{border-radius:3px}.rounded-\\[9px\\]{border-radius:9px}.rounded-\\[10px\\]{border-radius:10px}.rounded-\\[11px\\]{border-radius:11px}.rounded-\\[14px\\]{border-radius:14px}.rounded-\\[15px\\]{border-radius:15px}.rounded-full{border-radius:3.40282e38px}.rounded-lg{border-radius:var(--radius-lg)}.rounded-xl{border-radius:var(--radius-xl)}.border{border-style:var(--tw-border-style);border-width:1px}.border-0{border-style:var(--tw-border-style);border-width:0}.border-\\[\\#2E5238\\]{border-color:#2e5238}.border-accentline{border-color:var(--color-accentline)}.border-amberline{border-color:var(--color-amberline)}.border-blueline{border-color:var(--color-blueline)}.border-line{border-color:var(--color-line)}.bg-\\[\\#2C3639\\]{background-color:#2c3639}.bg-\\[rgba\\(116\\,185\\,138\\,0\\.10\\)\\]{background-color:#74b98a1a}.bg-accent{background-color:var(--color-accent)}.bg-accentbg{background-color:var(--color-accentbg)}.bg-amberbg{background-color:var(--color-amberbg)}.bg-bluebg{background-color:var(--color-bluebg)}.bg-card{background-color:var(--color-card)}.bg-card2{background-color:var(--color-card2)}.bg-transparent{background-color:#0000}.bg-white{background-color:var(--color-white)}.bg-\\[linear-gradient\\(145deg\\,\\#1E3427\\,\\#132016\\)\\]{background-image:linear-gradient(145deg,#1e3427,#132016)}.bg-cover{background-size:cover}.bg-center{background-position:50%}.p-3{padding:calc(var(--spacing) * 3)}.p-3\\.5{padding:calc(var(--spacing) * 3.5)}.p-\\[13px\\]{padding:13px}.px-0{padding-inline:0}.px-0\\.5{padding-inline:calc(var(--spacing) * .5)}.px-1{padding-inline:var(--spacing)}.px-2{padding-inline:calc(var(--spacing) * 2)}.px-2\\.5{padding-inline:calc(var(--spacing) * 2.5)}.px-3{padding-inline:calc(var(--spacing) * 3)}.px-3\\.5{padding-inline:calc(var(--spacing) * 3.5)}.px-\\[13px\\]{padding-inline:13px}.py-1{padding-block:var(--spacing)}.py-1\\.5{padding-block:calc(var(--spacing) * 1.5)}.py-2{padding-block:calc(var(--spacing) * 2)}.py-3{padding-block:calc(var(--spacing) * 3)}.py-\\[5px\\]{padding-block:5px}.py-\\[7px\\]{padding-block:7px}.py-\\[9px\\]{padding-block:9px}.pt-0{padding-top:0}.pt-0\\.5{padding-top:calc(var(--spacing) * .5)}.pt-\\[5px\\]{padding-top:5px}.pt-\\[7px\\]{padding-top:7px}.pt-\\[13px\\]{padding-top:13px}.pr-\\[11px\\]{padding-right:11px}.pb-1{padding-bottom:var(--spacing)}.pb-1\\.5{padding-bottom:calc(var(--spacing) * 1.5)}.pb-3{padding-bottom:calc(var(--spacing) * 3)}.pb-\\[3px\\]{padding-bottom:3px}.pl-\\[7px\\]{padding-left:7px}.text-center{text-align:center}.text-left{text-align:left}.text-right{text-align:right}.font-mono{font-family:var(--font-mono)}.text-\\[9\\.5px\\]{font-size:9.5px}.text-\\[10\\.5px\\]{font-size:10.5px}.text-\\[10px\\]{font-size:10px}.text-\\[11\\.5px\\]{font-size:11.5px}.text-\\[11px\\]{font-size:11px}.text-\\[12\\.5px\\]{font-size:12.5px}.text-\\[12px\\]{font-size:12px}.text-\\[13px\\]{font-size:13px}.text-\\[14px\\]{font-size:14px}.text-\\[15px\\]{font-size:15px}.text-\\[16px\\]{font-size:16px}.text-\\[17px\\]{font-size:17px}.text-\\[22px\\]{font-size:22px}.text-\\[24px\\]{font-size:24px}.text-\\[26px\\]{font-size:26px}.text-\\[30px\\]{font-size:30px}.leading-\\[1\\.1\\]{--tw-leading:1.1;line-height:1.1}.leading-\\[1\\.15\\]{--tw-leading:1.15;line-height:1.15}.leading-\\[1\\.25\\]{--tw-leading:1.25;line-height:1.25}.leading-\\[1\\.42\\]{--tw-leading:1.42;line-height:1.42}.leading-none{--tw-leading:1;line-height:1}.leading-tight{--tw-leading:var(--leading-tight);line-height:var(--leading-tight)}.font-medium{--tw-font-weight:var(--font-weight-medium);font-weight:var(--font-weight-medium)}.font-semibold{--tw-font-weight:var(--font-weight-semibold);font-weight:var(--font-weight-semibold)}.tracking-\\[-0\\.015em\\]{--tw-tracking:-.015em;letter-spacing:-.015em}.tracking-\\[0\\.01em\\]{--tw-tracking:.01em;letter-spacing:.01em}.tracking-\\[0\\.06em\\]{--tw-tracking:.06em;letter-spacing:.06em}.tracking-\\[0\\.08em\\]{--tw-tracking:.08em;letter-spacing:.08em}.tracking-\\[0\\.11em\\]{--tw-tracking:.11em;letter-spacing:.11em}.tracking-tight{--tw-tracking:var(--tracking-tight);letter-spacing:var(--tracking-tight)}.text-ellipsis{text-overflow:ellipsis}.whitespace-nowrap{white-space:nowrap}.text-accent{color:var(--color-accent)}.text-accenttx{color:var(--color-accenttx)}.text-amber{color:var(--color-amber)}.text-ambertx{color:var(--color-ambertx)}.text-blue{color:var(--color-blue)}.text-blueink{color:var(--color-blueink)}.text-green{color:var(--color-green)}.text-ink{color:var(--color-ink)}.text-ink2{color:var(--color-ink2)}.text-muted{color:var(--color-muted)}.text-red{color:var(--color-red)}.capitalize{text-transform:capitalize}.uppercase{text-transform:uppercase}.opacity-50{opacity:.5}.opacity-\\[\\.66\\]{opacity:.66}.shadow{--tw-shadow:0 1px 3px 0 var(--tw-shadow-color,#0000001a), 0 1px 2px -1px var(--tw-shadow-color,#0000001a);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_3px_rgba\\(0\\,0\\,0\\,\\.4\\)\\]{--tw-shadow:0 1px 3px var(--tw-shadow-color,#0006);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_3px_rgba\\(0\\,0\\,0\\,\\.35\\)\\]{--tw-shadow:0 1px 3px var(--tw-shadow-color,#00000059);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.outline{outline-style:var(--tw-outline-style);outline-width:1px}.filter{filter:var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)}.backdrop-filter{-webkit-backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,)}.transition{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to,opacity,box-shadow,transform,translate,scale,rotate,filter,-webkit-backdrop-filter,backdrop-filter,display,content-visibility,overlay,pointer-events;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-all{transition-property:all;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-colors{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-transform{transition-property:transform,translate,scale,rotate;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.\\[--mdc-icon-size\\:13px\\]{--mdc-icon-size:13px}.\\[--mdc-icon-size\\:14px\\]{--mdc-icon-size:14px}.\\[--mdc-icon-size\\:15px\\]{--mdc-icon-size:15px}.\\[--mdc-icon-size\\:16px\\]{--mdc-icon-size:16px}.\\[--mdc-icon-size\\:17px\\]{--mdc-icon-size:17px}.\\[--mdc-icon-size\\:18px\\]{--mdc-icon-size:18px}.\\[--mdc-icon-size\\:19px\\]{--mdc-icon-size:19px}.\\[--mdc-icon-size\\:20px\\]{--mdc-icon-size:20px}.\\[--mdc-icon-size\\:24px\\]{--mdc-icon-size:24px}.\\[--mdc-icon-size\\:34px\\]{--mdc-icon-size:34px}@media (hover:hover){.hover\\:bg-card2:hover{background-color:var(--color-card2)}}.focus-visible\\:outline:focus-visible{outline-style:var(--tw-outline-style);outline-width:1px}.focus-visible\\:outline-2:focus-visible{outline-style:var(--tw-outline-style);outline-width:2px}.focus-visible\\:\\[outline-offset\\:-2px\\]:focus-visible{outline-offset:-2px}.focus-visible\\:outline-accent:focus-visible{outline-color:var(--color-accent)}.active\\:translate-y-\\[0\\.5px\\]:active{--tw-translate-y:.5px;translate:var(--tw-translate-x) var(--tw-translate-y)}.active\\:scale-90:active{--tw-scale-x:90%;--tw-scale-y:90%;--tw-scale-z:90%;scale:var(--tw-scale-x) var(--tw-scale-y)}.active\\:scale-\\[\\.96\\]:active{scale:.96}.active\\:bg-card2:active{background-color:var(--color-card2)}.data-\\[pressed\\=true\\]\\:bg-\\[rgba\\(255\\,255\\,255\\,0\\.06\\)\\][data-pressed=true]{background-color:#ffffff0f}}@property --tw-translate-x{syntax:"*";inherits:false;initial-value:0}@property --tw-translate-y{syntax:"*";inherits:false;initial-value:0}@property --tw-translate-z{syntax:"*";inherits:false;initial-value:0}@property --tw-rotate-x{syntax:"*";inherits:false}@property --tw-rotate-y{syntax:"*";inherits:false}@property --tw-rotate-z{syntax:"*";inherits:false}@property --tw-skew-x{syntax:"*";inherits:false}@property --tw-skew-y{syntax:"*";inherits:false}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-leading{syntax:"*";inherits:false}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-tracking{syntax:"*";inherits:false}@property --tw-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-shadow-color{syntax:"*";inherits:false}@property --tw-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-inset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-shadow-color{syntax:"*";inherits:false}@property --tw-inset-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-ring-color{syntax:"*";inherits:false}@property --tw-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-ring-color{syntax:"*";inherits:false}@property --tw-inset-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-ring-inset{syntax:"*";inherits:false}@property --tw-ring-offset-width{syntax:"<length>";inherits:false;initial-value:0}@property --tw-ring-offset-color{syntax:"*";inherits:false;initial-value:#fff}@property --tw-ring-offset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-outline-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-blur{syntax:"*";inherits:false}@property --tw-brightness{syntax:"*";inherits:false}@property --tw-contrast{syntax:"*";inherits:false}@property --tw-grayscale{syntax:"*";inherits:false}@property --tw-hue-rotate{syntax:"*";inherits:false}@property --tw-invert{syntax:"*";inherits:false}@property --tw-opacity{syntax:"*";inherits:false}@property --tw-saturate{syntax:"*";inherits:false}@property --tw-sepia{syntax:"*";inherits:false}@property --tw-drop-shadow{syntax:"*";inherits:false}@property --tw-drop-shadow-color{syntax:"*";inherits:false}@property --tw-drop-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-drop-shadow-size{syntax:"*";inherits:false}@property --tw-backdrop-blur{syntax:"*";inherits:false}@property --tw-backdrop-brightness{syntax:"*";inherits:false}@property --tw-backdrop-contrast{syntax:"*";inherits:false}@property --tw-backdrop-grayscale{syntax:"*";inherits:false}@property --tw-backdrop-hue-rotate{syntax:"*";inherits:false}@property --tw-backdrop-invert{syntax:"*";inherits:false}@property --tw-backdrop-opacity{syntax:"*";inherits:false}@property --tw-backdrop-saturate{syntax:"*";inherits:false}@property --tw-backdrop-sepia{syntax:"*";inherits:false}@property --tw-scale-x{syntax:"*";inherits:false;initial-value:1}@property --tw-scale-y{syntax:"*";inherits:false;initial-value:1}@property --tw-scale-z{syntax:"*";inherits:false;initial-value:1}`;
-
-  // src/tw.js
-  var supportsAdopt = "adoptedStyleSheets" in Document.prototype && "replaceSync" in CSSStyleSheet.prototype;
-  var twSheet;
-  if (supportsAdopt) {
-    const sheet = new CSSStyleSheet;
-    sheet.replaceSync(TW_CSS.replace(/:root/g, ":host"));
-    try {
-      const doc = new CSSStyleSheet;
-      let hoisted = 0;
-      for (const rule of sheet.cssRules) {
-        if (rule.constructor && rule.constructor.name === "CSSPropertyRule") {
-          doc.insertRule(rule.cssText);
-          hoisted++;
-        }
-      }
-      if (hoisted)
-        document.adoptedStyleSheets = [...document.adoptedStyleSheets, doc];
-    } catch (_e) {}
-    twSheet = sheet;
-  } else {
-    twSheet = unsafeCSS(TW_CSS.replace(/:root/g, ":host"));
-  }
-
-  // src/hide-tabs.js
-  var STYLE_ID = "fibbers-hide-tabs";
-  var CSS = {
-    true: `ha-tab-group { display: none !important; }`,
-    header: `.header { display: none !important; }`
-  };
-  var state = {
-    mode: false,
-    observer: null,
-    scheduled: false
-  };
-  function suppressed() {
-    if (window.FIBBERS_SHOW_TABS === true)
-      return true;
-    try {
-      return new URLSearchParams(window.location.search).has("disable_km");
-    } catch (_) {
-      return false;
-    }
-  }
-  function findHuiRoot() {
-    const stack = [document.documentElement];
-    while (stack.length) {
-      const el = stack.pop();
-      if (el.localName === "hui-root")
-        return el;
-      if (el.shadowRoot)
-        stack.push(...el.shadowRoot.children);
-      if (el.children)
-        stack.push(...el.children);
-    }
-    return null;
-  }
-  function findResolvedPanel() {
-    const stack = [document.documentElement];
-    while (stack.length) {
-      const el = stack.pop();
-      if (el.localName === "partial-panel-resolver")
-        return el;
-      if (el.shadowRoot)
-        stack.push(...el.shadowRoot.children);
-      if (el.children)
-        stack.push(...el.children);
-    }
-    return null;
-  }
-  function paint() {
-    if (!state.mode || suppressed())
-      return removeStyle();
-    const root = findHuiRoot();
-    if (!root || !root.shadowRoot) {
-      console.debug("fibbers: hui-root not found; leaving HA tabs untouched");
-      return;
-    }
-    const css2 = CSS[state.mode];
-    if (!css2)
-      return;
-    let style = root.shadowRoot.getElementById(STYLE_ID);
-    if (style) {
-      if (style.textContent !== css2)
-        style.textContent = css2;
-      return;
-    }
-    style = document.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = css2;
-    root.shadowRoot.appendChild(style);
-  }
-  function removeStyle() {
-    const root = findHuiRoot();
-    const style = root && root.shadowRoot && root.shadowRoot.getElementById(STYLE_ID);
-    if (style)
-      style.remove();
-  }
-  function schedulePaint() {
-    if (state.scheduled)
-      return;
-    state.scheduled = true;
-    setTimeout(() => {
-      state.scheduled = false;
-      paint();
-    }, 60);
-  }
-  function startObserver() {
-    if (state.observer)
-      return;
-    const panel = findResolvedPanel() || document.body;
-    try {
-      state.observer = new MutationObserver(schedulePaint);
-      state.observer.observe(panel, { childList: true, subtree: true });
-    } catch (_) {}
-  }
-  function stopObserver() {
-    if (state.observer) {
-      state.observer.disconnect();
-      state.observer = null;
-    }
-  }
-  function setTabHiding(mode) {
-    const normalized = mode === true || mode === "header" ? mode : false;
-    state.mode = normalized;
-    if (!normalized) {
-      removeTabHiding();
-      return;
-    }
-    paint();
-    startObserver();
-  }
-  function removeTabHiding() {
-    state.mode = false;
-    stopObserver();
-    removeStyle();
-  }
-  window.addEventListener("location-changed", schedulePaint);
-  window.addEventListener("popstate", schedulePaint);
 
   // src/icons.gen.js
   var ICONS = {
@@ -7081,9 +5331,9 @@
     }
     _render() {
       const name = this.getAttribute("icon") || "";
-      const svg2 = iconSvg(name);
-      if (svg2) {
-        this.innerHTML = svg2;
+      const svg = iconSvg(name);
+      if (svg) {
+        this.innerHTML = svg;
         return;
       }
       if (name.startsWith("solar:")) {
@@ -7106,6 +5356,1791 @@
   }
   if (!customElements.get("fib-icon"))
     customElements.define("fib-icon", FibIcon);
+
+  // node_modules/@lit/reactive-element/development/css-tag.js
+  var NODE_MODE = false;
+  var global = globalThis;
+  var supportsAdoptingStyleSheets = global.ShadowRoot && (global.ShadyCSS === undefined || global.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype;
+  var constructionToken = Symbol();
+  var cssTagCache = new WeakMap;
+
+  class CSSResult {
+    constructor(cssText, strings, safeToken) {
+      this["_$cssResult$"] = true;
+      if (safeToken !== constructionToken) {
+        throw new Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
+      }
+      this.cssText = cssText;
+      this._strings = strings;
+    }
+    get styleSheet() {
+      let styleSheet = this._styleSheet;
+      const strings = this._strings;
+      if (supportsAdoptingStyleSheets && styleSheet === undefined) {
+        const cacheable = strings !== undefined && strings.length === 1;
+        if (cacheable) {
+          styleSheet = cssTagCache.get(strings);
+        }
+        if (styleSheet === undefined) {
+          (this._styleSheet = styleSheet = new CSSStyleSheet).replaceSync(this.cssText);
+          if (cacheable) {
+            cssTagCache.set(strings, styleSheet);
+          }
+        }
+      }
+      return styleSheet;
+    }
+    toString() {
+      return this.cssText;
+    }
+  }
+  var textFromCSSResult = (value) => {
+    if (value["_$cssResult$"] === true) {
+      return value.cssText;
+    } else if (typeof value === "number") {
+      return value;
+    } else {
+      throw new Error(`Value passed to 'css' function must be a 'css' function result: ` + `${value}. Use 'unsafeCSS' to pass non-literal values, but take care ` + `to ensure page security.`);
+    }
+  };
+  var unsafeCSS = (value) => new CSSResult(typeof value === "string" ? value : String(value), undefined, constructionToken);
+  var css = (strings, ...values) => {
+    const cssText = strings.length === 1 ? strings[0] : values.reduce((acc, v, idx) => acc + textFromCSSResult(v) + strings[idx + 1], strings[0]);
+    return new CSSResult(cssText, strings, constructionToken);
+  };
+  var adoptStyles = (renderRoot, styles) => {
+    if (supportsAdoptingStyleSheets) {
+      renderRoot.adoptedStyleSheets = styles.map((s) => s instanceof CSSStyleSheet ? s : s.styleSheet);
+    } else {
+      for (const s of styles) {
+        const style = document.createElement("style");
+        const nonce = global["litNonce"];
+        if (nonce !== undefined) {
+          style.setAttribute("nonce", nonce);
+        }
+        style.textContent = s.cssText;
+        renderRoot.appendChild(style);
+      }
+    }
+  };
+  var cssResultFromStyleSheet = (sheet) => {
+    let cssText = "";
+    for (const rule of sheet.cssRules) {
+      cssText += rule.cssText;
+    }
+    return unsafeCSS(cssText);
+  };
+  var getCompatibleStyle = supportsAdoptingStyleSheets || NODE_MODE && global.CSSStyleSheet === undefined ? (s) => s : (s) => s instanceof CSSStyleSheet ? cssResultFromStyleSheet(s) : s;
+
+  // node_modules/@lit/reactive-element/development/reactive-element.js
+  var { is, defineProperty, getOwnPropertyDescriptor, getOwnPropertyNames, getOwnPropertySymbols, getPrototypeOf } = Object;
+  var NODE_MODE2 = false;
+  var global2 = globalThis;
+  if (NODE_MODE2) {
+    global2.customElements ??= customElements;
+  }
+  var DEV_MODE = true;
+  var issueWarning;
+  var trustedTypes = global2.trustedTypes;
+  var emptyStringForBooleanAttribute = trustedTypes ? trustedTypes.emptyScript : "";
+  var polyfillSupport = DEV_MODE ? global2.reactiveElementPolyfillSupportDevMode : global2.reactiveElementPolyfillSupport;
+  if (DEV_MODE) {
+    global2.litIssuedWarnings ??= new Set;
+    issueWarning = (code, warning) => {
+      warning += ` See https://lit.dev/msg/${code} for more information.`;
+      if (!global2.litIssuedWarnings.has(warning) && !global2.litIssuedWarnings.has(code)) {
+        console.warn(warning);
+        global2.litIssuedWarnings.add(warning);
+      }
+    };
+    queueMicrotask(() => {
+      issueWarning("dev-mode", `Lit is in dev mode. Not recommended for production!`);
+      if (global2.ShadyDOM?.inUse && polyfillSupport === undefined) {
+        issueWarning("polyfill-support-missing", `Shadow DOM is being polyfilled via \`ShadyDOM\` but ` + `the \`polyfill-support\` module has not been loaded.`);
+      }
+    });
+  }
+  var debugLogEvent = DEV_MODE ? (event) => {
+    const shouldEmit = global2.emitLitDebugLogEvents;
+    if (!shouldEmit) {
+      return;
+    }
+    global2.dispatchEvent(new CustomEvent("lit-debug", {
+      detail: event
+    }));
+  } : undefined;
+  var JSCompiler_renameProperty = (prop, _obj) => prop;
+  var defaultConverter = {
+    toAttribute(value, type) {
+      switch (type) {
+        case Boolean:
+          value = value ? emptyStringForBooleanAttribute : null;
+          break;
+        case Object:
+        case Array:
+          value = value == null ? value : JSON.stringify(value);
+          break;
+      }
+      return value;
+    },
+    fromAttribute(value, type) {
+      let fromValue = value;
+      switch (type) {
+        case Boolean:
+          fromValue = value !== null;
+          break;
+        case Number:
+          fromValue = value === null ? null : Number(value);
+          break;
+        case Object:
+        case Array:
+          try {
+            fromValue = JSON.parse(value);
+          } catch (e) {
+            fromValue = null;
+          }
+          break;
+      }
+      return fromValue;
+    }
+  };
+  var notEqual = (value, old) => !is(value, old);
+  var defaultPropertyDeclaration = {
+    attribute: true,
+    type: String,
+    converter: defaultConverter,
+    reflect: false,
+    useDefault: false,
+    hasChanged: notEqual
+  };
+  Symbol.metadata ??= Symbol("metadata");
+  global2.litPropertyMetadata ??= new WeakMap;
+
+  class ReactiveElement extends HTMLElement {
+    static addInitializer(initializer) {
+      this.__prepare();
+      (this._initializers ??= []).push(initializer);
+    }
+    static get observedAttributes() {
+      this.finalize();
+      return this.__attributeToPropertyMap && [...this.__attributeToPropertyMap.keys()];
+    }
+    static createProperty(name, options = defaultPropertyDeclaration) {
+      if (options.state) {
+        options.attribute = false;
+      }
+      this.__prepare();
+      if (this.prototype.hasOwnProperty(name)) {
+        options = Object.create(options);
+        options.wrapped = true;
+      }
+      this.elementProperties.set(name, options);
+      if (!options.noAccessor) {
+        const key = DEV_MODE ? Symbol.for(`${String(name)} (@property() cache)`) : Symbol();
+        const descriptor = this.getPropertyDescriptor(name, key, options);
+        if (descriptor !== undefined) {
+          defineProperty(this.prototype, name, descriptor);
+        }
+      }
+    }
+    static getPropertyDescriptor(name, key, options) {
+      const { get, set } = getOwnPropertyDescriptor(this.prototype, name) ?? {
+        get() {
+          return this[key];
+        },
+        set(v) {
+          this[key] = v;
+        }
+      };
+      if (DEV_MODE && get == null) {
+        if ("value" in (getOwnPropertyDescriptor(this.prototype, name) ?? {})) {
+          throw new Error(`Field ${JSON.stringify(String(name))} on ` + `${this.name} was declared as a reactive property ` + `but it's actually declared as a value on the prototype. ` + `Usually this is due to using @property or @state on a method.`);
+        }
+        issueWarning("reactive-property-without-getter", `Field ${JSON.stringify(String(name))} on ` + `${this.name} was declared as a reactive property ` + `but it does not have a getter. This will be an error in a ` + `future version of Lit.`);
+      }
+      return {
+        get,
+        set(value) {
+          const oldValue = get?.call(this);
+          set?.call(this, value);
+          this.requestUpdate(name, oldValue, options);
+        },
+        configurable: true,
+        enumerable: true
+      };
+    }
+    static getPropertyOptions(name) {
+      return this.elementProperties.get(name) ?? defaultPropertyDeclaration;
+    }
+    static __prepare() {
+      if (this.hasOwnProperty(JSCompiler_renameProperty("elementProperties", this))) {
+        return;
+      }
+      const superCtor = getPrototypeOf(this);
+      superCtor.finalize();
+      if (superCtor._initializers !== undefined) {
+        this._initializers = [...superCtor._initializers];
+      }
+      this.elementProperties = new Map(superCtor.elementProperties);
+    }
+    static finalize() {
+      if (this.hasOwnProperty(JSCompiler_renameProperty("finalized", this))) {
+        return;
+      }
+      this.finalized = true;
+      this.__prepare();
+      if (this.hasOwnProperty(JSCompiler_renameProperty("properties", this))) {
+        const props = this.properties;
+        const propKeys = [
+          ...getOwnPropertyNames(props),
+          ...getOwnPropertySymbols(props)
+        ];
+        for (const p of propKeys) {
+          this.createProperty(p, props[p]);
+        }
+      }
+      const metadata = this[Symbol.metadata];
+      if (metadata !== null) {
+        const properties = litPropertyMetadata.get(metadata);
+        if (properties !== undefined) {
+          for (const [p, options] of properties) {
+            this.elementProperties.set(p, options);
+          }
+        }
+      }
+      this.__attributeToPropertyMap = new Map;
+      for (const [p, options] of this.elementProperties) {
+        const attr = this.__attributeNameForProperty(p, options);
+        if (attr !== undefined) {
+          this.__attributeToPropertyMap.set(attr, p);
+        }
+      }
+      this.elementStyles = this.finalizeStyles(this.styles);
+      if (DEV_MODE) {
+        if (this.hasOwnProperty("createProperty")) {
+          issueWarning("no-override-create-property", "Overriding ReactiveElement.createProperty() is deprecated. " + "The override will not be called with standard decorators");
+        }
+        if (this.hasOwnProperty("getPropertyDescriptor")) {
+          issueWarning("no-override-get-property-descriptor", "Overriding ReactiveElement.getPropertyDescriptor() is deprecated. " + "The override will not be called with standard decorators");
+        }
+      }
+    }
+    static finalizeStyles(styles) {
+      const elementStyles = [];
+      if (Array.isArray(styles)) {
+        const set = new Set(styles.flat(Infinity).reverse());
+        for (const s of set) {
+          elementStyles.unshift(getCompatibleStyle(s));
+        }
+      } else if (styles !== undefined) {
+        elementStyles.push(getCompatibleStyle(styles));
+      }
+      return elementStyles;
+    }
+    static __attributeNameForProperty(name, options) {
+      const attribute = options.attribute;
+      return attribute === false ? undefined : typeof attribute === "string" ? attribute : typeof name === "string" ? name.toLowerCase() : undefined;
+    }
+    constructor() {
+      super();
+      this.__instanceProperties = undefined;
+      this.isUpdatePending = false;
+      this.hasUpdated = false;
+      this.__reflectingProperty = null;
+      this.__initialize();
+    }
+    __initialize() {
+      this.__updatePromise = new Promise((res) => this.enableUpdating = res);
+      this._$changedProperties = new Map;
+      this.__saveInstanceProperties();
+      this.requestUpdate();
+      this.constructor._initializers?.forEach((i) => i(this));
+    }
+    addController(controller) {
+      (this.__controllers ??= new Set).add(controller);
+      if (this.renderRoot !== undefined && this.isConnected) {
+        controller.hostConnected?.();
+      }
+    }
+    removeController(controller) {
+      this.__controllers?.delete(controller);
+    }
+    __saveInstanceProperties() {
+      const instanceProperties = new Map;
+      const elementProperties = this.constructor.elementProperties;
+      for (const p of elementProperties.keys()) {
+        if (this.hasOwnProperty(p)) {
+          instanceProperties.set(p, this[p]);
+          delete this[p];
+        }
+      }
+      if (instanceProperties.size > 0) {
+        this.__instanceProperties = instanceProperties;
+      }
+    }
+    createRenderRoot() {
+      const renderRoot = this.shadowRoot ?? this.attachShadow(this.constructor.shadowRootOptions);
+      adoptStyles(renderRoot, this.constructor.elementStyles);
+      return renderRoot;
+    }
+    connectedCallback() {
+      this.renderRoot ??= this.createRenderRoot();
+      this.enableUpdating(true);
+      this.__controllers?.forEach((c) => c.hostConnected?.());
+    }
+    enableUpdating(_requestedUpdate) {}
+    disconnectedCallback() {
+      this.__controllers?.forEach((c) => c.hostDisconnected?.());
+    }
+    attributeChangedCallback(name, _old, value) {
+      this._$attributeToProperty(name, value);
+    }
+    __propertyToAttribute(name, value) {
+      const elemProperties = this.constructor.elementProperties;
+      const options = elemProperties.get(name);
+      const attr = this.constructor.__attributeNameForProperty(name, options);
+      if (attr !== undefined && options.reflect === true) {
+        const converter = options.converter?.toAttribute !== undefined ? options.converter : defaultConverter;
+        const attrValue = converter.toAttribute(value, options.type);
+        if (DEV_MODE && this.constructor.enabledWarnings.includes("migration") && attrValue === undefined) {
+          issueWarning("undefined-attribute-value", `The attribute value for the ${name} property is ` + `undefined on element ${this.localName}. The attribute will be ` + `removed, but in the previous version of \`ReactiveElement\`, ` + `the attribute would not have changed.`);
+        }
+        this.__reflectingProperty = name;
+        if (attrValue == null) {
+          this.removeAttribute(attr);
+        } else {
+          this.setAttribute(attr, attrValue);
+        }
+        this.__reflectingProperty = null;
+      }
+    }
+    _$attributeToProperty(name, value) {
+      const ctor = this.constructor;
+      const propName = ctor.__attributeToPropertyMap.get(name);
+      if (propName !== undefined && this.__reflectingProperty !== propName) {
+        const options = ctor.getPropertyOptions(propName);
+        const converter = typeof options.converter === "function" ? { fromAttribute: options.converter } : options.converter?.fromAttribute !== undefined ? options.converter : defaultConverter;
+        this.__reflectingProperty = propName;
+        const convertedValue = converter.fromAttribute(value, options.type);
+        this[propName] = convertedValue ?? this.__defaultValues?.get(propName) ?? convertedValue;
+        this.__reflectingProperty = null;
+      }
+    }
+    requestUpdate(name, oldValue, options, useNewValue = false, newValue) {
+      if (name !== undefined) {
+        if (DEV_MODE && name instanceof Event) {
+          issueWarning(``, `The requestUpdate() method was called with an Event as the property name. This is probably a mistake caused by binding this.requestUpdate as an event listener. Instead bind a function that will call it with no arguments: () => this.requestUpdate()`);
+        }
+        const ctor = this.constructor;
+        if (useNewValue === false) {
+          newValue = this[name];
+        }
+        options ??= ctor.getPropertyOptions(name);
+        const changed = (options.hasChanged ?? notEqual)(newValue, oldValue) || options.useDefault && options.reflect && newValue === this.__defaultValues?.get(name) && !this.hasAttribute(ctor.__attributeNameForProperty(name, options));
+        if (changed) {
+          this._$changeProperty(name, oldValue, options);
+        } else {
+          return;
+        }
+      }
+      if (this.isUpdatePending === false) {
+        this.__updatePromise = this.__enqueueUpdate();
+      }
+    }
+    _$changeProperty(name, oldValue, { useDefault, reflect, wrapped }, initializeValue) {
+      if (useDefault && !(this.__defaultValues ??= new Map).has(name)) {
+        this.__defaultValues.set(name, initializeValue ?? oldValue ?? this[name]);
+        if (wrapped !== true || initializeValue !== undefined) {
+          return;
+        }
+      }
+      if (!this._$changedProperties.has(name)) {
+        if (!this.hasUpdated && !useDefault) {
+          oldValue = undefined;
+        }
+        this._$changedProperties.set(name, oldValue);
+      }
+      if (reflect === true && this.__reflectingProperty !== name) {
+        (this.__reflectingProperties ??= new Set).add(name);
+      }
+    }
+    async __enqueueUpdate() {
+      this.isUpdatePending = true;
+      try {
+        await this.__updatePromise;
+      } catch (e) {
+        Promise.reject(e);
+      }
+      const result = this.scheduleUpdate();
+      if (result != null) {
+        await result;
+      }
+      return !this.isUpdatePending;
+    }
+    scheduleUpdate() {
+      const result = this.performUpdate();
+      if (DEV_MODE && this.constructor.enabledWarnings.includes("async-perform-update") && typeof result?.then === "function") {
+        issueWarning("async-perform-update", `Element ${this.localName} returned a Promise from performUpdate(). ` + `This behavior is deprecated and will be removed in a future ` + `version of ReactiveElement.`);
+      }
+      return result;
+    }
+    performUpdate() {
+      if (!this.isUpdatePending) {
+        return;
+      }
+      debugLogEvent?.({ kind: "update" });
+      if (!this.hasUpdated) {
+        this.renderRoot ??= this.createRenderRoot();
+        if (DEV_MODE) {
+          const ctor = this.constructor;
+          const shadowedProperties = [...ctor.elementProperties.keys()].filter((p) => this.hasOwnProperty(p) && (p in getPrototypeOf(this)));
+          if (shadowedProperties.length) {
+            throw new Error(`The following properties on element ${this.localName} will not ` + `trigger updates as expected because they are set using class ` + `fields: ${shadowedProperties.join(", ")}. ` + `Native class fields and some compiled output will overwrite ` + `accessors used for detecting changes. See ` + `https://lit.dev/msg/class-field-shadowing ` + `for more information.`);
+          }
+        }
+        if (this.__instanceProperties) {
+          for (const [p, value] of this.__instanceProperties) {
+            this[p] = value;
+          }
+          this.__instanceProperties = undefined;
+        }
+        const elementProperties = this.constructor.elementProperties;
+        if (elementProperties.size > 0) {
+          for (const [p, options] of elementProperties) {
+            const { wrapped } = options;
+            const value = this[p];
+            if (wrapped === true && !this._$changedProperties.has(p) && value !== undefined) {
+              this._$changeProperty(p, undefined, options, value);
+            }
+          }
+        }
+      }
+      let shouldUpdate = false;
+      const changedProperties = this._$changedProperties;
+      try {
+        shouldUpdate = this.shouldUpdate(changedProperties);
+        if (shouldUpdate) {
+          this.willUpdate(changedProperties);
+          this.__controllers?.forEach((c) => c.hostUpdate?.());
+          this.update(changedProperties);
+        } else {
+          this.__markUpdated();
+        }
+      } catch (e) {
+        shouldUpdate = false;
+        this.__markUpdated();
+        throw e;
+      }
+      if (shouldUpdate) {
+        this._$didUpdate(changedProperties);
+      }
+    }
+    willUpdate(_changedProperties) {}
+    _$didUpdate(changedProperties) {
+      this.__controllers?.forEach((c) => c.hostUpdated?.());
+      if (!this.hasUpdated) {
+        this.hasUpdated = true;
+        this.firstUpdated(changedProperties);
+      }
+      this.updated(changedProperties);
+      if (DEV_MODE && this.isUpdatePending && this.constructor.enabledWarnings.includes("change-in-update")) {
+        issueWarning("change-in-update", `Element ${this.localName} scheduled an update ` + `(generally because a property was set) ` + `after an update completed, causing a new update to be scheduled. ` + `This is inefficient and should be avoided unless the next update ` + `can only be scheduled as a side effect of the previous update.`);
+      }
+    }
+    __markUpdated() {
+      this._$changedProperties = new Map;
+      this.isUpdatePending = false;
+    }
+    get updateComplete() {
+      return this.getUpdateComplete();
+    }
+    getUpdateComplete() {
+      return this.__updatePromise;
+    }
+    shouldUpdate(_changedProperties) {
+      return true;
+    }
+    update(_changedProperties) {
+      this.__reflectingProperties &&= this.__reflectingProperties.forEach((p) => this.__propertyToAttribute(p, this[p]));
+      this.__markUpdated();
+    }
+    updated(_changedProperties) {}
+    firstUpdated(_changedProperties) {}
+  }
+  ReactiveElement.elementStyles = [];
+  ReactiveElement.shadowRootOptions = { mode: "open" };
+  ReactiveElement[JSCompiler_renameProperty("elementProperties", ReactiveElement)] = new Map;
+  ReactiveElement[JSCompiler_renameProperty("finalized", ReactiveElement)] = new Map;
+  polyfillSupport?.({ ReactiveElement });
+  if (DEV_MODE) {
+    ReactiveElement.enabledWarnings = [
+      "change-in-update",
+      "async-perform-update"
+    ];
+    const ensureOwnWarnings = function(ctor) {
+      if (!ctor.hasOwnProperty(JSCompiler_renameProperty("enabledWarnings", ctor))) {
+        ctor.enabledWarnings = ctor.enabledWarnings.slice();
+      }
+    };
+    ReactiveElement.enableWarning = function(warning) {
+      ensureOwnWarnings(this);
+      if (!this.enabledWarnings.includes(warning)) {
+        this.enabledWarnings.push(warning);
+      }
+    };
+    ReactiveElement.disableWarning = function(warning) {
+      ensureOwnWarnings(this);
+      const i = this.enabledWarnings.indexOf(warning);
+      if (i >= 0) {
+        this.enabledWarnings.splice(i, 1);
+      }
+    };
+  }
+  (global2.reactiveElementVersions ??= []).push("2.1.2");
+  if (DEV_MODE && global2.reactiveElementVersions.length > 1) {
+    queueMicrotask(() => {
+      issueWarning("multiple-versions", `Multiple versions of Lit loaded. Loading multiple versions ` + `is not recommended.`);
+    });
+  }
+
+  // node_modules/lit-html/development/lit-html.js
+  var DEV_MODE2 = true;
+  var ENABLE_EXTRA_SECURITY_HOOKS = true;
+  var ENABLE_SHADYDOM_NOPATCH = true;
+  var NODE_MODE3 = false;
+  var global3 = globalThis;
+  var debugLogEvent2 = DEV_MODE2 ? (event) => {
+    const shouldEmit = global3.emitLitDebugLogEvents;
+    if (!shouldEmit) {
+      return;
+    }
+    global3.dispatchEvent(new CustomEvent("lit-debug", {
+      detail: event
+    }));
+  } : undefined;
+  var debugLogRenderId = 0;
+  var issueWarning2;
+  if (DEV_MODE2) {
+    global3.litIssuedWarnings ??= new Set;
+    issueWarning2 = (code, warning) => {
+      warning += code ? ` See https://lit.dev/msg/${code} for more information.` : "";
+      if (!global3.litIssuedWarnings.has(warning) && !global3.litIssuedWarnings.has(code)) {
+        console.warn(warning);
+        global3.litIssuedWarnings.add(warning);
+      }
+    };
+    queueMicrotask(() => {
+      issueWarning2("dev-mode", `Lit is in dev mode. Not recommended for production!`);
+    });
+  }
+  var wrap = ENABLE_SHADYDOM_NOPATCH && global3.ShadyDOM?.inUse && global3.ShadyDOM?.noPatch === true ? global3.ShadyDOM.wrap : (node) => node;
+  var trustedTypes2 = global3.trustedTypes;
+  var policy = trustedTypes2 ? trustedTypes2.createPolicy("lit-html", {
+    createHTML: (s) => s
+  }) : undefined;
+  var identityFunction = (value) => value;
+  var noopSanitizer = (_node, _name, _type) => identityFunction;
+  var setSanitizer = (newSanitizer) => {
+    if (!ENABLE_EXTRA_SECURITY_HOOKS) {
+      return;
+    }
+    if (sanitizerFactoryInternal !== noopSanitizer) {
+      throw new Error(`Attempted to overwrite existing lit-html security policy.` + ` setSanitizeDOMValueFactory should be called at most once.`);
+    }
+    sanitizerFactoryInternal = newSanitizer;
+  };
+  var _testOnlyClearSanitizerFactoryDoNotCallOrElse = () => {
+    sanitizerFactoryInternal = noopSanitizer;
+  };
+  var createSanitizer = (node, name, type) => {
+    return sanitizerFactoryInternal(node, name, type);
+  };
+  var boundAttributeSuffix = "$lit$";
+  var marker = `lit$${Math.random().toFixed(9).slice(2)}$`;
+  var markerMatch = "?" + marker;
+  var nodeMarker = `<${markerMatch}>`;
+  var d = NODE_MODE3 && global3.document === undefined ? {
+    createTreeWalker() {
+      return {};
+    }
+  } : document;
+  var createMarker = () => d.createComment("");
+  var isPrimitive = (value) => value === null || typeof value != "object" && typeof value != "function";
+  var isArray = Array.isArray;
+  var isIterable = (value) => isArray(value) || typeof value?.[Symbol.iterator] === "function";
+  var SPACE_CHAR = `[ 	
+\f\r]`;
+  var ATTR_VALUE_CHAR = `[^ 	
+\f\r"'\`<>=]`;
+  var NAME_CHAR = `[^\\s"'>=/]`;
+  var textEndRegex = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g;
+  var COMMENT_START = 1;
+  var TAG_NAME = 2;
+  var DYNAMIC_TAG_NAME = 3;
+  var commentEndRegex = /-->/g;
+  var comment2EndRegex = />/g;
+  var tagEndRegex = new RegExp(`>|${SPACE_CHAR}(?:(${NAME_CHAR}+)(${SPACE_CHAR}*=${SPACE_CHAR}*(?:${ATTR_VALUE_CHAR}|("|')|))|$)`, "g");
+  var ENTIRE_MATCH = 0;
+  var ATTRIBUTE_NAME = 1;
+  var SPACES_AND_EQUALS = 2;
+  var QUOTE_CHAR = 3;
+  var singleQuoteAttrEndRegex = /'/g;
+  var doubleQuoteAttrEndRegex = /"/g;
+  var rawTextElement = /^(?:script|style|textarea|title)$/i;
+  var HTML_RESULT = 1;
+  var SVG_RESULT = 2;
+  var MATHML_RESULT = 3;
+  var ATTRIBUTE_PART = 1;
+  var CHILD_PART = 2;
+  var PROPERTY_PART = 3;
+  var BOOLEAN_ATTRIBUTE_PART = 4;
+  var EVENT_PART = 5;
+  var ELEMENT_PART = 6;
+  var COMMENT_PART = 7;
+  var tag = (type) => (strings, ...values) => {
+    if (DEV_MODE2 && strings.some((s) => s === undefined)) {
+      console.warn(`Some template strings are undefined.
+` + "This is probably caused by illegal octal escape sequences.");
+    }
+    if (DEV_MODE2) {
+      if (values.some((val) => val?.["_$litStatic$"])) {
+        issueWarning2("", `Static values 'literal' or 'unsafeStatic' cannot be used as values to non-static templates.
+` + `Please use the static 'html' tag function. See https://lit.dev/docs/templates/expressions/#static-expressions`);
+      }
+    }
+    return {
+      ["_$litType$"]: type,
+      strings,
+      values
+    };
+  };
+  var html = tag(HTML_RESULT);
+  var svg = tag(SVG_RESULT);
+  var mathml = tag(MATHML_RESULT);
+  var noChange = Symbol.for("lit-noChange");
+  var nothing = Symbol.for("lit-nothing");
+  var templateCache = new WeakMap;
+  var walker = d.createTreeWalker(d, 129);
+  var sanitizerFactoryInternal = noopSanitizer;
+  function trustFromTemplateString(tsa, stringFromTSA) {
+    if (!isArray(tsa) || !tsa.hasOwnProperty("raw")) {
+      let message = "invalid template strings array";
+      if (DEV_MODE2) {
+        message = `
+          Internal Error: expected template strings to be an array
+          with a 'raw' field. Faking a template strings array by
+          calling html or svg like an ordinary function is effectively
+          the same as calling unsafeHtml and can lead to major security
+          issues, e.g. opening your code up to XSS attacks.
+          If you're using the html or svg tagged template functions normally
+          and still seeing this error, please file a bug at
+          https://github.com/lit/lit/issues/new?template=bug_report.md
+          and include information about your build tooling, if any.
+        `.trim().replace(/\n */g, `
+`);
+      }
+      throw new Error(message);
+    }
+    return policy !== undefined ? policy.createHTML(stringFromTSA) : stringFromTSA;
+  }
+  var getTemplateHtml = (strings, type) => {
+    const l = strings.length - 1;
+    const attrNames = [];
+    let html2 = type === SVG_RESULT ? "<svg>" : type === MATHML_RESULT ? "<math>" : "";
+    let rawTextEndRegex;
+    let regex = textEndRegex;
+    for (let i = 0;i < l; i++) {
+      const s = strings[i];
+      let attrNameEndIndex = -1;
+      let attrName;
+      let lastIndex = 0;
+      let match;
+      while (lastIndex < s.length) {
+        regex.lastIndex = lastIndex;
+        match = regex.exec(s);
+        if (match === null) {
+          break;
+        }
+        lastIndex = regex.lastIndex;
+        if (regex === textEndRegex) {
+          if (match[COMMENT_START] === "!--") {
+            regex = commentEndRegex;
+          } else if (match[COMMENT_START] !== undefined) {
+            regex = comment2EndRegex;
+          } else if (match[TAG_NAME] !== undefined) {
+            if (rawTextElement.test(match[TAG_NAME])) {
+              rawTextEndRegex = new RegExp(`</${match[TAG_NAME]}`, "g");
+            }
+            regex = tagEndRegex;
+          } else if (match[DYNAMIC_TAG_NAME] !== undefined) {
+            if (DEV_MODE2) {
+              throw new Error("Bindings in tag names are not supported. Please use static templates instead. " + "See https://lit.dev/docs/templates/expressions/#static-expressions");
+            }
+            regex = tagEndRegex;
+          }
+        } else if (regex === tagEndRegex) {
+          if (match[ENTIRE_MATCH] === ">") {
+            regex = rawTextEndRegex ?? textEndRegex;
+            attrNameEndIndex = -1;
+          } else if (match[ATTRIBUTE_NAME] === undefined) {
+            attrNameEndIndex = -2;
+          } else {
+            attrNameEndIndex = regex.lastIndex - match[SPACES_AND_EQUALS].length;
+            attrName = match[ATTRIBUTE_NAME];
+            regex = match[QUOTE_CHAR] === undefined ? tagEndRegex : match[QUOTE_CHAR] === '"' ? doubleQuoteAttrEndRegex : singleQuoteAttrEndRegex;
+          }
+        } else if (regex === doubleQuoteAttrEndRegex || regex === singleQuoteAttrEndRegex) {
+          regex = tagEndRegex;
+        } else if (regex === commentEndRegex || regex === comment2EndRegex) {
+          regex = textEndRegex;
+        } else {
+          regex = tagEndRegex;
+          rawTextEndRegex = undefined;
+        }
+      }
+      if (DEV_MODE2) {
+        console.assert(attrNameEndIndex === -1 || regex === tagEndRegex || regex === singleQuoteAttrEndRegex || regex === doubleQuoteAttrEndRegex, "unexpected parse state B");
+      }
+      const end = regex === tagEndRegex && strings[i + 1].startsWith("/>") ? " " : "";
+      html2 += regex === textEndRegex ? s + nodeMarker : attrNameEndIndex >= 0 ? (attrNames.push(attrName), s.slice(0, attrNameEndIndex) + boundAttributeSuffix + s.slice(attrNameEndIndex)) + marker + end : s + marker + (attrNameEndIndex === -2 ? i : end);
+    }
+    const htmlResult = html2 + (strings[l] || "<?>") + (type === SVG_RESULT ? "</svg>" : type === MATHML_RESULT ? "</math>" : "");
+    return [trustFromTemplateString(strings, htmlResult), attrNames];
+  };
+
+  class Template {
+    constructor({ strings, ["_$litType$"]: type }, options) {
+      this.parts = [];
+      let node;
+      let nodeIndex = 0;
+      let attrNameIndex = 0;
+      const partCount = strings.length - 1;
+      const parts = this.parts;
+      const [html2, attrNames] = getTemplateHtml(strings, type);
+      this.el = Template.createElement(html2, options);
+      walker.currentNode = this.el.content;
+      if (type === SVG_RESULT || type === MATHML_RESULT) {
+        const wrapper = this.el.content.firstChild;
+        wrapper.replaceWith(...wrapper.childNodes);
+      }
+      while ((node = walker.nextNode()) !== null && parts.length < partCount) {
+        if (node.nodeType === 1) {
+          if (DEV_MODE2) {
+            const tag2 = node.localName;
+            if (/^(?:textarea|template)$/i.test(tag2) && node.innerHTML.includes(marker)) {
+              const m = `Expressions are not supported inside \`${tag2}\` ` + `elements. See https://lit.dev/msg/expression-in-${tag2} for more ` + `information.`;
+              if (tag2 === "template") {
+                throw new Error(m);
+              } else
+                issueWarning2("", m);
+            }
+          }
+          if (node.hasAttributes()) {
+            for (const name of node.getAttributeNames()) {
+              if (name.endsWith(boundAttributeSuffix)) {
+                const realName = attrNames[attrNameIndex++];
+                const value = node.getAttribute(name);
+                const statics = value.split(marker);
+                const m = /([.?@])?(.*)/.exec(realName);
+                parts.push({
+                  type: ATTRIBUTE_PART,
+                  index: nodeIndex,
+                  name: m[2],
+                  strings: statics,
+                  ctor: m[1] === "." ? PropertyPart : m[1] === "?" ? BooleanAttributePart : m[1] === "@" ? EventPart : AttributePart
+                });
+                node.removeAttribute(name);
+              } else if (name.startsWith(marker)) {
+                parts.push({
+                  type: ELEMENT_PART,
+                  index: nodeIndex
+                });
+                node.removeAttribute(name);
+              }
+            }
+          }
+          if (rawTextElement.test(node.tagName)) {
+            const strings2 = node.textContent.split(marker);
+            const lastIndex = strings2.length - 1;
+            if (lastIndex > 0) {
+              node.textContent = trustedTypes2 ? trustedTypes2.emptyScript : "";
+              for (let i = 0;i < lastIndex; i++) {
+                node.append(strings2[i], createMarker());
+                walker.nextNode();
+                parts.push({ type: CHILD_PART, index: ++nodeIndex });
+              }
+              node.append(strings2[lastIndex], createMarker());
+            }
+          }
+        } else if (node.nodeType === 8) {
+          const data = node.data;
+          if (data === markerMatch) {
+            parts.push({ type: CHILD_PART, index: nodeIndex });
+          } else {
+            let i = -1;
+            while ((i = node.data.indexOf(marker, i + 1)) !== -1) {
+              parts.push({ type: COMMENT_PART, index: nodeIndex });
+              i += marker.length - 1;
+            }
+          }
+        }
+        nodeIndex++;
+      }
+      if (DEV_MODE2) {
+        if (attrNames.length !== attrNameIndex) {
+          throw new Error(`Detected duplicate attribute bindings. This occurs if your template ` + `has duplicate attributes on an element tag. For example ` + `"<input ?disabled=\${true} ?disabled=\${false}>" contains a ` + `duplicate "disabled" attribute. The error was detected in ` + `the following template: 
+` + "`" + strings.join("${...}") + "`");
+        }
+      }
+      debugLogEvent2 && debugLogEvent2({
+        kind: "template prep",
+        template: this,
+        clonableTemplate: this.el,
+        parts: this.parts,
+        strings
+      });
+    }
+    static createElement(html2, _options) {
+      const el = d.createElement("template");
+      el.innerHTML = html2;
+      return el;
+    }
+  }
+  function resolveDirective(part, value, parent = part, attributeIndex) {
+    if (value === noChange) {
+      return value;
+    }
+    let currentDirective = attributeIndex !== undefined ? parent.__directives?.[attributeIndex] : parent.__directive;
+    const nextDirectiveConstructor = isPrimitive(value) ? undefined : value["_$litDirective$"];
+    if (currentDirective?.constructor !== nextDirectiveConstructor) {
+      currentDirective?.["_$notifyDirectiveConnectionChanged"]?.(false);
+      if (nextDirectiveConstructor === undefined) {
+        currentDirective = undefined;
+      } else {
+        currentDirective = new nextDirectiveConstructor(part);
+        currentDirective._$initialize(part, parent, attributeIndex);
+      }
+      if (attributeIndex !== undefined) {
+        (parent.__directives ??= [])[attributeIndex] = currentDirective;
+      } else {
+        parent.__directive = currentDirective;
+      }
+    }
+    if (currentDirective !== undefined) {
+      value = resolveDirective(part, currentDirective._$resolve(part, value.values), currentDirective, attributeIndex);
+    }
+    return value;
+  }
+
+  class TemplateInstance {
+    constructor(template, parent) {
+      this._$parts = [];
+      this._$disconnectableChildren = undefined;
+      this._$template = template;
+      this._$parent = parent;
+    }
+    get parentNode() {
+      return this._$parent.parentNode;
+    }
+    get _$isConnected() {
+      return this._$parent._$isConnected;
+    }
+    _clone(options) {
+      const { el: { content }, parts } = this._$template;
+      const fragment = (options?.creationScope ?? d).importNode(content, true);
+      walker.currentNode = fragment;
+      let node = walker.nextNode();
+      let nodeIndex = 0;
+      let partIndex = 0;
+      let templatePart = parts[0];
+      while (templatePart !== undefined) {
+        if (nodeIndex === templatePart.index) {
+          let part;
+          if (templatePart.type === CHILD_PART) {
+            part = new ChildPart(node, node.nextSibling, this, options);
+          } else if (templatePart.type === ATTRIBUTE_PART) {
+            part = new templatePart.ctor(node, templatePart.name, templatePart.strings, this, options);
+          } else if (templatePart.type === ELEMENT_PART) {
+            part = new ElementPart(node, this, options);
+          }
+          this._$parts.push(part);
+          templatePart = parts[++partIndex];
+        }
+        if (nodeIndex !== templatePart?.index) {
+          node = walker.nextNode();
+          nodeIndex++;
+        }
+      }
+      walker.currentNode = d;
+      return fragment;
+    }
+    _update(values) {
+      let i = 0;
+      for (const part of this._$parts) {
+        if (part !== undefined) {
+          debugLogEvent2 && debugLogEvent2({
+            kind: "set part",
+            part,
+            value: values[i],
+            valueIndex: i,
+            values,
+            templateInstance: this
+          });
+          if (part.strings !== undefined) {
+            part._$setValue(values, part, i);
+            i += part.strings.length - 2;
+          } else {
+            part._$setValue(values[i]);
+          }
+        }
+        i++;
+      }
+    }
+  }
+
+  class ChildPart {
+    get _$isConnected() {
+      return this._$parent?._$isConnected ?? this.__isConnected;
+    }
+    constructor(startNode, endNode, parent, options) {
+      this.type = CHILD_PART;
+      this._$committedValue = nothing;
+      this._$disconnectableChildren = undefined;
+      this._$startNode = startNode;
+      this._$endNode = endNode;
+      this._$parent = parent;
+      this.options = options;
+      this.__isConnected = options?.isConnected ?? true;
+      if (ENABLE_EXTRA_SECURITY_HOOKS) {
+        this._textSanitizer = undefined;
+      }
+    }
+    get parentNode() {
+      let parentNode = wrap(this._$startNode).parentNode;
+      const parent = this._$parent;
+      if (parent !== undefined && parentNode?.nodeType === 11) {
+        parentNode = parent.parentNode;
+      }
+      return parentNode;
+    }
+    get startNode() {
+      return this._$startNode;
+    }
+    get endNode() {
+      return this._$endNode;
+    }
+    _$setValue(value, directiveParent = this) {
+      if (DEV_MODE2 && this.parentNode === null) {
+        throw new Error(`This \`ChildPart\` has no \`parentNode\` and therefore cannot accept a value. This likely means the element containing the part was manipulated in an unsupported way outside of Lit's control such that the part's marker nodes were ejected from DOM. For example, setting the element's \`innerHTML\` or \`textContent\` can do this.`);
+      }
+      value = resolveDirective(this, value, directiveParent);
+      if (isPrimitive(value)) {
+        if (value === nothing || value == null || value === "") {
+          if (this._$committedValue !== nothing) {
+            debugLogEvent2 && debugLogEvent2({
+              kind: "commit nothing to child",
+              start: this._$startNode,
+              end: this._$endNode,
+              parent: this._$parent,
+              options: this.options
+            });
+            this._$clear();
+          }
+          this._$committedValue = nothing;
+        } else if (value !== this._$committedValue && value !== noChange) {
+          this._commitText(value);
+        }
+      } else if (value["_$litType$"] !== undefined) {
+        this._commitTemplateResult(value);
+      } else if (value.nodeType !== undefined) {
+        if (DEV_MODE2 && this.options?.host === value) {
+          this._commitText(`[probable mistake: rendered a template's host in itself ` + `(commonly caused by writing \${this} in a template]`);
+          console.warn(`Attempted to render the template host`, value, `inside itself. This is almost always a mistake, and in dev mode `, `we render some warning text. In production however, we'll `, `render it, which will usually result in an error, and sometimes `, `in the element disappearing from the DOM.`);
+          return;
+        }
+        this._commitNode(value);
+      } else if (isIterable(value)) {
+        this._commitIterable(value);
+      } else {
+        this._commitText(value);
+      }
+    }
+    _insert(node) {
+      return wrap(wrap(this._$startNode).parentNode).insertBefore(node, this._$endNode);
+    }
+    _commitNode(value) {
+      if (this._$committedValue !== value) {
+        this._$clear();
+        if (ENABLE_EXTRA_SECURITY_HOOKS && sanitizerFactoryInternal !== noopSanitizer) {
+          const parentNodeName = this._$startNode.parentNode?.nodeName;
+          if (parentNodeName === "STYLE" || parentNodeName === "SCRIPT") {
+            let message = "Forbidden";
+            if (DEV_MODE2) {
+              if (parentNodeName === "STYLE") {
+                message = `Lit does not support binding inside style nodes. ` + `This is a security risk, as style injection attacks can ` + `exfiltrate data and spoof UIs. ` + `Consider instead using css\`...\` literals ` + `to compose styles, and do dynamic styling with ` + `css custom properties, ::parts, <slot>s, ` + `and by mutating the DOM rather than stylesheets.`;
+              } else {
+                message = `Lit does not support binding inside script nodes. ` + `This is a security risk, as it could allow arbitrary ` + `code execution.`;
+              }
+            }
+            throw new Error(message);
+          }
+        }
+        debugLogEvent2 && debugLogEvent2({
+          kind: "commit node",
+          start: this._$startNode,
+          parent: this._$parent,
+          value,
+          options: this.options
+        });
+        this._$committedValue = this._insert(value);
+      }
+    }
+    _commitText(value) {
+      if (this._$committedValue !== nothing && isPrimitive(this._$committedValue)) {
+        const node = wrap(this._$startNode).nextSibling;
+        if (ENABLE_EXTRA_SECURITY_HOOKS) {
+          if (this._textSanitizer === undefined) {
+            this._textSanitizer = createSanitizer(node, "data", "property");
+          }
+          value = this._textSanitizer(value);
+        }
+        debugLogEvent2 && debugLogEvent2({
+          kind: "commit text",
+          node,
+          value,
+          options: this.options
+        });
+        node.data = value;
+      } else {
+        if (ENABLE_EXTRA_SECURITY_HOOKS) {
+          const textNode = d.createTextNode("");
+          this._commitNode(textNode);
+          if (this._textSanitizer === undefined) {
+            this._textSanitizer = createSanitizer(textNode, "data", "property");
+          }
+          value = this._textSanitizer(value);
+          debugLogEvent2 && debugLogEvent2({
+            kind: "commit text",
+            node: textNode,
+            value,
+            options: this.options
+          });
+          textNode.data = value;
+        } else {
+          this._commitNode(d.createTextNode(value));
+          debugLogEvent2 && debugLogEvent2({
+            kind: "commit text",
+            node: wrap(this._$startNode).nextSibling,
+            value,
+            options: this.options
+          });
+        }
+      }
+      this._$committedValue = value;
+    }
+    _commitTemplateResult(result) {
+      const { values, ["_$litType$"]: type } = result;
+      const template = typeof type === "number" ? this._$getTemplate(result) : (type.el === undefined && (type.el = Template.createElement(trustFromTemplateString(type.h, type.h[0]), this.options)), type);
+      if (this._$committedValue?._$template === template) {
+        debugLogEvent2 && debugLogEvent2({
+          kind: "template updating",
+          template,
+          instance: this._$committedValue,
+          parts: this._$committedValue._$parts,
+          options: this.options,
+          values
+        });
+        this._$committedValue._update(values);
+      } else {
+        const instance = new TemplateInstance(template, this);
+        const fragment = instance._clone(this.options);
+        debugLogEvent2 && debugLogEvent2({
+          kind: "template instantiated",
+          template,
+          instance,
+          parts: instance._$parts,
+          options: this.options,
+          fragment,
+          values
+        });
+        instance._update(values);
+        debugLogEvent2 && debugLogEvent2({
+          kind: "template instantiated and updated",
+          template,
+          instance,
+          parts: instance._$parts,
+          options: this.options,
+          fragment,
+          values
+        });
+        this._commitNode(fragment);
+        this._$committedValue = instance;
+      }
+    }
+    _$getTemplate(result) {
+      let template = templateCache.get(result.strings);
+      if (template === undefined) {
+        templateCache.set(result.strings, template = new Template(result));
+      }
+      return template;
+    }
+    _commitIterable(value) {
+      if (!isArray(this._$committedValue)) {
+        this._$committedValue = [];
+        this._$clear();
+      }
+      const itemParts = this._$committedValue;
+      let partIndex = 0;
+      let itemPart;
+      for (const item of value) {
+        if (partIndex === itemParts.length) {
+          itemParts.push(itemPart = new ChildPart(this._insert(createMarker()), this._insert(createMarker()), this, this.options));
+        } else {
+          itemPart = itemParts[partIndex];
+        }
+        itemPart._$setValue(item);
+        partIndex++;
+      }
+      if (partIndex < itemParts.length) {
+        this._$clear(itemPart && wrap(itemPart._$endNode).nextSibling, partIndex);
+        itemParts.length = partIndex;
+      }
+    }
+    _$clear(start = wrap(this._$startNode).nextSibling, from) {
+      this._$notifyConnectionChanged?.(false, true, from);
+      while (start !== this._$endNode) {
+        const n = wrap(start).nextSibling;
+        wrap(start).remove();
+        start = n;
+      }
+    }
+    setConnected(isConnected) {
+      if (this._$parent === undefined) {
+        this.__isConnected = isConnected;
+        this._$notifyConnectionChanged?.(isConnected);
+      } else if (DEV_MODE2) {
+        throw new Error("part.setConnected() may only be called on a " + "RootPart returned from render().");
+      }
+    }
+  }
+
+  class AttributePart {
+    get tagName() {
+      return this.element.tagName;
+    }
+    get _$isConnected() {
+      return this._$parent._$isConnected;
+    }
+    constructor(element, name, strings, parent, options) {
+      this.type = ATTRIBUTE_PART;
+      this._$committedValue = nothing;
+      this._$disconnectableChildren = undefined;
+      this.element = element;
+      this.name = name;
+      this._$parent = parent;
+      this.options = options;
+      if (strings.length > 2 || strings[0] !== "" || strings[1] !== "") {
+        this._$committedValue = new Array(strings.length - 1).fill(new String);
+        this.strings = strings;
+      } else {
+        this._$committedValue = nothing;
+      }
+      if (ENABLE_EXTRA_SECURITY_HOOKS) {
+        this._sanitizer = undefined;
+      }
+    }
+    _$setValue(value, directiveParent = this, valueIndex, noCommit) {
+      const strings = this.strings;
+      let change = false;
+      if (strings === undefined) {
+        value = resolveDirective(this, value, directiveParent, 0);
+        change = !isPrimitive(value) || value !== this._$committedValue && value !== noChange;
+        if (change) {
+          this._$committedValue = value;
+        }
+      } else {
+        const values = value;
+        value = strings[0];
+        let i, v;
+        for (i = 0;i < strings.length - 1; i++) {
+          v = resolveDirective(this, values[valueIndex + i], directiveParent, i);
+          if (v === noChange) {
+            v = this._$committedValue[i];
+          }
+          change ||= !isPrimitive(v) || v !== this._$committedValue[i];
+          if (v === nothing) {
+            value = nothing;
+          } else if (value !== nothing) {
+            value += (v ?? "") + strings[i + 1];
+          }
+          this._$committedValue[i] = v;
+        }
+      }
+      if (change && !noCommit) {
+        this._commitValue(value);
+      }
+    }
+    _commitValue(value) {
+      if (value === nothing) {
+        wrap(this.element).removeAttribute(this.name);
+      } else {
+        if (ENABLE_EXTRA_SECURITY_HOOKS) {
+          if (this._sanitizer === undefined) {
+            this._sanitizer = sanitizerFactoryInternal(this.element, this.name, "attribute");
+          }
+          value = this._sanitizer(value ?? "");
+        }
+        debugLogEvent2 && debugLogEvent2({
+          kind: "commit attribute",
+          element: this.element,
+          name: this.name,
+          value,
+          options: this.options
+        });
+        wrap(this.element).setAttribute(this.name, value ?? "");
+      }
+    }
+  }
+
+  class PropertyPart extends AttributePart {
+    constructor() {
+      super(...arguments);
+      this.type = PROPERTY_PART;
+    }
+    _commitValue(value) {
+      if (ENABLE_EXTRA_SECURITY_HOOKS) {
+        if (this._sanitizer === undefined) {
+          this._sanitizer = sanitizerFactoryInternal(this.element, this.name, "property");
+        }
+        value = this._sanitizer(value);
+      }
+      debugLogEvent2 && debugLogEvent2({
+        kind: "commit property",
+        element: this.element,
+        name: this.name,
+        value,
+        options: this.options
+      });
+      this.element[this.name] = value === nothing ? undefined : value;
+    }
+  }
+
+  class BooleanAttributePart extends AttributePart {
+    constructor() {
+      super(...arguments);
+      this.type = BOOLEAN_ATTRIBUTE_PART;
+    }
+    _commitValue(value) {
+      debugLogEvent2 && debugLogEvent2({
+        kind: "commit boolean attribute",
+        element: this.element,
+        name: this.name,
+        value: !!(value && value !== nothing),
+        options: this.options
+      });
+      wrap(this.element).toggleAttribute(this.name, !!value && value !== nothing);
+    }
+  }
+
+  class EventPart extends AttributePart {
+    constructor(element, name, strings, parent, options) {
+      super(element, name, strings, parent, options);
+      this.type = EVENT_PART;
+      if (DEV_MODE2 && this.strings !== undefined) {
+        throw new Error(`A \`<${element.localName}>\` has a \`@${name}=...\` listener with ` + "invalid content. Event listeners in templates must have exactly " + "one expression and no surrounding text.");
+      }
+    }
+    _$setValue(newListener, directiveParent = this) {
+      newListener = resolveDirective(this, newListener, directiveParent, 0) ?? nothing;
+      if (newListener === noChange) {
+        return;
+      }
+      const oldListener = this._$committedValue;
+      const shouldRemoveListener = newListener === nothing && oldListener !== nothing || newListener.capture !== oldListener.capture || newListener.once !== oldListener.once || newListener.passive !== oldListener.passive;
+      const shouldAddListener = newListener !== nothing && (oldListener === nothing || shouldRemoveListener);
+      debugLogEvent2 && debugLogEvent2({
+        kind: "commit event listener",
+        element: this.element,
+        name: this.name,
+        value: newListener,
+        options: this.options,
+        removeListener: shouldRemoveListener,
+        addListener: shouldAddListener,
+        oldListener
+      });
+      if (shouldRemoveListener) {
+        this.element.removeEventListener(this.name, this, oldListener);
+      }
+      if (shouldAddListener) {
+        this.element.addEventListener(this.name, this, newListener);
+      }
+      this._$committedValue = newListener;
+    }
+    handleEvent(event) {
+      if (typeof this._$committedValue === "function") {
+        this._$committedValue.call(this.options?.host ?? this.element, event);
+      } else {
+        this._$committedValue.handleEvent(event);
+      }
+    }
+  }
+
+  class ElementPart {
+    constructor(element, parent, options) {
+      this.element = element;
+      this.type = ELEMENT_PART;
+      this._$disconnectableChildren = undefined;
+      this._$parent = parent;
+      this.options = options;
+    }
+    get _$isConnected() {
+      return this._$parent._$isConnected;
+    }
+    _$setValue(value) {
+      debugLogEvent2 && debugLogEvent2({
+        kind: "commit to element binding",
+        element: this.element,
+        value,
+        options: this.options
+      });
+      resolveDirective(this, value);
+    }
+  }
+  var polyfillSupport2 = DEV_MODE2 ? global3.litHtmlPolyfillSupportDevMode : global3.litHtmlPolyfillSupport;
+  polyfillSupport2?.(Template, ChildPart);
+  (global3.litHtmlVersions ??= []).push("3.3.3");
+  if (DEV_MODE2 && global3.litHtmlVersions.length > 1) {
+    queueMicrotask(() => {
+      issueWarning2("multiple-versions", `Multiple versions of Lit loaded. ` + `Loading multiple versions is not recommended.`);
+    });
+  }
+  var render = (value, container, options) => {
+    if (DEV_MODE2 && container == null) {
+      throw new TypeError(`The container to render into may not be ${container}`);
+    }
+    const renderId = DEV_MODE2 ? debugLogRenderId++ : 0;
+    const partOwnerNode = options?.renderBefore ?? container;
+    let part = partOwnerNode["_$litPart$"];
+    debugLogEvent2 && debugLogEvent2({
+      kind: "begin render",
+      id: renderId,
+      value,
+      container,
+      options,
+      part
+    });
+    if (part === undefined) {
+      const endNode = options?.renderBefore ?? null;
+      partOwnerNode["_$litPart$"] = part = new ChildPart(container.insertBefore(createMarker(), endNode), endNode, undefined, options ?? {});
+    }
+    part._$setValue(value);
+    debugLogEvent2 && debugLogEvent2({
+      kind: "end render",
+      id: renderId,
+      value,
+      container,
+      options,
+      part
+    });
+    return part;
+  };
+  if (ENABLE_EXTRA_SECURITY_HOOKS) {
+    render.setSanitizer = setSanitizer;
+    render.createSanitizer = createSanitizer;
+    if (DEV_MODE2) {
+      render._testOnlyClearSanitizerFactoryDoNotCallOrElse = _testOnlyClearSanitizerFactoryDoNotCallOrElse;
+    }
+  }
+
+  // node_modules/lit-element/development/lit-element.js
+  var JSCompiler_renameProperty2 = (prop, _obj) => prop;
+  var DEV_MODE3 = true;
+  var global4 = globalThis;
+  var issueWarning3;
+  if (DEV_MODE3) {
+    global4.litIssuedWarnings ??= new Set;
+    issueWarning3 = (code, warning) => {
+      warning += ` See https://lit.dev/msg/${code} for more information.`;
+      if (!global4.litIssuedWarnings.has(warning) && !global4.litIssuedWarnings.has(code)) {
+        console.warn(warning);
+        global4.litIssuedWarnings.add(warning);
+      }
+    };
+  }
+
+  class LitElement extends ReactiveElement {
+    constructor() {
+      super(...arguments);
+      this.renderOptions = { host: this };
+      this.__childPart = undefined;
+    }
+    createRenderRoot() {
+      const renderRoot = super.createRenderRoot();
+      this.renderOptions.renderBefore ??= renderRoot.firstChild;
+      return renderRoot;
+    }
+    update(changedProperties) {
+      const value = this.render();
+      if (!this.hasUpdated) {
+        this.renderOptions.isConnected = this.isConnected;
+      }
+      super.update(changedProperties);
+      this.__childPart = render(value, this.renderRoot, this.renderOptions);
+    }
+    connectedCallback() {
+      super.connectedCallback();
+      this.__childPart?.setConnected(true);
+    }
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      this.__childPart?.setConnected(false);
+    }
+    render() {
+      return noChange;
+    }
+  }
+  LitElement["_$litElement$"] = true;
+  LitElement[JSCompiler_renameProperty2("finalized", LitElement)] = true;
+  global4.litElementHydrateSupport?.({ LitElement });
+  var polyfillSupport3 = DEV_MODE3 ? global4.litElementPolyfillSupportDevMode : global4.litElementPolyfillSupport;
+  polyfillSupport3?.({ LitElement });
+  (global4.litElementVersions ??= []).push("4.2.2");
+  if (DEV_MODE3 && global4.litElementVersions.length > 1) {
+    queueMicrotask(() => {
+      issueWarning3("multiple-versions", `Multiple versions of Lit loaded. Loading multiple versions ` + `is not recommended.`);
+    });
+  }
+  // src/hide-tabs.js
+  var STYLE_ID = "fibbers-hide-tabs";
+  var CSS = {
+    true: `ha-tab-group { display: none !important; }`,
+    header: `.header { display: none !important; }`
+  };
+  var state = {
+    mode: false,
+    observer: null,
+    scheduled: false
+  };
+  function suppressed() {
+    if (window.FIBBERS_SHOW_TABS === true)
+      return true;
+    try {
+      return new URLSearchParams(window.location.search).has("disable_km");
+    } catch (_) {
+      return false;
+    }
+  }
+  function findHuiRoot() {
+    const stack = [document.documentElement];
+    while (stack.length) {
+      const el = stack.pop();
+      if (el.localName === "hui-root")
+        return el;
+      if (el.shadowRoot)
+        stack.push(...el.shadowRoot.children);
+      if (el.children)
+        stack.push(...el.children);
+    }
+    return null;
+  }
+  function findResolvedPanel() {
+    const stack = [document.documentElement];
+    while (stack.length) {
+      const el = stack.pop();
+      if (el.localName === "partial-panel-resolver")
+        return el;
+      if (el.shadowRoot)
+        stack.push(...el.shadowRoot.children);
+      if (el.children)
+        stack.push(...el.children);
+    }
+    return null;
+  }
+  function paint() {
+    if (!state.mode || suppressed())
+      return removeStyle();
+    const root = findHuiRoot();
+    if (!root || !root.shadowRoot) {
+      console.debug("fibbers: hui-root not found; leaving HA tabs untouched");
+      return;
+    }
+    const css2 = CSS[state.mode];
+    if (!css2)
+      return;
+    let style = root.shadowRoot.getElementById(STYLE_ID);
+    if (style) {
+      if (style.textContent !== css2)
+        style.textContent = css2;
+      return;
+    }
+    style = document.createElement("style");
+    style.id = STYLE_ID;
+    style.textContent = css2;
+    root.shadowRoot.appendChild(style);
+  }
+  function removeStyle() {
+    const root = findHuiRoot();
+    const style = root && root.shadowRoot && root.shadowRoot.getElementById(STYLE_ID);
+    if (style)
+      style.remove();
+  }
+  function schedulePaint() {
+    if (state.scheduled)
+      return;
+    state.scheduled = true;
+    setTimeout(() => {
+      state.scheduled = false;
+      paint();
+    }, 60);
+  }
+  function startObserver() {
+    if (state.observer)
+      return;
+    const panel = findResolvedPanel() || document.body;
+    try {
+      state.observer = new MutationObserver(schedulePaint);
+      state.observer.observe(panel, { childList: true, subtree: true });
+    } catch (_) {}
+  }
+  function stopObserver() {
+    if (state.observer) {
+      state.observer.disconnect();
+      state.observer = null;
+    }
+  }
+  function setTabHiding(mode) {
+    const normalized = mode === true || mode === "header" ? mode : false;
+    state.mode = normalized;
+    if (!normalized) {
+      removeTabHiding();
+      return;
+    }
+    paint();
+    startObserver();
+  }
+  function removeTabHiding() {
+    state.mode = false;
+    stopObserver();
+    removeStyle();
+  }
+  window.addEventListener("location-changed", schedulePaint);
+  window.addEventListener("popstate", schedulePaint);
+
+  // src/util.js
+  var store = {
+    get(key, fallback) {
+      try {
+        const raw = sessionStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (_) {
+        return fallback;
+      }
+    },
+    set(key, value) {
+      try {
+        sessionStorage.setItem(key, JSON.stringify(value));
+      } catch (_) {}
+    }
+  };
+  var norm = (p) => String(p || "").replace(/\/+$/, "") || "/";
+  var here = () => norm(window.location.pathname);
+  function moreInfo(host, entityId) {
+    if (!host || !entityId)
+      return;
+    host.dispatchEvent(new CustomEvent("hass-more-info", {
+      detail: { entityId },
+      bubbles: true,
+      composed: true
+    }));
+  }
+  var nl = (n, d2) => Number.isFinite(n) ? n.toLocaleString("nl-NL", d2 != null ? { minimumFractionDigits: d2, maximumFractionDigits: d2 } : {}) : String(n);
+  var isUnavail = (st) => !st || st.state === "unavailable" || st.state === "unknown";
+  var clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+  function fmtState(hass, st) {
+    try {
+      if (hass && typeof hass.formatEntityState === "function")
+        return hass.formatEntityState(st);
+    } catch (_) {}
+    return st ? st.state : "";
+  }
+  function debounce(fn, ms) {
+    let t;
+    const wrapped = (...args) => {
+      clearTimeout(t);
+      t = setTimeout(() => fn(...args), ms);
+    };
+    wrapped.cancel = () => clearTimeout(t);
+    return wrapped;
+  }
+  function pctFromX(clientX, track) {
+    const r = track.getBoundingClientRect();
+    return clamp((clientX - r.left) / r.width * 100, 0, 100);
+  }
+  async function fetchHistory(hass, entityId, hours = 24) {
+    if (!hass || !hass.callWS)
+      return [];
+    const end = new Date;
+    const start = new Date(end.getTime() - hours * 3600000);
+    const res = await hass.callWS({
+      type: "history/history_during_period",
+      start_time: start.toISOString(),
+      end_time: end.toISOString(),
+      entity_ids: [entityId],
+      minimal_response: true,
+      no_attributes: true
+    });
+    return (res && res[entityId] || []).map((r) => Number(r.s != null ? r.s : r.state)).filter((n) => Number.isFinite(n));
+  }
+  function navigate(path, { replace = false } = {}) {
+    if (!path)
+      return;
+    if (String(path).startsWith("#")) {
+      window.location.hash = path;
+      return;
+    }
+    if (replace)
+      history.replaceState(null, "", path);
+    else
+      history.pushState(null, "", path);
+    window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace } }));
+  }
+
+  // src/nav-stack.js
+  var NAV_KEY = "fibbers:navstack";
+  var nav = {
+    tabs: new Set,
+    stack: store.get(NAV_KEY, []),
+    listeners: new Set,
+    hassRef: null
+  };
+  var registerTabs = (paths) => paths.forEach((p) => nav.tabs.add(norm(p)));
+  var isTab = (path) => nav.tabs.has(norm(path));
+  function onRouteChange() {
+    const path = here();
+    const s = nav.stack;
+    if (isTab(path)) {
+      nav.stack = [path];
+    } else if (s.length >= 2 && norm(s[s.length - 2]) === path) {
+      nav.stack = s.slice(0, -1);
+    } else if (norm(s[s.length - 1]) !== path) {
+      nav.stack = s.concat([path]);
+    }
+    if (nav.stack.length > 20)
+      nav.stack = nav.stack.slice(-20);
+    store.set(NAV_KEY, nav.stack);
+    nav.listeners.forEach((fn) => {
+      try {
+        fn();
+      } catch (_) {}
+    });
+  }
+  var previous = () => nav.stack.length >= 2 ? nav.stack[nav.stack.length - 2] : null;
+  function goBack(fallback) {
+    const prev = previous();
+    if (prev) {
+      nav.stack = nav.stack.slice(0, -1);
+      store.set(NAV_KEY, nav.stack);
+      navigate(prev);
+      return;
+    }
+    if (fallback) {
+      navigate(fallback);
+      return;
+    }
+    if (history.length > 1)
+      history.back();
+  }
+  window.addEventListener("location-changed", onRouteChange);
+  window.addEventListener("popstate", onRouteChange);
+  onRouteChange();
+
+  // src/tokens.js
+  var T = {
+    bg: "#111516",
+    card: "#1D2426",
+    card2: "#262F31",
+    line: "#333E41",
+    ink: "#EDF1F1",
+    ink2: "#A9B6B9",
+    muted: "#7D8B8E",
+    accent: "#74B98A",
+    accentSoft: "rgba(116,185,138,.10)",
+    accentBg: "#17281C",
+    accentLine: "#2B4A34",
+    accentTx: "#CFE6D5",
+    amber: "#E8A33D",
+    amberSoft: "rgba(232,163,61,.09)",
+    amberBg: "#3A2B12",
+    amberLine: "#4E3A18",
+    amberTx: "#EBD9BC",
+    blue: "#5AAFD6",
+    blueBg: "#152B36",
+    blueLine: "#2C5A70",
+    blueInk: "#9BD2EA",
+    green: "#63C295",
+    red: "#EC8377",
+    sheet: "#171E20",
+    nav: "#161C1E",
+    grab: "#3E4A4D",
+    rowLine: "#262F31"
+  };
+  function styleBlock() {
+    return `:host {
+    --fib-bg: ${T.bg};
+    --fib-card: ${T.card};
+    --fib-card-2: ${T.card2};
+    --fib-line: ${T.line};
+    --fib-ink: ${T.ink};
+    --fib-ink-2: ${T.ink2};
+    --fib-muted: ${T.muted};
+    --fib-accent: ${T.accent};
+    --fib-accent-soft: ${T.accentSoft};
+    --fib-accent-bg: ${T.accentBg};
+    --fib-accent-line: ${T.accentLine};
+    --fib-accent-tx: ${T.accentTx};
+    --fib-amber: ${T.amber};
+    --fib-amber-bg: ${T.amberBg};
+    --fib-amber-line: ${T.amberLine};
+    --fib-amber-tx: ${T.amberTx};
+    --fib-blue: ${T.blue};
+    --fib-blue-bg: ${T.blueBg};
+    --fib-blue-line: ${T.blueLine};
+    --fib-blue-ink: ${T.blueInk};
+    --fib-green: ${T.green};
+    --fib-red: ${T.red};
+    --fib-sheet: ${T.sheet};
+    --fib-nav: ${T.nav};
+    --fib-grab: ${T.grab};
+    --fib-row-line: ${T.rowLine};
+  }`;
+  }
+
+  // src/tailwind.gen.js
+  var TW_CSS = `/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */
+@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-translate-x:0;--tw-translate-y:0;--tw-translate-z:0;--tw-rotate-x:initial;--tw-rotate-y:initial;--tw-rotate-z:initial;--tw-skew-x:initial;--tw-skew-y:initial;--tw-border-style:solid;--tw-leading:initial;--tw-font-weight:initial;--tw-tracking:initial;--tw-shadow:0 0 #0000;--tw-shadow-color:initial;--tw-shadow-alpha:100%;--tw-inset-shadow:0 0 #0000;--tw-inset-shadow-color:initial;--tw-inset-shadow-alpha:100%;--tw-ring-color:initial;--tw-ring-shadow:0 0 #0000;--tw-inset-ring-color:initial;--tw-inset-ring-shadow:0 0 #0000;--tw-ring-inset:initial;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-offset-shadow:0 0 #0000;--tw-outline-style:solid;--tw-blur:initial;--tw-brightness:initial;--tw-contrast:initial;--tw-grayscale:initial;--tw-hue-rotate:initial;--tw-invert:initial;--tw-opacity:initial;--tw-saturate:initial;--tw-sepia:initial;--tw-drop-shadow:initial;--tw-drop-shadow-color:initial;--tw-drop-shadow-alpha:100%;--tw-drop-shadow-size:initial;--tw-backdrop-blur:initial;--tw-backdrop-brightness:initial;--tw-backdrop-contrast:initial;--tw-backdrop-grayscale:initial;--tw-backdrop-hue-rotate:initial;--tw-backdrop-invert:initial;--tw-backdrop-opacity:initial;--tw-backdrop-saturate:initial;--tw-backdrop-sepia:initial;--tw-scale-x:1;--tw-scale-y:1;--tw-scale-z:1}}}@layer theme{:root,:host{--font-sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";--font-mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;--color-white:#fff;--spacing:.25rem;--font-weight-medium:500;--font-weight-semibold:600;--tracking-tight:-.025em;--leading-tight:1.25;--radius-lg:.5rem;--radius-xl:.75rem;--default-transition-duration:.15s;--default-transition-timing-function:cubic-bezier(.4, 0, .2, 1);--default-font-family:var(--font-sans);--default-mono-font-family:var(--font-mono);--color-card:#1d2426;--color-card2:#262f31;--color-line:#333e41;--color-ink:#edf1f1;--color-ink2:#a9b6b9;--color-muted:#7d8b8e;--color-accent:#74b98a;--color-accentbg:#17281c;--color-accentline:#2b4a34;--color-accenttx:#cfe6d5;--color-amber:#e8a33d;--color-amberbg:#3a2b12;--color-amberline:#4e3a18;--color-ambertx:#ebd9bc;--color-blue:#5aafd6;--color-bluebg:#152b36;--color-blueline:#2c5a70;--color-blueink:#9bd2ea;--color-green:#63c295;--color-red:#ec8377}}@layer base{*,:after,:before,::backdrop{box-sizing:border-box;border:0 solid;margin:0;padding:0}::file-selector-button{box-sizing:border-box;border:0 solid;margin:0;padding:0}html,:host{-webkit-text-size-adjust:100%;tab-size:4;line-height:1.5;font-family:var(--default-font-family,-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");font-feature-settings:var(--default-font-feature-settings,normal);font-variation-settings:var(--default-font-variation-settings,normal);-webkit-tap-highlight-color:transparent}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,samp,pre{font-family:var(--default-mono-font-family,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);font-feature-settings:var(--default-mono-font-feature-settings,normal);font-variation-settings:var(--default-mono-font-variation-settings,normal);font-size:1em}small{font-size:80%}sub,sup{vertical-align:baseline;font-size:75%;line-height:0;position:relative}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}:-moz-focusring:where(:not(iframe)){outline:auto}progress{vertical-align:baseline}summary{display:list-item}ol,ul,menu{list-style:none}img,svg,video,canvas,audio,iframe,embed,object{vertical-align:middle;display:block}img,video{max-width:100%;height:auto}button,input,select,optgroup,textarea{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}::file-selector-button{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}:where(select:is([multiple],[size])) optgroup{font-weight:bolder}:where(select:is([multiple],[size])) optgroup option{padding-inline-start:20px}::file-selector-button{margin-inline-end:4px}::placeholder{opacity:1}@supports (not ((-webkit-appearance:-apple-pay-button))) or (contain-intrinsic-size:1px){::placeholder{color:currentColor}@supports (color:color-mix(in lab, red, red)){::placeholder{color:color-mix(in oklab, currentcolor 50%, transparent)}}}textarea{resize:vertical}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-date-and-time-value{min-height:1lh;text-align:inherit}::-webkit-datetime-edit{display:inline-flex}::-webkit-datetime-edit-fields-wrapper{padding:0}::-webkit-datetime-edit{padding-block:0}::-webkit-datetime-edit-year-field{padding-block:0}::-webkit-datetime-edit-month-field{padding-block:0}::-webkit-datetime-edit-day-field{padding-block:0}::-webkit-datetime-edit-hour-field{padding-block:0}::-webkit-datetime-edit-minute-field{padding-block:0}::-webkit-datetime-edit-second-field{padding-block:0}::-webkit-datetime-edit-millisecond-field{padding-block:0}::-webkit-datetime-edit-meridiem-field{padding-block:0}::-webkit-calendar-picker-indicator{line-height:1}:-moz-ui-invalid{box-shadow:none}button,input:where([type=button],[type=reset],[type=submit]){appearance:button}::file-selector-button{appearance:button}::-webkit-inner-spin-button{height:auto}::-webkit-outer-spin-button{height:auto}[hidden]:where(:not([hidden=until-found])){display:none!important}}@layer components;@layer utilities{.pointer-events-none{pointer-events:none}.collapse{visibility:collapse}.invisible{visibility:hidden}.visible{visibility:visible}.absolute{position:absolute}.fixed{position:fixed}.relative{position:relative}.static{position:static}.top-0{top:0}.top-0\\.5{top:calc(var(--spacing) * .5)}.top-1{top:var(--spacing)}.top-1\\/2{top:50%}.top-\\[calc\\(100\\%\\+4px\\)\\]{top:calc(100% + 4px)}.right-0{right:0}.bottom-0{bottom:0}.left-0{left:0}.left-0\\.5{left:calc(var(--spacing) * .5)}.left-1{left:var(--spacing)}.left-1\\/2{left:50%}.left-\\[18px\\]{left:18px}.z-10{z-index:10}.col-start-2{grid-column-start:2}.row-span-2{grid-row:span 2/span 2}.container{width:100%}@media (min-width:40rem){.container{max-width:40rem}}@media (min-width:48rem){.container{max-width:48rem}}@media (min-width:64rem){.container{max-width:64rem}}@media (min-width:80rem){.container{max-width:80rem}}@media (min-width:96rem){.container{max-width:96rem}}.mx-auto{margin-inline:auto}.mt-0{margin-top:0}.mt-0\\.5{margin-top:calc(var(--spacing) * .5)}.mt-1{margin-top:var(--spacing)}.mt-1\\.5{margin-top:calc(var(--spacing) * 1.5)}.mt-2{margin-top:calc(var(--spacing) * 2)}.mt-2\\.5{margin-top:calc(var(--spacing) * 2.5)}.mt-3{margin-top:calc(var(--spacing) * 3)}.mb-1{margin-bottom:var(--spacing)}.mb-1\\.5{margin-bottom:calc(var(--spacing) * 1.5)}.mb-2{margin-bottom:calc(var(--spacing) * 2)}.mb-2\\.5{margin-bottom:calc(var(--spacing) * 2.5)}.mb-3{margin-bottom:calc(var(--spacing) * 3)}.ml-0{margin-left:0}.ml-0\\.5{margin-left:calc(var(--spacing) * .5)}.ml-2{margin-left:calc(var(--spacing) * 2)}.ml-\\[7px\\]{margin-left:7px}.ml-auto{margin-left:auto}.block{display:block}.contents{display:contents}.flex{display:flex}.grid{display:grid}.hidden{display:none}.inline{display:inline}.inline-flex{display:inline-flex}.table{display:table}.h-1{height:var(--spacing)}.h-1\\.5{height:calc(var(--spacing) * 1.5)}.h-3{height:calc(var(--spacing) * 3)}.h-3\\.5{height:calc(var(--spacing) * 3.5)}.h-4{height:calc(var(--spacing) * 4)}.h-5{height:calc(var(--spacing) * 5)}.h-6{height:calc(var(--spacing) * 6)}.h-7{height:calc(var(--spacing) * 7)}.h-8{height:calc(var(--spacing) * 8)}.h-9{height:calc(var(--spacing) * 9)}.h-10{height:calc(var(--spacing) * 10)}.h-11{height:calc(var(--spacing) * 11)}.h-14{height:calc(var(--spacing) * 14)}.h-\\[5px\\]{height:5px}.h-\\[13px\\]{height:13px}.h-\\[15px\\]{height:15px}.h-\\[17px\\]{height:17px}.h-\\[18px\\]{height:18px}.h-\\[19px\\]{height:19px}.h-\\[20px\\]{height:20px}.h-\\[22px\\]{height:22px}.h-\\[26px\\]{height:26px}.h-\\[30px\\]{height:30px}.h-\\[34px\\]{height:34px}.h-\\[42px\\]{height:42px}.max-h-\\[220px\\]{max-height:220px}.w-3{width:calc(var(--spacing) * 3)}.w-3\\.5{width:calc(var(--spacing) * 3.5)}.w-4{width:calc(var(--spacing) * 4)}.w-5{width:calc(var(--spacing) * 5)}.w-6{width:calc(var(--spacing) * 6)}.w-7{width:calc(var(--spacing) * 7)}.w-8{width:calc(var(--spacing) * 8)}.w-9{width:calc(var(--spacing) * 9)}.w-10{width:calc(var(--spacing) * 10)}.w-11{width:calc(var(--spacing) * 11)}.w-14{width:calc(var(--spacing) * 14)}.w-\\[5px\\]{width:5px}.w-\\[13px\\]{width:13px}.w-\\[15px\\]{width:15px}.w-\\[17px\\]{width:17px}.w-\\[18px\\]{width:18px}.w-\\[19px\\]{width:19px}.w-\\[20px\\]{width:20px}.w-\\[22px\\]{width:22px}.w-\\[26px\\]{width:26px}.w-\\[30px\\]{width:30px}.w-\\[34px\\]{width:34px}.w-\\[42px\\]{width:42px}.w-full{width:100%}.max-w-\\[96px\\]{max-width:96px}.min-w-0{min-width:0}.min-w-\\[52px\\]{min-width:52px}.min-w-\\[68px\\]{min-width:68px}.flex-1{flex:1}.flex-none{flex:none}.shrink{flex-shrink:1}.-translate-x-1{--tw-translate-x:calc(var(--spacing) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-x-1\\/2{--tw-translate-x:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1{--tw-translate-y:calc(var(--spacing) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1\\/2{--tw-translate-y:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.rotate-180{rotate:180deg}.transform{transform:var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,)}.cursor-pointer{cursor:pointer}.touch-none{touch-action:none}.resize{resize:both}.auto-cols-fr{grid-auto-columns:minmax(0,1fr)}.grid-flow-col{grid-auto-flow:column}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-\\[28px_1fr\\]{grid-template-columns:28px 1fr}.grid-cols-\\[28px_1fr_auto\\]{grid-template-columns:28px 1fr auto}.grid-cols-\\[34px_1fr\\]{grid-template-columns:34px 1fr}.grid-cols-\\[repeat\\(auto-fit\\,minmax\\(84px\\,1fr\\)\\)\\]{grid-template-columns:repeat(auto-fit,minmax(84px,1fr))}.grid-rows-\\[auto_auto\\]{grid-template-rows:auto auto}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-baseline{align-items:baseline}.items-center{align-items:center}.justify-between{justify-content:space-between}.justify-center{justify-content:center}.gap-1{gap:var(--spacing)}.gap-1\\.5{gap:calc(var(--spacing) * 1.5)}.gap-2{gap:calc(var(--spacing) * 2)}.gap-2\\.5{gap:calc(var(--spacing) * 2.5)}.gap-3{gap:calc(var(--spacing) * 3)}.gap-4{gap:calc(var(--spacing) * 4)}.gap-\\[3px\\]{gap:3px}.gap-\\[5px\\]{gap:5px}.gap-\\[7px\\]{gap:7px}.gap-x-2{column-gap:calc(var(--spacing) * 2)}.gap-x-2\\.5{column-gap:calc(var(--spacing) * 2.5)}.gap-x-3{column-gap:calc(var(--spacing) * 3)}.gap-x-\\[11px\\]{column-gap:11px}.gap-y-0{row-gap:0}.gap-y-0\\.5{row-gap:calc(var(--spacing) * .5)}.gap-y-2{row-gap:calc(var(--spacing) * 2)}.truncate{text-overflow:ellipsis;white-space:nowrap;overflow:hidden}.overflow-auto{overflow:auto}.overflow-hidden{overflow:hidden}.rounded{border-radius:.25rem}.rounded-\\[3px\\]{border-radius:3px}.rounded-\\[7px\\]{border-radius:7px}.rounded-\\[9px\\]{border-radius:9px}.rounded-\\[10px\\]{border-radius:10px}.rounded-\\[11px\\]{border-radius:11px}.rounded-\\[14px\\]{border-radius:14px}.rounded-\\[15px\\]{border-radius:15px}.rounded-full{border-radius:3.40282e38px}.rounded-lg{border-radius:var(--radius-lg)}.rounded-xl{border-radius:var(--radius-xl)}.border{border-style:var(--tw-border-style);border-width:1px}.border-0{border-style:var(--tw-border-style);border-width:0}.border-\\[\\#2E5238\\]{border-color:#2e5238}.border-accentline{border-color:var(--color-accentline)}.border-amberline{border-color:var(--color-amberline)}.border-blueline{border-color:var(--color-blueline)}.border-line{border-color:var(--color-line)}.bg-\\[\\#2C3639\\]{background-color:#2c3639}.bg-\\[rgba\\(116\\,185\\,138\\,0\\.10\\)\\]{background-color:#74b98a1a}.bg-accent{background-color:var(--color-accent)}.bg-accentbg{background-color:var(--color-accentbg)}.bg-amberbg{background-color:var(--color-amberbg)}.bg-bluebg{background-color:var(--color-bluebg)}.bg-card{background-color:var(--color-card)}.bg-card2{background-color:var(--color-card2)}.bg-transparent{background-color:#0000}.bg-white{background-color:var(--color-white)}.bg-\\[linear-gradient\\(145deg\\,\\#1E3427\\,\\#132016\\)\\]{background-image:linear-gradient(145deg,#1e3427,#132016)}.bg-cover{background-size:cover}.bg-center{background-position:50%}.p-1{padding:var(--spacing)}.p-3{padding:calc(var(--spacing) * 3)}.p-3\\.5{padding:calc(var(--spacing) * 3.5)}.p-\\[13px\\]{padding:13px}.px-0{padding-inline:0}.px-0\\.5{padding-inline:calc(var(--spacing) * .5)}.px-1{padding-inline:var(--spacing)}.px-2{padding-inline:calc(var(--spacing) * 2)}.px-2\\.5{padding-inline:calc(var(--spacing) * 2.5)}.px-3{padding-inline:calc(var(--spacing) * 3)}.px-3\\.5{padding-inline:calc(var(--spacing) * 3.5)}.px-\\[13px\\]{padding-inline:13px}.py-1{padding-block:var(--spacing)}.py-1\\.5{padding-block:calc(var(--spacing) * 1.5)}.py-2{padding-block:calc(var(--spacing) * 2)}.py-3{padding-block:calc(var(--spacing) * 3)}.py-\\[5px\\]{padding-block:5px}.py-\\[7px\\]{padding-block:7px}.py-\\[9px\\]{padding-block:9px}.pt-0{padding-top:0}.pt-0\\.5{padding-top:calc(var(--spacing) * .5)}.pt-\\[5px\\]{padding-top:5px}.pt-\\[7px\\]{padding-top:7px}.pt-\\[13px\\]{padding-top:13px}.pr-\\[11px\\]{padding-right:11px}.pb-1{padding-bottom:var(--spacing)}.pb-1\\.5{padding-bottom:calc(var(--spacing) * 1.5)}.pb-3{padding-bottom:calc(var(--spacing) * 3)}.pb-\\[3px\\]{padding-bottom:3px}.pl-\\[7px\\]{padding-left:7px}.text-center{text-align:center}.text-left{text-align:left}.text-right{text-align:right}.font-mono{font-family:var(--font-mono)}.text-\\[9\\.5px\\]{font-size:9.5px}.text-\\[10\\.5px\\]{font-size:10.5px}.text-\\[10px\\]{font-size:10px}.text-\\[11\\.5px\\]{font-size:11.5px}.text-\\[11px\\]{font-size:11px}.text-\\[12\\.5px\\]{font-size:12.5px}.text-\\[12px\\]{font-size:12px}.text-\\[13px\\]{font-size:13px}.text-\\[14px\\]{font-size:14px}.text-\\[15px\\]{font-size:15px}.text-\\[16px\\]{font-size:16px}.text-\\[17px\\]{font-size:17px}.text-\\[20px\\]{font-size:20px}.text-\\[22px\\]{font-size:22px}.text-\\[24px\\]{font-size:24px}.text-\\[26px\\]{font-size:26px}.text-\\[30px\\]{font-size:30px}.leading-\\[1\\.1\\]{--tw-leading:1.1;line-height:1.1}.leading-\\[1\\.15\\]{--tw-leading:1.15;line-height:1.15}.leading-\\[1\\.25\\]{--tw-leading:1.25;line-height:1.25}.leading-\\[1\\.42\\]{--tw-leading:1.42;line-height:1.42}.leading-none{--tw-leading:1;line-height:1}.leading-tight{--tw-leading:var(--leading-tight);line-height:var(--leading-tight)}.font-medium{--tw-font-weight:var(--font-weight-medium);font-weight:var(--font-weight-medium)}.font-semibold{--tw-font-weight:var(--font-weight-semibold);font-weight:var(--font-weight-semibold)}.tracking-\\[-0\\.015em\\]{--tw-tracking:-.015em;letter-spacing:-.015em}.tracking-\\[0\\.01em\\]{--tw-tracking:.01em;letter-spacing:.01em}.tracking-\\[0\\.06em\\]{--tw-tracking:.06em;letter-spacing:.06em}.tracking-\\[0\\.08em\\]{--tw-tracking:.08em;letter-spacing:.08em}.tracking-\\[0\\.11em\\]{--tw-tracking:.11em;letter-spacing:.11em}.tracking-tight{--tw-tracking:var(--tracking-tight);letter-spacing:var(--tracking-tight)}.text-ellipsis{text-overflow:ellipsis}.whitespace-nowrap{white-space:nowrap}.text-accent{color:var(--color-accent)}.text-accenttx{color:var(--color-accenttx)}.text-amber{color:var(--color-amber)}.text-ambertx{color:var(--color-ambertx)}.text-blue{color:var(--color-blue)}.text-blueink{color:var(--color-blueink)}.text-green{color:var(--color-green)}.text-ink{color:var(--color-ink)}.text-ink2{color:var(--color-ink2)}.text-muted{color:var(--color-muted)}.text-red{color:var(--color-red)}.capitalize{text-transform:capitalize}.lowercase{text-transform:lowercase}.uppercase{text-transform:uppercase}.opacity-40{opacity:.4}.opacity-50{opacity:.5}.opacity-\\[\\.66\\]{opacity:.66}.shadow{--tw-shadow:0 1px 3px 0 var(--tw-shadow-color,#0000001a), 0 1px 2px -1px var(--tw-shadow-color,#0000001a);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_3px_rgba\\(0\\,0\\,0\\,\\.4\\)\\]{--tw-shadow:0 1px 3px var(--tw-shadow-color,#0006);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_3px_rgba\\(0\\,0\\,0\\,\\.35\\)\\]{--tw-shadow:0 1px 3px var(--tw-shadow-color,#00000059);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_10px_30px_rgba\\(0\\,0\\,0\\,\\.5\\)\\]{--tw-shadow:0 10px 30px var(--tw-shadow-color,#00000080);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.outline{outline-style:var(--tw-outline-style);outline-width:1px}.filter{filter:var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)}.backdrop-filter{-webkit-backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,)}.transition{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to,opacity,box-shadow,transform,translate,scale,rotate,filter,-webkit-backdrop-filter,backdrop-filter,display,content-visibility,overlay,pointer-events;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-all{transition-property:all;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-colors{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-transform{transition-property:transform,translate,scale,rotate;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.\\[--mdc-icon-size\\:13px\\]{--mdc-icon-size:13px}.\\[--mdc-icon-size\\:14px\\]{--mdc-icon-size:14px}.\\[--mdc-icon-size\\:15px\\]{--mdc-icon-size:15px}.\\[--mdc-icon-size\\:16px\\]{--mdc-icon-size:16px}.\\[--mdc-icon-size\\:17px\\]{--mdc-icon-size:17px}.\\[--mdc-icon-size\\:18px\\]{--mdc-icon-size:18px}.\\[--mdc-icon-size\\:19px\\]{--mdc-icon-size:19px}.\\[--mdc-icon-size\\:20px\\]{--mdc-icon-size:20px}.\\[--mdc-icon-size\\:22px\\]{--mdc-icon-size:22px}.\\[--mdc-icon-size\\:24px\\]{--mdc-icon-size:24px}.\\[--mdc-icon-size\\:28px\\]{--mdc-icon-size:28px}.\\[--mdc-icon-size\\:34px\\]{--mdc-icon-size:34px}.group-data-\\[pressed\\=true\\]\\:bg-\\[rgba\\(255\\,255\\,255\\,0\\.06\\)\\]:is(:where(.group)[data-pressed=true] *){background-color:#ffffff0f}@media (hover:hover){.hover\\:bg-card2:hover{background-color:var(--color-card2)}}.focus-visible\\:outline:focus-visible{outline-style:var(--tw-outline-style);outline-width:1px}.focus-visible\\:outline-2:focus-visible{outline-style:var(--tw-outline-style);outline-width:2px}.focus-visible\\:\\[outline-offset\\:-2px\\]:focus-visible{outline-offset:-2px}.focus-visible\\:outline-accent:focus-visible{outline-color:var(--color-accent)}.active\\:translate-y-\\[0\\.5px\\]:active{--tw-translate-y:.5px;translate:var(--tw-translate-x) var(--tw-translate-y)}.active\\:scale-90:active{--tw-scale-x:90%;--tw-scale-y:90%;--tw-scale-z:90%;scale:var(--tw-scale-x) var(--tw-scale-y)}.active\\:scale-\\[\\.96\\]:active{scale:.96}.active\\:bg-card2:active{background-color:var(--color-card2)}}@property --tw-translate-x{syntax:"*";inherits:false;initial-value:0}@property --tw-translate-y{syntax:"*";inherits:false;initial-value:0}@property --tw-translate-z{syntax:"*";inherits:false;initial-value:0}@property --tw-rotate-x{syntax:"*";inherits:false}@property --tw-rotate-y{syntax:"*";inherits:false}@property --tw-rotate-z{syntax:"*";inherits:false}@property --tw-skew-x{syntax:"*";inherits:false}@property --tw-skew-y{syntax:"*";inherits:false}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-leading{syntax:"*";inherits:false}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-tracking{syntax:"*";inherits:false}@property --tw-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-shadow-color{syntax:"*";inherits:false}@property --tw-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-inset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-shadow-color{syntax:"*";inherits:false}@property --tw-inset-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-ring-color{syntax:"*";inherits:false}@property --tw-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-ring-color{syntax:"*";inherits:false}@property --tw-inset-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-ring-inset{syntax:"*";inherits:false}@property --tw-ring-offset-width{syntax:"<length>";inherits:false;initial-value:0}@property --tw-ring-offset-color{syntax:"*";inherits:false;initial-value:#fff}@property --tw-ring-offset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-outline-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-blur{syntax:"*";inherits:false}@property --tw-brightness{syntax:"*";inherits:false}@property --tw-contrast{syntax:"*";inherits:false}@property --tw-grayscale{syntax:"*";inherits:false}@property --tw-hue-rotate{syntax:"*";inherits:false}@property --tw-invert{syntax:"*";inherits:false}@property --tw-opacity{syntax:"*";inherits:false}@property --tw-saturate{syntax:"*";inherits:false}@property --tw-sepia{syntax:"*";inherits:false}@property --tw-drop-shadow{syntax:"*";inherits:false}@property --tw-drop-shadow-color{syntax:"*";inherits:false}@property --tw-drop-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-drop-shadow-size{syntax:"*";inherits:false}@property --tw-backdrop-blur{syntax:"*";inherits:false}@property --tw-backdrop-brightness{syntax:"*";inherits:false}@property --tw-backdrop-contrast{syntax:"*";inherits:false}@property --tw-backdrop-grayscale{syntax:"*";inherits:false}@property --tw-backdrop-hue-rotate{syntax:"*";inherits:false}@property --tw-backdrop-invert{syntax:"*";inherits:false}@property --tw-backdrop-opacity{syntax:"*";inherits:false}@property --tw-backdrop-saturate{syntax:"*";inherits:false}@property --tw-backdrop-sepia{syntax:"*";inherits:false}@property --tw-scale-x{syntax:"*";inherits:false;initial-value:1}@property --tw-scale-y{syntax:"*";inherits:false;initial-value:1}@property --tw-scale-z{syntax:"*";inherits:false;initial-value:1}`;
+
+  // src/tw.js
+  var supportsAdopt = "adoptedStyleSheets" in Document.prototype && "replaceSync" in CSSStyleSheet.prototype;
+  var twSheet;
+  if (supportsAdopt) {
+    const sheet = new CSSStyleSheet;
+    sheet.replaceSync(TW_CSS.replace(/:root/g, ":host"));
+    try {
+      const doc = new CSSStyleSheet;
+      let hoisted = 0;
+      for (const rule of sheet.cssRules) {
+        if (rule.constructor && rule.constructor.name === "CSSPropertyRule") {
+          doc.insertRule(rule.cssText);
+          hoisted++;
+        }
+      }
+      if (hoisted)
+        document.adoptedStyleSheets = [...document.adoptedStyleSheets, doc];
+    } catch (_e) {}
+    twSheet = sheet;
+  } else {
+    twSheet = unsafeCSS(TW_CSS.replace(/:root/g, ":host"));
+  }
 
   // src/body-layer.js
   var bar = {
@@ -7167,7 +7202,7 @@
   function tabMatches(tab, path) {
     const target = norm(tab.path);
     if (tab.match === "prefix")
-      return path === target || path.startsWith(target + "/");
+      return path === target || path.startsWith(`${target}/`);
     return path === target;
   }
   function activeIndex(tabs, path) {
@@ -7200,12 +7235,9 @@
       return html`<button
         type="button"
         aria-current=${i === active ? "page" : nothing}
-        class="relative flex min-w-0 flex-1 flex-col items-center gap-[3px] rounded-[9px]
-               px-0.5 pb-[3px] pt-[5px] text-[9.5px] font-medium leading-[1.1] tracking-[0.01em]
+        class="group relative flex min-w-0 flex-1 flex-col items-center pb-[3px] pt-[5px]
                focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent
-               focus-visible:[outline-offset:-2px]
-               data-[pressed=true]:bg-[rgba(255,255,255,0.06)]
-               ${i === active ? "bg-[rgba(116,185,138,0.10)] text-accent" : "text-muted"}"
+               focus-visible:[outline-offset:-2px]"
         @pointerdown=${(e) => press(e, true)}
         @pointerup=${(e) => press(e, false)}
         @pointercancel=${(e) => press(e, false)}
@@ -7216,11 +7248,20 @@
         navigate(tab.path);
       }}
       >
-        <fib-icon
-          class="pointer-events-none h-[17px] w-[17px] [--mdc-icon-size:17px]"
-          icon=${tab.icon || "solar:record-circle-bold-duotone"}
-        ></fib-icon>
-        <span class="pointer-events-none">${tab.name || ""}</span>
+        <!-- the highlight is capped to content width so it doesn't become a
+             290px slab in a wide flex cell on desktop; the button stays the tap target -->
+        <span
+          class="pointer-events-none mx-auto flex w-full max-w-[96px] flex-col items-center
+                 gap-[3px] rounded-[9px] px-3 py-1 text-[9.5px] font-medium leading-[1.1]
+                 tracking-[0.01em] group-data-[pressed=true]:bg-[rgba(255,255,255,0.06)]
+                 ${i === active ? "bg-[rgba(116,185,138,0.10)] text-accent" : "text-muted"}"
+        >
+          <fib-icon
+            class="h-[17px] w-[17px] [--mdc-icon-size:17px]"
+            icon=${tab.icon || "solar:record-circle-bold-duotone"}
+          ></fib-icon>
+          <span>${tab.name || ""}</span>
+        </span>
         ${badge ? html`<span
                 class="absolute left-1/2 top-1 ml-[7px] h-[5px] w-[5px] rounded-full bg-accent"
               ></span>` : ""}
@@ -7253,7 +7294,7 @@
     if (!bar.host || !document.body.contains(bar.host))
       bar.host = buildBar();
     const offset = Number(config.offset_bottom) || 0;
-    bar.host.style.bottom = offset ? offset + "px" : "";
+    bar.host.style.bottom = offset ? `${offset}px` : "";
     renderBar();
     measureBar();
     if (config.auto_hide)
@@ -7272,65 +7313,1558 @@
   nav.listeners.add(renderBar);
   window.addEventListener("hashchange", renderBar);
 
-  // src/global-css.js
-  var STYLE_ID2 = "fibbers-global";
-  var VARS = {
-    "--primary-background-color": T.bg,
-    "--secondary-background-color": T.nav,
-    "--card-background-color": T.card,
-    "--ha-card-background": T.card,
-    "--app-header-background-color": T.bg,
-    "--app-header-text-color": T.ink,
-    "--sidebar-background-color": "#0E1315",
-    "--sidebar-icon-color": T.muted,
-    "--sidebar-text-color": T.ink2,
-    "--sidebar-selected-icon-color": T.accent,
-    "--sidebar-selected-text-color": T.ink,
-    "--divider-color": T.line,
-    "--primary-text-color": T.ink,
-    "--secondary-text-color": "#8B999C",
-    "--disabled-text-color": "#5C6A6D",
-    "--text-primary-color": T.bg,
-    "--primary-color": T.accent,
-    "--accent-color": T.accent,
-    "--state-icon-color": "#8B999C",
-    "--state-icon-active-color": T.accent,
-    "--error-color": T.red,
-    "--warning-color": T.amber,
-    "--success-color": T.green,
-    "--info-color": T.blue,
-    "--ha-card-border-radius": "15px",
-    "--ha-card-border-width": "1px",
-    "--ha-card-border-color": T.line,
-    "--ha-card-box-shadow": "none",
-    "--ha-dialog-border-radius": "22px",
-    "--mdc-dialog-scrim-color": "rgba(6,9,10,.72)",
-    "--mdc-theme-surface": T.sheet,
-    "--ha-dialog-surface-background": T.sheet,
-    "--more-info-header-background": T.sheet,
-    "--dialog-backdrop-filter": "blur(3px)",
-    "--switch-checked-color": T.accent,
-    "--switch-checked-button-color": T.ink,
-    "--switch-checked-track-color": "#2E5238",
-    "--switch-unchecked-button-color": "#8B999C",
-    "--switch-unchecked-track-color": T.line,
-    "--paper-slider-active-color": T.accent,
-    "--paper-slider-knob-color": T.accent,
-    "--paper-slider-container-color": "#2C3639"
+  // src/cards/alert.js
+  var friendly = (s) => s.attributes && s.attributes.friendly_name || s.entity_id;
+  function compileCheck(check) {
+    if (!check || !check.exclude_pattern)
+      return check;
+    try {
+      return { ...check, _excludeRe: new RegExp(check.exclude_pattern, "i") };
+    } catch (e) {
+      throw new Error(`fibbers-alert: invalid exclude_pattern "${check.exclude_pattern}" — ${e.message}`);
+    }
+  }
+  var excludedBy = (re, s) => re && (re.test(s.entity_id) || re.test(friendly(s)));
+  function runCheck(check, hass) {
+    const states = Object.values(hass.states);
+    const out = [];
+    switch (check.type) {
+      case "unavailable_lights": {
+        const exclude = check.exclude || [];
+        const re = check._excludeRe;
+        const offline = states.filter((s) => s.entity_id.startsWith("light.") && !exclude.includes(s.entity_id) && !excludedBy(re, s) && isUnavail(s));
+        if (offline.length)
+          out.push({
+            label: offline.length === 1 ? "Lamp offline" : "Lampen offline",
+            detail: offline.map(friendly).join(", "),
+            entity: offline[0].entity_id
+          });
+        break;
+      }
+      case "low_battery": {
+        const below = check.below != null ? check.below : 20;
+        const re = check._excludeRe;
+        states.filter((s) => (s.attributes || {}).device_class === "battery" && !isNaN(parseFloat(s.state)) && parseFloat(s.state) < below && !excludedBy(re, s)).forEach((s) => out.push({
+          label: "Batterij laag",
+          detail: `${friendly(s)} (${s.state}%)`,
+          entity: s.entity_id
+        }));
+        break;
+      }
+      case "updates": {
+        const ups = states.filter((s) => s.entity_id.startsWith("update.") && s.state === "on");
+        if (ups.length)
+          out.push({
+            label: "Updates",
+            detail: ups.length === 1 ? `1 update beschikbaar` : `${ups.length} updates beschikbaar`,
+            entity: ups[0].entity_id
+          });
+        break;
+      }
+      case "backup_age": {
+        const st = hass.states[check.entity];
+        const max = check.max_hours != null ? check.max_hours : 26;
+        if (st && !isUnavail(st)) {
+          const t = Date.parse(st.state);
+          if (!isNaN(t)) {
+            const hours = (Date.now() - t) / 3600000;
+            if (hours > max)
+              out.push({
+                label: "Back-up",
+                detail: `${Math.round(hours)} uur geleden`,
+                entity: check.entity
+              });
+          }
+        }
+        break;
+      }
+    }
+    return out;
+  }
+
+  class FibbersAlert extends LitElement {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true }
+    };
+    static styles = [
+      twSheet,
+      css`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return {
+        type: "custom:fibbers-alert",
+        checks: [{ type: "unavailable_lights" }, { type: "updates" }]
+      };
+    }
+    setConfig(config) {
+      if (!config || !Array.isArray(config.checks)) {
+        throw new Error("fibbers-alert: `checks` must be a list");
+      }
+      this._config = config;
+      this._checks = config.checks.map(compileCheck);
+    }
+    _findings() {
+      if (!this.hass)
+        return [];
+      const out = [];
+      this._checks.forEach((c) => {
+        try {
+          out.push(...runCheck(c, this.hass));
+        } catch (_) {}
+      });
+      return out;
+    }
+    _moreInfo(entity) {
+      moreInfo(this, entity);
+    }
+    render() {
+      if (!this._config)
+        return html``;
+      const findings = this._findings();
+      const alert = findings.length > 0;
+      return html`<div
+      class="rounded-xl border p-3
+             ${alert ? "border-amberline bg-amberbg" : "border-line bg-card"}"
+    >
+      <div class="flex items-center gap-2">
+        <fib-icon
+          class="h-4 w-4 [--mdc-icon-size:16px] ${alert ? "text-amber" : "text-green"}"
+          icon=${alert ? "solar:danger-triangle-bold-duotone" : "solar:check-circle-bold-duotone"}
+        ></fib-icon>
+        <span
+          class="text-[12px] font-semibold ${alert ? "text-amber" : "text-green"}"
+          >${alert ? "Aandacht nodig" : "Alles in orde"}</span
+        >
+      </div>
+      ${alert ? html`<div class="mt-2 flex flex-col gap-[5px]">
+              ${findings.map((f) => html`<div
+                    class="cursor-pointer text-[11.5px] leading-[1.42] text-ambertx"
+                    @click=${() => this._moreInfo(f.entity)}
+                  >
+                    <b class="font-semibold text-amber">${f.label}</b> —
+                    ${f.detail}
+                  </div>`)}
+            </div>` : ""}
+    </div>`;
+    }
+    getCardSize() {
+      return 2;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 2 };
+    }
+  }
+
+  // src/cards/back.js
+  class FibbersBack extends LitElement {
+    static properties = {
+      _config: { state: true },
+      _label: { state: true }
+    };
+    static styles = [
+      twSheet,
+      css`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return { type: "custom:fibbers-back", fallback: "/dashboard-thuis/huis" };
+    }
+    setConfig(config) {
+      this._config = config || {};
+      this._compute();
+    }
+    set hass(_hass) {}
+    connectedCallback() {
+      super.connectedCallback();
+      this._onRoute = () => this._compute();
+      nav.listeners.add(this._onRoute);
+      this._compute();
+    }
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      if (this._onRoute)
+        nav.listeners.delete(this._onRoute);
+    }
+    _compute() {
+      const c = this._config || {};
+      if (c.label) {
+        this._label = c.label;
+        return;
+      }
+      const prev = previous() || c.fallback;
+      const names = c.labels || {};
+      const name = prev ? names[norm(prev)] || names[prev] : null;
+      this._label = name ? `Terug naar ${name}` : "Terug";
+    }
+    render() {
+      const c = this._config || {};
+      return html`<button
+      type="button"
+      class="flex w-full items-center gap-2 rounded-xl border border-line bg-card
+             px-3.5 py-3 text-[12.5px] font-medium text-ink2 active:bg-card2"
+      @click=${() => goBack(c.fallback)}
+    >
+      <fib-icon
+        class="h-[18px] w-[18px] [--mdc-icon-size:18px] text-muted"
+        icon=${c.icon || "solar:alt-arrow-left-bold-duotone"}
+      ></fib-icon>
+      <span>${this._label}</span>
+    </button>`;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 1 };
+    }
+  }
+
+  // src/cards/backup.js
+  function ago(iso) {
+    const t = Date.parse(iso);
+    if (isNaN(t))
+      return { text: String(iso), hours: 0 };
+    const hours = (Date.now() - t) / 3600000;
+    const mins = Math.round(hours * 60);
+    let text;
+    if (mins < 60)
+      text = `${mins} min geleden`;
+    else if (hours < 24)
+      text = `${Math.round(hours)} uur geleden`;
+    else
+      text = `${Math.round(hours / 24)} dagen geleden`;
+    return { text, hours };
+  }
+  var clock = (iso) => {
+    const t = Date.parse(iso);
+    if (isNaN(t))
+      return String(iso);
+    return new Date(t).toLocaleTimeString("nl-NL", {
+      hour: "2-digit",
+      minute: "2-digit"
+    });
   };
-  function injectGlobalCss() {
-    if (window.FIBBERS_DISABLE_GLOBAL_CSS)
-      return;
-    if (document.getElementById(STYLE_ID2))
-      return;
-    const decls = Object.entries(VARS).map(([k, v]) => `  ${k}: ${v} !important;`).join(`
-`);
-    const style = document.createElement("style");
-    style.id = STYLE_ID2;
-    style.textContent = `html {
-${decls}
-}`;
-    document.head.appendChild(style);
+
+  class FibbersBackup extends LitElement {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true }
+    };
+    static styles = [
+      twSheet,
+      css`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return { type: "custom:fibbers-backup", entity: "sensor.backup_last" };
+    }
+    setConfig(config) {
+      if (!config || !config.entity) {
+        throw new Error("fibbers-backup: `entity` (last-backup timestamp) is required");
+      }
+      this._config = config;
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return html``;
+      const st = this.hass && this.hass.states[cfg.entity];
+      let value, sub, warn;
+      if (isUnavail(st)) {
+        value = "—";
+        sub = "Geen back-up gevonden";
+        warn = true;
+      } else {
+        const a = ago(st.state);
+        const stale = a.hours > (cfg.stale_hours != null ? cfg.stale_hours : 26);
+        let failed = false;
+        if (cfg.result) {
+          const r = this.hass.states[cfg.result];
+          failed = r && ["off", "failed", "error", "false"].includes(String(r.state));
+        }
+        value = a.text;
+        const bits = [failed ? "Mislukt" : "Geslaagd"];
+        if (cfg.next) {
+          const n = this.hass.states[cfg.next];
+          if (n && !isUnavail(n))
+            bits.push(`volgende ${clock(n.state)}`);
+        }
+        sub = bits.join(" · ");
+        warn = stale || failed;
+      }
+      return html`<div
+      class="grid grid-cols-[34px_1fr] items-center gap-x-[11px] gap-y-0.5
+             rounded-[14px] border p-[13px]
+             ${warn ? "border-amberline bg-amberbg" : "border-line bg-card"}"
+    >
+      <div
+        class="row-span-2 flex h-[34px] w-[34px] items-center justify-center rounded-[10px]
+               ${warn ? "bg-amberbg" : "bg-accentbg"}"
+      >
+        <fib-icon
+          class="h-[19px] w-[19px] [--mdc-icon-size:19px] ${warn ? "text-amber" : "text-accent"}"
+          icon="solar:diskette-bold-duotone"
+        ></fib-icon>
+      </div>
+      <div class="text-[11px] font-medium text-muted">
+        ${cfg.name || "Back-up"}
+      </div>
+      <div class="text-[17px] font-semibold leading-[1.15] text-ink">
+        ${value}
+      </div>
+      <div
+        class="col-start-2 text-[10.5px] ${warn ? "text-ambertx" : "text-muted"}"
+      >
+        ${sub}
+      </div>
+    </div>`;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: 6, grid_rows: 1 };
+    }
+  }
+
+  // src/actions.js
+  function runAction(action, hass, host, fallbackEntity) {
+    const a = action || { action: "none" };
+    switch (a.action) {
+      case "navigate":
+        if (a.navigation_path)
+          navigate(a.navigation_path);
+        break;
+      case "url":
+        if (a.url_path)
+          window.open(a.url_path, a.url_path.startsWith("http") ? "_blank" : "_self");
+        break;
+      case "toggle": {
+        const entity = a.entity || fallbackEntity;
+        if (entity && hass)
+          hass.callService("homeassistant", "toggle", { entity_id: entity });
+        break;
+      }
+      case "more-info":
+        moreInfo(host, a.entity || fallbackEntity);
+        break;
+      case "call-service":
+      case "perform-action": {
+        const svc = a.service || a.perform_action;
+        if (svc && svc.includes(".") && hass) {
+          const [domain, service] = svc.split(".");
+          hass.callService(domain, service, a.data || a.service_data || {}, a.target);
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  // src/cards/chips.js
+  class FibbersChips extends LitElement {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true }
+    };
+    static styles = [
+      twSheet,
+      css`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return {
+        type: "custom:fibbers-chips",
+        chips: [
+          {
+            name: "Alles uit",
+            icon: "solar:power-bold-duotone",
+            action: { action: "toggle" }
+          }
+        ]
+      };
+    }
+    setConfig(config) {
+      if (!config || !Array.isArray(config.chips)) {
+        throw new Error("fibbers-chips: `chips` must be a list");
+      }
+      this._config = config;
+    }
+    _active(chip) {
+      const aw = chip.active_when;
+      if (!aw || !aw.entity || !this.hass)
+        return false;
+      const st = this.hass.states[aw.entity];
+      return !!(st && (aw.state != null ? st.state === aw.state : st.state === "on"));
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return html``;
+      return html`<div class="flex flex-wrap gap-[7px]">
+      ${cfg.chips.map((chip) => {
+        const active = this._active(chip);
+        return html`<button
+          type="button"
+          class="inline-flex items-center gap-[5px] rounded-full border px-2.5 py-[5px]
+                 text-[10.5px] font-medium
+                 ${active ? "border-blueline bg-bluebg text-blueink" : "border-line bg-card2 text-ink2"}"
+          @click=${() => this.hass && runAction(chip.action || chip.tap_action, this.hass, this, chip.entity)}
+        >
+          ${chip.icon ? html`<fib-icon
+                  class="h-[13px] w-[13px] [--mdc-icon-size:13px]"
+                  icon=${chip.icon}
+                ></fib-icon>` : ""}
+          <span>${chip.name || ""}</span>
+        </button>`;
+      })}
+    </div>`;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 1 };
+    }
+  }
+
+  // src/cards/climate.js
+  var MODE = {
+    heat: { icon: "solar:fire-bold-duotone", label: "Verwarmen" },
+    cool: { icon: "solar:snowflake-bold-duotone", label: "Koelen" },
+    fan_only: { icon: "solar:wind-bold-duotone", label: "Ventilator" },
+    auto: { icon: "solar:temperature-bold-duotone", label: "Auto" },
+    heat_cool: { icon: "solar:temperature-bold-duotone", label: "Auto" },
+    dry: { icon: "solar:wind-bold-duotone", label: "Drogen" },
+    off: { icon: "solar:power-bold-duotone", label: "Uit" }
+  };
+  var ACTION_NL = {
+    heating: "Verwarmt",
+    cooling: "Koelt",
+    drying: "Droogt",
+    fan: "Ventileert",
+    idle: "Inactief",
+    off: "Uit"
+  };
+
+  class FibbersClimate extends LitElement {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true }
+    };
+    static styles = [
+      twSheet,
+      css`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return { type: "custom:fibbers-climate", entity: "climate.woonkamer" };
+    }
+    setConfig(config) {
+      if (!config || !config.entity) {
+        throw new Error("fibbers-climate: `entity` (a climate.*) is required");
+      }
+      this._config = config;
+    }
+    _st() {
+      return this.hass && this.hass.states[this._config.entity];
+    }
+    _bump(delta) {
+      const st = this._st();
+      if (!st)
+        return;
+      const step = st.attributes.target_temp_step || 0.5;
+      const cur = Number(st.attributes.temperature);
+      if (!Number.isFinite(cur))
+        return;
+      const min = st.attributes.min_temp ?? 5;
+      const max = st.attributes.max_temp ?? 35;
+      const next = Math.min(max, Math.max(min, Math.round((cur + delta * step) * 10) / 10));
+      this.hass.callService("climate", "set_temperature", {
+        entity_id: this._config.entity,
+        temperature: next
+      });
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return html``;
+      const st = this._st();
+      if (!st)
+        return html`<div
+        class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
+      >
+        Niet beschikbaar
+      </div>`;
+      const a = st.attributes;
+      const cur = a.current_temperature;
+      const target = a.temperature;
+      const modes = (a.hvac_modes || []).filter((m) => MODE[m]);
+      const action = a.hvac_action;
+      return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
+      <div class="mb-3 flex items-baseline justify-between gap-2">
+        <div>
+          <div
+            class="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted"
+          >
+            ${cfg.name || a.friendly_name || "Thermostaat"}
+          </div>
+          <div class="text-[24px] font-semibold leading-none text-ink">
+            ${cur != null ? cur : "—"}<span class="text-[14px] text-ink2"
+              >°</span
+            >
+          </div>
+        </div>
+        <span class="text-[11px] text-muted"
+          >${ACTION_NL[action] || (st.state !== "off" ? "Aan" : "Uit")}</span
+        >
+      </div>
+
+      <div class="mb-3 flex items-center justify-center gap-4">
+        <button
+          type="button"
+          class="flex h-10 w-10 items-center justify-center rounded-full bg-card2 text-ink
+                 transition-transform active:scale-90"
+          @click=${() => this._bump(-1)}
+        >
+          <fib-icon
+            class="h-6 w-6 [--mdc-icon-size:24px]"
+            icon="solar:minus-circle-bold-duotone"
+          ></fib-icon>
+        </button>
+        <div class="min-w-[68px] text-center">
+          <div class="text-[26px] font-semibold leading-none text-accent">
+            ${target != null ? target : "—"}<span class="text-[14px]">°</span>
+          </div>
+          <div
+            class="mt-0.5 text-[9.5px] uppercase tracking-[0.08em] text-muted"
+          >
+            Ingesteld
+          </div>
+        </div>
+        <button
+          type="button"
+          class="flex h-10 w-10 items-center justify-center rounded-full bg-card2 text-ink
+                 transition-transform active:scale-90"
+          @click=${() => this._bump(1)}
+        >
+          <fib-icon
+            class="h-6 w-6 [--mdc-icon-size:24px]"
+            icon="solar:add-circle-bold-duotone"
+          ></fib-icon>
+        </button>
+      </div>
+
+      ${modes.length ? html`<div class="flex flex-wrap justify-center gap-[7px]">
+              ${modes.map((m) => {
+        const active = st.state === m;
+        return html`<button
+                  type="button"
+                  class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[5px]
+                       text-[10.5px] font-medium ${active ? "border-accentline bg-accentbg text-accent" : "border-line bg-card2 text-ink2"}"
+                  @click=${() => this.hass.callService("climate", "set_hvac_mode", {
+          entity_id: cfg.entity,
+          hvac_mode: m
+        })}
+                >
+                  <fib-icon
+                    class="h-[13px] w-[13px] [--mdc-icon-size:13px]"
+                    icon=${MODE[m].icon}
+                  ></fib-icon>
+                  ${MODE[m].label}
+                </button>`;
+      })}
+            </div>` : ""}
+    </div>`;
+    }
+    getCardSize() {
+      return 3;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 3 };
+    }
+  }
+
+  // src/cards/datetime.js
+  var hhmm = (s) => typeof s === "string" ? s.slice(0, 5) : "";
+
+  class FibbersDateTime extends LitElement {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true }
+    };
+    static styles = [
+      twSheet,
+      css`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return {
+        type: "custom:fibbers-datetime",
+        entity: "input_datetime.wake_time"
+      };
+    }
+    setConfig(config) {
+      if (!config || !config.entity) {
+        throw new Error("fibbers-datetime: `entity` is required");
+      }
+      this._config = config;
+    }
+    _st() {
+      return this.hass && this.hass.states[this._config.entity];
+    }
+    _display(st) {
+      const a = st.attributes || {};
+      if (a.has_time && !a.has_date)
+        return hhmm(st.state) || "—";
+      return fmtState(this.hass, st) || st.state || "—";
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return html``;
+      const st = this._st();
+      if (!st) {
+        return html`<div
+        class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
+      >
+        Niet beschikbaar
+      </div>`;
+      }
+      const name = cfg.name || st.attributes.friendly_name || cfg.entity;
+      const icon = cfg.icon || st.attributes.icon || "solar:clock-circle-bold-duotone";
+      const timeOnly = st.attributes.has_time && !st.attributes.has_date;
+      const val = this._display(st);
+      return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
+      <div class="mb-1.5 flex items-center gap-2">
+        <fib-icon
+          class="h-4 w-4 [--mdc-icon-size:16px] text-accent"
+          icon=${icon}
+        ></fib-icon>
+        <span
+          class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
+          >${name}</span
+        >
+      </div>
+      <button
+        type="button"
+        class="text-left"
+        @click=${() => moreInfo(this, cfg.entity)}
+      >
+        <span
+          class="font-semibold leading-none text-ink ${timeOnly ? "text-[30px]" : "text-[20px]"}"
+          >${val}</span
+        >
+      </button>
+    </div>`;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 1 };
+    }
+  }
+
+  // src/cards/entities.js
+  var DOMAIN_ICON = {
+    light: "solar:lightbulb-bold-duotone",
+    switch: "solar:socket-bold-duotone",
+    automation: "solar:bolt-circle-bold-duotone",
+    sensor: "solar:widget-bold-duotone",
+    binary_sensor: "solar:widget-bold-duotone",
+    person: "solar:user-bold-duotone",
+    media_player: "solar:speaker-bold-duotone"
+  };
+  var num = (s) => parseFloat(String(s).replace(",", "."));
+  function ago2(iso) {
+    const t = Date.parse(iso);
+    if (isNaN(t))
+      return "";
+    const mins = Math.max(0, Math.round((Date.now() - t) / 60000));
+    if (mins < 60)
+      return `${mins} min geleden`;
+    const hrs = Math.round(mins / 60);
+    if (hrs < 24)
+      return `${hrs} uur geleden`;
+    return `${Math.round(hrs / 24)} dagen geleden`;
+  }
+  function compileFilters(filters, label) {
+    return (filters || []).map((f) => {
+      if (!f.entity_id)
+        return f;
+      try {
+        return { ...f, _re: new RegExp(f.entity_id) };
+      } catch (e) {
+        throw new Error(`fibbers-entities: invalid ${label} entity_id regex "${f.entity_id}" — ${e.message}`);
+      }
+    });
+  }
+  function matches(st, f) {
+    if (f.domain && !st.entity_id.startsWith(`${f.domain}.`))
+      return false;
+    if (f._re && !f._re.test(st.entity_id))
+      return false;
+    if (f.state != null) {
+      const want = Array.isArray(f.state) ? f.state : [f.state];
+      if (!want.map(String).includes(String(st.state)))
+        return false;
+    }
+    if (f.state_not != null) {
+      const no = Array.isArray(f.state_not) ? f.state_not : [f.state_not];
+      if (no.map(String).includes(String(st.state)))
+        return false;
+    }
+    if (f.attributes) {
+      for (const [k, v] of Object.entries(f.attributes)) {
+        if (String((st.attributes || {})[k]) !== String(v))
+          return false;
+      }
+    }
+    if (f.below != null && !(num(st.state) < f.below))
+      return false;
+    if (f.above != null && !(num(st.state) > f.above))
+      return false;
+    if (f.stale_hours != null) {
+      const t = Date.parse(st.last_changed);
+      if (isNaN(t) || (Date.now() - t) / 3600000 < f.stale_hours)
+        return false;
+    }
+    return true;
+  }
+
+  class FibbersEntities extends LitElement {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true }
+    };
+    static styles = [
+      twSheet,
+      css`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return {
+        type: "custom:fibbers-entities",
+        title: "Onbereikbaar",
+        filters: [{ domain: "light", state: ["unavailable", "unknown"] }]
+      };
+    }
+    setConfig(config) {
+      if (!config || !Array.isArray(config.filters) || !config.filters.length) {
+        throw new Error("fibbers-entities: `filters` must be a non-empty list");
+      }
+      this._config = config;
+      this._filters = compileFilters(config.filters, "filter");
+      this._exclude = compileFilters(config.exclude, "exclude");
+    }
+    _matched() {
+      const hass = this.hass;
+      if (!hass)
+        return [];
+      const seen = new Set;
+      const out = [];
+      for (const st of Object.values(hass.states)) {
+        if (!this._filters.some((f) => matches(st, f)))
+          continue;
+        if (this._exclude.some((f) => matches(st, f)))
+          continue;
+        if (seen.has(st.entity_id))
+          continue;
+        seen.add(st.entity_id);
+        out.push(st);
+      }
+      if (this._config.sort === "last_changed") {
+        out.sort((a, b) => Date.parse(a.last_changed) - Date.parse(b.last_changed));
+      } else {
+        out.sort((a, b) => this._name(a).localeCompare(this._name(b), "nl"));
+      }
+      const max = this._config.max;
+      return max ? out.slice(0, max) : out;
+    }
+    _name(st) {
+      return st.attributes && st.attributes.friendly_name || st.entity_id;
+    }
+    _icon(st) {
+      if (st.attributes && st.attributes.icon)
+        return st.attributes.icon;
+      if ((st.attributes || {}).device_class === "battery")
+        return "solar:battery-low-bold-duotone";
+      return DOMAIN_ICON[st.entity_id.split(".")[0]] || "solar:widget-bold-duotone";
+    }
+    _secondary(st) {
+      const s = this._config.secondary || "state";
+      if (s === "last_changed")
+        return ago2(st.last_changed);
+      if (s.startsWith("attribute:")) {
+        const k = s.slice("attribute:".length);
+        return String((st.attributes || {})[k] ?? "");
+      }
+      const u = (st.attributes || {}).unit_of_measurement;
+      return u ? `${st.state} ${u}` : st.state;
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return html``;
+      const rows = this._matched();
+      return html`<div
+      class="rounded-[14px] border border-line bg-card px-1 py-1.5"
+    >
+      ${cfg.title ? html`<div
+              class="flex items-center gap-[7px] px-2.5 pb-1.5 pt-[7px] text-[10px]
+                   font-semibold uppercase tracking-[0.08em] text-muted"
+            >
+              ${cfg.icon ? html`<fib-icon
+                      class="h-3.5 w-3.5 [--mdc-icon-size:14px] text-muted"
+                      icon=${cfg.icon}
+                    ></fib-icon>` : ""}
+              <span>${cfg.title}</span>
+            </div>` : ""}
+      ${rows.length ? rows.map((st) => html`<div
+                  role="button"
+                  class="grid cursor-pointer grid-cols-[28px_1fr_auto] items-center gap-x-2.5
+                     rounded-[10px] px-2.5 py-2 hover:bg-card2"
+                  @click=${() => moreInfo(this, st.entity_id)}
+                >
+                  <div
+                    class="flex h-7 w-7 items-center justify-center rounded-lg bg-card2"
+                  >
+                    <fib-icon
+                      class="h-4 w-4 [--mdc-icon-size:16px] text-muted"
+                      icon=${this._icon(st)}
+                    ></fib-icon>
+                  </div>
+                  <span
+                    class="overflow-hidden text-ellipsis whitespace-nowrap text-[12px]
+                       font-medium text-ink"
+                    >${this._name(st)}</span
+                  >
+                  <span class="whitespace-nowrap text-[10.5px] text-muted"
+                    >${this._secondary(st)}</span
+                  >
+                </div>`) : cfg.empty ? html`<div
+                class="flex items-center gap-[7px] px-2.5 py-3 text-[11.5px] text-muted"
+              >
+                <fib-icon
+                  class="h-[15px] w-[15px] [--mdc-icon-size:15px] text-green"
+                  icon="solar:check-circle-bold-duotone"
+                ></fib-icon>
+                <span>${cfg.empty}</span>
+              </div>` : ""}
+    </div>`;
+    }
+    getCardSize() {
+      return 2;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 2 };
+    }
+  }
+
+  // src/cards/graph.js
+  var COLORS = ["accent", "amber", "blue", "green", "red"];
+  var STROKE = {
+    accent: "text-accent",
+    amber: "text-amber",
+    blue: "text-blue",
+    green: "text-green",
+    red: "text-red"
+  };
+  var W = 300;
+
+  class FibbersGraph extends LitElement {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true },
+      _series: { state: true }
+    };
+    static styles = [
+      twSheet,
+      css`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return {
+        type: "custom:fibbers-graph",
+        entity: "sensor.hue_motion_sensor_1_temperature",
+        hours: 24
+      };
+    }
+    setConfig(config) {
+      if (!config || !config.entity && !Array.isArray(config.data)) {
+        throw new Error("fibbers-graph: `entity` or `data` is required");
+      }
+      if (config.color != null && !COLORS.includes(config.color)) {
+        throw new Error(`fibbers-graph: \`color\` must be one of ${COLORS.join(", ")}`);
+      }
+      this._config = config;
+      this._series = Array.isArray(config.data) ? config.data.map(Number) : null;
+      this._fetchedFor = null;
+      this._lastTry = 0;
+    }
+    updated(changed) {
+      if (changed.has("hass") && this._config.entity && !this._config.data)
+        this._maybeFetch();
+    }
+    async _maybeFetch() {
+      const id = this._config.entity;
+      if (!this.hass || this._fetchedFor === id || !this.hass.callWS)
+        return;
+      const now = Date.now();
+      if (this._lastTry && now - this._lastTry < 8000)
+        return;
+      this._lastTry = now;
+      try {
+        const nums = await fetchHistory(this.hass, id, this._config.hours || 24);
+        if (nums.length) {
+          this._series = nums;
+          this._fetchedFor = id;
+        }
+      } catch (_e) {}
+    }
+    _current() {
+      const st = this._config.entity && this.hass && this.hass.states[this._config.entity];
+      if (st && st.state !== "unavailable" && st.state !== "unknown") {
+        const n = Number(st.state);
+        if (Number.isFinite(n))
+          return n;
+      }
+      return this._series && this._series.length ? this._series[this._series.length - 1] : null;
+    }
+    _unit() {
+      if (this._config.unit != null)
+        return this._config.unit;
+      const st = this._config.entity && this.hass && this.hass.states[this._config.entity];
+      return st && st.attributes.unit_of_measurement || "";
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return html``;
+      const st = cfg.entity && this.hass && this.hass.states[cfg.entity];
+      const name = cfg.name || st && st.attributes.friendly_name || cfg.entity;
+      const now = this._current();
+      const h = cfg.height || 46;
+      const series = this._series;
+      const color = cfg.color || "accent";
+      const colorCls = STROKE[color] || "text-accent";
+      let body;
+      if (!series || series.length < 2) {
+        body = html`<div
+        class="flex items-center text-[11px] text-muted"
+        style="height:${h}px"
+      >
+        Geen historie
+      </div>`;
+      } else {
+        let min = Math.min(...series);
+        let max = Math.max(...series);
+        const pad = (max - min || 1) * 0.12;
+        min -= pad;
+        max += pad;
+        const n = series.length;
+        const x = (i) => i / (n - 1) * W;
+        const y = (v) => h - (v - min) / (max - min || 1) * h;
+        const pts = series.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`);
+        const line = `M${pts.join(" L")}`;
+        const area = `M0,${h} L${pts.join(" L")} L${W},${h} Z`;
+        body = html`<svg
+        viewBox="0 0 ${W} ${h}"
+        preserveAspectRatio="none"
+        class="block w-full ${colorCls}"
+        style="height:${h}px;overflow:visible"
+      >
+        <path
+          d=${area}
+          style="fill:currentColor;opacity:${cfg.fill === false ? 0 : 0.12}"
+        ></path>
+        <path
+          d=${line}
+          style="fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke"
+        ></path>
+      </svg>`;
+      }
+      return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
+      <div class="mb-2 flex items-baseline justify-between gap-2">
+        <span class="text-[11px] font-medium text-muted">${name}</span>
+        <span class="text-[15px] font-semibold text-ink">
+          ${now != null ? nl(now, cfg.decimals) : "—"}<span
+            class="ml-0.5 text-[11px] font-medium text-ink2"
+            >${this._unit()}</span
+          >
+        </span>
+      </div>
+      ${body}
+      ${cfg.show_stats && series && series.length >= 2 ? html`<div
+              class="mt-1.5 flex justify-between text-[9.5px] text-muted"
+            >
+              <span>min ${nl(Math.min(...series), cfg.decimals)}</span>
+              <span>max ${nl(Math.max(...series), cfg.decimals)}</span>
+            </div>` : ""}
+    </div>`;
+    }
+    getCardSize() {
+      return 2;
+    }
+    getLayoutOptions() {
+      return { grid_columns: 6, grid_rows: 2 };
+    }
+  }
+
+  // src/cards/greeting.js
+  var PERIODS = [
+    { until: 6, word: "Goedenacht", icon: "solar:moon-stars-bold-duotone" },
+    { until: 12, word: "Goedemorgen", icon: "solar:sunrise-bold-duotone" },
+    { until: 18, word: "Goedemiddag", icon: "solar:sun-bold-duotone" },
+    { until: 23, word: "Goedenavond", icon: "solar:moon-bold-duotone" },
+    { until: 24, word: "Goedenacht", icon: "solar:moon-stars-bold-duotone" }
+  ];
+  var friendly2 = (st, id) => st && st.attributes && st.attributes.friendly_name || id;
+  function joinNames(names) {
+    if (names.length <= 1)
+      return names[0] || "";
+    return `${names.slice(0, -1).join(", ")} en ${names[names.length - 1]}`;
+  }
+
+  class FibbersGreeting extends LitElement {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true }
+    };
+    static styles = [
+      twSheet,
+      css`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return {
+        type: "custom:fibbers-greeting",
+        lights: "light.all_color_lights"
+      };
+    }
+    setConfig(config) {
+      if (!config)
+        throw new Error("fibbers-greeting: config required");
+      this._config = config;
+    }
+    _period() {
+      const h = new Date().getHours();
+      return PERIODS.find((p) => h < p.until) || PERIODS[PERIODS.length - 1];
+    }
+    _lightMembers() {
+      const l = this._config.lights;
+      if (Array.isArray(l))
+        return l;
+      if (typeof l === "string") {
+        const st = this.hass && this.hass.states[l];
+        const grp = st && st.attributes && st.attributes.entity_id;
+        return Array.isArray(grp) ? grp : [l];
+      }
+      return [];
+    }
+    _people() {
+      const cfg = this._config;
+      if (Array.isArray(cfg.people))
+        return cfg.people;
+      if (!this.hass)
+        return [];
+      return Object.keys(this.hass.states).filter((id) => id.startsWith("person.")).sort();
+    }
+    _subline() {
+      const hass = this.hass;
+      if (!hass)
+        return "";
+      const parts = [];
+      const members = this._lightMembers();
+      if (members.length) {
+        let on = 0;
+        let offline = 0;
+        members.forEach((id) => {
+          const st = hass.states[id];
+          if (isUnavail(st))
+            offline++;
+          else if (st.state === "on")
+            on++;
+        });
+        parts.push(`${on} van ${members.length} lampen aan`);
+        if (offline)
+          parts.push(`${offline} offline`);
+      }
+      const home = this._people().map((id) => hass.states[id]).filter((st) => st && st.state === "home").map((st, i, arr) => friendly2(st, arr[i].entity_id));
+      parts.push(home.length ? `${joinNames(home)} thuis` : "Niemand thuis");
+      (this._config.sensors || []).forEach((id) => {
+        const st = hass.states[id];
+        if (!st)
+          return;
+        const unit = st.attributes.unit_of_measurement || "";
+        const n = Number(st.state);
+        const val = Number.isFinite(n) ? `${nl(n)}${unit ? ` ${unit}` : ""}` : fmtState(hass, st);
+        if (val)
+          parts.push(val);
+      });
+      return parts.join(" · ");
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return html``;
+      const period = this._period();
+      let title = period.word;
+      if (cfg.name_from) {
+        const st = this.hass && this.hass.states[cfg.name_from];
+        const nm = st && st.attributes && st.attributes.friendly_name;
+        if (nm)
+          title += `, ${nm}`;
+      }
+      return html`<div class="flex items-center gap-3 px-1 py-2">
+      <fib-icon
+        class="h-7 w-7 flex-none [--mdc-icon-size:28px] text-accent"
+        icon=${period.icon}
+      ></fib-icon>
+      <div class="min-w-0">
+        <div class="text-[20px] font-semibold leading-tight text-ink">
+          ${title}
+        </div>
+        <div class="truncate text-[12px] text-muted">${this._subline()}</div>
+      </div>
+    </div>`;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 1 };
+    }
+  }
+
+  // src/ui.js
+  function sliderTrack({
+    pct,
+    disabled = false,
+    cls = "",
+    onDown,
+    onMove,
+    onUp,
+    onCancel
+  }) {
+    return html`<div
+    class="relative h-1.5 cursor-pointer touch-none rounded-[3px] bg-[#2C3639]
+           ${cls} ${disabled ? "pointer-events-none" : ""}"
+    @pointerdown=${onDown}
+    @pointermove=${onMove}
+    @pointerup=${onUp}
+    @pointercancel=${onCancel || onUp}
+  >
+    ${disabled ? "" : html`<div
+              class="absolute bottom-0 left-0 top-0 rounded-[3px] bg-accent"
+              style="width:${pct}%"
+            ></div>
+            <div
+              class="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2
+                   rounded-full bg-accent shadow-[0_1px_3px_rgba(0,0,0,.4)]"
+              style="left:${pct}%"
+            ></div>`}
+  </div>`;
+  }
+  function pillSwitch({ on, onClick, label = "" }) {
+    return html`<button
+    type="button"
+    class="relative h-5 w-9 flex-none rounded-full transition-colors
+           ${on ? "bg-accent" : "bg-card2"}"
+    role="switch"
+    aria-checked=${on ? "true" : "false"}
+    aria-label=${label || "toggle"}
+    @click=${onClick}
+  >
+    <span
+      class="absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all
+             ${on ? "left-[18px]" : "left-0.5"}"
+    ></span>
+  </button>`;
+  }
+
+  // src/cards/light-row.js
+  class FibbersLightRow extends LitElement {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true },
+      _dragging: { state: true },
+      _dragPct: { state: true }
+    };
+    static styles = [
+      twSheet,
+      css`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return { type: "custom:fibbers-light-row", entity: "light.tv_led_strip" };
+    }
+    setConfig(config) {
+      if (!config || !config.entity) {
+        throw new Error("fibbers-light-row: `entity` is required");
+      }
+      if (config.icon_tap_action != null && (typeof config.icon_tap_action !== "object" || typeof config.icon_tap_action.action !== "string")) {
+        throw new Error("fibbers-light-row: `icon_tap_action` must be a HA action object (with an `action`)");
+      }
+      this._config = config;
+      this._dragging = false;
+      this._dragPct = 0;
+    }
+    _st() {
+      return this.hass && this.hass.states[this._config.entity];
+    }
+    _unavail() {
+      return isUnavail(this._st());
+    }
+    _pctFromHass() {
+      const st = this._st();
+      if (!st || st.state !== "on")
+        return 0;
+      const b = st.attributes.brightness;
+      return b != null ? Math.round(b / 255 * 100) : 100;
+    }
+    _displayPct() {
+      return this._dragging ? this._dragPct : this._pctFromHass();
+    }
+    _warmth() {
+      const st = this._st();
+      if (!st)
+        return "";
+      const mode = st.attributes.color_mode;
+      if (mode && ["hs", "rgb", "rgbw", "rgbww", "xy"].includes(mode))
+        return "Kleur";
+      const k = st.attributes.color_temp_kelvin || (st.attributes.color_temp ? Math.round(1e6 / st.attributes.color_temp) : null);
+      if (k == null)
+        return "";
+      if (k < 3000)
+        return "Warm";
+      if (k < 4600)
+        return "Neutraal";
+      return "Koel";
+    }
+    _down(e) {
+      if (this._unavail())
+        return;
+      const track = e.currentTarget;
+      this._dragging = true;
+      track.setPointerCapture && track.setPointerCapture(e.pointerId);
+      this._dragPct = Math.round(pctFromX(e.clientX, track));
+    }
+    _move(e) {
+      if (!this._dragging)
+        return;
+      this._dragPct = Math.round(pctFromX(e.clientX, e.currentTarget));
+    }
+    _up(e) {
+      if (!this._dragging)
+        return;
+      const pct = Math.round(pctFromX(e.clientX, e.currentTarget));
+      this._dragging = false;
+      this._commit(pct);
+    }
+    _commit(pct) {
+      if (!this.hass)
+        return;
+      const entity_id = this._config.entity;
+      if (pct <= 0)
+        this.hass.callService("light", "turn_off", { entity_id });
+      else
+        this.hass.callService("light", "turn_on", {
+          entity_id,
+          brightness_pct: pct
+        });
+    }
+    _iconAction() {
+      return this._config.icon_tap_action || { action: "toggle" };
+    }
+    _moreInfo() {
+      moreInfo(this, this._config.entity);
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return html``;
+      const st = this._st();
+      const unavail = this._unavail();
+      const on = !unavail && st.state === "on";
+      const pct = this._displayPct();
+      const name = cfg.name || st && st.attributes.friendly_name || cfg.entity;
+      const icon = cfg.icon || st && st.attributes.icon || "solar:lightbulb-bold-duotone";
+      let val;
+      if (unavail)
+        val = "Onbereikbaar";
+      else if (on) {
+        const w = this._warmth();
+        val = w ? `${w} · ${pct}%` : `${pct}%`;
+      } else
+        val = "Uit";
+      return html`
+      <div
+        class="grid grid-cols-[28px_1fr] grid-rows-[auto_auto] items-center gap-x-2.5
+               gap-y-2 py-2 ${unavail ? "opacity-50" : ""}"
+      >
+        <div
+          role="button"
+          class="row-span-2 flex h-7 w-7 items-center justify-center rounded-lg
+                 transition-transform active:scale-90 ${on ? "bg-accentbg" : "bg-card2"} ${unavail ? "pointer-events-none" : "cursor-pointer"}"
+          @click=${() => runAction(this._iconAction(), this.hass, this, cfg.icon_entity || cfg.entity)}
+        >
+          <fib-icon
+            class="h-[17px] w-[17px] [--mdc-icon-size:17px] ${on ? "text-accent" : "text-muted"}"
+            icon=${icon}
+          ></fib-icon>
+        </div>
+
+        <div
+          class="flex cursor-pointer items-baseline justify-between gap-2"
+          @click=${() => this._moreInfo()}
+        >
+          <span class="text-[12px] font-medium text-ink">${name}</span>
+          <span class="whitespace-nowrap text-[10.5px] text-muted">${val}</span>
+        </div>
+
+        ${sliderTrack({
+        pct,
+        disabled: unavail,
+        onDown: this._down,
+        onMove: this._move,
+        onUp: this._up,
+        onCancel: () => {
+          this._dragging = false;
+        }
+      })}
+      </div>
+    `;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 1 };
+    }
+  }
+
+  // src/cards/media.js
+  class FibbersMedia extends LitElement {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true },
+      _dragging: { state: true },
+      _dragVol: { state: true }
+    };
+    static styles = [
+      twSheet,
+      css`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return {
+        type: "custom:fibbers-media",
+        entity: "media_player.woonkamer_spotify"
+      };
+    }
+    setConfig(config) {
+      if (!config || !config.entity) {
+        throw new Error("fibbers-media: `entity` (a media_player.*) is required");
+      }
+      if (config.sources != null && !Array.isArray(config.sources)) {
+        throw new Error("fibbers-media: `sources` must be a list");
+      }
+      this._config = config;
+      this._dragging = false;
+      this._dragVol = 0;
+    }
+    _st() {
+      return this.hass && this.hass.states[this._config.entity];
+    }
+    _playing() {
+      const st = this._st();
+      return st && st.state === "playing";
+    }
+    _idle() {
+      const st = this._st();
+      return !st || ["off", "idle", "standby", "unavailable"].includes(st.state);
+    }
+    _vol() {
+      if (this._dragging)
+        return this._dragVol;
+      const st = this._st();
+      const v = st && st.attributes.volume_level;
+      return v != null ? Math.round(v * 100) : 0;
+    }
+    _svc(service, data) {
+      if (this.hass)
+        this.hass.callService("media_player", service, {
+          entity_id: this._config.entity,
+          ...data
+        });
+    }
+    _down(e) {
+      this._dragging = true;
+      e.currentTarget.setPointerCapture && e.currentTarget.setPointerCapture(e.pointerId);
+      this._dragVol = Math.round(pctFromX(e.clientX, e.currentTarget));
+    }
+    _move(e) {
+      if (this._dragging)
+        this._dragVol = Math.round(pctFromX(e.clientX, e.currentTarget));
+    }
+    _up(e) {
+      if (!this._dragging)
+        return;
+      const v = Math.round(pctFromX(e.clientX, e.currentTarget));
+      this._dragging = false;
+      this._svc("volume_set", { volume_level: v / 100 });
+    }
+    _transportBtn(icon, service, big = false) {
+      return html`<button
+      type="button"
+      class="flex ${big ? "h-11 w-11" : "h-9 w-9"} items-center justify-center rounded-full
+             bg-card2 text-ink transition-transform active:scale-90"
+      @click=${() => this._svc(service)}
+    >
+      <fib-icon
+        class="${big ? "h-6 w-6 [--mdc-icon-size:24px]" : "h-[18px] w-[18px] [--mdc-icon-size:18px]"}"
+        icon=${icon}
+      ></fib-icon>
+    </button>`;
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return html``;
+      const st = this._st();
+      const a = st && st.attributes || {};
+      const idle = this._idle();
+      const title = idle ? "Niets aan het spelen" : a.media_title || a.friendly_name || cfg.name || "Media";
+      const artist = idle ? "" : a.media_artist || a.app_name || "";
+      const art = a.entity_picture || a.media_image_url;
+      const playIcon = this._playing() ? "solar:pause-bold-duotone" : "solar:play-bold-duotone";
+      const artBox = html`<div
+      class="flex ${cfg.compact ? "h-11 w-11" : "h-14 w-14"} flex-none items-center
+             justify-center overflow-hidden rounded-xl bg-card2 bg-cover bg-center"
+      style=${art ? `background-image:url("${art}")` : ""}
+    >
+      ${art ? "" : html`<fib-icon
+              class="h-6 w-6 [--mdc-icon-size:24px] text-muted"
+              icon="solar:music-note-bold-duotone"
+            ></fib-icon>`}
+    </div>`;
+      if (cfg.compact) {
+        return html`<div
+        class="flex items-center gap-3 rounded-[14px] border border-line bg-card p-3"
+      >
+        ${artBox}
+        <div class="min-w-0 flex-1">
+          <div class="truncate text-[13px] font-semibold text-ink">
+            ${title}
+          </div>
+          <div class="truncate text-[11px] text-muted">${artist}</div>
+        </div>
+        ${this._transportBtn(playIcon, "media_play_pause")}
+        ${this._transportBtn("solar:skip-next-bold-duotone", "media_next_track")}
+      </div>`;
+      }
+      return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
+      <div class="mb-3 flex items-center gap-3">
+        ${artBox}
+        <div class="min-w-0 flex-1">
+          ${cfg.name ? html`<div
+                  class="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted"
+                >
+                  ${cfg.name}
+                </div>` : ""}
+          <div class="truncate text-[15px] font-semibold text-ink">
+            ${title}
+          </div>
+          <div class="truncate text-[12px] text-muted">${artist}</div>
+        </div>
+      </div>
+
+      <div class="mb-3 flex items-center justify-center gap-4">
+        ${this._transportBtn("solar:skip-previous-bold-duotone", "media_previous_track")}
+        ${this._transportBtn(playIcon, "media_play_pause", true)}
+        ${this._transportBtn("solar:skip-next-bold-duotone", "media_next_track")}
+      </div>
+
+      <div class="mb-1 flex items-center gap-2.5">
+        <fib-icon
+          class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-muted"
+          icon="solar:volume-small-bold-duotone"
+        ></fib-icon>
+        ${sliderTrack({
+        pct: this._vol(),
+        cls: "flex-1",
+        onDown: this._down,
+        onMove: this._move,
+        onUp: this._up,
+        onCancel: () => {
+          this._dragging = false;
+        }
+      })}
+        <fib-icon
+          class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-muted"
+          icon="solar:volume-loud-bold-duotone"
+        ></fib-icon>
+      </div>
+
+      ${Array.isArray(cfg.sources) && cfg.sources.length ? html`<div class="mt-3 flex flex-wrap gap-[7px]">
+              ${cfg.sources.map((s) => {
+        const active = st && st.attributes.source === (s.source || s.name);
+        return html`<button
+                  type="button"
+                  class="inline-flex items-center rounded-full border px-2.5 py-[5px] text-[10.5px]
+                       font-medium ${active ? "border-accentline bg-accentbg text-accent" : "border-line bg-card2 text-ink2"}"
+                  @click=${() => this._svc("select_source", { source: s.source || s.name })}
+                >
+                  ${s.name}
+                </button>`;
+      })}
+            </div>` : ""}
+    </div>`;
+    }
+    getCardSize() {
+      return 3;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 3 };
+    }
   }
 
   // src/cards/nav.js
@@ -7414,11 +8948,13 @@ ${decls}
     }
   }
 
-  // src/cards/back.js
-  class FibbersBack extends LitElement {
+  // src/cards/number.js
+  class FibbersNumber extends LitElement {
     static properties = {
+      hass: { attribute: false },
       _config: { state: true },
-      _label: { state: true }
+      _dragging: { state: true },
+      _dragVal: { state: true }
     };
     static styles = [
       twSheet,
@@ -7429,49 +8965,956 @@ ${decls}
     `
     ];
     static getStubConfig() {
-      return { type: "custom:fibbers-back", fallback: "/dashboard-thuis/huis" };
+      return { type: "custom:fibbers-number", entity: "input_number.wake_fade" };
     }
     setConfig(config) {
-      this._config = config || {};
-      this._compute();
+      if (!config || !config.entity) {
+        throw new Error("fibbers-number: `entity` is required");
+      }
+      this._config = config;
+      this._dragging = false;
+      this._dragVal = 0;
+      this._debouncedSet = debounce((v) => this._setValue(v), 150);
     }
-    set hass(_hass) {}
-    connectedCallback() {
-      super.connectedCallback();
-      this._onRoute = () => this._compute();
-      nav.listeners.add(this._onRoute);
-      this._compute();
+    _st() {
+      return this.hass && this.hass.states[this._config.entity];
+    }
+    _unavail() {
+      return isUnavail(this._st());
+    }
+    _bounds() {
+      const a = this._st() && this._st().attributes || {};
+      const min = Number(a.min != null ? a.min : 0);
+      const max = Number(a.max != null ? a.max : 100);
+      const raw = Number(this._config.step != null ? this._config.step : a.step);
+      const step = Number.isFinite(raw) && raw > 0 ? raw : 1;
+      return { min, max: max > min ? max : min + 1, step };
+    }
+    _decimals() {
+      const s = this._bounds().step;
+      if (Number.isInteger(s))
+        return 0;
+      const i = String(s).indexOf(".");
+      return i < 0 ? 0 : String(s).length - i - 1;
+    }
+    _value() {
+      if (this._dragging)
+        return this._dragVal;
+      const n = Number(this._st() && this._st().state);
+      return Number.isFinite(n) ? n : this._bounds().min;
+    }
+    _snap(v) {
+      const { min, max, step } = this._bounds();
+      const snapped = Math.round((v - min) / step) * step + min;
+      return clamp(Number(snapped.toFixed(4)), min, max);
+    }
+    _pct(v) {
+      const { min, max } = this._bounds();
+      return clamp((v - min) / (max - min) * 100, 0, 100);
+    }
+    _valFromX(clientX, track) {
+      const { min, max } = this._bounds();
+      return this._snap(min + pctFromX(clientX, track) / 100 * (max - min));
+    }
+    _setValue(value) {
+      if (!this.hass)
+        return;
+      const domain = this._config.entity.split(".")[0];
+      this.hass.callService(domain, "set_value", {
+        entity_id: this._config.entity,
+        value
+      });
+    }
+    _down(e) {
+      if (this._unavail())
+        return;
+      const t = e.currentTarget;
+      this._dragging = true;
+      t.setPointerCapture && t.setPointerCapture(e.pointerId);
+      this._dragVal = this._valFromX(e.clientX, t);
+      this._debouncedSet(this._dragVal);
+    }
+    _move(e) {
+      if (!this._dragging)
+        return;
+      this._dragVal = this._valFromX(e.clientX, e.currentTarget);
+      this._debouncedSet(this._dragVal);
+    }
+    _up(e) {
+      if (!this._dragging)
+        return;
+      const v = this._valFromX(e.clientX, e.currentTarget);
+      this._dragging = false;
+      this._debouncedSet.cancel();
+      this._setValue(v);
+    }
+    _bump(dir) {
+      if (this._unavail())
+        return;
+      this._setValue(this._snap(this._value() + dir * this._bounds().step));
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return html``;
+      const st = this._st();
+      const unavail = this._unavail();
+      const name = cfg.name || st && st.attributes.friendly_name || cfg.entity;
+      const icon = cfg.icon || st && st.attributes.icon || "solar:tuning-2-bold-duotone";
+      const unit = cfg.unit != null ? cfg.unit : st && st.attributes.unit_of_measurement || "";
+      const v = this._value();
+      const val = unavail ? "Onbereikbaar" : `${nl(v, this._decimals())}${unit ? ` ${unit}` : ""}`;
+      const pct = this._pct(v);
+      const head = html`<div class="flex items-center gap-2.5">
+      <div
+        class="flex h-7 w-7 flex-none items-center justify-center rounded-lg
+               ${unavail ? "bg-card2 text-muted" : "bg-accentbg text-accent"}"
+      >
+        <fib-icon
+          class="h-[17px] w-[17px] [--mdc-icon-size:17px]"
+          icon=${icon}
+        ></fib-icon>
+      </div>
+      <span class="flex-1 text-[12px] font-medium text-ink">${name}</span>
+      <span class="whitespace-nowrap text-[11px] font-medium text-muted"
+        >${val}</span
+      >
+    </div>`;
+      if (cfg.mode === "stepper") {
+        return html`<div
+        class="flex items-center gap-2.5 rounded-[14px] border border-line bg-card p-[13px]
+               ${unavail ? "opacity-50" : ""}"
+      >
+        <div
+          class="flex h-7 w-7 flex-none items-center justify-center rounded-lg
+                 ${unavail ? "bg-card2 text-muted" : "bg-accentbg text-accent"}"
+        >
+          <fib-icon
+            class="h-[17px] w-[17px] [--mdc-icon-size:17px]"
+            icon=${icon}
+          ></fib-icon>
+        </div>
+        <span class="flex-1 text-[12px] font-medium text-ink">${name}</span>
+        ${this._stepBtn("solar:minus-circle-bold-duotone", -1, unavail)}
+        <span
+          class="min-w-[52px] text-center text-[13px] font-semibold text-ink"
+          >${val}</span
+        >
+        ${this._stepBtn("solar:add-circle-bold-duotone", 1, unavail)}
+      </div>`;
+      }
+      return html`<div
+      class="rounded-[14px] border border-line bg-card p-[13px] ${unavail ? "opacity-50" : ""}"
+    >
+      ${head}
+      ${sliderTrack({
+        pct,
+        disabled: unavail,
+        cls: "mt-2.5",
+        onDown: this._down,
+        onMove: this._move,
+        onUp: this._up,
+        onCancel: () => {
+          this._dragging = false;
+        }
+      })}
+    </div>`;
+    }
+    _stepBtn(icon, dir, unavail) {
+      return html`<button
+      type="button"
+      class="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-card2
+             text-accent transition-transform active:scale-90
+             ${unavail ? "pointer-events-none opacity-40" : ""}"
+      aria-label=${dir > 0 ? "meer" : "minder"}
+      @click=${() => this._bump(dir)}
+    >
+      <fib-icon
+        class="h-[22px] w-[22px] [--mdc-icon-size:22px]"
+        icon=${icon}
+      ></fib-icon>
+    </button>`;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 1 };
+    }
+  }
+
+  // src/cards/presence.js
+  class FibbersPresence extends LitElement {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true }
+    };
+    static styles = [
+      twSheet,
+      css`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return { type: "custom:fibbers-presence" };
+    }
+    setConfig(config) {
+      if (config && config.people != null && !Array.isArray(config.people)) {
+        throw new Error("fibbers-presence: `people` must be a list of entities");
+      }
+      this._config = config || {};
+    }
+    _people() {
+      if (Array.isArray(this._config.people))
+        return this._config.people;
+      if (!this.hass)
+        return [];
+      return Object.keys(this.hass.states).filter((id) => id.startsWith("person.")).sort();
+    }
+    _isHome(st) {
+      return st && st.state === "home";
+    }
+    _stateLabel(st) {
+      if (!st)
+        return "—";
+      if (st.state === "home")
+        return "Thuis";
+      if (st.state === "not_home")
+        return "Weg";
+      return st.state;
+    }
+    _moreInfo(entity) {
+      moreInfo(this, entity);
+    }
+    render() {
+      const people = this._people();
+      const homeCount = people.filter((id) => this._isHome(this.hass && this.hass.states[id])).length;
+      return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
+      <div class="mb-2.5 flex items-baseline justify-between gap-2">
+        ${this._config.title === false ? "" : html`<span
+                class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
+                >Aanwezigheid</span
+              >`}
+        <span
+          class="text-[12px] font-semibold ${homeCount === 0 ? "text-muted" : "text-ink"}"
+          >${homeCount === 0 ? "Niemand thuis" : `${homeCount} thuis`}</span
+        >
+      </div>
+      <div class="flex flex-wrap gap-2">
+        ${people.map((id) => {
+        const st = this.hass && this.hass.states[id];
+        const home = this._isHome(st);
+        const pic = st && st.attributes && st.attributes.entity_picture;
+        return html`<button
+            type="button"
+            class="flex items-center gap-2 rounded-full border py-[7px] pl-[7px] pr-[11px]
+                   ${home ? "border-accentline bg-accentbg" : "border-line bg-card2"}"
+            @click=${() => this._moreInfo(id)}
+          >
+            <div
+              class="flex h-[26px] w-[26px] flex-none items-center justify-center
+                     overflow-hidden rounded-full bg-card bg-cover bg-center"
+              style=${pic ? `background-image:url("${pic}")` : ""}
+            >
+              ${pic ? "" : html`<fib-icon
+                      class="h-[15px] w-[15px] [--mdc-icon-size:15px] ${home ? "text-accent" : "text-muted"}"
+                      icon="solar:user-bold-duotone"
+                    ></fib-icon>`}
+            </div>
+            <div class="flex flex-col leading-[1.25]">
+              <span class="text-[12px] font-semibold text-ink"
+                >${st && st.attributes && st.attributes.friendly_name || id.split(".")[1]}</span
+              >
+              <span class="text-[10px] ${home ? "text-accenttx" : "text-muted"}"
+                >${this._stateLabel(st)}</span
+              >
+            </div>
+          </button>`;
+      })}
+      </div>
+    </div>`;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 1 };
+    }
+  }
+
+  // src/cards/remote.js
+  var DEFAULTS = {
+    power: "POWER",
+    up: "DPAD_UP",
+    down: "DPAD_DOWN",
+    left: "DPAD_LEFT",
+    right: "DPAD_RIGHT",
+    ok: "DPAD_CENTER",
+    back: "BACK",
+    home: "HOME",
+    menu: "MENU",
+    volume_up: "VOLUME_UP",
+    volume_down: "VOLUME_DOWN",
+    play: "MEDIA_PLAY_PAUSE"
+  };
+
+  class FibbersRemote extends LitElement {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true }
+    };
+    static styles = [
+      twSheet,
+      css`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return { type: "custom:fibbers-remote", entity: "remote.woonkamer_tv" };
+    }
+    setConfig(config) {
+      if (!config || !config.entity) {
+        throw new Error("fibbers-remote: `entity` (a remote.*) is required");
+      }
+      this._config = config;
+    }
+    _send(key) {
+      const cmd = (this._config.commands || {})[key] || DEFAULTS[key];
+      if (cmd && this.hass)
+        this.hass.callService("remote", "send_command", {
+          entity_id: this._config.entity,
+          command: cmd
+        });
+    }
+    _btn(key, icon, opts = {}) {
+      const round = opts.round !== false;
+      const accent = opts.accent;
+      return html`<button
+      type="button"
+      class="flex items-center justify-center ${round ? "rounded-full" : "rounded-xl"} ${opts.size || "h-11 w-11"}
+             ${accent ? "bg-accentbg text-accent" : "bg-card2 text-ink"}
+             transition-transform active:scale-90"
+      @click=${() => this._send(key)}
+      aria-label=${key}
+    >
+      <fib-icon
+        class="h-[20px] w-[20px] [--mdc-icon-size:20px]"
+        icon=${icon}
+      ></fib-icon>
+    </button>`;
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return html``;
+      return html`<div
+      class="flex flex-col items-center gap-3 rounded-[14px] border border-line bg-card p-[13px]"
+    >
+      <div class="flex w-full items-center justify-between">
+        <span
+          class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
+          >${cfg.name || "Afstandsbediening"}</span
+        >
+        ${this._btn("power", "solar:power-bold-duotone", {
+        size: "h-9 w-9",
+        accent: true
+      })}
+      </div>
+
+      <!-- D-pad -->
+      <div class="grid grid-cols-3 gap-2">
+        <span></span>
+        ${this._btn("up", "solar:alt-arrow-up-bold-duotone")}
+        <span></span>
+        ${this._btn("left", "solar:alt-arrow-left-bold-duotone")}
+        ${this._btn("ok", "solar:record-circle-bold-duotone", { accent: true })}
+        ${this._btn("right", "solar:alt-arrow-right-bold-duotone")}
+        <span></span>
+        ${this._btn("down", "solar:alt-arrow-down-bold-duotone")}
+        <span></span>
+      </div>
+
+      <div class="flex gap-2">
+        ${this._btn("back", "solar:alt-arrow-left-bold-duotone", { size: "h-9 w-9" })}
+        ${this._btn("home", "solar:home-2-bold-duotone", { size: "h-9 w-9" })}
+        ${this._btn("menu", "solar:menu-dots-bold-duotone", { size: "h-9 w-9" })}
+      </div>
+
+      <div class="flex gap-2">
+        ${this._btn("volume_down", "solar:volume-small-bold-duotone", { size: "h-9 w-9" })}
+        ${this._btn("play", "solar:play-bold-duotone", { size: "h-9 w-9" })}
+        ${this._btn("volume_up", "solar:volume-loud-bold-duotone", { size: "h-9 w-9" })}
+      </div>
+    </div>`;
+    }
+    getCardSize() {
+      return 4;
+    }
+    getLayoutOptions() {
+      return { grid_columns: 6, grid_rows: 4 };
+    }
+  }
+
+  // src/cards/room.js
+  var isLight = (id) => typeof id === "string" && id.startsWith("light.");
+
+  class FibbersRoom extends LitElement {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true }
+    };
+    static styles = [
+      twSheet,
+      css`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return {
+        type: "custom:fibbers-room",
+        name: "Woonkamer",
+        icon: "solar:sofa-2-bold-duotone",
+        entities: ["light.tv_led_strip"],
+        sheet: "woonkamer"
+      };
+    }
+    setConfig(config) {
+      if (!config || !config.name) {
+        throw new Error("fibbers-room: `name` is required");
+      }
+      if (config.entities != null && !Array.isArray(config.entities)) {
+        throw new Error("fibbers-room: `entities` must be a list");
+      }
+      if (config.entities == null && !config.area) {
+        throw new Error("fibbers-room: provide `entities` or an `area`");
+      }
+      this._config = config;
+    }
+    _entities() {
+      const c = this._config;
+      if (Array.isArray(c.entities))
+        return c.entities;
+      const hass = this.hass;
+      if (!c.area || !hass || !hass.entities)
+        return [];
+      const devices = hass.devices || {};
+      return Object.values(hass.entities).filter((e) => {
+        const area = e.area_id || (devices[e.device_id] || {}).area_id;
+        return area === c.area && isLight(e.entity_id);
+      }).map((e) => e.entity_id);
+    }
+    _lights() {
+      return this._entities().filter(isLight);
     }
     disconnectedCallback() {
       super.disconnectedCallback();
-      if (this._onRoute)
-        nav.listeners.delete(this._onRoute);
+      clearTimeout(this._timer);
     }
-    _compute() {
-      const c = this._config || {};
-      if (c.label) {
-        this._label = c.label;
+    _state() {
+      const hass = this.hass;
+      const lights = this._lights();
+      if (!hass || !lights.length)
+        return { label: "—", lit: false, offline: false };
+      let on = 0, avail = 0;
+      lights.forEach((id) => {
+        const st = hass.states[id];
+        if (isUnavail(st))
+          return;
+        avail++;
+        if (st.state === "on")
+          on++;
+      });
+      if (avail === 0)
+        return { label: "Offline", lit: false, offline: true };
+      if (on === 0)
+        return { label: "Uit", lit: false, offline: false };
+      return {
+        label: `${on} van ${lights.length} aan`,
+        lit: true,
+        offline: false
+      };
+    }
+    _down() {
+      this._held = false;
+      this._timer = setTimeout(() => {
+        this._held = true;
+        this._moreInfo();
+      }, 500);
+    }
+    _up() {
+      clearTimeout(this._timer);
+    }
+    _click() {
+      if (this._held)
         return;
-      }
-      const prev = previous() || c.fallback;
-      const names = c.labels || {};
-      const name = prev ? names[norm(prev)] || names[prev] : null;
-      this._label = name ? `Terug naar ${name}` : "Terug";
+      if (this._config.sheet)
+        window.location.hash = this._config.sheet;
+    }
+    _moreInfo() {
+      moreInfo(this, this._lights()[0] || this._entities()[0]);
     }
     render() {
-      const c = this._config || {};
+      if (!this._config)
+        return html``;
+      const s = this._state();
       return html`<button
       type="button"
-      class="flex w-full items-center gap-2 rounded-xl border border-line bg-card
-             px-3.5 py-3 text-[12.5px] font-medium text-ink2 active:bg-card2"
-      @click=${() => goBack(c.fallback)}
+      class="block w-full cursor-pointer rounded-[15px] border px-[13px] pb-3 pt-[13px]
+             text-left transition-colors active:translate-y-[0.5px]
+             ${s.lit ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)]" : "border-line bg-card"}
+             ${s.offline ? "opacity-[.66]" : ""}"
+      @pointerdown=${this._down}
+      @pointerup=${this._up}
+      @pointercancel=${this._up}
+      @pointerleave=${this._up}
+      @click=${this._click}
     >
       <fib-icon
-        class="h-[18px] w-[18px] [--mdc-icon-size:18px] text-muted"
-        icon=${c.icon || "solar:alt-arrow-left-bold-duotone"}
+        class="block h-[19px] w-[19px] [--mdc-icon-size:19px] ${s.lit ? "text-accent" : "text-muted"}"
+        icon=${this._config.icon || "solar:home-angle-bold-duotone"}
       ></fib-icon>
-      <span>${this._label}</span>
+      <div class="mt-2 text-[13px] font-semibold tracking-tight text-ink">
+        ${this._config.name}
+      </div>
+      <div class="mt-0.5 text-[11px] ${s.offline ? "text-red" : "text-muted"}">
+        ${s.label}
+      </div>
     </button>`;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: 6, grid_rows: 1 };
+    }
+  }
+
+  // src/cards/scene.js
+  var activatedAt = (st) => {
+    if (!st)
+      return 0;
+    const raw = st.attributes && st.attributes.last_activated || st.state || null;
+    const t = raw ? Date.parse(raw) : NaN;
+    return isNaN(t) ? 0 : t;
+  };
+
+  class FibbersScene extends LitElement {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true },
+      _open: { state: true }
+    };
+    static styles = [
+      twSheet,
+      css`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return {
+        type: "custom:fibbers-scene",
+        scenes: [
+          {
+            name: "Avond",
+            icon: "solar:moon-bold-duotone",
+            scene: "scene.avond"
+          }
+        ]
+      };
+    }
+    setConfig(config) {
+      if (!config || !Array.isArray(config.scenes) || !config.scenes.length) {
+        throw new Error("fibbers-scene: `scenes` must be a non-empty list");
+      }
+      config.scenes.forEach((s, i) => {
+        if (!s || !s.scene)
+          throw new Error(`fibbers-scene: scenes[${i}] is missing \`scene\``);
+      });
+      if (config.favourites != null && (!Number.isInteger(config.favourites) || config.favourites < 1)) {
+        throw new Error("fibbers-scene: `favourites` must be a positive integer");
+      }
+      this._config = config;
+      this._open = false;
+    }
+    _fav() {
+      const n = this._config.favourites;
+      return n && n < this._config.scenes.length ? n : this._config.scenes.length;
+    }
+    _activeIndex() {
+      if (!this.hass)
+        return -1;
+      let best = -1, bestT = 0;
+      this._config.scenes.forEach((s, i) => {
+        const t = activatedAt(this.hass.states[s.scene]);
+        if (t > bestT) {
+          bestT = t;
+          best = i;
+        }
+      });
+      return best;
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return html``;
+      const fav = this._fav();
+      const active = this._activeIndex();
+      const total = cfg.scenes.length;
+      const hidden = total - fav;
+      const tile = (s, i) => {
+        const isActive = i === active;
+        const show = i < fav || this._open;
+        return html`<button
+        type="button"
+        ?hidden=${!show}
+        class="flex flex-col items-center gap-[7px] rounded-[14px] border p-3.5
+               text-ink2 transition-transform active:scale-[.96]
+               ${isActive ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)] text-accenttx" : "border-line bg-card"}"
+        @click=${() => this.hass && this.hass.callService("scene", "turn_on", { entity_id: s.scene })}
+      >
+        <fib-icon
+          class="h-5 w-5 [--mdc-icon-size:20px] ${isActive ? "text-accent" : "text-muted"}"
+          icon=${s.icon || "solar:palette-bold-duotone"}
+        ></fib-icon>
+        <span class="text-center text-[11px] font-medium"
+          >${s.name || s.scene}</span
+        >
+      </button>`;
+      };
+      return html`
+      <div class="grid grid-cols-[repeat(auto-fit,minmax(84px,1fr))] gap-2">
+        ${cfg.scenes.map(tile)}
+      </div>
+      ${hidden > 0 ? html`<button
+              type="button"
+              class="mt-2 flex w-full items-center justify-center gap-1.5 rounded-[11px]
+                   border border-line bg-transparent py-[9px] text-[11px] font-medium text-ink2"
+              @click=${() => this._open = !this._open}
+            >
+              <span>${this._open ? "Minder" : `Alle ${total} scènes`}</span>
+              <fib-icon
+                class="h-[15px] w-[15px] text-muted transition-transform [--mdc-icon-size:15px]
+                     ${this._open ? "rotate-180" : ""}"
+                icon="solar:alt-arrow-down-bold-duotone"
+              ></fib-icon>
+            </button>` : ""}
+    `;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 1 };
+    }
+  }
+
+  // src/cards/scheduler.js
+  var hhmm2 = (s) => typeof s === "string" ? s.slice(0, 5) : "";
+  var addMinutes = (s, mins) => {
+    const [h, m] = hhmm2(s).split(":").map(Number);
+    if (!Number.isFinite(h) || !Number.isFinite(m))
+      return "";
+    const t = (h * 60 + m + Math.round(mins)) % (24 * 60);
+    return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
+  };
+
+  class FibbersScheduler extends LitElement {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true }
+    };
+    static styles = [
+      twSheet,
+      css`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return {
+        type: "custom:fibbers-scheduler",
+        name: "Wekker",
+        time: "input_datetime.wake_time",
+        enable: "input_boolean.wake_enabled"
+      };
+    }
+    setConfig(config) {
+      if (!config || !config.time) {
+        throw new Error("fibbers-scheduler: `time` (an input_datetime) is required");
+      }
+      this._config = config;
+    }
+    _state(id) {
+      return id && this.hass ? this.hass.states[id] : null;
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return html``;
+      const timeSt = this._state(cfg.time);
+      const time = hhmm2(timeSt && timeSt.state);
+      const enSt = this._state(cfg.enable);
+      const on = enSt ? enSt.state === "on" : true;
+      const durSt = this._state(cfg.duration);
+      const dur = durSt ? Number(durSt.state) : null;
+      const windowEnd = dur ? addMinutes(time, dur) : "";
+      return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
+      <div class="mb-2 flex items-center gap-2">
+        <fib-icon
+          class="h-4 w-4 [--mdc-icon-size:16px] ${on ? "text-accent" : "text-muted"}"
+          icon="solar:alarm-bold-duotone"
+        ></fib-icon>
+        <span
+          class="flex-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
+          >${cfg.name || "Wekker"}</span
+        >
+        ${cfg.enable ? pillSwitch({
+        on,
+        label: cfg.name || "Wekker",
+        onClick: () => this.hass && this.hass.callService("input_boolean", "toggle", {
+          entity_id: cfg.enable
+        })
+      }) : ""}
+      </div>
+
+      <button
+        type="button"
+        class="text-left ${on ? "" : "opacity-50"}"
+        @click=${() => moreInfo(this, cfg.time)}
+      >
+        <span class="text-[30px] font-semibold leading-none text-ink"
+          >${time || "—"}</span
+        >
+        ${windowEnd ? html`<span class="ml-2 text-[13px] text-muted"
+                >→ ${windowEnd}${dur ? html` · ${dur} min` : ""}</span
+              >` : ""}
+      </button>
+
+      ${Array.isArray(cfg.days) && cfg.days.length ? html`<div class="mt-3 flex flex-wrap gap-1.5">
+              ${cfg.days.map((d2) => {
+        const obj = typeof d2 === "object";
+        const st = obj ? this._state(d2.entity) : null;
+        const active = obj ? st && st.state === "on" : true;
+        return html`<button
+                  type="button"
+                  class="rounded-full border px-2.5 py-1 text-[10.5px] font-medium
+                       ${active ? "border-accentline bg-accentbg text-accent" : "border-line bg-card2 text-ink2"}"
+                  @click=${() => obj && this.hass && this.hass.callService("input_boolean", "toggle", {
+          entity_id: d2.entity
+        })}
+                >
+                  ${obj ? d2.name : d2}
+                </button>`;
+      })}
+            </div>` : ""}
+    </div>`;
+    }
+    getCardSize() {
+      return 2;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 2 };
+    }
+  }
+
+  // src/cards/section.js
+  class FibbersSection extends LitElement {
+    static properties = { _config: { state: true } };
+    static styles = [
+      twSheet,
+      css`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return { type: "custom:fibbers-section", label: "Kamers" };
+    }
+    setConfig(config) {
+      if (!config || !config.label) {
+        throw new Error("fibbers-section: `label` is required");
+      }
+      this._config = config;
+    }
+    set hass(_hass) {}
+    render() {
+      if (!this._config)
+        return html``;
+      return html`<div
+      class="px-0.5 pt-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.11em] text-muted"
+    >
+      ${this._config.label}
+    </div>`;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 1 };
+    }
+  }
+
+  // src/cards/select.js
+  class FibbersSelect extends LitElement {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true },
+      _open: { state: true }
+    };
+    static styles = [
+      twSheet,
+      css`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return { type: "custom:fibbers-select", entity: "input_select.wake_days" };
+    }
+    setConfig(config) {
+      if (!config || !config.entity) {
+        throw new Error("fibbers-select: `entity` is required");
+      }
+      this._config = config;
+      this._open = false;
+    }
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      this._removeOutside();
+    }
+    _st() {
+      return this.hass && this.hass.states[this._config.entity];
+    }
+    _options() {
+      const st = this._st();
+      return st && st.attributes && st.attributes.options || [];
+    }
+    _current() {
+      const st = this._st();
+      return st ? st.state : "";
+    }
+    _select(opt) {
+      if (this.hass) {
+        const domain = this._config.entity.split(".")[0];
+        this.hass.callService(domain, "select_option", {
+          entity_id: this._config.entity,
+          option: opt
+        });
+      }
+      this._close();
+    }
+    _openMenu() {
+      this._removeOutside();
+      this._open = true;
+      this._outside = (e) => {
+        if (!e.composedPath().includes(this))
+          this._close();
+      };
+      setTimeout(() => document.addEventListener("click", this._outside), 0);
+    }
+    _close() {
+      this._open = false;
+      this._removeOutside();
+    }
+    _removeOutside() {
+      if (this._outside) {
+        document.removeEventListener("click", this._outside);
+        this._outside = null;
+      }
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return html``;
+      const st = this._st();
+      if (!st) {
+        return html`<div
+        class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
+      >
+        Niet beschikbaar
+      </div>`;
+      }
+      const name = cfg.name || st.attributes.friendly_name || cfg.entity;
+      const icon = cfg.icon || st.attributes.icon || "solar:list-bold-duotone";
+      const options = this._options();
+      const current = this._current();
+      const max = cfg.chips_max != null ? cfg.chips_max : 6;
+      const mode = cfg.mode === "chips" || cfg.mode === "dropdown" ? cfg.mode : options.length <= max ? "chips" : "dropdown";
+      const header = html`<div class="mb-2 flex items-center gap-2.5">
+      <div
+        class="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-accentbg text-accent"
+      >
+        <fib-icon
+          class="h-[17px] w-[17px] [--mdc-icon-size:17px]"
+          icon=${icon}
+        ></fib-icon>
+      </div>
+      <span class="flex-1 text-[12px] font-medium text-ink">${name}</span>
+    </div>`;
+      const body = mode === "chips" ? html`<div class="flex flex-wrap gap-1.5">
+            ${options.map((o) => {
+        const active = o === current;
+        return html`<button
+                type="button"
+                class="rounded-full border px-2.5 py-1 text-[10.5px] font-medium
+                       ${active ? "border-accentline bg-accentbg text-accent" : "border-line bg-card2 text-ink2"}"
+                @click=${() => this._select(o)}
+              >
+                ${o}
+              </button>`;
+      })}
+          </div>` : html`<div class="relative">
+            <button
+              type="button"
+              class="flex w-full items-center justify-between gap-2 rounded-[10px] border border-line
+                     bg-card2 px-3 py-2 text-left text-[12px] font-medium text-ink"
+              aria-haspopup="listbox"
+              aria-expanded=${this._open ? "true" : "false"}
+              @click=${() => this._open ? this._close() : this._openMenu()}
+            >
+              <span class="truncate">${current || "—"}</span>
+              <fib-icon
+                class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-muted transition-transform
+                       ${this._open ? "rotate-180" : ""}"
+                icon="solar:alt-arrow-down-bold-duotone"
+              ></fib-icon>
+            </button>
+            ${this._open ? html`<div
+                    class="absolute left-0 right-0 top-[calc(100%+4px)] z-10 max-h-[220px] overflow-auto
+                         rounded-[10px] border border-line bg-card p-1 shadow-[0_10px_30px_rgba(0,0,0,.5)]"
+                    role="listbox"
+                  >
+                    ${options.map((o) => html`<button
+                          type="button"
+                          role="option"
+                          aria-selected=${o === current ? "true" : "false"}
+                          class="flex w-full items-center justify-between gap-2 rounded-[7px] px-2.5 py-2
+                             text-left text-[12px] hover:bg-card2
+                             ${o === current ? "text-accent" : "text-ink"}"
+                          @click=${() => this._select(o)}
+                        >
+                          <span class="truncate">${o}</span>
+                          ${o === current ? html`<fib-icon
+                                  class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-accent"
+                                  icon="solar:check-circle-bold-duotone"
+                                ></fib-icon>` : ""}
+                        </button>`)}
+                  </div>` : ""}
+          </div>`;
+      return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
+      ${header}${body}
+    </div>`;
     }
     getCardSize() {
       return 1;
@@ -7702,7 +10145,7 @@ ${decls}
     layer.openId = null;
     if (layer.host)
       layer.host.removeAttribute("data-shown");
-    if (window.location.hash === "#" + id) {
+    if (window.location.hash === `#${id}`) {
       history.replaceState(null, "", window.location.pathname + window.location.search);
     }
     const finish = () => {
@@ -7729,7 +10172,7 @@ ${decls}
   function registerSheet(id, card) {
     build();
     layer.sheets.set(id, card);
-    if (window.location.hash === "#" + id)
+    if (window.location.hash === `#${id}`)
       openSheet(id);
   }
   function unregisterSheet(id, card) {
@@ -7816,722 +10259,8 @@ ${decls}
     }
   }
 
-  // src/cards/section.js
-  class FibbersSection extends LitElement {
-    static properties = { _config: { state: true } };
-    static styles = [
-      twSheet,
-      css`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig() {
-      return { type: "custom:fibbers-section", label: "Kamers" };
-    }
-    setConfig(config) {
-      if (!config || !config.label) {
-        throw new Error("fibbers-section: `label` is required");
-      }
-      this._config = config;
-    }
-    set hass(_hass) {}
-    render() {
-      if (!this._config)
-        return html``;
-      return html`<div
-      class="px-0.5 pt-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.11em] text-muted"
-    >
-      ${this._config.label}
-    </div>`;
-    }
-    getCardSize() {
-      return 1;
-    }
-    getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 1 };
-    }
-  }
-
-  // src/cards/room.js
-  var isLight = (id) => typeof id === "string" && id.startsWith("light.");
-
-  class FibbersRoom extends LitElement {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true }
-    };
-    static styles = [
-      twSheet,
-      css`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig() {
-      return {
-        type: "custom:fibbers-room",
-        name: "Woonkamer",
-        icon: "solar:sofa-2-bold-duotone",
-        entities: ["light.tv_led_strip"],
-        sheet: "woonkamer"
-      };
-    }
-    setConfig(config) {
-      if (!config || !config.name) {
-        throw new Error("fibbers-room: `name` is required");
-      }
-      if (config.entities != null && !Array.isArray(config.entities)) {
-        throw new Error("fibbers-room: `entities` must be a list");
-      }
-      if (config.entities == null && !config.area) {
-        throw new Error("fibbers-room: provide `entities` or an `area`");
-      }
-      this._config = config;
-    }
-    _entities() {
-      const c = this._config;
-      if (Array.isArray(c.entities))
-        return c.entities;
-      const hass = this.hass;
-      if (!c.area || !hass || !hass.entities)
-        return [];
-      const devices = hass.devices || {};
-      return Object.values(hass.entities).filter((e) => {
-        const area = e.area_id || (devices[e.device_id] || {}).area_id;
-        return area === c.area && isLight(e.entity_id);
-      }).map((e) => e.entity_id);
-    }
-    _lights() {
-      return this._entities().filter(isLight);
-    }
-    disconnectedCallback() {
-      super.disconnectedCallback();
-      clearTimeout(this._timer);
-    }
-    _state() {
-      const hass = this.hass;
-      const lights = this._lights();
-      if (!hass || !lights.length)
-        return { label: "—", lit: false, offline: false };
-      let on = 0, avail = 0;
-      lights.forEach((id) => {
-        const st = hass.states[id];
-        if (!st || st.state === "unavailable" || st.state === "unknown")
-          return;
-        avail++;
-        if (st.state === "on")
-          on++;
-      });
-      if (avail === 0)
-        return { label: "Offline", lit: false, offline: true };
-      if (on === 0)
-        return { label: "Uit", lit: false, offline: false };
-      return {
-        label: `${on} van ${lights.length} aan`,
-        lit: true,
-        offline: false
-      };
-    }
-    _down() {
-      this._held = false;
-      this._timer = setTimeout(() => {
-        this._held = true;
-        this._moreInfo();
-      }, 500);
-    }
-    _up() {
-      clearTimeout(this._timer);
-    }
-    _click() {
-      if (this._held)
-        return;
-      if (this._config.sheet)
-        window.location.hash = this._config.sheet;
-    }
-    _moreInfo() {
-      moreInfo(this, this._lights()[0] || this._entities()[0]);
-    }
-    render() {
-      if (!this._config)
-        return html``;
-      const s = this._state();
-      return html`<button
-      type="button"
-      class="block w-full cursor-pointer rounded-[15px] border px-[13px] pb-3 pt-[13px]
-             text-left transition-colors active:translate-y-[0.5px]
-             ${s.lit ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)]" : "border-line bg-card"}
-             ${s.offline ? "opacity-[.66]" : ""}"
-      @pointerdown=${this._down}
-      @pointerup=${this._up}
-      @pointercancel=${this._up}
-      @pointerleave=${this._up}
-      @click=${this._click}
-    >
-      <fib-icon
-        class="block h-[19px] w-[19px] [--mdc-icon-size:19px] ${s.lit ? "text-accent" : "text-muted"}"
-        icon=${this._config.icon || "solar:home-angle-bold-duotone"}
-      ></fib-icon>
-      <div class="mt-2 text-[13px] font-semibold tracking-tight text-ink">
-        ${this._config.name}
-      </div>
-      <div class="mt-0.5 text-[11px] ${s.offline ? "text-red" : "text-muted"}">
-        ${s.label}
-      </div>
-    </button>`;
-    }
-    getCardSize() {
-      return 1;
-    }
-    getLayoutOptions() {
-      return { grid_columns: 6, grid_rows: 1 };
-    }
-  }
-
-  // src/actions.js
-  function runAction(action, hass, host, fallbackEntity) {
-    const a = action || { action: "none" };
-    switch (a.action) {
-      case "navigate":
-        if (a.navigation_path)
-          navigate(a.navigation_path);
-        break;
-      case "url":
-        if (a.url_path)
-          window.open(a.url_path, a.url_path.startsWith("http") ? "_blank" : "_self");
-        break;
-      case "toggle": {
-        const entity = a.entity || fallbackEntity;
-        if (entity && hass)
-          hass.callService("homeassistant", "toggle", { entity_id: entity });
-        break;
-      }
-      case "more-info":
-        moreInfo(host, a.entity || fallbackEntity);
-        break;
-      case "call-service":
-      case "perform-action": {
-        const svc = a.service || a.perform_action;
-        if (svc && svc.includes(".") && hass) {
-          const [domain, service] = svc.split(".");
-          hass.callService(domain, service, a.data || a.service_data || {}, a.target);
-        }
-        break;
-      }
-      default:
-        break;
-    }
-  }
-
-  // src/cards/light-row.js
-  class FibbersLightRow extends LitElement {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true },
-      _dragging: { state: true },
-      _dragPct: { state: true }
-    };
-    static styles = [
-      twSheet,
-      css`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig() {
-      return { type: "custom:fibbers-light-row", entity: "light.tv_led_strip" };
-    }
-    setConfig(config) {
-      if (!config || !config.entity) {
-        throw new Error("fibbers-light-row: `entity` is required");
-      }
-      if (config.icon_tap_action != null && (typeof config.icon_tap_action !== "object" || typeof config.icon_tap_action.action !== "string")) {
-        throw new Error("fibbers-light-row: `icon_tap_action` must be a HA action object (with an `action`)");
-      }
-      this._config = config;
-      this._dragging = false;
-      this._dragPct = 0;
-    }
-    _st() {
-      return this.hass && this.hass.states[this._config.entity];
-    }
-    _unavail() {
-      const st = this._st();
-      return !st || st.state === "unavailable" || st.state === "unknown";
-    }
-    _pctFromHass() {
-      const st = this._st();
-      if (!st || st.state !== "on")
-        return 0;
-      const b = st.attributes.brightness;
-      return b != null ? Math.round(b / 255 * 100) : 100;
-    }
-    _displayPct() {
-      return this._dragging ? this._dragPct : this._pctFromHass();
-    }
-    _warmth() {
-      const st = this._st();
-      if (!st)
-        return "";
-      const mode = st.attributes.color_mode;
-      if (mode && ["hs", "rgb", "rgbw", "rgbww", "xy"].includes(mode))
-        return "Kleur";
-      const k = st.attributes.color_temp_kelvin || (st.attributes.color_temp ? Math.round(1e6 / st.attributes.color_temp) : null);
-      if (k == null)
-        return "";
-      if (k < 3000)
-        return "Warm";
-      if (k < 4600)
-        return "Neutraal";
-      return "Koel";
-    }
-    _pctFromX(clientX, track) {
-      const r = track.getBoundingClientRect();
-      return Math.round(clamp((clientX - r.left) / r.width * 100, 0, 100));
-    }
-    _down(e) {
-      if (this._unavail())
-        return;
-      const track = e.currentTarget;
-      this._dragging = true;
-      track.setPointerCapture && track.setPointerCapture(e.pointerId);
-      this._dragPct = this._pctFromX(e.clientX, track);
-    }
-    _move(e) {
-      if (!this._dragging)
-        return;
-      this._dragPct = this._pctFromX(e.clientX, e.currentTarget);
-    }
-    _up(e) {
-      if (!this._dragging)
-        return;
-      const pct = this._pctFromX(e.clientX, e.currentTarget);
-      this._dragging = false;
-      this._commit(pct);
-    }
-    _commit(pct) {
-      if (!this.hass)
-        return;
-      const entity_id = this._config.entity;
-      if (pct <= 0)
-        this.hass.callService("light", "turn_off", { entity_id });
-      else
-        this.hass.callService("light", "turn_on", {
-          entity_id,
-          brightness_pct: pct
-        });
-    }
-    _iconAction() {
-      return this._config.icon_tap_action || { action: "toggle" };
-    }
-    _moreInfo() {
-      moreInfo(this, this._config.entity);
-    }
-    render() {
-      const cfg = this._config;
-      if (!cfg)
-        return html``;
-      const st = this._st();
-      const unavail = this._unavail();
-      const on = !unavail && st.state === "on";
-      const pct = this._displayPct();
-      const name = cfg.name || st && st.attributes.friendly_name || cfg.entity;
-      const icon = cfg.icon || st && st.attributes.icon || "solar:lightbulb-bold-duotone";
-      let val;
-      if (unavail)
-        val = "Onbereikbaar";
-      else if (on) {
-        const w = this._warmth();
-        val = w ? `${w} · ${pct}%` : `${pct}%`;
-      } else
-        val = "Uit";
-      return html`
-      <div
-        class="grid grid-cols-[28px_1fr] grid-rows-[auto_auto] items-center gap-x-2.5
-               gap-y-2 py-2 ${unavail ? "opacity-50" : ""}"
-      >
-        <div
-          role="button"
-          class="row-span-2 flex h-7 w-7 items-center justify-center rounded-lg
-                 transition-transform active:scale-90 ${on ? "bg-accentbg" : "bg-card2"} ${unavail ? "pointer-events-none" : "cursor-pointer"}"
-          @click=${() => runAction(this._iconAction(), this.hass, this, cfg.icon_entity || cfg.entity)}
-        >
-          <fib-icon
-            class="h-[17px] w-[17px] [--mdc-icon-size:17px] ${on ? "text-accent" : "text-muted"}"
-            icon=${icon}
-          ></fib-icon>
-        </div>
-
-        <div
-          class="flex cursor-pointer items-baseline justify-between gap-2"
-          @click=${() => this._moreInfo()}
-        >
-          <span class="text-[12px] font-medium text-ink">${name}</span>
-          <span class="whitespace-nowrap text-[10.5px] text-muted">${val}</span>
-        </div>
-
-        <div
-          class="relative h-1.5 cursor-pointer touch-none rounded-[3px] bg-[#2C3639]
-                 ${unavail ? "pointer-events-none" : ""}"
-          @pointerdown=${this._down}
-          @pointermove=${this._move}
-          @pointerup=${this._up}
-          @pointercancel=${() => this._dragging = false}
-        >
-          ${unavail ? "" : html`
-                  <div
-                    class="absolute bottom-0 left-0 top-0 rounded-[3px] bg-accent"
-                    style="width:${pct}%"
-                  ></div>
-                  <div
-                    class="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2
-                         rounded-full bg-accent shadow-[0_1px_3px_rgba(0,0,0,.4)]"
-                    style="left:${pct}%"
-                  ></div>
-                `}
-        </div>
-      </div>
-    `;
-    }
-    getCardSize() {
-      return 1;
-    }
-    getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 1 };
-    }
-  }
-
-  // src/cards/alert.js
-  var friendly = (s) => s.attributes && s.attributes.friendly_name || s.entity_id;
-  function runCheck(check, hass) {
-    const states = Object.values(hass.states);
-    const out = [];
-    switch (check.type) {
-      case "unavailable_lights": {
-        const exclude = check.exclude || [];
-        const offline = states.filter((s) => s.entity_id.startsWith("light.") && !exclude.includes(s.entity_id) && isUnavail(s));
-        if (offline.length)
-          out.push({
-            label: offline.length === 1 ? "Lamp offline" : "Lampen offline",
-            detail: offline.map(friendly).join(", "),
-            entity: offline[0].entity_id
-          });
-        break;
-      }
-      case "low_battery": {
-        const below = check.below != null ? check.below : 20;
-        const pat = check.exclude_pattern ? new RegExp(check.exclude_pattern) : null;
-        states.filter((s) => (s.attributes || {}).device_class === "battery" && !isNaN(parseFloat(s.state)) && parseFloat(s.state) < below && !(pat && pat.test(s.entity_id))).forEach((s) => out.push({
-          label: "Batterij laag",
-          detail: `${friendly(s)} (${s.state}%)`,
-          entity: s.entity_id
-        }));
-        break;
-      }
-      case "updates": {
-        const ups = states.filter((s) => s.entity_id.startsWith("update.") && s.state === "on");
-        if (ups.length)
-          out.push({
-            label: "Updates",
-            detail: ups.length === 1 ? `1 update beschikbaar` : `${ups.length} updates beschikbaar`,
-            entity: ups[0].entity_id
-          });
-        break;
-      }
-      case "backup_age": {
-        const st = hass.states[check.entity];
-        const max = check.max_hours != null ? check.max_hours : 26;
-        if (st && !isUnavail(st)) {
-          const t = Date.parse(st.state);
-          if (!isNaN(t)) {
-            const hours = (Date.now() - t) / 3600000;
-            if (hours > max)
-              out.push({
-                label: "Back-up",
-                detail: `${Math.round(hours)} uur geleden`,
-                entity: check.entity
-              });
-          }
-        }
-        break;
-      }
-    }
-    return out;
-  }
-
-  class FibbersAlert extends LitElement {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true }
-    };
-    static styles = [
-      twSheet,
-      css`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig() {
-      return {
-        type: "custom:fibbers-alert",
-        checks: [{ type: "unavailable_lights" }, { type: "updates" }]
-      };
-    }
-    setConfig(config) {
-      if (!config || !Array.isArray(config.checks)) {
-        throw new Error("fibbers-alert: `checks` must be a list");
-      }
-      this._config = config;
-    }
-    _findings() {
-      if (!this.hass)
-        return [];
-      const out = [];
-      this._config.checks.forEach((c) => {
-        try {
-          out.push(...runCheck(c, this.hass));
-        } catch (_) {}
-      });
-      return out;
-    }
-    _moreInfo(entity) {
-      moreInfo(this, entity);
-    }
-    render() {
-      if (!this._config)
-        return html``;
-      const findings = this._findings();
-      const alert = findings.length > 0;
-      return html`<div
-      class="rounded-xl border p-3
-             ${alert ? "border-amberline bg-amberbg" : "border-line bg-card"}"
-    >
-      <div class="flex items-center gap-2">
-        <fib-icon
-          class="h-4 w-4 [--mdc-icon-size:16px] ${alert ? "text-amber" : "text-green"}"
-          icon=${alert ? "solar:danger-triangle-bold-duotone" : "solar:check-circle-bold-duotone"}
-        ></fib-icon>
-        <span
-          class="text-[12px] font-semibold ${alert ? "text-amber" : "text-green"}"
-          >${alert ? "Aandacht nodig" : "Alles in orde"}</span
-        >
-      </div>
-      ${alert ? html`<div class="mt-2 flex flex-col gap-[5px]">
-              ${findings.map((f) => html`<div
-                    class="cursor-pointer text-[11.5px] leading-[1.42] text-ambertx"
-                    @click=${() => this._moreInfo(f.entity)}
-                  >
-                    <b class="font-semibold text-amber">${f.label}</b> —
-                    ${f.detail}
-                  </div>`)}
-            </div>` : ""}
-    </div>`;
-    }
-    getCardSize() {
-      return 2;
-    }
-    getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 2 };
-    }
-  }
-
-  // src/cards/chips.js
-  class FibbersChips extends LitElement {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true }
-    };
-    static styles = [
-      twSheet,
-      css`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig() {
-      return {
-        type: "custom:fibbers-chips",
-        chips: [
-          {
-            name: "Alles uit",
-            icon: "solar:power-bold-duotone",
-            action: { action: "toggle" }
-          }
-        ]
-      };
-    }
-    setConfig(config) {
-      if (!config || !Array.isArray(config.chips)) {
-        throw new Error("fibbers-chips: `chips` must be a list");
-      }
-      this._config = config;
-    }
-    _active(chip) {
-      const aw = chip.active_when;
-      if (!aw || !aw.entity || !this.hass)
-        return false;
-      const st = this.hass.states[aw.entity];
-      return !!(st && (aw.state != null ? st.state === aw.state : st.state === "on"));
-    }
-    render() {
-      const cfg = this._config;
-      if (!cfg)
-        return html``;
-      return html`<div class="flex flex-wrap gap-[7px]">
-      ${cfg.chips.map((chip) => {
-        const active = this._active(chip);
-        return html`<button
-          type="button"
-          class="inline-flex items-center gap-[5px] rounded-full border px-2.5 py-[5px]
-                 text-[10.5px] font-medium
-                 ${active ? "border-blueline bg-bluebg text-blueink" : "border-line bg-card2 text-ink2"}"
-          @click=${() => this.hass && runAction(chip.action || chip.tap_action, this.hass, this, chip.entity)}
-        >
-          ${chip.icon ? html`<fib-icon
-                  class="h-[13px] w-[13px] [--mdc-icon-size:13px]"
-                  icon=${chip.icon}
-                ></fib-icon>` : ""}
-          <span>${chip.name || ""}</span>
-        </button>`;
-      })}
-    </div>`;
-    }
-    getCardSize() {
-      return 1;
-    }
-    getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 1 };
-    }
-  }
-
-  // src/cards/scene.js
-  var activatedAt = (st) => {
-    if (!st)
-      return 0;
-    const raw = st.attributes && st.attributes.last_activated || st.state || null;
-    const t = raw ? Date.parse(raw) : NaN;
-    return isNaN(t) ? 0 : t;
-  };
-
-  class FibbersScene extends LitElement {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true },
-      _open: { state: true }
-    };
-    static styles = [
-      twSheet,
-      css`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig() {
-      return {
-        type: "custom:fibbers-scene",
-        scenes: [
-          {
-            name: "Avond",
-            icon: "solar:moon-bold-duotone",
-            scene: "scene.avond"
-          }
-        ]
-      };
-    }
-    setConfig(config) {
-      if (!config || !Array.isArray(config.scenes) || !config.scenes.length) {
-        throw new Error("fibbers-scene: `scenes` must be a non-empty list");
-      }
-      config.scenes.forEach((s, i) => {
-        if (!s || !s.scene)
-          throw new Error(`fibbers-scene: scenes[${i}] is missing \`scene\``);
-      });
-      if (config.favourites != null && (!Number.isInteger(config.favourites) || config.favourites < 1)) {
-        throw new Error("fibbers-scene: `favourites` must be a positive integer");
-      }
-      this._config = config;
-      this._open = false;
-    }
-    _fav() {
-      const n = this._config.favourites;
-      return n && n < this._config.scenes.length ? n : this._config.scenes.length;
-    }
-    _activeIndex() {
-      if (!this.hass)
-        return -1;
-      let best = -1, bestT = 0;
-      this._config.scenes.forEach((s, i) => {
-        const t = activatedAt(this.hass.states[s.scene]);
-        if (t > bestT) {
-          bestT = t;
-          best = i;
-        }
-      });
-      return best;
-    }
-    render() {
-      const cfg = this._config;
-      if (!cfg)
-        return html``;
-      const fav = this._fav();
-      const active = this._activeIndex();
-      const total = cfg.scenes.length;
-      const hidden = total - fav;
-      const tile = (s, i) => {
-        const isActive = i === active;
-        const show = i < fav || this._open;
-        return html`<button
-        type="button"
-        ?hidden=${!show}
-        class="flex flex-col items-center gap-[7px] rounded-[14px] border p-3.5
-               text-ink2 transition-transform active:scale-[.96]
-               ${isActive ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)] text-accenttx" : "border-line bg-card"}"
-        @click=${() => this.hass && this.hass.callService("scene", "turn_on", { entity_id: s.scene })}
-      >
-        <fib-icon
-          class="h-5 w-5 [--mdc-icon-size:20px] ${isActive ? "text-accent" : "text-muted"}"
-          icon=${s.icon || "solar:palette-bold-duotone"}
-        ></fib-icon>
-        <span class="text-center text-[11px] font-medium"
-          >${s.name || s.scene}</span
-        >
-      </button>`;
-      };
-      return html`
-      <div class="grid grid-cols-[repeat(auto-fit,minmax(84px,1fr))] gap-2">
-        ${cfg.scenes.map(tile)}
-      </div>
-      ${hidden > 0 ? html`<button
-              type="button"
-              class="mt-2 flex w-full items-center justify-center gap-1.5 rounded-[11px]
-                   border border-line bg-transparent py-[9px] text-[11px] font-medium text-ink2"
-              @click=${() => this._open = !this._open}
-            >
-              <span>${this._open ? "Minder" : `Alle ${total} scènes`}</span>
-              <fib-icon
-                class="h-[15px] w-[15px] text-muted transition-transform [--mdc-icon-size:15px]
-                     ${this._open ? "rotate-180" : ""}"
-                icon="solar:alt-arrow-down-bold-duotone"
-              ></fib-icon>
-            </button>` : ""}
-    `;
-    }
-    getCardSize() {
-      return 1;
-    }
-    getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 1 };
-    }
-  }
-
   // src/cards/stat.js
-  var COLORS = ["accent", "amber", "blue", "green", "red"];
+  var COLORS2 = ["accent", "amber", "blue", "green", "red"];
   var IC = {
     accent: "bg-accentbg text-accent",
     amber: "bg-amberbg text-amber",
@@ -8567,8 +10296,8 @@ ${decls}
       if (!config || !config.entity && config.value == null) {
         throw new Error("fibbers-stat: `entity` or `value` is required");
       }
-      if (config.color != null && !COLORS.includes(config.color)) {
-        throw new Error(`fibbers-stat: \`color\` must be one of ${COLORS.join(", ")}`);
+      if (config.color != null && !COLORS2.includes(config.color)) {
+        throw new Error(`fibbers-stat: \`color\` must be one of ${COLORS2.join(", ")}`);
       }
       this._config = config;
     }
@@ -8578,8 +10307,7 @@ ${decls}
     _offline() {
       if (!this._config.entity)
         return false;
-      const st = this._st();
-      return !st || st.state === "unavailable" || st.state === "unknown";
+      return isUnavail(this._st());
     }
     _tap() {
       const cfg = this._config;
@@ -8596,7 +10324,15 @@ ${decls}
       const color = cfg.color || "accent";
       const icon = cfg.icon || st && st.attributes.icon || "solar:widget-bold-duotone";
       const label = cfg.name || st && st.attributes.friendly_name || cfg.entity || "";
-      const value = offline ? "—" : fmt(cfg.value != null ? cfg.value : st.state, cfg.decimals);
+      let value;
+      if (offline)
+        value = "—";
+      else if (cfg.value != null)
+        value = fmt(cfg.value, cfg.decimals);
+      else {
+        const n = Number(String(st.state).replace(",", "."));
+        value = Number.isFinite(n) ? nl(n, cfg.decimals) : fmtState(this.hass, st);
+      }
       const unit = offline ? "" : cfg.unit != null ? cfg.unit : st && st.attributes.unit_of_measurement || "";
       const trend = ["up", "down", "flat"].includes(cfg.trend) ? cfg.trend : null;
       const trendChar = trend === "up" ? "▲" : trend === "down" ? "▼" : "—";
@@ -8648,18 +10384,10 @@ ${decls}
     }
   }
 
-  // src/cards/graph.js
-  var COLORS2 = ["accent", "amber", "blue", "green", "red"];
-  var STROKE = {
-    accent: "text-accent",
-    amber: "text-amber",
-    blue: "text-blue",
-    green: "text-green",
-    red: "text-red"
-  };
-  var W = 300;
+  // src/cards/sysmon.js
+  var W2 = 300;
 
-  class FibbersGraph extends LitElement {
+  class FibbersSysmon extends LitElement {
     static properties = {
       hass: { attribute: false },
       _config: { state: true },
@@ -8675,206 +10403,124 @@ ${decls}
     ];
     static getStubConfig() {
       return {
-        type: "custom:fibbers-graph",
-        entity: "sensor.hue_motion_sensor_1_temperature",
-        hours: 24
+        type: "custom:fibbers-sysmon",
+        title: "Raspberry Pi",
+        metrics: [
+          { label: "CPU", entity: "sensor.cpu_percent", unit: "%" },
+          { label: "Temp", entity: "sensor.cpu_temp", unit: "°C" }
+        ]
       };
     }
     setConfig(config) {
-      if (!config || !config.entity && !Array.isArray(config.data)) {
-        throw new Error("fibbers-graph: `entity` or `data` is required");
-      }
-      if (config.color != null && !COLORS2.includes(config.color)) {
-        throw new Error(`fibbers-graph: \`color\` must be one of ${COLORS2.join(", ")}`);
+      if (!config || !Array.isArray(config.metrics) || !config.metrics.length) {
+        throw new Error("fibbers-sysmon: `metrics` must be a non-empty list");
       }
       this._config = config;
-      this._series = Array.isArray(config.data) ? config.data.map(Number) : null;
+      this._series = null;
       this._fetchedFor = null;
+      this._lastTry = 0;
     }
     updated(changed) {
-      if (changed.has("hass") && this._config.entity && !this._config.data)
+      if (changed.has("hass") && this._config.graph)
         this._maybeFetch();
     }
     async _maybeFetch() {
-      const id = this._config.entity;
+      const id = this._config.graph;
       if (!this.hass || this._fetchedFor === id || !this.hass.callWS)
         return;
-      this._fetchedFor = id;
-      const hours = this._config.hours || 24;
-      const end = new Date;
-      const start = new Date(end.getTime() - hours * 3600000);
+      const now = Date.now();
+      if (this._lastTry && now - this._lastTry < 8000)
+        return;
+      this._lastTry = now;
       try {
-        const res = await this.hass.callWS({
-          type: "history/history_during_period",
-          start_time: start.toISOString(),
-          end_time: end.toISOString(),
-          entity_ids: [id],
-          minimal_response: true,
-          no_attributes: true
-        });
-        const rows = res && res[id] || [];
-        const nums = rows.map((r) => Number(r.s != null ? r.s : r.state)).filter((n) => Number.isFinite(n));
-        if (nums.length)
+        const nums = await fetchHistory(this.hass, id, this._config.graph_hours || 24);
+        if (nums.length) {
           this._series = nums;
+          this._fetchedFor = id;
+        }
       } catch (_e) {}
     }
-    _current() {
-      const st = this._config.entity && this.hass && this.hass.states[this._config.entity];
-      if (st && st.state !== "unavailable" && st.state !== "unknown") {
-        const n = Number(st.state);
-        if (Number.isFinite(n))
-          return n;
-      }
-      return this._series && this._series.length ? this._series[this._series.length - 1] : null;
+    _val(m) {
+      const st = this.hass && this.hass.states[m.entity];
+      if (isUnavail(st))
+        return { text: "—", unit: "" };
+      const n = Number(st.state);
+      if (!Number.isFinite(n))
+        return { text: fmtState(this.hass, st), unit: "" };
+      const unit = m.unit != null ? m.unit : st.attributes.unit_of_measurement || "";
+      return { text: nl(n, m.decimals), unit };
     }
-    _unit() {
-      if (this._config.unit != null)
-        return this._config.unit;
-      const st = this._config.entity && this.hass && this.hass.states[this._config.entity];
-      return st && st.attributes.unit_of_measurement || "";
+    _sparkline() {
+      const series = this._series;
+      if (!series || series.length < 2)
+        return "";
+      const h = 40;
+      let min = Math.min(...series), max = Math.max(...series);
+      const pad = (max - min || 1) * 0.12;
+      min -= pad;
+      max += pad;
+      const n = series.length;
+      const pts = series.map((v, i) => `${(i / (n - 1) * W2).toFixed(1)},${(h - (v - min) / (max - min || 1) * h).toFixed(1)}`);
+      return html`<svg
+      viewBox="0 0 ${W2} ${h}"
+      preserveAspectRatio="none"
+      class="mt-3 block w-full text-blue"
+      style="height:${h}px"
+    >
+      <path
+        d="M0,${h} L${pts.join(" L")} L${W2},${h} Z"
+        style="fill:currentColor;opacity:.12"
+      ></path>
+      <path
+        d="M${pts.join(" L")}"
+        style="fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke"
+      ></path>
+    </svg>`;
     }
     render() {
       const cfg = this._config;
       if (!cfg)
         return html``;
-      const st = cfg.entity && this.hass && this.hass.states[cfg.entity];
-      const name = cfg.name || st && st.attributes.friendly_name || cfg.entity;
-      const now = this._current();
-      const h = cfg.height || 46;
-      const series = this._series;
-      const color = cfg.color || "accent";
-      const colorCls = STROKE[color] || "text-accent";
-      let body;
-      if (!series || series.length < 2) {
-        body = html`<div
-        class="flex items-center text-[11px] text-muted"
-        style="height:${h}px"
-      >
-        Geen historie
-      </div>`;
-      } else {
-        let min = Math.min(...series);
-        let max = Math.max(...series);
-        const pad = (max - min || 1) * 0.12;
-        min -= pad;
-        max += pad;
-        const n = series.length;
-        const x = (i) => i / (n - 1) * W;
-        const y = (v) => h - (v - min) / (max - min || 1) * h;
-        const pts = series.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`);
-        const line = "M" + pts.join(" L");
-        const area = `M0,${h} L${pts.join(" L")} L${W},${h} Z`;
-        body = html`<svg
-        viewBox="0 0 ${W} ${h}"
-        preserveAspectRatio="none"
-        class="block w-full ${colorCls}"
-        style="height:${h}px;overflow:visible"
-      >
-        <path
-          d=${area}
-          style="fill:currentColor;opacity:${cfg.fill === false ? 0 : 0.12}"
-        ></path>
-        <path
-          d=${line}
-          style="fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke"
-        ></path>
-      </svg>`;
-      }
       return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
-      <div class="mb-2 flex items-baseline justify-between gap-2">
-        <span class="text-[11px] font-medium text-muted">${name}</span>
-        <span class="text-[15px] font-semibold text-ink">
-          ${now != null ? nl(now, cfg.decimals) : "—"}<span
-            class="ml-0.5 text-[11px] font-medium text-ink2"
-            >${this._unit()}</span
-          >
-        </span>
-      </div>
-      ${body}
-      ${cfg.show_stats && series && series.length >= 2 ? html`<div
-              class="mt-1.5 flex justify-between text-[9.5px] text-muted"
+      ${cfg.title ? html`<div
+              class="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
             >
-              <span>min ${nl(Math.min(...series), cfg.decimals)}</span>
-              <span>max ${nl(Math.max(...series), cfg.decimals)}</span>
+              ${cfg.title}
             </div>` : ""}
+      <div class="grid grid-cols-2 gap-2">
+        ${cfg.metrics.map((m) => {
+        const v = this._val(m);
+        return html`<div
+            class="flex items-center gap-2.5 rounded-[10px] bg-card2 px-2.5 py-2"
+          >
+            <fib-icon
+              class="h-[18px] w-[18px] flex-none [--mdc-icon-size:18px] text-muted"
+              icon=${m.icon || "solar:widget-bold-duotone"}
+            ></fib-icon>
+            <div class="min-w-0">
+              <div class="text-[10px] text-muted">${m.label || m.entity}</div>
+              <div class="text-[15px] font-semibold text-ink">
+                ${v.text}<span class="ml-0.5 text-[10px] font-medium text-ink2"
+                  >${v.unit}</span
+                >
+              </div>
+            </div>
+          </div>`;
+      })}
+      </div>
+      ${this._sparkline()}
     </div>`;
     }
     getCardSize() {
-      return 2;
+      return 3;
     }
     getLayoutOptions() {
-      return { grid_columns: 6, grid_rows: 2 };
+      return { grid_columns: "full", grid_rows: 3 };
     }
   }
 
-  // src/cards/entities.js
-  var DOMAIN_ICON = {
-    light: "solar:lightbulb-bold-duotone",
-    switch: "solar:socket-bold-duotone",
-    automation: "solar:bolt-circle-bold-duotone",
-    sensor: "solar:widget-bold-duotone",
-    binary_sensor: "solar:widget-bold-duotone",
-    person: "solar:user-bold-duotone",
-    media_player: "solar:speaker-bold-duotone"
-  };
-  var num = (s) => parseFloat(String(s).replace(",", "."));
-  function ago(iso) {
-    const t = Date.parse(iso);
-    if (isNaN(t))
-      return "";
-    const mins = Math.max(0, Math.round((Date.now() - t) / 60000));
-    if (mins < 60)
-      return `${mins} min geleden`;
-    const hrs = Math.round(mins / 60);
-    if (hrs < 24)
-      return `${hrs} uur geleden`;
-    return `${Math.round(hrs / 24)} dagen geleden`;
-  }
-  function compileFilters(filters, label) {
-    return (filters || []).map((f) => {
-      if (!f.entity_id)
-        return f;
-      try {
-        return { ...f, _re: new RegExp(f.entity_id) };
-      } catch (e) {
-        throw new Error(`fibbers-entities: invalid ${label} entity_id regex "${f.entity_id}" — ${e.message}`);
-      }
-    });
-  }
-  function matches(st, f) {
-    if (f.domain && !st.entity_id.startsWith(f.domain + "."))
-      return false;
-    if (f._re && !f._re.test(st.entity_id))
-      return false;
-    if (f.state != null) {
-      const want = Array.isArray(f.state) ? f.state : [f.state];
-      if (!want.map(String).includes(String(st.state)))
-        return false;
-    }
-    if (f.state_not != null) {
-      const no = Array.isArray(f.state_not) ? f.state_not : [f.state_not];
-      if (no.map(String).includes(String(st.state)))
-        return false;
-    }
-    if (f.attributes) {
-      for (const [k, v] of Object.entries(f.attributes)) {
-        if (String((st.attributes || {})[k]) !== String(v))
-          return false;
-      }
-    }
-    if (f.below != null && !(num(st.state) < f.below))
-      return false;
-    if (f.above != null && !(num(st.state) > f.above))
-      return false;
-    if (f.stale_hours != null) {
-      const t = Date.parse(st.last_changed);
-      if (isNaN(t) || (Date.now() - t) / 3600000 < f.stale_hours)
-        return false;
-    }
-    return true;
-  }
-
-  class FibbersEntities extends LitElement {
+  // src/cards/toggle.js
+  class FibbersToggle extends LitElement {
     static properties = {
       hass: { attribute: false },
       _config: { state: true }
@@ -8889,214 +10535,70 @@ ${decls}
     ];
     static getStubConfig() {
       return {
-        type: "custom:fibbers-entities",
-        title: "Onbereikbaar",
-        filters: [{ domain: "light", state: ["unavailable", "unknown"] }]
+        type: "custom:fibbers-toggle",
+        entity: "input_boolean.wake_alarm_enabled"
       };
     }
     setConfig(config) {
-      if (!config || !Array.isArray(config.filters) || !config.filters.length) {
-        throw new Error("fibbers-entities: `filters` must be a non-empty list");
+      if (!config || !config.entity) {
+        throw new Error("fibbers-toggle: `entity` is required");
       }
       this._config = config;
-      this._filters = compileFilters(config.filters, "filter");
-      this._exclude = compileFilters(config.exclude, "exclude");
     }
-    _matched() {
-      const hass = this.hass;
-      if (!hass)
-        return [];
-      const seen = new Set;
-      const out = [];
-      for (const st of Object.values(hass.states)) {
-        if (!this._filters.some((f) => matches(st, f)))
-          continue;
-        if (this._exclude.some((f) => matches(st, f)))
-          continue;
-        if (seen.has(st.entity_id))
-          continue;
-        seen.add(st.entity_id);
-        out.push(st);
+    _st() {
+      return this.hass && this.hass.states[this._config.entity];
+    }
+    _toggle() {
+      if (!this.hass)
+        return;
+      const cfg = this._config;
+      if (cfg.confirm && !window.confirm(`${cfg.name || cfg.entity}?`))
+        return;
+      this.hass.callService("homeassistant", "toggle", { entity_id: cfg.entity });
+    }
+    _secondary() {
+      const cfg = this._config;
+      if (cfg.secondary)
+        return cfg.secondary;
+      if (cfg.secondary_entity) {
+        const s = this.hass && this.hass.states[cfg.secondary_entity];
+        return s ? fmtState(this.hass, s) : "";
       }
-      if (this._config.sort === "last_changed") {
-        out.sort((a, b) => Date.parse(a.last_changed) - Date.parse(b.last_changed));
-      } else {
-        out.sort((a, b) => this._name(a).localeCompare(this._name(b), "nl"));
-      }
-      const max = this._config.max;
-      return max ? out.slice(0, max) : out;
-    }
-    _name(st) {
-      return st.attributes && st.attributes.friendly_name || st.entity_id;
-    }
-    _icon(st) {
-      if (st.attributes && st.attributes.icon)
-        return st.attributes.icon;
-      if ((st.attributes || {}).device_class === "battery")
-        return "solar:battery-low-bold-duotone";
-      return DOMAIN_ICON[st.entity_id.split(".")[0]] || "solar:widget-bold-duotone";
-    }
-    _secondary(st) {
-      const s = this._config.secondary || "state";
-      if (s === "last_changed")
-        return ago(st.last_changed);
-      if (s.startsWith("attribute:")) {
-        const k = s.slice("attribute:".length);
-        return String((st.attributes || {})[k] ?? "");
-      }
-      const u = (st.attributes || {}).unit_of_measurement;
-      return u ? `${st.state} ${u}` : st.state;
+      return "";
     }
     render() {
       const cfg = this._config;
       if (!cfg)
         return html``;
-      const rows = this._matched();
+      const st = this._st();
+      if (!st) {
+        return html`<div
+        class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
+      >
+        Niet beschikbaar
+      </div>`;
+      }
+      const on = st.state === "on";
+      const name = cfg.name || st.attributes.friendly_name || cfg.entity;
+      const icon = cfg.icon || st.attributes.icon || "solar:power-bold-duotone";
+      const sub = this._secondary();
       return html`<div
-      class="rounded-[14px] border border-line bg-card px-1 py-1.5"
+      class="flex items-center gap-2.5 rounded-[14px] border border-line bg-card p-[13px]"
     >
-      ${cfg.title ? html`<div
-              class="flex items-center gap-[7px] px-2.5 pb-1.5 pt-[7px] text-[10px]
-                   font-semibold uppercase tracking-[0.08em] text-muted"
-            >
-              ${cfg.icon ? html`<fib-icon
-                      class="h-3.5 w-3.5 [--mdc-icon-size:14px] text-muted"
-                      icon=${cfg.icon}
-                    ></fib-icon>` : ""}
-              <span>${cfg.title}</span>
-            </div>` : ""}
-      ${rows.length ? rows.map((st) => html`<div
-                  role="button"
-                  class="grid cursor-pointer grid-cols-[28px_1fr_auto] items-center gap-x-2.5
-                     rounded-[10px] px-2.5 py-2 hover:bg-card2"
-                  @click=${() => moreInfo(this, st.entity_id)}
-                >
-                  <div
-                    class="flex h-7 w-7 items-center justify-center rounded-lg bg-card2"
-                  >
-                    <fib-icon
-                      class="h-4 w-4 [--mdc-icon-size:16px] text-muted"
-                      icon=${this._icon(st)}
-                    ></fib-icon>
-                  </div>
-                  <span
-                    class="overflow-hidden text-ellipsis whitespace-nowrap text-[12px]
-                       font-medium text-ink"
-                    >${this._name(st)}</span
-                  >
-                  <span class="whitespace-nowrap text-[10.5px] text-muted"
-                    >${this._secondary(st)}</span
-                  >
-                </div>`) : cfg.empty ? html`<div
-                class="flex items-center gap-[7px] px-2.5 py-3 text-[11.5px] text-muted"
-              >
-                <fib-icon
-                  class="h-[15px] w-[15px] [--mdc-icon-size:15px] text-green"
-                  icon="solar:check-circle-bold-duotone"
-                ></fib-icon>
-                <span>${cfg.empty}</span>
-              </div>` : ""}
-    </div>`;
-    }
-    getCardSize() {
-      return 2;
-    }
-    getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 2 };
-    }
-  }
-
-  // src/cards/presence.js
-  class FibbersPresence extends LitElement {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true }
-    };
-    static styles = [
-      twSheet,
-      css`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig() {
-      return { type: "custom:fibbers-presence" };
-    }
-    setConfig(config) {
-      if (config && config.people != null && !Array.isArray(config.people)) {
-        throw new Error("fibbers-presence: `people` must be a list of entities");
-      }
-      this._config = config || {};
-    }
-    _people() {
-      if (Array.isArray(this._config.people))
-        return this._config.people;
-      if (!this.hass)
-        return [];
-      return Object.keys(this.hass.states).filter((id) => id.startsWith("person.")).sort();
-    }
-    _isHome(st) {
-      return st && st.state === "home";
-    }
-    _stateLabel(st) {
-      if (!st)
-        return "—";
-      if (st.state === "home")
-        return "Thuis";
-      if (st.state === "not_home")
-        return "Weg";
-      return st.state;
-    }
-    _moreInfo(entity) {
-      moreInfo(this, entity);
-    }
-    render() {
-      const people = this._people();
-      const homeCount = people.filter((id) => this._isHome(this.hass && this.hass.states[id])).length;
-      return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
-      <div class="mb-2.5 flex items-baseline justify-between gap-2">
-        ${this._config.title === false ? "" : html`<span
-                class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-                >Aanwezigheid</span
-              >`}
-        <span
-          class="text-[12px] font-semibold ${homeCount === 0 ? "text-muted" : "text-ink"}"
-          >${homeCount === 0 ? "Niemand thuis" : `${homeCount} thuis`}</span
-        >
+      <div
+        class="flex h-8 w-8 flex-none items-center justify-center rounded-lg
+               ${on ? "bg-accentbg text-accent" : "bg-card2 text-muted"}"
+      >
+        <fib-icon
+          class="h-[18px] w-[18px] [--mdc-icon-size:18px]"
+          icon=${icon}
+        ></fib-icon>
       </div>
-      <div class="flex flex-wrap gap-2">
-        ${people.map((id) => {
-        const st = this.hass && this.hass.states[id];
-        const home = this._isHome(st);
-        const pic = st && st.attributes && st.attributes.entity_picture;
-        return html`<button
-            type="button"
-            class="flex items-center gap-2 rounded-full border py-[7px] pl-[7px] pr-[11px]
-                   ${home ? "border-accentline bg-accentbg" : "border-line bg-card2"}"
-            @click=${() => this._moreInfo(id)}
-          >
-            <div
-              class="flex h-[26px] w-[26px] flex-none items-center justify-center
-                     overflow-hidden rounded-full bg-card bg-cover bg-center"
-              style=${pic ? `background-image:url("${pic}")` : ""}
-            >
-              ${pic ? "" : html`<fib-icon
-                      class="h-[15px] w-[15px] [--mdc-icon-size:15px] ${home ? "text-accent" : "text-muted"}"
-                      icon="solar:user-bold-duotone"
-                    ></fib-icon>`}
-            </div>
-            <div class="flex flex-col leading-[1.25]">
-              <span class="text-[12px] font-semibold text-ink"
-                >${st && st.attributes && st.attributes.friendly_name || id.split(".")[1]}</span
-              >
-              <span class="text-[10px] ${home ? "text-accenttx" : "text-muted"}"
-                >${this._stateLabel(st)}</span
-              >
-            </div>
-          </button>`;
-      })}
+      <div class="min-w-0 flex-1">
+        <div class="truncate text-[12px] font-medium text-ink">${name}</div>
+        ${sub ? html`<div class="truncate text-[10.5px] text-muted">${sub}</div>` : ""}
       </div>
+      ${pillSwitch({ on, onClick: () => this._toggle(), label: name })}
     </div>`;
     }
     getCardSize() {
@@ -9104,117 +10606,6 @@ ${decls}
     }
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 1 };
-    }
-  }
-
-  // src/cards/backup.js
-  function ago2(iso) {
-    const t = Date.parse(iso);
-    if (isNaN(t))
-      return { text: String(iso), hours: 0 };
-    const hours = (Date.now() - t) / 3600000;
-    const mins = Math.round(hours * 60);
-    let text;
-    if (mins < 60)
-      text = `${mins} min geleden`;
-    else if (hours < 24)
-      text = `${Math.round(hours)} uur geleden`;
-    else
-      text = `${Math.round(hours / 24)} dagen geleden`;
-    return { text, hours };
-  }
-  var clock = (iso) => {
-    const t = Date.parse(iso);
-    if (isNaN(t))
-      return String(iso);
-    return new Date(t).toLocaleTimeString("nl-NL", {
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-  };
-
-  class FibbersBackup extends LitElement {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true }
-    };
-    static styles = [
-      twSheet,
-      css`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig() {
-      return { type: "custom:fibbers-backup", entity: "sensor.backup_last" };
-    }
-    setConfig(config) {
-      if (!config || !config.entity) {
-        throw new Error("fibbers-backup: `entity` (last-backup timestamp) is required");
-      }
-      this._config = config;
-    }
-    render() {
-      const cfg = this._config;
-      if (!cfg)
-        return html``;
-      const st = this.hass && this.hass.states[cfg.entity];
-      let value, sub, warn;
-      if (isUnavail(st)) {
-        value = "—";
-        sub = "Geen back-up gevonden";
-        warn = true;
-      } else {
-        const a = ago2(st.state);
-        const stale = a.hours > (cfg.stale_hours != null ? cfg.stale_hours : 26);
-        let failed = false;
-        if (cfg.result) {
-          const r = this.hass.states[cfg.result];
-          failed = r && ["off", "failed", "error", "false"].includes(String(r.state));
-        }
-        value = a.text;
-        const bits = [failed ? "Mislukt" : "Geslaagd"];
-        if (cfg.next) {
-          const n = this.hass.states[cfg.next];
-          if (n && !isUnavail(n))
-            bits.push(`volgende ${clock(n.state)}`);
-        }
-        sub = bits.join(" · ");
-        warn = stale || failed;
-      }
-      return html`<div
-      class="grid grid-cols-[34px_1fr] items-center gap-x-[11px] gap-y-0.5
-             rounded-[14px] border p-[13px]
-             ${warn ? "border-amberline bg-amberbg" : "border-line bg-card"}"
-    >
-      <div
-        class="row-span-2 flex h-[34px] w-[34px] items-center justify-center rounded-[10px]
-               ${warn ? "bg-amberbg" : "bg-accentbg"}"
-      >
-        <fib-icon
-          class="h-[19px] w-[19px] [--mdc-icon-size:19px] ${warn ? "text-amber" : "text-accent"}"
-          icon="solar:diskette-bold-duotone"
-        ></fib-icon>
-      </div>
-      <div class="text-[11px] font-medium text-muted">
-        ${cfg.name || "Back-up"}
-      </div>
-      <div class="text-[17px] font-semibold leading-[1.15] text-ink">
-        ${value}
-      </div>
-      <div
-        class="col-start-2 text-[10.5px] ${warn ? "text-ambertx" : "text-muted"}"
-      >
-        ${sub}
-      </div>
-    </div>`;
-    }
-    getCardSize() {
-      return 1;
-    }
-    getLayoutOptions() {
-      return { grid_columns: 6, grid_rows: 1 };
     }
   }
 
@@ -9337,10 +10728,10 @@ ${decls}
                       icon=${iconFor(f.condition)}
                     ></fib-icon>
                     <span class="text-[11.5px] font-semibold text-ink"
-                      >${round(f.temperature) != null ? round(f.temperature) + "°" : ""}</span
+                      >${round(f.temperature) != null ? `${round(f.temperature)}°` : ""}</span
                     >
                     <span class="text-[10px] text-muted"
-                      >${round(f.templow) != null ? round(f.templow) + "°" : ""}</span
+                      >${round(f.templow) != null ? `${round(f.templow)}°` : ""}</span
                     >
                   </div>`)}
             </div>` : ""}
@@ -9354,756 +10745,74 @@ ${decls}
     }
   }
 
-  // src/cards/media.js
-  class FibbersMedia extends LitElement {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true },
-      _dragging: { state: true },
-      _dragVol: { state: true }
-    };
-    static styles = [
-      twSheet,
-      css`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig() {
-      return {
-        type: "custom:fibbers-media",
-        entity: "media_player.woonkamer_spotify"
-      };
-    }
-    setConfig(config) {
-      if (!config || !config.entity) {
-        throw new Error("fibbers-media: `entity` (a media_player.*) is required");
-      }
-      if (config.sources != null && !Array.isArray(config.sources)) {
-        throw new Error("fibbers-media: `sources` must be a list");
-      }
-      this._config = config;
-      this._dragging = false;
-      this._dragVol = 0;
-    }
-    _st() {
-      return this.hass && this.hass.states[this._config.entity];
-    }
-    _playing() {
-      const st = this._st();
-      return st && st.state === "playing";
-    }
-    _idle() {
-      const st = this._st();
-      return !st || ["off", "idle", "standby", "unavailable"].includes(st.state);
-    }
-    _vol() {
-      if (this._dragging)
-        return this._dragVol;
-      const st = this._st();
-      const v = st && st.attributes.volume_level;
-      return v != null ? Math.round(v * 100) : 0;
-    }
-    _svc(service, data) {
-      if (this.hass)
-        this.hass.callService("media_player", service, {
-          entity_id: this._config.entity,
-          ...data
-        });
-    }
-    _volFromX(clientX, track) {
-      const r = track.getBoundingClientRect();
-      return Math.round(clamp((clientX - r.left) / r.width * 100, 0, 100));
-    }
-    _down(e) {
-      this._dragging = true;
-      e.currentTarget.setPointerCapture && e.currentTarget.setPointerCapture(e.pointerId);
-      this._dragVol = this._volFromX(e.clientX, e.currentTarget);
-    }
-    _move(e) {
-      if (this._dragging)
-        this._dragVol = this._volFromX(e.clientX, e.currentTarget);
-    }
-    _up(e) {
-      if (!this._dragging)
-        return;
-      const v = this._volFromX(e.clientX, e.currentTarget);
-      this._dragging = false;
-      this._svc("volume_set", { volume_level: v / 100 });
-    }
-    _transportBtn(icon, service, big = false) {
-      return html`<button
-      type="button"
-      class="flex ${big ? "h-11 w-11" : "h-9 w-9"} items-center justify-center rounded-full
-             bg-card2 text-ink transition-transform active:scale-90"
-      @click=${() => this._svc(service)}
-    >
-      <fib-icon
-        class="${big ? "h-6 w-6 [--mdc-icon-size:24px]" : "h-[18px] w-[18px] [--mdc-icon-size:18px]"}"
-        icon=${icon}
-      ></fib-icon>
-    </button>`;
-    }
-    render() {
-      const cfg = this._config;
-      if (!cfg)
-        return html``;
-      const st = this._st();
-      const a = st && st.attributes || {};
-      const idle = this._idle();
-      const title = idle ? "Niets aan het spelen" : a.media_title || a.friendly_name || cfg.name || "Media";
-      const artist = idle ? "" : a.media_artist || a.app_name || "";
-      const art = a.entity_picture || a.media_image_url;
-      const playIcon = this._playing() ? "solar:pause-bold-duotone" : "solar:play-bold-duotone";
-      const artBox = html`<div
-      class="flex ${cfg.compact ? "h-11 w-11" : "h-14 w-14"} flex-none items-center
-             justify-center overflow-hidden rounded-xl bg-card2 bg-cover bg-center"
-      style=${art ? `background-image:url("${art}")` : ""}
-    >
-      ${art ? "" : html`<fib-icon
-              class="h-6 w-6 [--mdc-icon-size:24px] text-muted"
-              icon="solar:music-note-bold-duotone"
-            ></fib-icon>`}
-    </div>`;
-      if (cfg.compact) {
-        return html`<div
-        class="flex items-center gap-3 rounded-[14px] border border-line bg-card p-3"
-      >
-        ${artBox}
-        <div class="min-w-0 flex-1">
-          <div class="truncate text-[13px] font-semibold text-ink">
-            ${title}
-          </div>
-          <div class="truncate text-[11px] text-muted">${artist}</div>
-        </div>
-        ${this._transportBtn(playIcon, "media_play_pause")}
-        ${this._transportBtn("solar:skip-next-bold-duotone", "media_next_track")}
-      </div>`;
-      }
-      return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
-      <div class="mb-3 flex items-center gap-3">
-        ${artBox}
-        <div class="min-w-0 flex-1">
-          ${cfg.name ? html`<div
-                  class="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted"
-                >
-                  ${cfg.name}
-                </div>` : ""}
-          <div class="truncate text-[15px] font-semibold text-ink">
-            ${title}
-          </div>
-          <div class="truncate text-[12px] text-muted">${artist}</div>
-        </div>
-      </div>
-
-      <div class="mb-3 flex items-center justify-center gap-4">
-        ${this._transportBtn("solar:skip-previous-bold-duotone", "media_previous_track")}
-        ${this._transportBtn(playIcon, "media_play_pause", true)}
-        ${this._transportBtn("solar:skip-next-bold-duotone", "media_next_track")}
-      </div>
-
-      <div class="mb-1 flex items-center gap-2.5">
-        <fib-icon
-          class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-muted"
-          icon="solar:volume-small-bold-duotone"
-        ></fib-icon>
-        <div
-          class="relative h-1.5 flex-1 cursor-pointer touch-none rounded-[3px] bg-[#2C3639]"
-          @pointerdown=${this._down}
-          @pointermove=${this._move}
-          @pointerup=${this._up}
-          @pointercancel=${() => this._dragging = false}
-        >
-          <div
-            class="absolute bottom-0 left-0 top-0 rounded-[3px] bg-accent"
-            style="width:${this._vol()}%"
-          ></div>
-          <div
-            class="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full
-                   bg-accent shadow-[0_1px_3px_rgba(0,0,0,.4)]"
-            style="left:${this._vol()}%"
-          ></div>
-        </div>
-        <fib-icon
-          class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-muted"
-          icon="solar:volume-loud-bold-duotone"
-        ></fib-icon>
-      </div>
-
-      ${Array.isArray(cfg.sources) && cfg.sources.length ? html`<div class="mt-3 flex flex-wrap gap-[7px]">
-              ${cfg.sources.map((s) => {
-        const active = st && st.attributes.source === (s.source || s.name);
-        return html`<button
-                  type="button"
-                  class="inline-flex items-center rounded-full border px-2.5 py-[5px] text-[10.5px]
-                       font-medium ${active ? "border-accentline bg-accentbg text-accent" : "border-line bg-card2 text-ink2"}"
-                  @click=${() => this._svc("select_source", { source: s.source || s.name })}
-                >
-                  ${s.name}
-                </button>`;
-      })}
-            </div>` : ""}
-    </div>`;
-    }
-    getCardSize() {
-      return 3;
-    }
-    getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 3 };
-    }
-  }
-
-  // src/cards/sysmon.js
-  var W2 = 300;
-
-  class FibbersSysmon extends LitElement {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true },
-      _series: { state: true }
-    };
-    static styles = [
-      twSheet,
-      css`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig() {
-      return {
-        type: "custom:fibbers-sysmon",
-        title: "Raspberry Pi",
-        metrics: [
-          { label: "CPU", entity: "sensor.cpu_percent", unit: "%" },
-          { label: "Temp", entity: "sensor.cpu_temp", unit: "°C" }
-        ]
-      };
-    }
-    setConfig(config) {
-      if (!config || !Array.isArray(config.metrics) || !config.metrics.length) {
-        throw new Error("fibbers-sysmon: `metrics` must be a non-empty list");
-      }
-      this._config = config;
-      this._series = null;
-      this._fetchedFor = null;
-    }
-    updated(changed) {
-      if (changed.has("hass") && this._config.graph)
-        this._maybeFetch();
-    }
-    async _maybeFetch() {
-      const id = this._config.graph;
-      if (!this.hass || this._fetchedFor === id || !this.hass.callWS)
-        return;
-      this._fetchedFor = id;
-      const hours = this._config.graph_hours || 24;
-      const end = new Date;
-      const start = new Date(end.getTime() - hours * 3600000);
-      try {
-        const res = await this.hass.callWS({
-          type: "history/history_during_period",
-          start_time: start.toISOString(),
-          end_time: end.toISOString(),
-          entity_ids: [id],
-          minimal_response: true,
-          no_attributes: true
-        });
-        const nums = (res && res[id] || []).map((r) => Number(r.s != null ? r.s : r.state)).filter((n) => Number.isFinite(n));
-        if (nums.length)
-          this._series = nums;
-      } catch (_e) {}
-    }
-    _val(m) {
-      const st = this.hass && this.hass.states[m.entity];
-      if (!st || st.state === "unavailable" || st.state === "unknown")
-        return { text: "—", unit: "" };
-      const unit = m.unit != null ? m.unit : st.attributes.unit_of_measurement || "";
-      return { text: nl(Number(st.state), m.decimals) || st.state, unit };
-    }
-    _sparkline() {
-      const series = this._series;
-      if (!series || series.length < 2)
-        return "";
-      const h = 40;
-      let min = Math.min(...series), max = Math.max(...series);
-      const pad = (max - min || 1) * 0.12;
-      min -= pad;
-      max += pad;
-      const n = series.length;
-      const pts = series.map((v, i) => `${(i / (n - 1) * W2).toFixed(1)},${(h - (v - min) / (max - min || 1) * h).toFixed(1)}`);
-      return html`<svg
-      viewBox="0 0 ${W2} ${h}"
-      preserveAspectRatio="none"
-      class="mt-3 block w-full text-blue"
-      style="height:${h}px"
-    >
-      <path
-        d="M0,${h} L${pts.join(" L")} L${W2},${h} Z"
-        style="fill:currentColor;opacity:.12"
-      ></path>
-      <path
-        d="M${pts.join(" L")}"
-        style="fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke"
-      ></path>
-    </svg>`;
-    }
-    render() {
-      const cfg = this._config;
-      if (!cfg)
-        return html``;
-      return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
-      ${cfg.title ? html`<div
-              class="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-            >
-              ${cfg.title}
-            </div>` : ""}
-      <div class="grid grid-cols-2 gap-2">
-        ${cfg.metrics.map((m) => {
-        const v = this._val(m);
-        return html`<div
-            class="flex items-center gap-2.5 rounded-[10px] bg-card2 px-2.5 py-2"
-          >
-            <fib-icon
-              class="h-[18px] w-[18px] flex-none [--mdc-icon-size:18px] text-muted"
-              icon=${m.icon || "solar:widget-bold-duotone"}
-            ></fib-icon>
-            <div class="min-w-0">
-              <div class="text-[10px] text-muted">${m.label || m.entity}</div>
-              <div class="text-[15px] font-semibold text-ink">
-                ${v.text}<span class="ml-0.5 text-[10px] font-medium text-ink2"
-                  >${v.unit}</span
-                >
-              </div>
-            </div>
-          </div>`;
-      })}
-      </div>
-      ${this._sparkline()}
-    </div>`;
-    }
-    getCardSize() {
-      return 3;
-    }
-    getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 3 };
-    }
-  }
-
-  // src/cards/scheduler.js
-  var hhmm = (s) => typeof s === "string" ? s.slice(0, 5) : "";
-  var addMinutes = (s, mins) => {
-    const [h, m] = hhmm(s).split(":").map(Number);
-    if (!Number.isFinite(h) || !Number.isFinite(m))
-      return "";
-    const t = (h * 60 + m + Math.round(mins)) % (24 * 60);
-    return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
+  // src/global-css.js
+  var STYLE_ID2 = "fibbers-global";
+  var VARS = {
+    "--primary-background-color": T.bg,
+    "--secondary-background-color": T.nav,
+    "--card-background-color": T.card,
+    "--ha-card-background": T.card,
+    "--app-header-background-color": T.bg,
+    "--app-header-text-color": T.ink,
+    "--sidebar-background-color": "#0E1315",
+    "--sidebar-icon-color": T.muted,
+    "--sidebar-text-color": T.ink2,
+    "--sidebar-selected-icon-color": T.accent,
+    "--sidebar-selected-text-color": T.ink,
+    "--divider-color": T.line,
+    "--primary-text-color": T.ink,
+    "--secondary-text-color": "#8B999C",
+    "--disabled-text-color": "#5C6A6D",
+    "--text-primary-color": T.bg,
+    "--primary-color": T.accent,
+    "--accent-color": T.accent,
+    "--state-icon-color": "#8B999C",
+    "--state-icon-active-color": T.accent,
+    "--error-color": T.red,
+    "--warning-color": T.amber,
+    "--success-color": T.green,
+    "--info-color": T.blue,
+    "--ha-card-border-radius": "15px",
+    "--ha-card-border-width": "1px",
+    "--ha-card-border-color": T.line,
+    "--ha-card-box-shadow": "none",
+    "--ha-dialog-border-radius": "22px",
+    "--mdc-dialog-scrim-color": "rgba(6,9,10,.72)",
+    "--mdc-theme-surface": T.sheet,
+    "--ha-dialog-surface-background": T.sheet,
+    "--more-info-header-background": T.sheet,
+    "--dialog-backdrop-filter": "blur(3px)",
+    "--switch-checked-color": T.accent,
+    "--switch-checked-button-color": T.ink,
+    "--switch-checked-track-color": "#2E5238",
+    "--switch-unchecked-button-color": "#8B999C",
+    "--switch-unchecked-track-color": T.line,
+    "--paper-slider-active-color": T.accent,
+    "--paper-slider-knob-color": T.accent,
+    "--paper-slider-container-color": "#2C3639"
   };
-
-  class FibbersScheduler extends LitElement {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true }
-    };
-    static styles = [
-      twSheet,
-      css`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig() {
-      return {
-        type: "custom:fibbers-scheduler",
-        name: "Wekker",
-        time: "input_datetime.wake_time",
-        enable: "input_boolean.wake_enabled"
-      };
-    }
-    setConfig(config) {
-      if (!config || !config.time) {
-        throw new Error("fibbers-scheduler: `time` (an input_datetime) is required");
-      }
-      this._config = config;
-    }
-    _state(id) {
-      return id && this.hass ? this.hass.states[id] : null;
-    }
-    render() {
-      const cfg = this._config;
-      if (!cfg)
-        return html``;
-      const timeSt = this._state(cfg.time);
-      const time = hhmm(timeSt && timeSt.state);
-      const enSt = this._state(cfg.enable);
-      const on = enSt ? enSt.state === "on" : true;
-      const durSt = this._state(cfg.duration);
-      const dur = durSt ? Number(durSt.state) : null;
-      const windowEnd = dur ? addMinutes(time, dur) : "";
-      return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
-      <div class="mb-2 flex items-center gap-2">
-        <fib-icon
-          class="h-4 w-4 [--mdc-icon-size:16px] ${on ? "text-accent" : "text-muted"}"
-          icon="solar:alarm-bold-duotone"
-        ></fib-icon>
-        <span
-          class="flex-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-          >${cfg.name || "Wekker"}</span
-        >
-        ${cfg.enable ? html`<button
-                type="button"
-                class="relative h-5 w-9 flex-none rounded-full transition-colors
-                     ${on ? "bg-accent" : "bg-card2"}"
-                role="switch"
-                aria-checked=${on}
-                @click=${() => this.hass && this.hass.callService("input_boolean", "toggle", {
-        entity_id: cfg.enable
-      })}
-              >
-                <span
-                  class="absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all
-                       ${on ? "left-[18px]" : "left-0.5"}"
-                ></span>
-              </button>` : ""}
-      </div>
-
-      <button
-        type="button"
-        class="text-left ${on ? "" : "opacity-50"}"
-        @click=${() => moreInfo(this, cfg.time)}
-      >
-        <span class="text-[30px] font-semibold leading-none text-ink"
-          >${time || "—"}</span
-        >
-        ${windowEnd ? html`<span class="ml-2 text-[13px] text-muted"
-                >→ ${windowEnd}${dur ? html` · ${dur} min` : ""}</span
-              >` : ""}
-      </button>
-
-      ${Array.isArray(cfg.days) && cfg.days.length ? html`<div class="mt-3 flex flex-wrap gap-1.5">
-              ${cfg.days.map((d2) => {
-        const obj = typeof d2 === "object";
-        const st = obj ? this._state(d2.entity) : null;
-        const active = obj ? st && st.state === "on" : true;
-        return html`<button
-                  type="button"
-                  class="rounded-full border px-2.5 py-1 text-[10.5px] font-medium
-                       ${active ? "border-accentline bg-accentbg text-accent" : "border-line bg-card2 text-ink2"}"
-                  @click=${() => obj && this.hass && this.hass.callService("input_boolean", "toggle", {
-          entity_id: d2.entity
-        })}
-                >
-                  ${obj ? d2.name : d2}
-                </button>`;
-      })}
-            </div>` : ""}
-    </div>`;
-    }
-    getCardSize() {
-      return 2;
-    }
-    getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 2 };
-    }
-  }
-
-  // src/cards/remote.js
-  var DEFAULTS = {
-    power: "POWER",
-    up: "DPAD_UP",
-    down: "DPAD_DOWN",
-    left: "DPAD_LEFT",
-    right: "DPAD_RIGHT",
-    ok: "DPAD_CENTER",
-    back: "BACK",
-    home: "HOME",
-    menu: "MENU",
-    volume_up: "VOLUME_UP",
-    volume_down: "VOLUME_DOWN",
-    play: "MEDIA_PLAY_PAUSE"
-  };
-
-  class FibbersRemote extends LitElement {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true }
-    };
-    static styles = [
-      twSheet,
-      css`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig() {
-      return { type: "custom:fibbers-remote", entity: "remote.woonkamer_tv" };
-    }
-    setConfig(config) {
-      if (!config || !config.entity) {
-        throw new Error("fibbers-remote: `entity` (a remote.*) is required");
-      }
-      this._config = config;
-    }
-    _send(key) {
-      const cmd = (this._config.commands || {})[key] || DEFAULTS[key];
-      if (cmd && this.hass)
-        this.hass.callService("remote", "send_command", {
-          entity_id: this._config.entity,
-          command: cmd
-        });
-    }
-    _btn(key, icon, opts = {}) {
-      const round2 = opts.round !== false;
-      const accent = opts.accent;
-      return html`<button
-      type="button"
-      class="flex items-center justify-center ${round2 ? "rounded-full" : "rounded-xl"} ${opts.size || "h-11 w-11"}
-             ${accent ? "bg-accentbg text-accent" : "bg-card2 text-ink"}
-             transition-transform active:scale-90"
-      @click=${() => this._send(key)}
-      aria-label=${key}
-    >
-      <fib-icon
-        class="h-[20px] w-[20px] [--mdc-icon-size:20px]"
-        icon=${icon}
-      ></fib-icon>
-    </button>`;
-    }
-    render() {
-      const cfg = this._config;
-      if (!cfg)
-        return html``;
-      return html`<div
-      class="flex flex-col items-center gap-3 rounded-[14px] border border-line bg-card p-[13px]"
-    >
-      <div class="flex w-full items-center justify-between">
-        <span
-          class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-          >${cfg.name || "Afstandsbediening"}</span
-        >
-        ${this._btn("power", "solar:power-bold-duotone", {
-        size: "h-9 w-9",
-        accent: true
-      })}
-      </div>
-
-      <!-- D-pad -->
-      <div class="grid grid-cols-3 gap-2">
-        <span></span>
-        ${this._btn("up", "solar:alt-arrow-up-bold-duotone")}
-        <span></span>
-        ${this._btn("left", "solar:alt-arrow-left-bold-duotone")}
-        ${this._btn("ok", "solar:record-circle-bold-duotone", { accent: true })}
-        ${this._btn("right", "solar:alt-arrow-right-bold-duotone")}
-        <span></span>
-        ${this._btn("down", "solar:alt-arrow-down-bold-duotone")}
-        <span></span>
-      </div>
-
-      <div class="flex gap-2">
-        ${this._btn("back", "solar:alt-arrow-left-bold-duotone", { size: "h-9 w-9" })}
-        ${this._btn("home", "solar:home-2-bold-duotone", { size: "h-9 w-9" })}
-        ${this._btn("menu", "solar:menu-dots-bold-duotone", { size: "h-9 w-9" })}
-      </div>
-
-      <div class="flex gap-2">
-        ${this._btn("volume_down", "solar:volume-small-bold-duotone", { size: "h-9 w-9" })}
-        ${this._btn("play", "solar:play-bold-duotone", { size: "h-9 w-9" })}
-        ${this._btn("volume_up", "solar:volume-loud-bold-duotone", { size: "h-9 w-9" })}
-      </div>
-    </div>`;
-    }
-    getCardSize() {
-      return 4;
-    }
-    getLayoutOptions() {
-      return { grid_columns: 6, grid_rows: 4 };
-    }
-  }
-
-  // src/cards/climate.js
-  var MODE = {
-    heat: { icon: "solar:fire-bold-duotone", label: "Verwarmen" },
-    cool: { icon: "solar:snowflake-bold-duotone", label: "Koelen" },
-    fan_only: { icon: "solar:wind-bold-duotone", label: "Ventilator" },
-    auto: { icon: "solar:temperature-bold-duotone", label: "Auto" },
-    heat_cool: { icon: "solar:temperature-bold-duotone", label: "Auto" },
-    dry: { icon: "solar:wind-bold-duotone", label: "Drogen" },
-    off: { icon: "solar:power-bold-duotone", label: "Uit" }
-  };
-  var ACTION_NL = {
-    heating: "Verwarmt",
-    cooling: "Koelt",
-    drying: "Droogt",
-    fan: "Ventileert",
-    idle: "Inactief",
-    off: "Uit"
-  };
-
-  class FibbersClimate extends LitElement {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true }
-    };
-    static styles = [
-      twSheet,
-      css`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig() {
-      return { type: "custom:fibbers-climate", entity: "climate.woonkamer" };
-    }
-    setConfig(config) {
-      if (!config || !config.entity) {
-        throw new Error("fibbers-climate: `entity` (a climate.*) is required");
-      }
-      this._config = config;
-    }
-    _st() {
-      return this.hass && this.hass.states[this._config.entity];
-    }
-    _bump(delta) {
-      const st = this._st();
-      if (!st)
-        return;
-      const step = st.attributes.target_temp_step || 0.5;
-      const cur = Number(st.attributes.temperature);
-      if (!Number.isFinite(cur))
-        return;
-      const min = st.attributes.min_temp ?? 5;
-      const max = st.attributes.max_temp ?? 35;
-      const next = Math.min(max, Math.max(min, Math.round((cur + delta * step) * 10) / 10));
-      this.hass.callService("climate", "set_temperature", {
-        entity_id: this._config.entity,
-        temperature: next
-      });
-    }
-    render() {
-      const cfg = this._config;
-      if (!cfg)
-        return html``;
-      const st = this._st();
-      if (!st)
-        return html`<div
-        class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
-      >
-        Niet beschikbaar
-      </div>`;
-      const a = st.attributes;
-      const cur = a.current_temperature;
-      const target = a.temperature;
-      const modes = (a.hvac_modes || []).filter((m) => MODE[m]);
-      const action = a.hvac_action;
-      return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
-      <div class="mb-3 flex items-baseline justify-between gap-2">
-        <div>
-          <div
-            class="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted"
-          >
-            ${cfg.name || a.friendly_name || "Thermostaat"}
-          </div>
-          <div class="text-[24px] font-semibold leading-none text-ink">
-            ${cur != null ? cur : "—"}<span class="text-[14px] text-ink2"
-              >°</span
-            >
-          </div>
-        </div>
-        <span class="text-[11px] text-muted"
-          >${ACTION_NL[action] || (st.state !== "off" ? "Aan" : "Uit")}</span
-        >
-      </div>
-
-      <div class="mb-3 flex items-center justify-center gap-4">
-        <button
-          type="button"
-          class="flex h-10 w-10 items-center justify-center rounded-full bg-card2 text-ink
-                 transition-transform active:scale-90"
-          @click=${() => this._bump(-1)}
-        >
-          <fib-icon
-            class="h-6 w-6 [--mdc-icon-size:24px]"
-            icon="solar:minus-circle-bold-duotone"
-          ></fib-icon>
-        </button>
-        <div class="min-w-[68px] text-center">
-          <div class="text-[26px] font-semibold leading-none text-accent">
-            ${target != null ? target : "—"}<span class="text-[14px]">°</span>
-          </div>
-          <div
-            class="mt-0.5 text-[9.5px] uppercase tracking-[0.08em] text-muted"
-          >
-            Ingesteld
-          </div>
-        </div>
-        <button
-          type="button"
-          class="flex h-10 w-10 items-center justify-center rounded-full bg-card2 text-ink
-                 transition-transform active:scale-90"
-          @click=${() => this._bump(1)}
-        >
-          <fib-icon
-            class="h-6 w-6 [--mdc-icon-size:24px]"
-            icon="solar:add-circle-bold-duotone"
-          ></fib-icon>
-        </button>
-      </div>
-
-      ${modes.length ? html`<div class="flex flex-wrap justify-center gap-[7px]">
-              ${modes.map((m) => {
-        const active = st.state === m;
-        return html`<button
-                  type="button"
-                  class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[5px]
-                       text-[10.5px] font-medium ${active ? "border-accentline bg-accentbg text-accent" : "border-line bg-card2 text-ink2"}"
-                  @click=${() => this.hass.callService("climate", "set_hvac_mode", {
-          entity_id: cfg.entity,
-          hvac_mode: m
-        })}
-                >
-                  <fib-icon
-                    class="h-[13px] w-[13px] [--mdc-icon-size:13px]"
-                    icon=${MODE[m].icon}
-                  ></fib-icon>
-                  ${MODE[m].label}
-                </button>`;
-      })}
-            </div>` : ""}
-    </div>`;
-    }
-    getCardSize() {
-      return 3;
-    }
-    getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 3 };
-    }
+  function injectGlobalCss() {
+    if (window.FIBBERS_DISABLE_GLOBAL_CSS)
+      return;
+    if (document.getElementById(STYLE_ID2))
+      return;
+    const decls = Object.entries(VARS).map(([k, v]) => `  ${k}: ${v} !important;`).join(`
+`);
+    const style = document.createElement("style");
+    style.id = STYLE_ID2;
+    style.textContent = `html {
+${decls}
+}`;
+    document.head.appendChild(style);
   }
 
   // src/index.js
   /*!
-   * Fibbers — custom cards + theming for the Thuis Home Assistant dashboard.
-   *
-   * Ships ~20 custom cards (see the CARDS registry below) plus the body-appended
-   * nav bar and modal sheet, and injects the dark theme globally. The two most
-   * load-bearing pieces are `fibbers-nav` (viewport-pinned bottom bar) and
-   * `fibbers-back` (a back control driven by a real navigation stack).
-   *
-   * WHY THE BAR RENDERS INTO document.body
-   * Inside a Lovelace view, `position: fixed` resolves against the scrolling
-   * content box rather than the window, so a bar "fixed to the bottom" lands at
-   * the bottom of the page instead of the screen. Rendering into document.body is
-   * the only reliable escape, and it is also what keeps the bar working
-   * independent of Lovelace's own DOM. Everything else here follows from that.
-   *
-   * Source is modular under src/. `bun run build` bundles it into an IIFE at
-   * dist/fibbers.js — edit src/, never the bundle.
+   * Fibbers — custom cards + dark theming for Home Assistant.
+   * Registers ~25 cards (see the CARDS table below) plus the body-appended nav bar
+   * and modal sheet, then injects the theme. Edit src/, run `bun run build`.
    */
-  var VERSION = "0.3.0";
+  var VERSION = "0.4.0";
   var CARDS = [
     [
       "fibbers-nav",
@@ -10219,6 +10928,36 @@ ${decls}
       FibbersClimate,
       "Fibbers Climate",
       "Thermostat — setpoint and hvac modes."
+    ],
+    [
+      "fibbers-number",
+      FibbersNumber,
+      "Fibbers Number",
+      "Slider / stepper for input_number and number."
+    ],
+    [
+      "fibbers-select",
+      FibbersSelect,
+      "Fibbers Select",
+      "Option picker (chips or dropdown) for input_select and select."
+    ],
+    [
+      "fibbers-toggle",
+      FibbersToggle,
+      "Fibbers Toggle",
+      "Switch row for input_boolean, switch and automation."
+    ],
+    [
+      "fibbers-datetime",
+      FibbersDateTime,
+      "Fibbers Datetime",
+      "Time / date row for input_datetime."
+    ],
+    [
+      "fibbers-greeting",
+      FibbersGreeting,
+      "Fibbers Greeting",
+      "Time-of-day header with a lights / presence / sensor subline."
     ]
   ];
   CARDS.forEach(([tag2, cls]) => {

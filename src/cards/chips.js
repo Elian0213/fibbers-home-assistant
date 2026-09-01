@@ -1,12 +1,11 @@
 /* ================================================================== *
- * CARD — fibbers-chips  (Lit + Tailwind)
- *
- * A pill row. Each chip carries a standard HA action object; an optional
- * `active_when: {entity, state}` gives it a blue tint while that state holds.
+ * fibbers-chips — a pill row; each chip runs an HA action, with an optional
+ * `active_when: {entity, state}` blue tint.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
-import { twSheet } from "../tw.js";
+
 import { runAction } from "../actions.js";
+import { twSheet } from "../tw.js";
 import "../icon.js";
 
 export class FibbersChips extends LitElement {

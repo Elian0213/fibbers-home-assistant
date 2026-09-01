@@ -1,14 +1,11 @@
 /* ================================================================== *
- * CARD — fibbers-room  (Lit + Tailwind)
- *
- * The room tile. Computes its own state from the light entities (no Jinja in
- * config): Uit / N van M aan / Offline. Lit rooms get a green glow;
- * all-unavailable rooms dim with red state text. Tap opens a sheet; hold opens
- * more-info for the group.
+ * fibbers-room — room tile that computes its own light state (Uit / N van M aan /
+ * Offline; green glow when lit). Tap → sheet, hold → more-info.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
+
 import { twSheet } from "../tw.js";
-import { moreInfo } from "../util.js";
+import { moreInfo, isUnavail } from "../util.js";
 import "../icon.js";
 
 const isLight = (id) => typeof id === "string" && id.startsWith("light.");
@@ -81,7 +78,7 @@ export class FibbersRoom extends LitElement {
       avail = 0;
     lights.forEach((id) => {
       const st = hass.states[id];
-      if (!st || st.state === "unavailable" || st.state === "unknown") return;
+      if (isUnavail(st)) return;
       avail++;
       if (st.state === "on") on++;
     });
@@ -96,6 +93,7 @@ export class FibbersRoom extends LitElement {
 
   _down() {
     this._held = false;
+    // 500ms hold = long-press → more-info (vs a tap, which opens the sheet)
     this._timer = setTimeout(() => {
       this._held = true;
       this._moreInfo();

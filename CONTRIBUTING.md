@@ -77,16 +77,18 @@ only), **red** = error, **blue** = info. Lit rooms/scenes glow
 
 ## Adding an icon
 
-Add the Solar Bold Duotone name to `scripts/icon-map.json`, run `bun run gen-icons`, then use
-`icon: solar:<name>-bold-duotone` in a card. A name that doesn't exist fails the generator. Any
-`mdi:` / `hass:` icon still works too (rendered by HA's `ha-icon`).
+The full Solar Bold Duotone style is bundled, so just use `icon: solar:<name>-bold-duotone` in a
+card — no generator step. `bun run check` fails if a card or story references a name that isn't a
+real bold-duotone icon (or a non-duotone Solar style). Any `mdi:` / `hass:` icon still works too
+(rendered by HA's `ha-icon`).
 
 ## Releasing
 
 1. Bump `version` in `package.json` (and the bundle banner) and update `CHANGELOG.md`.
-2. `bun run build`, commit, push to `main` — CI + HACS validation run.
-3. Tag and push: `git tag v0.1.0 && git push origin v0.1.0`. The **release** workflow cuts a
-   GitHub Release (what HACS reads).
+2. `bun run check` (prettier + eslint + build + icon guard + parse), commit, push to `main` — CI +
+   HACS validation run.
+3. Tag and push: `git tag v0.4.0 && git push origin v0.4.0` (the **release** workflow also accepts a
+   bare `0.4.0` tag). It cuts a GitHub Release (what HACS reads).
 4. Set the repo description + topics (required by HACS), once:
    ```bash
    gh repo edit Elian0213/fibbers-home-assistant \

@@ -1,10 +1,6 @@
 /* ================================================================== *
- * ACTIONS — a small runner for standard HA action objects
- *
- * Shared by fibbers-chips and fibbers-light-row (and future cards). Takes a
- * plain action object `{ action, ... }`, the hass API, the host element (for
- * `hass-more-info`), and a fallback entity used by `toggle`/`more-info` when
- * the action doesn't name its own.
+ * ACTIONS — runs a standard HA action object.
+ * Shared by chips + light-row; `fallbackEntity` is used by toggle/more-info.
  * ================================================================== */
 import { navigate, moreInfo } from "./util.js";
 

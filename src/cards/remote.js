@@ -1,11 +1,9 @@
 /* ================================================================== *
- * CARD — fibbers-remote  (Lit + Tailwind)
- *
- * A universal remote: power, a D-pad (up/left/OK/right/down), back/home/menu,
- * volume and playback. Buttons call `remote.send_command` with the mapped
- * command; override any via `commands`.
+ * fibbers-remote — power, D-pad, back/home/menu, volume/playback via
+ * remote.send_command; override the mapping via `commands`.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
+
 import { twSheet } from "../tw.js";
 import "../icon.js";
 

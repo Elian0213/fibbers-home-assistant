@@ -1,14 +1,11 @@
 /* ================================================================== *
- * CARD — fibbers-graph  (Lit + Tailwind)
- *
- * A single-entity sparkline: an SVG line/area of an entity's recent history,
- * with a header (name + current value) and optional min/max labels. History
- * comes from `history/history_during_period` over the last `hours`; a literal
- * `data: [numbers]` overrides the fetch.
+ * fibbers-graph — single-entity history sparkline with min/max labels. History
+ * is fetched over the last `hours`; a literal `data: [numbers]` overrides it.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
+
 import { twSheet } from "../tw.js";
-import { nl } from "../util.js";
+import { nl, fetchHistory } from "../util.js";
 
 const COLORS = ["accent", "amber", "blue", "green", "red"];
 /* full class strings so Tailwind's scanner emits every one (a dynamic
@@ -57,6 +54,7 @@ export class FibbersGraph extends LitElement {
     this._config = config;
     this._series = Array.isArray(config.data) ? config.data.map(Number) : null;
     this._fetchedFor = null;
+    this._lastTry = 0;
   }
 
   updated(changed) {
@@ -67,24 +65,19 @@ export class FibbersGraph extends LitElement {
   async _maybeFetch() {
     const id = this._config.entity;
     if (!this.hass || this._fetchedFor === id || !this.hass.callWS) return;
-    this._fetchedFor = id;
-    const hours = this._config.hours || 24;
-    const end = new Date();
-    const start = new Date(end.getTime() - hours * 3600e3);
+    // Back off so a genuinely history-less entity doesn't refetch on every state
+    // change, but a cold-load miss still retries on a later hass update.
+    const now = Date.now();
+    if (this._lastTry && now - this._lastTry < 8000) return;
+    this._lastTry = now;
     try {
-      const res = await this.hass.callWS({
-        type: "history/history_during_period",
-        start_time: start.toISOString(),
-        end_time: end.toISOString(),
-        entity_ids: [id],
-        minimal_response: true,
-        no_attributes: true,
-      });
-      const rows = (res && res[id]) || [];
-      const nums = rows
-        .map((r) => Number(r.s != null ? r.s : r.state))
-        .filter((n) => Number.isFinite(n));
-      if (nums.length) this._series = nums;
+      const nums = await fetchHistory(this.hass, id, this._config.hours || 24);
+      // Only mark done once we actually got rows — an empty cold-load response
+      // must not disable the graph permanently (it retries after the backoff).
+      if (nums.length) {
+        this._series = nums;
+        this._fetchedFor = id;
+      }
     } catch (_e) {
       /* history unavailable — the header still shows the live value */
     }
@@ -137,7 +130,7 @@ export class FibbersGraph extends LitElement {
       const x = (i) => (i / (n - 1)) * W;
       const y = (v) => h - ((v - min) / (max - min || 1)) * h;
       const pts = series.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`);
-      const line = "M" + pts.join(" L");
+      const line = `M${pts.join(" L")}`;
       const area = `M0,${h} L${pts.join(" L")} L${W},${h} Z`;
       body = html`<svg
         viewBox="0 0 ${W} ${h}"

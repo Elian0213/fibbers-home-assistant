@@ -1,12 +1,9 @@
 /* ================================================================== *
- * CARD — fibbers-weather  (Lit + Tailwind)
- *
- * A compact forecast from a `weather.*` entity: the current temperature and
- * condition, then a strip of the next few periods with their icon and
- * high/low. Reads the entity's `forecast` attribute; conditions map to Solar
- * icons.
+ * fibbers-weather — current temp + condition and a short forecast strip from a
+ * `weather.*` entity (reads its `forecast` attribute).
  * ================================================================== */
 import { LitElement, html, css } from "lit";
+
 import { twSheet } from "../tw.js";
 import "../icon.js";
 
@@ -142,13 +139,13 @@ export class FibbersWeather extends LitElement {
                     <span class="text-[11.5px] font-semibold text-ink"
                       >${
                         round(f.temperature) != null
-                          ? round(f.temperature) + "°"
+                          ? `${round(f.temperature)}°`
                           : ""
                       }</span
                     >
                     <span class="text-[10px] text-muted"
                       >${
-                        round(f.templow) != null ? round(f.templow) + "°" : ""
+                        round(f.templow) != null ? `${round(f.templow)}°` : ""
                       }</span
                     >
                   </div>`,

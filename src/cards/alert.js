@@ -1,12 +1,9 @@
 /* ================================================================== *
- * CARD — fibbers-alert  (Lit + Tailwind)
- *
- * The "Aandacht nodig" card as real logic instead of 20 lines of Jinja. Runs a
- * list of checks against hass; shows an amber-tinted card with one line per
- * finding when anything fires, or a neutral card with a green tick and "Alles
- * in orde" when all is well. Tapping a finding opens more-info for its entity.
+ * fibbers-alert — "Aandacht nodig" from real checks (offline lights, low
+ * batteries, updates, stale backups). Green tick when everything's clear.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
+
 import { twSheet } from "../tw.js";
 import { moreInfo, isUnavail } from "../util.js";
 import "../icon.js";
@@ -14,16 +11,35 @@ import "../icon.js";
 const friendly = (s) =>
   (s.attributes && s.attributes.friendly_name) || s.entity_id;
 
+// Precompile a check's `exclude_pattern` once (case-insensitive) and validate it
+// in setConfig, so a bad pattern is a clear config error, not a per-render throw.
+function compileCheck(check) {
+  if (!check || !check.exclude_pattern) return check;
+  try {
+    return { ...check, _excludeRe: new RegExp(check.exclude_pattern, "i") };
+  } catch (e) {
+    throw new Error(
+      `fibbers-alert: invalid exclude_pattern "${check.exclude_pattern}" — ${e.message}`,
+    );
+  }
+}
+
+// The pattern is written from what's on screen, so match id AND friendly name.
+const excludedBy = (re, s) =>
+  re && (re.test(s.entity_id) || re.test(friendly(s)));
+
 function runCheck(check, hass) {
   const states = Object.values(hass.states);
   const out = [];
   switch (check.type) {
     case "unavailable_lights": {
       const exclude = check.exclude || [];
+      const re = check._excludeRe;
       const offline = states.filter(
         (s) =>
           s.entity_id.startsWith("light.") &&
           !exclude.includes(s.entity_id) &&
+          !excludedBy(re, s) &&
           isUnavail(s),
       );
       if (offline.length)
@@ -36,16 +52,14 @@ function runCheck(check, hass) {
     }
     case "low_battery": {
       const below = check.below != null ? check.below : 20;
-      const pat = check.exclude_pattern
-        ? new RegExp(check.exclude_pattern)
-        : null;
+      const re = check._excludeRe;
       states
         .filter(
           (s) =>
             (s.attributes || {}).device_class === "battery" &&
             !isNaN(parseFloat(s.state)) &&
             parseFloat(s.state) < below &&
-            !(pat && pat.test(s.entity_id)),
+            !excludedBy(re, s),
         )
         .forEach((s) =>
           out.push({
@@ -118,12 +132,13 @@ export class FibbersAlert extends LitElement {
       throw new Error("fibbers-alert: `checks` must be a list");
     }
     this._config = config;
+    this._checks = config.checks.map(compileCheck);
   }
 
   _findings() {
     if (!this.hass) return [];
     const out = [];
-    this._config.checks.forEach((c) => {
+    this._checks.forEach((c) => {
       try {
         out.push(...runCheck(c, this.hass));
       } catch (_) {

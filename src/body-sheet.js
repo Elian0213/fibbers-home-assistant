@@ -1,15 +1,12 @@
 /* ================================================================== *
- * BODY SHEET — the singleton modal layer  (lit-html head + Tailwind)
- *
- * A bottom sheet rendered into document.body (so `position: fixed` pins to the
- * viewport, same reason as the nav bar). One host is shared by every
- * fibbers-sheet card, reference-counted. The container CSS (positioning,
- * animation, the self-contained font and the crisp centring / no-blur fixes) is
- * kept as hand-written CSS; the header content renders via lit-html + Tailwind.
+ * BODY SHEET — the singleton modal sheet.
+ * Rendered into document.body (position:fixed → viewport), one host shared by
+ * every fibbers-sheet, reference-counted. The container CSS is load-bearing.
  * ================================================================== */
 import { render, html } from "lit";
-import { twSheet } from "./tw.js";
+
 import { T } from "./tokens.js";
+import { twSheet } from "./tw.js";
 import "./icon.js";
 
 const layer = {
@@ -251,7 +248,7 @@ export function closeSheet() {
   const id = layer.openId;
   layer.openId = null;
   if (layer.host) layer.host.removeAttribute("data-shown");
-  if (window.location.hash === "#" + id) {
+  if (window.location.hash === `#${id}`) {
     history.replaceState(
       null,
       "",
@@ -277,7 +274,7 @@ function syncFromHash() {
 export function registerSheet(id, card) {
   build();
   layer.sheets.set(id, card);
-  if (window.location.hash === "#" + id) openSheet(id);
+  if (window.location.hash === `#${id}`) openSheet(id);
 }
 
 export function unregisterSheet(id, card) {

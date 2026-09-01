@@ -2,15 +2,13 @@
 
 <img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/logo.svg" alt="Fibbers" width="260">
 
-### A bottom-nav dashboard for Home Assistant that behaves like an app
+### A phone-first, bottom-nav dashboard for Home Assistant
 
-One HACS plugin. A **bottom bar that actually stays put**, a back button that remembers where
-you came from, **sheets you can flick away**, **room tiles that count their own lights**, and an
-**alert card that checks real things** instead of 20 lines of Jinja. Matching dark theme in the
-box.
+One HACS plugin: a bottom bar that stays pinned to the screen, a back button that remembers where
+you came from, drag-away sheets, room tiles that count their own lights, and an alert card built
+from real checks instead of Jinja. Dark theme included.
 
-Twenty cards where you used to have ~130 `card-mod` blocks. No theme repo, no `kiosk-mode`, one
-file.
+25 cards, one file. No theme repo, no `kiosk-mode`, no wall of `card-mod`.
 
 [![Validate](https://github.com/Elian0213/fibbers-home-assistant/actions/workflows/validate.yml/badge.svg)](https://github.com/Elian0213/fibbers-home-assistant/actions/workflows/validate.yml)
 [![CI](https://github.com/Elian0213/fibbers-home-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/Elian0213/fibbers-home-assistant/actions/workflows/ci.yml)
@@ -19,7 +17,7 @@ file.
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Elian0213&repository=fibbers-home-assistant&category=plugin)
 
-<img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/hero.png" alt="Fibbers dashboard" width="300"> &nbsp; <img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/sheet.png" alt="Fibbers light sheet" width="300">
+<img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/hero.png" alt="A Fibbers dashboard with the pinned bottom nav bar" width="300"> &nbsp; <img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/sheet.png" alt="A light-control sheet dragged up from the bottom" width="300">
 
 ### [▶ Try the live demo →](https://elian0213.github.io/fibbers-home-assistant/)
 
@@ -34,25 +32,21 @@ needed. That's the reference manual; this README just gets you installed.
 
 ## Why
 
-Lovelace can do a lot, but it won't give you a phone-app feel out of the box: the tab bar sits
-on top, `position: fixed` won't pin to the screen inside a view, and "make it look nice" turns
-into `card-mod` snippets sprinkled across your config. Fibbers takes all of that off your
-plate:
+Lovelace is flexible, but a few things fight you on a phone: the tab bar sits up top,
+`position: fixed` won't pin to the screen inside a view, and making it look right means
+scattering `card-mod` across your config. Fibbers handles those:
 
-- **A bottom bar that stays put.** Inside a Lovelace view, `position: fixed` resolves against
-  the scrolling content, so a naive "fixed" bar sinks to the bottom of the _page_, not the
-  screen. Fibbers renders its bar into `document.body`, so it pins to the **window** on desktop
-  and mobile, survives momentum scroll, and respects the iOS safe-area. It's a singleton with
-  reference counting, so switching tabs never leaves you with two bars.
-- **A back button with a memory.** HA's back arrow always dumps you at the dashboard root.
-  Fibbers keeps a real stack in `sessionStorage`, so _Terug_ goes back to where you came from.
-- **Sheets that behave.** Hash-routed bottom sheets that drag to dismiss, lock and restore
-  background scroll, and turn into centered dialogs on desktop.
-- **Cards that do their own math.** Room tiles read your lights and show _Uit_ / _N van M aan_ /
-  _Offline_ with no Jinja in your config. The alert card runs real checks (offline lights, low
-  batteries, pending updates) instead of a templating essay.
-- **Theming without a second repo.** The plugin injects the dark theme globally, so even a
-  tapped light's _more-info_ dialog matches. Nothing separate to install and select.
+- **The bottom bar stays on screen.** Inside a view a "fixed" bar actually scrolls with the
+  page; Fibbers renders the bar into `document.body` so it pins to the window on desktop and
+  mobile, survives momentum scroll, and respects the iOS safe-area.
+- **Back remembers.** HA's back arrow always returns to the dashboard root. Fibbers keeps its own
+  stack in `sessionStorage`, so _Terug_ goes where you actually came from.
+- **Sheets behave.** Hash-routed bottom sheets drag to dismiss, lock and restore page scroll, and
+  become centered dialogs on desktop.
+- **Cards do their own math.** Room tiles read your lights (_Uit_ / _N van M aan_ / _Offline_)
+  with no Jinja; the alert card runs real checks — offline lights, low batteries, pending updates.
+- **The theme is built in.** The dark theme loads globally, so even a light's _more-info_ dialog
+  matches. Nothing extra to install or select.
 
 Verified on **Home Assistant 2026.8.x**.
 
@@ -76,48 +70,85 @@ Done. The cards and the theming load together.
 
 ## The cards
 
-Twenty cards, all sharing one Tailwind design-token set so they match exactly. Every user-facing
-string is Dutch (it’s a home dashboard); config keys are English.
+25 cards sharing one design-token set, so they match out of the box. User-facing strings are
+Dutch (it’s a home dashboard); config keys are English.
 
-**Shell & navigation**
+**Shell & navigation** — the app shell: a pinned bottom bar, a back button, drag-away modal sheets, a section label, and the greeting header. (The bar and an open sheet are up top.)
 
-| Card                  | What it does                                                                                                                                                        |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`fibbers-nav`**     | The bottom bar — pins to the viewport, lights the active tab from the URL, optional notification badge. Can hide HA’s own tabs (`hide_ha_tabs`) without kiosk-mode. |
-| **`fibbers-back`**    | A _Terug_ control that reads the real navigation stack — “Terug naar Meer”, not the dashboard root.                                                                 |
-| **`fibbers-sheet`**   | A hash-routed modal (`#woonkamer`) that drags to dismiss and holds a stack of cards; a centered dialog on desktop.                                                  |
-| **`fibbers-section`** | A small uppercase section label.                                                                                                                                    |
+<img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/nav.png" alt="fibbers-nav — the bottom bar" width="620">
 
-**Rooms, lights & scenes**
+<table>
+<tr>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/greeting.png" width="240" alt="fibbers-greeting"><br><code>fibbers-greeting</code><br><sub>time-of-day header</sub></td>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/back.png" width="240" alt="fibbers-back"><br><code>fibbers-back</code><br><sub>back with memory</sub></td>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/section.png" width="240" alt="fibbers-section"><br><code>fibbers-section</code><br><sub>section label</sub></td>
+</tr>
+</table>
 
-| Card                    | What it does                                                                                                         |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| **`fibbers-room`**      | A room tile that reads its own lights: _Uit_ / _N van M aan_ / _Offline_, glows green when lit. Tap opens its sheet. |
-| **`fibbers-light-row`** | A light with a brightness slider — `Warm · 70%` / `Kleur · 80%` / `Onbereikbaar`; the icon box runs any HA action.   |
-| **`fibbers-scene`**     | Scene tiles, active one highlighted; `favourites: N` keeps the rest behind an “Alle N scènes” drawer.                |
-| **`fibbers-chips`**     | A pill row of quick actions, each with an optional `active_when` tint.                                               |
+**Rooms, lights & scenes** — room tiles that count their own lights, a light row with a slider, scene tiles, and action chips.
 
-**Status & data**
+<table>
+<tr>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/room.png" width="240" alt="fibbers-room"><br><code>fibbers-room</code><br><sub>counts its own lights</sub></td>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/light-row.png" width="240" alt="fibbers-light-row"><br><code>fibbers-light-row</code><br><sub>brightness slider</sub></td>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/scene.png" width="240" alt="fibbers-scene"><br><code>fibbers-scene</code><br><sub>scene tiles</sub></td>
+</tr>
+<tr>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/chips.png" width="240" alt="fibbers-chips"><br><code>fibbers-chips</code><br><sub>action pills</sub></td>
+<td></td>
+<td></td>
+</tr>
+</table>
 
-| Card                   | What it does                                                                                                               |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| **`fibbers-alert`**    | “Aandacht nodig” as real logic — offline lights, low batteries, pending updates, stale backups. Green tick when all clear. |
-| **`fibbers-stat`**     | A value tile — icon, label, big value + unit, optional trend. The building block for the rest.                             |
-| **`fibbers-graph`**    | A single-entity sparkline from history (or inline `data`), with min/max.                                                   |
-| **`fibbers-entities`** | A self-maintaining filtered list (the `auto-entities` replacement) — by domain/state/attribute/regex/staleness.            |
-| **`fibbers-presence`** | Person tiles + a “Niemand thuis / N thuis” summary.                                                                        |
-| **`fibbers-backup`**   | Backup status — last run, result, next; amber when stale.                                                                  |
-| **`fibbers-weather`**  | Current conditions + a short forecast strip.                                                                               |
-| **`fibbers-sysmon`**   | Host/Pi telemetry tiles (cpu/temp/disk/ram/…) + an optional sparkline.                                                     |
+**Status & data** — an alert card from real checks, value tiles, a history sparkline, a self-filtering list, presence, backups, weather, and host telemetry.
 
-**Devices**
+<table>
+<tr>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/alert.png" width="240" alt="fibbers-alert"><br><code>fibbers-alert</code><br><sub>real checks</sub></td>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/stat.png" width="240" alt="fibbers-stat"><br><code>fibbers-stat</code><br><sub>value tile</sub></td>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/graph.png" width="240" alt="fibbers-graph"><br><code>fibbers-graph</code><br><sub>history sparkline</sub></td>
+</tr>
+<tr>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/entities.png" width="240" alt="fibbers-entities"><br><code>fibbers-entities</code><br><sub>filtered list</sub></td>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/presence.png" width="240" alt="fibbers-presence"><br><code>fibbers-presence</code><br><sub>who's home</sub></td>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/backup.png" width="240" alt="fibbers-backup"><br><code>fibbers-backup</code><br><sub>backup status</sub></td>
+</tr>
+<tr>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/weather.png" width="240" alt="fibbers-weather"><br><code>fibbers-weather</code><br><sub>forecast strip</sub></td>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/sysmon.png" width="240" alt="fibbers-sysmon"><br><code>fibbers-sysmon</code><br><sub>host telemetry</sub></td>
+<td></td>
+</tr>
+</table>
 
-| Card                    | What it does                                                                                                               |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| **`fibbers-media`**     | A media player — now-playing, transport, volume, favourite sources; a compact “Nu bezig” variant.                          |
-| **`fibbers-climate`**   | A thermostat — current temp, setpoint −/+, hvac-mode chips.                                                                |
-| **`fibbers-scheduler`** | A wake/alarm control that drives your `input_datetime`/`input_boolean` helpers — time, enable, fade window, weekday chips. |
-| **`fibbers-remote`**    | A universal remote — power, D-pad, back/home/menu, volume/playback via `remote.send_command`.                              |
+**Devices** — a media player, a thermostat, a wake scheduler, and a universal remote.
+
+<table>
+<tr>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/media.png" width="240" alt="fibbers-media"><br><code>fibbers-media</code><br><sub>now-playing</sub></td>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/climate.png" width="240" alt="fibbers-climate"><br><code>fibbers-climate</code><br><sub>thermostat</sub></td>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/scheduler.png" width="240" alt="fibbers-scheduler"><br><code>fibbers-scheduler</code><br><sub>wake control</sub></td>
+</tr>
+<tr>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/remote.png" width="240" alt="fibbers-remote"><br><code>fibbers-remote</code><br><sub>universal remote</sub></td>
+<td></td>
+<td></td>
+</tr>
+</table>
+
+**Inputs & controls** — helpers for `input_number` / `input_select` / `input_boolean` / `input_datetime`.
+
+<table>
+<tr>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/number.png" width="240" alt="fibbers-number"><br><code>fibbers-number</code><br><sub>slider / stepper</sub></td>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/select.png" width="240" alt="fibbers-select"><br><code>fibbers-select</code><br><sub>option picker</sub></td>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/toggle.png" width="240" alt="fibbers-toggle"><br><code>fibbers-toggle</code><br><sub>switch row</sub></td>
+</tr>
+<tr>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/datetime.png" width="240" alt="fibbers-datetime"><br><code>fibbers-datetime</code><br><sub>time / date</sub></td>
+<td></td>
+<td></td>
+</tr>
+</table>
 
 > **Every card has a live example and copy-paste YAML in the
 > [Storybook](https://elian0213.github.io/fibbers-home-assistant/).** Open a card, hit
@@ -164,13 +195,22 @@ to the document so shadow-DOM `box-shadow` works); the full Solar bold-duotone s
 into `src/icons.gen.js`.
 
 ```bash
-bun install         # runtime: lit · dev: tailwindcss, prettier, @iconify-json/solar
+bun install         # runtime: lit · dev: tailwindcss, prettier, eslint, @iconify-json/solar
 bun run gen-tw      # styles/tailwind.css -> src/tailwind.gen.js   (build runs this too)
 bun run gen-icons   # @iconify-json/solar -> src/icons.gen.js      (full bold-duotone style)
 bun run build       # gen-tw + src/ -> dist/fibbers.js  (single IIFE)
 bun run watch       # rebuild on change
-bun run check       # prettier + build + parse
+bun run lint        # eslint (flat config: @eslint/js + curated Airbnb rules + lit/wc)
+bun run check       # prettier + lint + build + icon guard + parse
 ```
+
+Linting is ESLint flat config (`eslint.config.js`): `@eslint/js` recommended plus a curated set of
+Airbnb rules (`no-var`, `prefer-const`, `eqeqeq`, `prefer-template`, …), import ordering,
+kebab-case filenames, and `eslint-plugin-lit`/`-wc` for the web components. Prettier owns
+formatting.
+
+One file to watch on a major HA upgrade: `hide-tabs.js` reaches into HA's own DOM (verified on HA
+2026.8.x).
 
 Iterate without a Home Assistant instance:
 

@@ -1,18 +1,11 @@
 /* ================================================================== *
- * TAILWIND — one shared adopted stylesheet for every shadow root
- *
- * The compiled Tailwind CSS (src/tailwind.gen.js) is turned into ONE
- * constructable stylesheet that every card adopts (Lit dedupes the shared
- * object, so it costs one sheet regardless of how many cards mount).
- *
- * Tailwind v4 declares custom-property defaults with `@property`, which shadow
- * roots ignore — so utilities that lean on them (box-shadow, gradients, …)
- * would break inside a card. Fix: hoist every `@property` rule into a
- * document-level sheet, where registration is global and reaches shadow trees.
- * Theme tokens emitted on `:root` are rewritten to `:host` so they resolve
- * inside each shadow root.
+ * TAILWIND — one shared adopted stylesheet for every shadow root.
+ * Compiled src/tailwind.gen.js → one constructable sheet all cards adopt.
+ * Tailwind v4's `@property` defaults don't reach shadow roots, so they're hoisted
+ * to a document-level sheet; `:root` tokens are rewritten to `:host`.
  * ================================================================== */
 import { unsafeCSS } from "lit";
+
 import { TW_CSS } from "./tailwind.gen.js";
 
 const supportsAdopt =

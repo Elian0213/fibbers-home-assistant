@@ -1,16 +1,8 @@
 /* ================================================================== *
- * HIDE HA TABS
- *
- * Surgically suppress Home Assistant's top tab strip (`ha-tab-group`) so a
- * dashboard with a fibbers-nav bottom bar can drop the kiosk-mode plugin.
- *
- * The tab strip lives INSIDE hui-root's shadow root (verified on HA 2026.8.3),
- * so a stylesheet in document.head cannot reach it — the only route is a
- * <style> appended into `hui-root.shadowRoot`, exactly as card-mod does.
- *
- * Modes: false (default) = untouched; true = hide `ha-tab-group`, keeping the
- * toolbar, hamburger and edit pencil; "header" = hide the whole `.header`
- * (a self-contained kiosk `hide_header` equivalent).
+ * HIDE HA TABS — suppress HA's top tab strip so a bottom-nav dashboard can drop
+ * kiosk-mode. It lives inside hui-root's shadow root (verified on HA 2026.8.x),
+ * so we inject a <style> there, the way card-mod does.
+ * Modes: false = untouched; true = hide ha-tab-group; "header" = hide .header.
  * ================================================================== */
 
 const STYLE_ID = "fibbers-hide-tabs";

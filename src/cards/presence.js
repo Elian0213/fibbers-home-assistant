@@ -1,11 +1,9 @@
 /* ================================================================== *
- * CARD — fibbers-presence  (Lit + Tailwind)
- *
- * Who's home. A summary line ("Niemand thuis" / "2 thuis") over a row of
- * person tiles — avatar or icon, name, Thuis/Weg — tinted green when home.
- * `people` lists the entities, or it auto-collects every `person.*`.
+ * fibbers-presence — "who's home" summary over person tiles (Thuis/Weg, green
+ * when home). `people` lists them, or it auto-collects every `person.*`.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
+
 import { twSheet } from "../tw.js";
 import { moreInfo } from "../util.js";
 import "../icon.js";

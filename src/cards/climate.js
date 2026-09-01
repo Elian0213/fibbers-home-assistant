@@ -1,10 +1,9 @@
 /* ================================================================== *
- * CARD — fibbers-climate  (Lit + Tailwind)
- *
- * A thermostat tile: current temperature + hvac action, a setpoint with −/+
- * (climate.set_temperature), and hvac-mode chips (climate.set_hvac_mode).
+ * fibbers-climate — thermostat: current temp + action, setpoint −/+, hvac-mode
+ * chips (climate.set_temperature / set_hvac_mode).
  * ================================================================== */
 import { LitElement, html, css } from "lit";
+
 import { twSheet } from "../tw.js";
 import "../icon.js";
 
