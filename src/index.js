@@ -14,6 +14,7 @@ import { FibbersDateTime } from "./cards/datetime.js";
 import { FibbersEntities } from "./cards/entities.js";
 import { FibbersGraph } from "./cards/graph.js";
 import { FibbersGreeting } from "./cards/greeting.js";
+import { FibbersLightGroup } from "./cards/light-group.js";
 import { FibbersLightRow } from "./cards/light-row.js";
 import { FibbersMedia } from "./cards/media.js";
 import { FibbersNav } from "./cards/nav.js";
@@ -70,6 +71,12 @@ const CARDS = [
     FibbersRoom,
     "Fibbers Room",
     "Room tile that computes its own light state.",
+  ],
+  [
+    "fibbers-light-group",
+    FibbersLightGroup,
+    "Fibbers Light Group",
+    "Master light control — group slider with expandable member rows.",
   ],
   [
     "fibbers-light-row",

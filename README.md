@@ -8,7 +8,7 @@ One HACS plugin: a bottom bar that stays pinned to the screen, a back button tha
 you came from, drag-away sheets, room tiles that count their own lights, and an alert card built
 from real checks instead of Jinja. Dark theme included.
 
-25 cards, one file. No theme repo, no `kiosk-mode`, no wall of `card-mod`.
+26 cards, one file. No theme repo, no `kiosk-mode`, no wall of `card-mod`.
 
 [![Validate](https://github.com/Elian0213/fibbers-home-assistant/actions/workflows/validate.yml/badge.svg)](https://github.com/Elian0213/fibbers-home-assistant/actions/workflows/validate.yml)
 [![CI](https://github.com/Elian0213/fibbers-home-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/Elian0213/fibbers-home-assistant/actions/workflows/ci.yml)
@@ -70,7 +70,7 @@ Done. The cards and the theming load together.
 
 ## The cards
 
-25 cards sharing one design-token set, so they match out of the box. User-facing strings are
+26 cards sharing one design-token set, so they match out of the box. User-facing strings are
 Dutch (it’s a home dashboard); config keys are English.
 
 **Shell & navigation** — the app shell: a pinned bottom bar (sidebar-aware on desktop), a back button, drag-away modal sheets, a section label, and the greeting header. (The bar and an open sheet are up top.)
@@ -85,17 +85,17 @@ Dutch (it’s a home dashboard); config keys are English.
 </tr>
 </table>
 
-**Rooms, lights & scenes** — room tiles that count their own lights, a light row with a slider, scene tiles, and action chips.
+**Rooms, lights & scenes** — room tiles, a master light-group control, a light row with a slider, scene tiles, and action chips.
 
 <table>
 <tr>
 <td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/room.png" width="240" alt="fibbers-room"><br><code>fibbers-room</code><br><sub>counts its own lights</sub></td>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/light-group.png" width="240" alt="fibbers-light-group"><br><code>fibbers-light-group</code><br><sub>master + members</sub></td>
 <td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/light-row.png" width="240" alt="fibbers-light-row"><br><code>fibbers-light-row</code><br><sub>brightness slider</sub></td>
-<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/scene.png" width="240" alt="fibbers-scene"><br><code>fibbers-scene</code><br><sub>scene tiles</sub></td>
 </tr>
 <tr>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/scene.png" width="240" alt="fibbers-scene"><br><code>fibbers-scene</code><br><sub>scene tiles</sub></td>
 <td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/chips.png" width="240" alt="fibbers-chips"><br><code>fibbers-chips</code><br><sub>action pills</sub></td>
-<td></td>
 <td></td>
 </tr>
 </table>

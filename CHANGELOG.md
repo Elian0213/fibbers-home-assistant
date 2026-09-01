@@ -7,6 +7,12 @@ All notable changes to this project are documented here. This project adheres to
 
 ### Added
 
+- **`fibbers-light-group`** — a master light control that reads as heavier than a lamp row: a card
+  surface with a room icon and a taller master slider (`brightness_pct` on the group, debounced,
+  absolute), that expands to show its members as nested `fibbers-light-row`s. Mixed brightness shows
+  the average with a striped fill; a partially-offline group stays usable (`3 van 4 aan · 1 offline`);
+  members can be given explicitly or derived from the group (stale ids with no state are skipped).
+  Works without a group helper via `entities:`.
 - **`fibbers-nav`** is now sidebar-aware on desktop: it insets its start edge past Home Assistant's
   docked sidebar (so the leftmost tab is no longer hidden behind it) and follows the sidebar as it
   expands / collapses. It stays full-width on narrow (modal-drawer) layouts and when the sidebar is

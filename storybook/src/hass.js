@@ -53,6 +53,38 @@ export function makeHass(flags = {}) {
     ],
   });
 
+  // light-group demo groups. woonkamer_lampen exercises mixed brightness (tv 80%
+  // vs gitaarlamp 70%), one offline member (hue_go_1) and a ghost id skipped.
+  add("light.woonkamer_lampen", "on", {
+    friendly_name: "Woonkamer lampen",
+    entity_id: [
+      "light.tv_led_strip",
+      "light.kitchen",
+      "light.woonkamer_computer",
+      "light.hue_go_1",
+      "light.christmas_tree", // stale Hue entry: no state object, must be skipped
+    ],
+  });
+  add("light.keuken_spots", "on", {
+    friendly_name: "Keuken spots",
+    entity_id: ["light.spot_1", "light.spot_2", "light.spot_3"],
+  });
+  add("light.spot_1", "on", { friendly_name: "Spot 1", brightness: 191 });
+  add("light.spot_2", "on", { friendly_name: "Spot 2", brightness: 191 });
+  add("light.spot_3", "on", { friendly_name: "Spot 3", brightness: 191 });
+  add("light.hal_lampen", "off", {
+    friendly_name: "Hal",
+    entity_id: ["light.hal_1", "light.hal_2"],
+  });
+  add("light.hal_1", "off", { friendly_name: "Hal 1" });
+  add("light.hal_2", "off", { friendly_name: "Hal 2" });
+  add("light.schuur_lampen", "unavailable", {
+    friendly_name: "Schuur",
+    entity_id: ["light.schuur_1", "light.schuur_2"],
+  });
+  add("light.schuur_1", "unavailable", { friendly_name: "Schuur 1" });
+  add("light.schuur_2", "unavailable", { friendly_name: "Schuur 2" });
+
   // sensors
   add("sensor.hue_motion_sensor_1_temperature", "21.4", {
     friendly_name: "Temperatuur woonkamer",

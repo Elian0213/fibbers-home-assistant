@@ -24,6 +24,7 @@ const preview = {
             "Back",
             "Section",
             "Room",
+            "Light Group",
             "Light Row",
             "Sheet",
             "Alert",
