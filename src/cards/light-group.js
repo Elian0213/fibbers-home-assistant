@@ -5,6 +5,7 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
+import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import { store, isUnavail, pctFromX, debounce } from "../util.js";
 import "../icon.js";
@@ -129,10 +130,17 @@ export class FibbersLightGroup extends LitElement {
   }
 
   _secondary(s) {
-    if (s.allOff) return "Offline";
-    if (s.on === 0) return "Uit";
-    const base = `${s.on} van ${s.total} aan · ${s.pct}%`;
-    return s.off ? `${base} · ${s.off} offline` : base;
+    const hl = this._config.language || this.hass;
+    if (s.allOff) return t(hl, "light_group.offline");
+    if (s.on === 0) return t(hl, "light_group.off");
+    const base = t(hl, "light_group.state_count", {
+      on: s.on,
+      total: s.total,
+      pct: s.pct,
+    });
+    return s.off
+      ? `${base} · ${t(hl, "light_group.offline_count", { off: s.off })}`
+      : base;
   }
 
   // Absolute set on every member (via the group entity when there is one).
@@ -191,10 +199,11 @@ export class FibbersLightGroup extends LitElement {
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
+    const hl = cfg.language || this.hass;
     const s = this._state();
     const lit = s.on > 0;
     const pct = this._dragging ? this._dragPct : s.pct;
-    const name = cfg.name || "Lampen";
+    const name = cfg.name || t(hl, "light_group.default_name");
     const icon = cfg.icon || "solar:lightbulb-bold-duotone";
     const stripe = s.mixed
       ? ";background-image:repeating-linear-gradient(45deg,transparent 0,transparent 4px,rgba(0,0,0,.18) 4px,rgba(0,0,0,.18) 8px)"
@@ -237,7 +246,11 @@ export class FibbersLightGroup extends LitElement {
           type="button"
           class="flex h-7 w-7 flex-none items-center justify-center rounded-lg text-muted
                  transition-transform active:scale-90"
-          aria-label=${this._open ? "inklappen" : "uitklappen"}
+          aria-label=${
+            this._open
+              ? t(hl, "light_group.collapse")
+              : t(hl, "light_group.expand")
+          }
           @click=${this._toggle}
         >
           <fib-icon

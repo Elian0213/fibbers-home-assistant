@@ -54,7 +54,7 @@ export default defineConfig([
     plugins: { import: importPlugin, "check-file": checkFile },
     // No jsconfig/tsconfig here — the node resolver resolves the bare `lit`
     // dependency and the explicit-`.js` relative imports the browser ESM needs.
-    settings: { "import/resolver": { node: { extensions: [".js"] } } },
+    settings: { "import/resolver": { node: { extensions: [".js", ".json"] } } },
     rules: {
       ...airbnb,
       "no-empty": ["error", { allowEmptyCatch: true }],

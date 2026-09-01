@@ -4,8 +4,9 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
+import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
-import { nl, fetchHistory } from "../util.js";
+import { fmtNum, fetchHistory } from "../util.js";
 
 const COLORS = ["accent", "amber", "blue", "green", "red"];
 /* full class strings so Tailwind's scanner emits every one (a dynamic
@@ -106,6 +107,7 @@ export class FibbersGraph extends LitElement {
     if (!cfg) return html``;
     const st = cfg.entity && this.hass && this.hass.states[cfg.entity];
     const name = cfg.name || (st && st.attributes.friendly_name) || cfg.entity;
+    const hl = cfg.language || this.hass;
     const now = this._current();
     const h = cfg.height || 46;
     const series = this._series;
@@ -118,7 +120,7 @@ export class FibbersGraph extends LitElement {
         class="flex items-center text-[11px] text-muted"
         style="height:${h}px"
       >
-        Geen historie
+        ${t(hl, "graph.no_history")}
       </div>`;
     } else {
       let min = Math.min(...series);
@@ -153,7 +155,7 @@ export class FibbersGraph extends LitElement {
       <div class="mb-2 flex items-baseline justify-between gap-2">
         <span class="text-[11px] font-medium text-muted">${name}</span>
         <span class="text-[15px] font-semibold text-ink">
-          ${now != null ? nl(now, cfg.decimals) : "—"}<span
+          ${now != null ? fmtNum(this.hass, now, cfg.decimals) : "—"}<span
             class="ml-0.5 text-[11px] font-medium text-ink2"
             >${this._unit()}</span
           >
@@ -165,8 +167,14 @@ export class FibbersGraph extends LitElement {
           ? html`<div
               class="mt-1.5 flex justify-between text-[9.5px] text-muted"
             >
-              <span>min ${nl(Math.min(...series), cfg.decimals)}</span>
-              <span>max ${nl(Math.max(...series), cfg.decimals)}</span>
+              <span
+                >min
+                ${fmtNum(this.hass, Math.min(...series), cfg.decimals)}</span
+              >
+              <span
+                >max
+                ${fmtNum(this.hass, Math.max(...series), cfg.decimals)}</span
+              >
             </div>`
           : ""
       }

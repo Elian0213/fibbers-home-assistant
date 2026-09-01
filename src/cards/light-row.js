@@ -5,6 +5,7 @@
 import { LitElement, html, css } from "lit";
 
 import { runAction } from "../actions.js";
+import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import { sliderTrack } from "../ui.js";
 import { moreInfo, isUnavail, pctFromX } from "../util.js";
@@ -68,18 +69,19 @@ export class FibbersLightRow extends LitElement {
   _warmth() {
     const st = this._st();
     if (!st) return "";
+    const hl = this._config.language || this.hass;
     const mode = st.attributes.color_mode;
     if (mode && ["hs", "rgb", "rgbw", "rgbww", "xy"].includes(mode))
-      return "Kleur";
+      return t(hl, "light_row.color");
     const k =
       st.attributes.color_temp_kelvin ||
       (st.attributes.color_temp
         ? Math.round(1e6 / st.attributes.color_temp)
         : null);
     if (k == null) return "";
-    if (k < 3000) return "Warm";
-    if (k < 4600) return "Neutraal";
-    return "Koel";
+    if (k < 3000) return t(hl, "light_row.warm");
+    if (k < 4600) return t(hl, "light_row.neutral");
+    return t(hl, "light_row.cool");
   }
 
   _down(e) {
@@ -121,6 +123,7 @@ export class FibbersLightRow extends LitElement {
     const cfg = this._config;
     if (!cfg) return html``;
     const st = this._st();
+    const hl = cfg.language || this.hass;
     const unavail = this._unavail();
     const on = !unavail && st.state === "on";
     const pct = this._displayPct();
@@ -129,11 +132,11 @@ export class FibbersLightRow extends LitElement {
       cfg.icon || (st && st.attributes.icon) || "solar:lightbulb-bold-duotone";
 
     let val;
-    if (unavail) val = "Onbereikbaar";
+    if (unavail) val = t(hl, "light_row.unavailable");
     else if (on) {
       const w = this._warmth();
       val = w ? `${w} · ${pct}%` : `${pct}%`;
-    } else val = "Uit";
+    } else val = t(hl, "light_row.off");
 
     return html`
       <div

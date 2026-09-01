@@ -3,6 +3,7 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
+import { t } from "../i18n.js";
 import { nav, previous, goBack } from "../nav-stack.js";
 import { twSheet } from "../tw.js";
 import { norm } from "../util.js";
@@ -53,7 +54,8 @@ export class FibbersBack extends LitElement {
     const prev = previous() || c.fallback;
     const names = c.labels || {};
     const name = prev ? names[norm(prev)] || names[prev] : null;
-    this._label = name ? `Terug naar ${name}` : "Terug";
+    const hl = c.language || nav.hassRef;
+    this._label = name ? t(hl, "back.back_to", { name }) : t(hl, "back.back");
   }
 
   render() {

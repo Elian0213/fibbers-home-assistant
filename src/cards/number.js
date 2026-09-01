@@ -4,9 +4,10 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
+import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import { sliderTrack } from "../ui.js";
-import { nl, clamp, debounce, isUnavail, pctFromX } from "../util.js";
+import { fmtNum, clamp, debounce, isUnavail, pctFromX } from "../util.js";
 import "../icon.js";
 
 export class FibbersNumber extends LitElement {
@@ -116,6 +117,7 @@ export class FibbersNumber extends LitElement {
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
+    const hl = cfg.language || this.hass;
     const st = this._st();
     const unavail = this._unavail();
     const name = cfg.name || (st && st.attributes.friendly_name) || cfg.entity;
@@ -127,8 +129,8 @@ export class FibbersNumber extends LitElement {
         : (st && st.attributes.unit_of_measurement) || "";
     const v = this._value();
     const val = unavail
-      ? "Onbereikbaar"
-      : `${nl(v, this._decimals())}${unit ? ` ${unit}` : ""}`;
+      ? t(hl, "number.unavailable")
+      : `${fmtNum(this.hass, v, this._decimals())}${unit ? ` ${unit}` : ""}`;
     const pct = this._pct(v);
 
     const head = html`<div class="flex items-center gap-2.5">
@@ -192,12 +194,13 @@ export class FibbersNumber extends LitElement {
   }
 
   _stepBtn(icon, dir, unavail) {
+    const hl = this._config.language || this.hass;
     return html`<button
       type="button"
       class="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-card2
              text-accent transition-transform active:scale-90
              ${unavail ? "pointer-events-none opacity-40" : ""}"
-      aria-label=${dir > 0 ? "meer" : "minder"}
+      aria-label=${dir > 0 ? t(hl, "number.more") : t(hl, "number.less")}
       @click=${() => this._bump(dir)}
     >
       <fib-icon

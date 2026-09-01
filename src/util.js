@@ -51,14 +51,20 @@ export function moreInfo(host, entityId) {
   );
 }
 
-// nl-NL number formatting; `d` fixes the decimals, else locale default.
-export const nl = (n, d) =>
-  Number.isFinite(n)
-    ? n.toLocaleString(
-        "nl-NL",
-        d != null ? { minimumFractionDigits: d, maximumFractionDigits: d } : {},
-      )
-    : String(n);
+// Locale-aware number formatting: separators follow the user's HA language, not
+// the author's. `d` fixes the decimals; a non-finite value is passed through.
+export const fmtNum = (hass, n, d) => {
+  if (!Number.isFinite(n)) return String(n);
+  const lang =
+    (hass && ((hass.locale && hass.locale.language) || hass.language)) || "en";
+  const opts =
+    d != null ? { minimumFractionDigits: d, maximumFractionDigits: d } : {};
+  try {
+    return n.toLocaleString(lang, opts);
+  } catch (_) {
+    return n.toLocaleString("en", opts);
+  }
+};
 
 export const isUnavail = (st) =>
   !st || st.state === "unavailable" || st.state === "unknown";

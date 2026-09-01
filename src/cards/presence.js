@@ -4,6 +4,7 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
+import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import { moreInfo } from "../util.js";
 import "../icon.js";
@@ -44,9 +45,10 @@ export class FibbersPresence extends LitElement {
     return st && st.state === "home";
   }
   _stateLabel(st) {
+    const hl = this._config.language || this.hass;
     if (!st) return "—";
-    if (st.state === "home") return "Thuis";
-    if (st.state === "not_home") return "Weg";
+    if (st.state === "home") return t(hl, "presence.home");
+    if (st.state === "not_home") return t(hl, "presence.away");
     return st.state;
   }
   _moreInfo(entity) {
@@ -55,6 +57,7 @@ export class FibbersPresence extends LitElement {
 
   render() {
     const people = this._people();
+    const hl = this._config.language || this.hass;
     const homeCount = people.filter((id) =>
       this._isHome(this.hass && this.hass.states[id]),
     ).length;
@@ -66,14 +69,14 @@ export class FibbersPresence extends LitElement {
             ? ""
             : html`<span
                 class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-                >Aanwezigheid</span
+                >${t(hl, "presence.title")}</span
               >`
         }
         <span
           class="text-[12px] font-semibold ${
             homeCount === 0 ? "text-muted" : "text-ink"
           }"
-          >${homeCount === 0 ? "Niemand thuis" : `${homeCount} thuis`}</span
+          >${homeCount === 0 ? t(hl, "presence.nobody_home") : t(hl, "presence.count_home", { n: homeCount })}</span
         >
       </div>
       <div class="flex flex-wrap gap-2">

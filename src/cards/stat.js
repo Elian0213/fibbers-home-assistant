@@ -6,7 +6,7 @@ import { LitElement, html, css } from "lit";
 
 import { runAction } from "../actions.js";
 import { twSheet } from "../tw.js";
-import { nl, fmtState, isUnavail } from "../util.js";
+import { fmtNum, fmtState, isUnavail } from "../util.js";
 import "../icon.js"; // registers <fib-icon>
 
 const COLORS = ["accent", "amber", "blue", "green", "red"];
@@ -20,10 +20,10 @@ const IC = {
   red: "bg-amberbg text-red",
 };
 
-/** nl-NL number formatting; leaves non-numeric states intact. */
-const fmt = (raw, decimals) => {
+/** Locale-aware number formatting; leaves non-numeric states intact. */
+const fmt = (hass, raw, decimals) => {
   const n = Number(String(raw).replace(",", "."));
-  return Number.isFinite(n) ? nl(n, decimals) : String(raw);
+  return Number.isFinite(n) ? fmtNum(hass, n, decimals) : String(raw);
 };
 
 export class FibbersStat extends LitElement {
@@ -94,11 +94,11 @@ export class FibbersStat extends LitElement {
     // enum) is handed to HA's own localiser instead of printing the raw slug.
     let value;
     if (offline) value = "—";
-    else if (cfg.value != null) value = fmt(cfg.value, cfg.decimals);
+    else if (cfg.value != null) value = fmt(this.hass, cfg.value, cfg.decimals);
     else {
       const n = Number(String(st.state).replace(",", "."));
       value = Number.isFinite(n)
-        ? nl(n, cfg.decimals)
+        ? fmtNum(this.hass, n, cfg.decimals)
         : fmtState(this.hass, st);
     }
     const unit = offline

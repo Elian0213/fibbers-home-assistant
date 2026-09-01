@@ -4,6 +4,7 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
+import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import { sliderTrack } from "../ui.js";
 import { pctFromX } from "../util.js";
@@ -104,12 +105,16 @@ export class FibbersMedia extends LitElement {
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
+    const hl = cfg.language || this.hass;
     const st = this._st();
     const a = (st && st.attributes) || {};
     const idle = this._idle();
     const title = idle
-      ? "Niets aan het spelen"
-      : a.media_title || a.friendly_name || cfg.name || "Media";
+      ? t(hl, "media.idle")
+      : a.media_title ||
+        a.friendly_name ||
+        cfg.name ||
+        t(hl, "media.default_name");
     const artist = idle ? "" : a.media_artist || a.app_name || "";
     const art = a.entity_picture || a.media_image_url;
     const playIcon = this._playing()

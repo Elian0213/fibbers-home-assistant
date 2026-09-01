@@ -1,29 +1,30 @@
 /* ================================================================== *
- * fibbers-greeting — Dutch time-of-day header + a lights/presence/sensor subline
- * ("4 van 7 lampen aan · 2 offline · Elian thuis · 19,2 °C").
+ * fibbers-greeting — time-of-day header + a lights/presence/sensor subline
+ * ("4 of 7 lights on · 2 offline · Elian home · 19.2 °C").
  * A light group is expanded to its members; offline lights counted separately.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
+import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
-import { nl, fmtState, isUnavail } from "../util.js";
+import { fmtNum, fmtState, isUnavail } from "../util.js";
 import "../icon.js";
 
 const PERIODS = [
-  { until: 6, word: "Goedenacht", icon: "solar:moon-stars-bold-duotone" },
-  { until: 12, word: "Goedemorgen", icon: "solar:sunrise-bold-duotone" },
-  { until: 18, word: "Goedemiddag", icon: "solar:sun-bold-duotone" },
-  { until: 23, word: "Goedenavond", icon: "solar:moon-bold-duotone" },
-  { until: 24, word: "Goedenacht", icon: "solar:moon-stars-bold-duotone" },
+  { until: 6, key: "night", icon: "solar:moon-stars-bold-duotone" },
+  { until: 12, key: "morning", icon: "solar:sunrise-bold-duotone" },
+  { until: 18, key: "afternoon", icon: "solar:sun-bold-duotone" },
+  { until: 23, key: "evening", icon: "solar:moon-bold-duotone" },
+  { until: 24, key: "night", icon: "solar:moon-stars-bold-duotone" },
 ];
 
 const friendly = (st, id) =>
   (st && st.attributes && st.attributes.friendly_name) || id;
 
-// Join names as "A", "A en B", "A, B en C".
-function joinNames(names) {
+// Join names as "A", "A and B", "A, B and C" (the conjunction is localised).
+function joinNames(names, and) {
   if (names.length <= 1) return names[0] || "";
-  return `${names.slice(0, -1).join(", ")} en ${names[names.length - 1]}`;
+  return `${names.slice(0, -1).join(", ")} ${and} ${names[names.length - 1]}`;
 }
 
 export class FibbersGreeting extends LitElement {
@@ -81,6 +82,7 @@ export class FibbersGreeting extends LitElement {
   _subline() {
     const hass = this.hass;
     if (!hass) return "";
+    const hl = this._config.language || hass;
     const parts = [];
 
     const members = this._lightMembers();
@@ -92,15 +94,21 @@ export class FibbersGreeting extends LitElement {
         if (isUnavail(st)) offline++;
         else if (st.state === "on") on++;
       });
-      parts.push(`${on} van ${members.length} lampen aan`);
-      if (offline) parts.push(`${offline} offline`);
+      parts.push(t(hl, "greeting.lights_on", { on, total: members.length }));
+      if (offline) parts.push(t(hl, "greeting.offline_count", { n: offline }));
     }
 
     const home = this._people()
       .map((id) => hass.states[id])
       .filter((st) => st && st.state === "home")
       .map((st, i, arr) => friendly(st, arr[i].entity_id));
-    parts.push(home.length ? `${joinNames(home)} thuis` : "Niemand thuis");
+    parts.push(
+      home.length
+        ? t(hl, "greeting.someone_home", {
+            names: joinNames(home, t(hl, "common.and")),
+          })
+        : t(hl, "greeting.nobody_home"),
+    );
 
     (this._config.sensors || []).forEach((id) => {
       const st = hass.states[id];
@@ -108,7 +116,7 @@ export class FibbersGreeting extends LitElement {
       const unit = st.attributes.unit_of_measurement || "";
       const n = Number(st.state);
       const val = Number.isFinite(n)
-        ? `${nl(n)}${unit ? ` ${unit}` : ""}`
+        ? `${fmtNum(hass, n)}${unit ? ` ${unit}` : ""}`
         : fmtState(hass, st);
       if (val) parts.push(val);
     });
@@ -119,8 +127,9 @@ export class FibbersGreeting extends LitElement {
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
+    const hl = cfg.language || this.hass;
     const period = this._period();
-    let title = period.word;
+    let title = t(hl, `greeting.${period.key}`);
     if (cfg.name_from) {
       const st = this.hass && this.hass.states[cfg.name_from];
       const nm = st && st.attributes && st.attributes.friendly_name;

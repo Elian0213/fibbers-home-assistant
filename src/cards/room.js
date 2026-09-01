@@ -4,6 +4,7 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
+import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import { moreInfo, isUnavail } from "../util.js";
 import "../icon.js";
@@ -71,6 +72,7 @@ export class FibbersRoom extends LitElement {
 
   _state() {
     const hass = this.hass;
+    const hl = this._config.language || hass;
     const lights = this._lights();
     if (!hass || !lights.length)
       return { label: "—", lit: false, offline: false };
@@ -82,10 +84,12 @@ export class FibbersRoom extends LitElement {
       avail++;
       if (st.state === "on") on++;
     });
-    if (avail === 0) return { label: "Offline", lit: false, offline: true };
-    if (on === 0) return { label: "Uit", lit: false, offline: false };
+    if (avail === 0)
+      return { label: t(hl, "room.offline"), lit: false, offline: true };
+    if (on === 0)
+      return { label: t(hl, "room.off"), lit: false, offline: false };
     return {
-      label: `${on} van ${lights.length} aan`,
+      label: t(hl, "room.state_count", { on, total: lights.length }),
       lit: true,
       offline: false,
     };

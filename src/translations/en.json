@@ -1,0 +1,124 @@
+{
+  "common": {
+    "and": "and",
+    "not_available": "Not available",
+    "minutes_ago": "{n} min ago",
+    "hours_ago": "{n} hr ago",
+    "days_ago": "{n} d ago"
+  },
+  "room": {
+    "off": "Off",
+    "offline": "Offline",
+    "state_count": "{on} of {total} on"
+  },
+  "light_row": {
+    "unavailable": "Unavailable",
+    "off": "Off",
+    "color": "Colour",
+    "warm": "Warm",
+    "neutral": "Neutral",
+    "cool": "Cool"
+  },
+  "light_group": {
+    "default_name": "Lights",
+    "off": "Off",
+    "offline": "Offline",
+    "state_count": "{on} of {total} on · {pct}%",
+    "offline_count": "{off} offline",
+    "expand": "Expand",
+    "collapse": "Collapse"
+  },
+  "greeting": {
+    "morning": "Good morning",
+    "afternoon": "Good afternoon",
+    "evening": "Good evening",
+    "night": "Good night",
+    "lights_on": "{on} of {total} lights on",
+    "offline_count": "{n} offline",
+    "someone_home": "{names} home",
+    "nobody_home": "Nobody home"
+  },
+  "backup": {
+    "default_name": "Backup",
+    "none": "No backup found",
+    "succeeded": "Succeeded",
+    "failed": "Failed",
+    "next": "next {time}"
+  },
+  "alert": {
+    "attention_needed": "Attention needed",
+    "all_clear": "All clear",
+    "lights_offline": "Lights offline",
+    "lights_offline_one": "Light offline",
+    "low_battery": "Low battery",
+    "updates": "Updates",
+    "updates_available": "{n} updates available",
+    "updates_available_one": "1 update available",
+    "backup": "Backup"
+  },
+  "climate": {
+    "default_name": "Thermostat",
+    "setpoint": "Setpoint",
+    "on": "On",
+    "off": "Off",
+    "mode_heat": "Heat",
+    "mode_cool": "Cool",
+    "mode_fan_only": "Fan",
+    "mode_auto": "Auto",
+    "mode_dry": "Dry",
+    "mode_off": "Off",
+    "action_heating": "Heating",
+    "action_cooling": "Cooling",
+    "action_drying": "Drying",
+    "action_fan": "Fan",
+    "action_idle": "Idle",
+    "action_off": "Off"
+  },
+  "presence": {
+    "title": "Presence",
+    "home": "Home",
+    "away": "Away",
+    "nobody_home": "Nobody home",
+    "count_home": "{n} home"
+  },
+  "back": {
+    "back": "Back",
+    "back_to": "Back to {name}"
+  },
+  "number": {
+    "unavailable": "Unavailable",
+    "more": "more",
+    "less": "less"
+  },
+  "scheduler": {
+    "default_name": "Alarm",
+    "duration": "{n} min"
+  },
+  "weather": {
+    "default_name": "Weather",
+    "conditions": {
+      "clear-night": "Clear",
+      "sunny": "Sunny",
+      "partlycloudy": "Partly cloudy",
+      "cloudy": "Cloudy",
+      "fog": "Fog",
+      "rainy": "Rain",
+      "pouring": "Downpour",
+      "lightning-rainy": "Thunderstorm",
+      "lightning": "Thunderstorm",
+      "snowy": "Snow",
+      "snowy-rainy": "Sleet",
+      "hail": "Hail",
+      "windy": "Windy",
+      "windy-variant": "Windy",
+      "exceptional": "Extreme"
+    }
+  },
+  "media": {
+    "default_name": "Media",
+    "idle": "Nothing playing"
+  },
+  "graph": {
+    "no_history": "No history"
+  }
+}

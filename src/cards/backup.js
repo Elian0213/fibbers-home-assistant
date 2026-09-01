@@ -4,25 +4,27 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
+import { t, langOf } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import { isUnavail } from "../util.js";
 import "../icon.js";
 
-function ago(iso) {
-  const t = Date.parse(iso);
-  if (isNaN(t)) return { text: String(iso), hours: 0 };
-  const hours = (Date.now() - t) / 3.6e6;
+function ago(iso, hl) {
+  const time = Date.parse(iso);
+  if (isNaN(time)) return { text: String(iso), hours: 0 };
+  const hours = (Date.now() - time) / 3.6e6;
   const mins = Math.round(hours * 60);
   let text;
-  if (mins < 60) text = `${mins} min geleden`;
-  else if (hours < 24) text = `${Math.round(hours)} uur geleden`;
-  else text = `${Math.round(hours / 24)} dagen geleden`;
+  if (mins < 60) text = t(hl, "common.minutes_ago", { n: mins });
+  else if (hours < 24)
+    text = t(hl, "common.hours_ago", { n: Math.round(hours) });
+  else text = t(hl, "common.days_ago", { n: Math.round(hours / 24) });
   return { text, hours };
 }
-const clock = (iso) => {
-  const t = Date.parse(iso);
-  if (isNaN(t)) return String(iso);
-  return new Date(t).toLocaleTimeString("nl-NL", {
+const clock = (iso, lang) => {
+  const time = Date.parse(iso);
+  if (isNaN(time)) return String(iso);
+  return new Date(time).toLocaleTimeString(lang || "en", {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -58,15 +60,16 @@ export class FibbersBackup extends LitElement {
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
+    const hl = cfg.language || this.hass;
     const st = this.hass && this.hass.states[cfg.entity];
 
     let value, sub, warn;
     if (isUnavail(st)) {
       value = "—";
-      sub = "Geen back-up gevonden";
+      sub = t(hl, "backup.none");
       warn = true;
     } else {
-      const a = ago(st.state);
+      const a = ago(st.state, hl);
       const stale = a.hours > (cfg.stale_hours != null ? cfg.stale_hours : 26);
       let failed = false;
       if (cfg.result) {
@@ -75,10 +78,11 @@ export class FibbersBackup extends LitElement {
           r && ["off", "failed", "error", "false"].includes(String(r.state));
       }
       value = a.text;
-      const bits = [failed ? "Mislukt" : "Geslaagd"];
+      const bits = [t(hl, failed ? "backup.failed" : "backup.succeeded")];
       if (cfg.next) {
         const n = this.hass.states[cfg.next];
-        if (n && !isUnavail(n)) bits.push(`volgende ${clock(n.state)}`);
+        if (n && !isUnavail(n))
+          bits.push(t(hl, "backup.next", { time: clock(n.state, langOf(hl)) }));
       }
       sub = bits.join(" · ");
       warn = stale || failed;
@@ -101,7 +105,7 @@ export class FibbersBackup extends LitElement {
         ></fib-icon>
       </div>
       <div class="text-[11px] font-medium text-muted">
-        ${cfg.name || "Back-up"}
+        ${cfg.name || t(hl, "backup.default_name")}
       </div>
       <div class="text-[17px] font-semibold leading-[1.15] text-ink">
         ${value}

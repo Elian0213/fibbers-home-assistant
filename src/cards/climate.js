@@ -4,25 +4,26 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
+import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import "../icon.js";
 
 const MODE = {
-  heat: { icon: "solar:fire-bold-duotone", label: "Verwarmen" },
-  cool: { icon: "solar:snowflake-bold-duotone", label: "Koelen" },
-  fan_only: { icon: "solar:wind-bold-duotone", label: "Ventilator" },
-  auto: { icon: "solar:temperature-bold-duotone", label: "Auto" },
-  heat_cool: { icon: "solar:temperature-bold-duotone", label: "Auto" },
-  dry: { icon: "solar:wind-bold-duotone", label: "Drogen" },
-  off: { icon: "solar:power-bold-duotone", label: "Uit" },
+  heat: { icon: "solar:fire-bold-duotone", key: "mode_heat" },
+  cool: { icon: "solar:snowflake-bold-duotone", key: "mode_cool" },
+  fan_only: { icon: "solar:wind-bold-duotone", key: "mode_fan_only" },
+  auto: { icon: "solar:temperature-bold-duotone", key: "mode_auto" },
+  heat_cool: { icon: "solar:temperature-bold-duotone", key: "mode_auto" },
+  dry: { icon: "solar:wind-bold-duotone", key: "mode_dry" },
+  off: { icon: "solar:power-bold-duotone", key: "mode_off" },
 };
-const ACTION_NL = {
-  heating: "Verwarmt",
-  cooling: "Koelt",
-  drying: "Droogt",
-  fan: "Ventileert",
-  idle: "Inactief",
-  off: "Uit",
+const ACTION_KEY = {
+  heating: "action_heating",
+  cooling: "action_cooling",
+  drying: "action_drying",
+  fan: "action_fan",
+  idle: "action_idle",
+  off: "action_off",
 };
 
 export class FibbersClimate extends LitElement {
@@ -75,12 +76,13 @@ export class FibbersClimate extends LitElement {
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
+    const hl = cfg.language || this.hass;
     const st = this._st();
     if (!st)
       return html`<div
         class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
       >
-        Niet beschikbaar
+        ${t(hl, "common.not_available")}
       </div>`;
     const a = st.attributes;
     const cur = a.current_temperature;
@@ -94,7 +96,7 @@ export class FibbersClimate extends LitElement {
           <div
             class="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted"
           >
-            ${cfg.name || a.friendly_name || "Thermostaat"}
+            ${cfg.name || a.friendly_name || t(hl, "climate.default_name")}
           </div>
           <div class="text-[24px] font-semibold leading-none text-ink">
             ${cur != null ? cur : "—"}<span class="text-[14px] text-ink2"
@@ -103,7 +105,7 @@ export class FibbersClimate extends LitElement {
           </div>
         </div>
         <span class="text-[11px] text-muted"
-          >${ACTION_NL[action] || (st.state !== "off" ? "Aan" : "Uit")}</span
+          >${ACTION_KEY[action] ? t(hl, `climate.${ACTION_KEY[action]}`) : t(hl, st.state !== "off" ? "climate.on" : "climate.off")}</span
         >
       </div>
 
@@ -126,7 +128,7 @@ export class FibbersClimate extends LitElement {
           <div
             class="mt-0.5 text-[9.5px] uppercase tracking-[0.08em] text-muted"
           >
-            Ingesteld
+            ${t(hl, "climate.setpoint")}
           </div>
         </div>
         <button
@@ -165,7 +167,7 @@ export class FibbersClimate extends LitElement {
                     class="h-[13px] w-[13px] [--mdc-icon-size:13px]"
                     icon=${MODE[m].icon}
                   ></fib-icon>
-                  ${MODE[m].label}
+                  ${t(hl, `climate.${MODE[m].key}`)}
                 </button>`;
               })}
             </div>`

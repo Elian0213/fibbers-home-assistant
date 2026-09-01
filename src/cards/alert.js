@@ -4,6 +4,7 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
+import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import { moreInfo, isUnavail } from "../util.js";
 import "../icon.js";
@@ -28,7 +29,7 @@ function compileCheck(check) {
 const excludedBy = (re, s) =>
   re && (re.test(s.entity_id) || re.test(friendly(s)));
 
-function runCheck(check, hass) {
+function runCheck(check, hass, hl) {
   const states = Object.values(hass.states);
   const out = [];
   switch (check.type) {
@@ -44,7 +45,7 @@ function runCheck(check, hass) {
       );
       if (offline.length)
         out.push({
-          label: offline.length === 1 ? "Lamp offline" : "Lampen offline",
+          label: t(hl, "alert.lights_offline", { count: offline.length }),
           detail: offline.map(friendly).join(", "),
           entity: offline[0].entity_id,
         });
@@ -63,7 +64,7 @@ function runCheck(check, hass) {
         )
         .forEach((s) =>
           out.push({
-            label: "Batterij laag",
+            label: t(hl, "alert.low_battery"),
             detail: `${friendly(s)} (${s.state}%)`,
             entity: s.entity_id,
           }),
@@ -76,11 +77,11 @@ function runCheck(check, hass) {
       );
       if (ups.length)
         out.push({
-          label: "Updates",
-          detail:
-            ups.length === 1
-              ? `1 update beschikbaar`
-              : `${ups.length} updates beschikbaar`,
+          label: t(hl, "alert.updates"),
+          detail: t(hl, "alert.updates_available", {
+            n: ups.length,
+            count: ups.length,
+          }),
           entity: ups[0].entity_id,
         });
       break;
@@ -94,8 +95,8 @@ function runCheck(check, hass) {
           const hours = (Date.now() - t) / 3.6e6;
           if (hours > max)
             out.push({
-              label: "Back-up",
-              detail: `${Math.round(hours)} uur geleden`,
+              label: t(hl, "alert.backup"),
+              detail: t(hl, "common.hours_ago", { n: Math.round(hours) }),
               entity: check.entity,
             });
         }
@@ -138,9 +139,10 @@ export class FibbersAlert extends LitElement {
   _findings() {
     if (!this.hass) return [];
     const out = [];
+    const hl = this._config.language || this.hass;
     this._checks.forEach((c) => {
       try {
-        out.push(...runCheck(c, this.hass));
+        out.push(...runCheck(c, this.hass, hl));
       } catch (_) {
         /* a bad check never breaks the card */
       }
@@ -155,6 +157,7 @@ export class FibbersAlert extends LitElement {
   render() {
     if (!this._config) return html``;
     const findings = this._findings();
+    const hl = this._config.language || this.hass;
     const alert = findings.length > 0;
     return html`<div
       class="rounded-xl border p-3
@@ -175,7 +178,7 @@ export class FibbersAlert extends LitElement {
           class="text-[12px] font-semibold ${
             alert ? "text-amber" : "text-green"
           }"
-          >${alert ? "Aandacht nodig" : "Alles in orde"}</span
+          >${alert ? t(hl, "alert.attention_needed") : t(hl, "alert.all_clear")}</span
         >
       </div>
       ${

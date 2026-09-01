@@ -6850,7 +6850,17 @@
       composed: true
     }));
   }
-  var nl = (n, d2) => Number.isFinite(n) ? n.toLocaleString("nl-NL", d2 != null ? { minimumFractionDigits: d2, maximumFractionDigits: d2 } : {}) : String(n);
+  var fmtNum = (hass, n, d2) => {
+    if (!Number.isFinite(n))
+      return String(n);
+    const lang = hass && (hass.locale && hass.locale.language || hass.language) || "en";
+    const opts = d2 != null ? { minimumFractionDigits: d2, maximumFractionDigits: d2 } : {};
+    try {
+      return n.toLocaleString(lang, opts);
+    } catch (_) {
+      return n.toLocaleString("en", opts);
+    }
+  };
   var isUnavail = (st) => !st || st.state === "unavailable" || st.state === "unknown";
   var clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
   function fmtState(hass, st) {
@@ -7370,6 +7380,288 @@
   }
   nav.listeners.add(renderBar);
   window.addEventListener("hashchange", renderBar);
+  // src/translations/en.json
+  var en_default = {
+    common: {
+      and: "and",
+      not_available: "Not available",
+      minutes_ago: "{n} min ago",
+      hours_ago: "{n} hr ago",
+      days_ago: "{n} d ago"
+    },
+    room: {
+      off: "Off",
+      offline: "Offline",
+      state_count: "{on} of {total} on"
+    },
+    light_row: {
+      unavailable: "Unavailable",
+      off: "Off",
+      color: "Colour",
+      warm: "Warm",
+      neutral: "Neutral",
+      cool: "Cool"
+    },
+    light_group: {
+      default_name: "Lights",
+      off: "Off",
+      offline: "Offline",
+      state_count: "{on} of {total} on · {pct}%",
+      offline_count: "{off} offline",
+      expand: "Expand",
+      collapse: "Collapse"
+    },
+    greeting: {
+      morning: "Good morning",
+      afternoon: "Good afternoon",
+      evening: "Good evening",
+      night: "Good night",
+      lights_on: "{on} of {total} lights on",
+      offline_count: "{n} offline",
+      someone_home: "{names} home",
+      nobody_home: "Nobody home"
+    },
+    backup: {
+      default_name: "Backup",
+      none: "No backup found",
+      succeeded: "Succeeded",
+      failed: "Failed",
+      next: "next {time}"
+    },
+    alert: {
+      attention_needed: "Attention needed",
+      all_clear: "All clear",
+      lights_offline: "Lights offline",
+      lights_offline_one: "Light offline",
+      low_battery: "Low battery",
+      updates: "Updates",
+      updates_available: "{n} updates available",
+      updates_available_one: "1 update available",
+      backup: "Backup"
+    },
+    climate: {
+      default_name: "Thermostat",
+      setpoint: "Setpoint",
+      on: "On",
+      off: "Off",
+      mode_heat: "Heat",
+      mode_cool: "Cool",
+      mode_fan_only: "Fan",
+      mode_auto: "Auto",
+      mode_dry: "Dry",
+      mode_off: "Off",
+      action_heating: "Heating",
+      action_cooling: "Cooling",
+      action_drying: "Drying",
+      action_fan: "Fan",
+      action_idle: "Idle",
+      action_off: "Off"
+    },
+    presence: {
+      title: "Presence",
+      home: "Home",
+      away: "Away",
+      nobody_home: "Nobody home",
+      count_home: "{n} home"
+    },
+    back: {
+      back: "Back",
+      back_to: "Back to {name}"
+    },
+    number: {
+      unavailable: "Unavailable",
+      more: "more",
+      less: "less"
+    },
+    scheduler: {
+      default_name: "Alarm",
+      duration: "{n} min"
+    },
+    weather: {
+      default_name: "Weather",
+      conditions: {
+        "clear-night": "Clear",
+        sunny: "Sunny",
+        partlycloudy: "Partly cloudy",
+        cloudy: "Cloudy",
+        fog: "Fog",
+        rainy: "Rain",
+        pouring: "Downpour",
+        "lightning-rainy": "Thunderstorm",
+        lightning: "Thunderstorm",
+        snowy: "Snow",
+        "snowy-rainy": "Sleet",
+        hail: "Hail",
+        windy: "Windy",
+        "windy-variant": "Windy",
+        exceptional: "Extreme"
+      }
+    },
+    media: {
+      default_name: "Media",
+      idle: "Nothing playing"
+    },
+    graph: {
+      no_history: "No history"
+    }
+  };
+  // src/translations/nl.json
+  var nl_default = {
+    common: {
+      and: "en",
+      not_available: "Niet beschikbaar",
+      minutes_ago: "{n} min geleden",
+      hours_ago: "{n} uur geleden",
+      days_ago: "{n} dagen geleden"
+    },
+    room: {
+      off: "Uit",
+      offline: "Offline",
+      state_count: "{on} van {total} aan"
+    },
+    light_row: {
+      unavailable: "Onbereikbaar",
+      off: "Uit",
+      color: "Kleur",
+      warm: "Warm",
+      neutral: "Neutraal",
+      cool: "Koel"
+    },
+    light_group: {
+      default_name: "Lampen",
+      off: "Uit",
+      offline: "Offline",
+      state_count: "{on} van {total} aan · {pct}%",
+      offline_count: "{off} offline",
+      expand: "uitklappen",
+      collapse: "inklappen"
+    },
+    greeting: {
+      morning: "Goedemorgen",
+      afternoon: "Goedemiddag",
+      evening: "Goedenavond",
+      night: "Goedenacht",
+      lights_on: "{on} van {total} lampen aan",
+      offline_count: "{n} offline",
+      someone_home: "{names} thuis",
+      nobody_home: "Niemand thuis"
+    },
+    backup: {
+      default_name: "Back-up",
+      none: "Geen back-up gevonden",
+      succeeded: "Geslaagd",
+      failed: "Mislukt",
+      next: "volgende {time}"
+    },
+    alert: {
+      attention_needed: "Aandacht nodig",
+      all_clear: "Alles in orde",
+      lights_offline: "Lampen offline",
+      lights_offline_one: "Lamp offline",
+      low_battery: "Batterij laag",
+      updates: "Updates",
+      updates_available: "{n} updates beschikbaar",
+      updates_available_one: "1 update beschikbaar",
+      backup: "Back-up"
+    },
+    climate: {
+      default_name: "Thermostaat",
+      setpoint: "Ingesteld",
+      on: "Aan",
+      off: "Uit",
+      mode_heat: "Verwarmen",
+      mode_cool: "Koelen",
+      mode_fan_only: "Ventilator",
+      mode_auto: "Auto",
+      mode_dry: "Drogen",
+      mode_off: "Uit",
+      action_heating: "Verwarmt",
+      action_cooling: "Koelt",
+      action_drying: "Droogt",
+      action_fan: "Ventileert",
+      action_idle: "Inactief",
+      action_off: "Uit"
+    },
+    presence: {
+      title: "Aanwezigheid",
+      home: "Thuis",
+      away: "Weg",
+      nobody_home: "Niemand thuis",
+      count_home: "{n} thuis"
+    },
+    back: {
+      back: "Terug",
+      back_to: "Terug naar {name}"
+    },
+    number: {
+      unavailable: "Onbereikbaar",
+      more: "meer",
+      less: "minder"
+    },
+    scheduler: {
+      default_name: "Wekker",
+      duration: "{n} min"
+    },
+    weather: {
+      default_name: "Weer",
+      conditions: {
+        "clear-night": "Helder",
+        sunny: "Zonnig",
+        partlycloudy: "Half bewolkt",
+        cloudy: "Bewolkt",
+        fog: "Mist",
+        rainy: "Regen",
+        pouring: "Stortregen",
+        "lightning-rainy": "Onweer",
+        lightning: "Onweer",
+        snowy: "Sneeuw",
+        "snowy-rainy": "Natte sneeuw",
+        hail: "Hagel",
+        windy: "Winderig",
+        "windy-variant": "Winderig",
+        exceptional: "Extreem"
+      }
+    },
+    media: {
+      default_name: "Media",
+      idle: "Niets aan het spelen"
+    },
+    graph: {
+      no_history: "Geen historie"
+    }
+  };
+
+  // src/i18n.js
+  var CATALOGS = { en: en_default, nl: nl_default };
+  function catalog(lang) {
+    const l = String(lang || "en").toLowerCase();
+    return CATALOGS[l] || CATALOGS[l.split("-")[0]] || en_default;
+  }
+  function langOf(hl) {
+    if (!hl)
+      return "en";
+    if (typeof hl === "string")
+      return hl;
+    return hl.locale && hl.locale.language || hl.language || "en";
+  }
+  function pick(cat, key) {
+    return key.split(".").reduce((o, k) => o == null ? o : o[k], cat);
+  }
+  function interpolate(str, vars) {
+    if (!vars)
+      return str;
+    return str.replace(/\{(\w+)\}/g, (m, k) => vars[k] != null ? String(vars[k]) : m);
+  }
+  function t(hl, key, vars) {
+    const cat = catalog(langOf(hl));
+    const plural = vars && Number(vars.count) === 1 ? `${key}_one` : null;
+    let str = (plural && pick(cat, plural)) ?? pick(cat, key);
+    if (str == null)
+      str = (plural && pick(en_default, plural)) ?? pick(en_default, key);
+    if (str == null)
+      str = key;
+    return interpolate(str, vars);
+  }
 
   // src/cards/alert.js
   var friendly = (s) => s.attributes && s.attributes.friendly_name || s.entity_id;
@@ -7383,7 +7675,7 @@
     }
   }
   var excludedBy = (re, s) => re && (re.test(s.entity_id) || re.test(friendly(s)));
-  function runCheck(check, hass) {
+  function runCheck(check, hass, hl) {
     const states = Object.values(hass.states);
     const out = [];
     switch (check.type) {
@@ -7393,7 +7685,7 @@
         const offline = states.filter((s) => s.entity_id.startsWith("light.") && !exclude.includes(s.entity_id) && !excludedBy(re, s) && isUnavail(s));
         if (offline.length)
           out.push({
-            label: offline.length === 1 ? "Lamp offline" : "Lampen offline",
+            label: t(hl, "alert.lights_offline", { count: offline.length }),
             detail: offline.map(friendly).join(", "),
             entity: offline[0].entity_id
           });
@@ -7403,7 +7695,7 @@
         const below = check.below != null ? check.below : 20;
         const re = check._excludeRe;
         states.filter((s) => (s.attributes || {}).device_class === "battery" && !isNaN(parseFloat(s.state)) && parseFloat(s.state) < below && !excludedBy(re, s)).forEach((s) => out.push({
-          label: "Batterij laag",
+          label: t(hl, "alert.low_battery"),
           detail: `${friendly(s)} (${s.state}%)`,
           entity: s.entity_id
         }));
@@ -7413,8 +7705,11 @@
         const ups = states.filter((s) => s.entity_id.startsWith("update.") && s.state === "on");
         if (ups.length)
           out.push({
-            label: "Updates",
-            detail: ups.length === 1 ? `1 update beschikbaar` : `${ups.length} updates beschikbaar`,
+            label: t(hl, "alert.updates"),
+            detail: t(hl, "alert.updates_available", {
+              n: ups.length,
+              count: ups.length
+            }),
             entity: ups[0].entity_id
           });
         break;
@@ -7423,13 +7718,13 @@
         const st = hass.states[check.entity];
         const max = check.max_hours != null ? check.max_hours : 26;
         if (st && !isUnavail(st)) {
-          const t = Date.parse(st.state);
-          if (!isNaN(t)) {
-            const hours = (Date.now() - t) / 3600000;
+          const t2 = Date.parse(st.state);
+          if (!isNaN(t2)) {
+            const hours = (Date.now() - t2) / 3600000;
             if (hours > max)
               out.push({
-                label: "Back-up",
-                detail: `${Math.round(hours)} uur geleden`,
+                label: t2(hl, "alert.backup"),
+                detail: t2(hl, "common.hours_ago", { n: Math.round(hours) }),
                 entity: check.entity
               });
           }
@@ -7470,9 +7765,10 @@
       if (!this.hass)
         return [];
       const out = [];
+      const hl = this._config.language || this.hass;
       this._checks.forEach((c) => {
         try {
-          out.push(...runCheck(c, this.hass));
+          out.push(...runCheck(c, this.hass, hl));
         } catch (_) {}
       });
       return out;
@@ -7484,6 +7780,7 @@
       if (!this._config)
         return html``;
       const findings = this._findings();
+      const hl = this._config.language || this.hass;
       const alert = findings.length > 0;
       return html`<div
       class="rounded-xl border p-3
@@ -7496,7 +7793,7 @@
         ></fib-icon>
         <span
           class="text-[12px] font-semibold ${alert ? "text-amber" : "text-green"}"
-          >${alert ? "Aandacht nodig" : "Alles in orde"}</span
+          >${alert ? t(hl, "alert.attention_needed") : t(hl, "alert.all_clear")}</span
         >
       </div>
       ${alert ? html`<div class="mt-2 flex flex-col gap-[5px]">
@@ -7560,7 +7857,8 @@
       const prev = previous() || c.fallback;
       const names = c.labels || {};
       const name = prev ? names[norm(prev)] || names[prev] : null;
-      this._label = name ? `Terug naar ${name}` : "Terug";
+      const hl = c.language || nav.hassRef;
+      this._label = name ? t(hl, "back.back_to", { name }) : t(hl, "back.back");
     }
     render() {
       const c = this._config || {};
@@ -7586,26 +7884,26 @@
   }
 
   // src/cards/backup.js
-  function ago(iso) {
-    const t = Date.parse(iso);
-    if (isNaN(t))
+  function ago(iso, hl) {
+    const time = Date.parse(iso);
+    if (isNaN(time))
       return { text: String(iso), hours: 0 };
-    const hours = (Date.now() - t) / 3600000;
+    const hours = (Date.now() - time) / 3600000;
     const mins = Math.round(hours * 60);
     let text;
     if (mins < 60)
-      text = `${mins} min geleden`;
+      text = t(hl, "common.minutes_ago", { n: mins });
     else if (hours < 24)
-      text = `${Math.round(hours)} uur geleden`;
+      text = t(hl, "common.hours_ago", { n: Math.round(hours) });
     else
-      text = `${Math.round(hours / 24)} dagen geleden`;
+      text = t(hl, "common.days_ago", { n: Math.round(hours / 24) });
     return { text, hours };
   }
-  var clock = (iso) => {
-    const t = Date.parse(iso);
-    if (isNaN(t))
+  var clock = (iso, lang) => {
+    const time = Date.parse(iso);
+    if (isNaN(time))
       return String(iso);
-    return new Date(t).toLocaleTimeString("nl-NL", {
+    return new Date(time).toLocaleTimeString(lang || "en", {
       hour: "2-digit",
       minute: "2-digit"
     });
@@ -7637,14 +7935,15 @@
       const cfg = this._config;
       if (!cfg)
         return html``;
+      const hl = cfg.language || this.hass;
       const st = this.hass && this.hass.states[cfg.entity];
       let value, sub, warn;
       if (isUnavail(st)) {
         value = "—";
-        sub = "Geen back-up gevonden";
+        sub = t(hl, "backup.none");
         warn = true;
       } else {
-        const a = ago(st.state);
+        const a = ago(st.state, hl);
         const stale = a.hours > (cfg.stale_hours != null ? cfg.stale_hours : 26);
         let failed = false;
         if (cfg.result) {
@@ -7652,11 +7951,11 @@
           failed = r && ["off", "failed", "error", "false"].includes(String(r.state));
         }
         value = a.text;
-        const bits = [failed ? "Mislukt" : "Geslaagd"];
+        const bits = [t(hl, failed ? "backup.failed" : "backup.succeeded")];
         if (cfg.next) {
           const n = this.hass.states[cfg.next];
           if (n && !isUnavail(n))
-            bits.push(`volgende ${clock(n.state)}`);
+            bits.push(t(hl, "backup.next", { time: clock(n.state, langOf(hl)) }));
         }
         sub = bits.join(" · ");
         warn = stale || failed;
@@ -7676,7 +7975,7 @@
         ></fib-icon>
       </div>
       <div class="text-[11px] font-medium text-muted">
-        ${cfg.name || "Back-up"}
+        ${cfg.name || t(hl, "backup.default_name")}
       </div>
       <div class="text-[17px] font-semibold leading-[1.15] text-ink">
         ${value}
@@ -7750,7 +8049,7 @@
         type: "custom:fibbers-chips",
         chips: [
           {
-            name: "Alles uit",
+            name: "All off",
             icon: "solar:power-bold-duotone",
             action: { action: "toggle" }
           }
@@ -7803,21 +8102,21 @@
 
   // src/cards/climate.js
   var MODE = {
-    heat: { icon: "solar:fire-bold-duotone", label: "Verwarmen" },
-    cool: { icon: "solar:snowflake-bold-duotone", label: "Koelen" },
-    fan_only: { icon: "solar:wind-bold-duotone", label: "Ventilator" },
-    auto: { icon: "solar:temperature-bold-duotone", label: "Auto" },
-    heat_cool: { icon: "solar:temperature-bold-duotone", label: "Auto" },
-    dry: { icon: "solar:wind-bold-duotone", label: "Drogen" },
-    off: { icon: "solar:power-bold-duotone", label: "Uit" }
+    heat: { icon: "solar:fire-bold-duotone", key: "mode_heat" },
+    cool: { icon: "solar:snowflake-bold-duotone", key: "mode_cool" },
+    fan_only: { icon: "solar:wind-bold-duotone", key: "mode_fan_only" },
+    auto: { icon: "solar:temperature-bold-duotone", key: "mode_auto" },
+    heat_cool: { icon: "solar:temperature-bold-duotone", key: "mode_auto" },
+    dry: { icon: "solar:wind-bold-duotone", key: "mode_dry" },
+    off: { icon: "solar:power-bold-duotone", key: "mode_off" }
   };
-  var ACTION_NL = {
-    heating: "Verwarmt",
-    cooling: "Koelt",
-    drying: "Droogt",
-    fan: "Ventileert",
-    idle: "Inactief",
-    off: "Uit"
+  var ACTION_KEY = {
+    heating: "action_heating",
+    cooling: "action_cooling",
+    drying: "action_drying",
+    fan: "action_fan",
+    idle: "action_idle",
+    off: "action_off"
   };
 
   class FibbersClimate extends LitElement {
@@ -7865,12 +8164,13 @@
       const cfg = this._config;
       if (!cfg)
         return html``;
+      const hl = cfg.language || this.hass;
       const st = this._st();
       if (!st)
         return html`<div
         class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
       >
-        Niet beschikbaar
+        ${t(hl, "common.not_available")}
       </div>`;
       const a = st.attributes;
       const cur = a.current_temperature;
@@ -7883,7 +8183,7 @@
           <div
             class="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted"
           >
-            ${cfg.name || a.friendly_name || "Thermostaat"}
+            ${cfg.name || a.friendly_name || t(hl, "climate.default_name")}
           </div>
           <div class="text-[24px] font-semibold leading-none text-ink">
             ${cur != null ? cur : "—"}<span class="text-[14px] text-ink2"
@@ -7892,7 +8192,7 @@
           </div>
         </div>
         <span class="text-[11px] text-muted"
-          >${ACTION_NL[action] || (st.state !== "off" ? "Aan" : "Uit")}</span
+          >${ACTION_KEY[action] ? t(hl, `climate.${ACTION_KEY[action]}`) : t(hl, st.state !== "off" ? "climate.on" : "climate.off")}</span
         >
       </div>
 
@@ -7915,7 +8215,7 @@
           <div
             class="mt-0.5 text-[9.5px] uppercase tracking-[0.08em] text-muted"
           >
-            Ingesteld
+            ${t(hl, "climate.setpoint")}
           </div>
         </div>
         <button
@@ -7947,7 +8247,7 @@
                     class="h-[13px] w-[13px] [--mdc-icon-size:13px]"
                     icon=${MODE[m].icon}
                   ></fib-icon>
-                  ${MODE[m].label}
+                  ${t(hl, `climate.${MODE[m].key}`)}
                 </button>`;
       })}
             </div>` : ""}
@@ -8002,12 +8302,13 @@
       const cfg = this._config;
       if (!cfg)
         return html``;
+      const hl = cfg.language || this.hass;
       const st = this._st();
       if (!st) {
         return html`<div
         class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
       >
-        Niet beschikbaar
+        ${t(hl, "common.not_available")}
       </div>`;
       }
       const name = cfg.name || st.attributes.friendly_name || cfg.entity;
@@ -8056,17 +8357,17 @@
     media_player: "solar:speaker-bold-duotone"
   };
   var num = (s) => parseFloat(String(s).replace(",", "."));
-  function ago2(iso) {
-    const t = Date.parse(iso);
-    if (isNaN(t))
+  function ago2(iso, hl) {
+    const parsed = Date.parse(iso);
+    if (isNaN(parsed))
       return "";
-    const mins = Math.max(0, Math.round((Date.now() - t) / 60000));
+    const mins = Math.max(0, Math.round((Date.now() - parsed) / 60000));
     if (mins < 60)
-      return `${mins} min geleden`;
+      return t(hl, "common.minutes_ago", { n: mins });
     const hrs = Math.round(mins / 60);
     if (hrs < 24)
-      return `${hrs} uur geleden`;
-    return `${Math.round(hrs / 24)} dagen geleden`;
+      return t(hl, "common.hours_ago", { n: hrs });
+    return t(hl, "common.days_ago", { n: Math.round(hrs / 24) });
   }
   function compileFilters(filters, label) {
     return (filters || []).map((f) => {
@@ -8105,8 +8406,8 @@
     if (f.above != null && !(num(st.state) > f.above))
       return false;
     if (f.stale_hours != null) {
-      const t = Date.parse(st.last_changed);
-      if (isNaN(t) || (Date.now() - t) / 3600000 < f.stale_hours)
+      const t2 = Date.parse(st.last_changed);
+      if (isNaN(t2) || (Date.now() - t2) / 3600000 < f.stale_hours)
         return false;
     }
     return true;
@@ -8128,7 +8429,7 @@
     static getStubConfig() {
       return {
         type: "custom:fibbers-entities",
-        title: "Onbereikbaar",
+        title: "Unavailable",
         filters: [{ domain: "light", state: ["unavailable", "unknown"] }]
       };
     }
@@ -8175,9 +8476,10 @@
       return DOMAIN_ICON[st.entity_id.split(".")[0]] || "solar:widget-bold-duotone";
     }
     _secondary(st) {
+      const hl = this._config.language || this.hass;
       const s = this._config.secondary || "state";
       if (s === "last_changed")
-        return ago2(st.last_changed);
+        return ago2(st.last_changed, hl);
       if (s.startsWith("attribute:")) {
         const k = s.slice("attribute:".length);
         return String((st.attributes || {})[k] ?? "");
@@ -8329,6 +8631,7 @@
         return html``;
       const st = cfg.entity && this.hass && this.hass.states[cfg.entity];
       const name = cfg.name || st && st.attributes.friendly_name || cfg.entity;
+      const hl = cfg.language || this.hass;
       const now = this._current();
       const h = cfg.height || 46;
       const series = this._series;
@@ -8340,7 +8643,7 @@
         class="flex items-center text-[11px] text-muted"
         style="height:${h}px"
       >
-        Geen historie
+        ${t(hl, "graph.no_history")}
       </div>`;
       } else {
         let min = Math.min(...series);
@@ -8374,7 +8677,7 @@
       <div class="mb-2 flex items-baseline justify-between gap-2">
         <span class="text-[11px] font-medium text-muted">${name}</span>
         <span class="text-[15px] font-semibold text-ink">
-          ${now != null ? nl(now, cfg.decimals) : "—"}<span
+          ${now != null ? fmtNum(this.hass, now, cfg.decimals) : "—"}<span
             class="ml-0.5 text-[11px] font-medium text-ink2"
             >${this._unit()}</span
           >
@@ -8384,8 +8687,14 @@
       ${cfg.show_stats && series && series.length >= 2 ? html`<div
               class="mt-1.5 flex justify-between text-[9.5px] text-muted"
             >
-              <span>min ${nl(Math.min(...series), cfg.decimals)}</span>
-              <span>max ${nl(Math.max(...series), cfg.decimals)}</span>
+              <span
+                >min
+                ${fmtNum(this.hass, Math.min(...series), cfg.decimals)}</span
+              >
+              <span
+                >max
+                ${fmtNum(this.hass, Math.max(...series), cfg.decimals)}</span
+              >
             </div>` : ""}
     </div>`;
     }
@@ -8399,17 +8708,17 @@
 
   // src/cards/greeting.js
   var PERIODS = [
-    { until: 6, word: "Goedenacht", icon: "solar:moon-stars-bold-duotone" },
-    { until: 12, word: "Goedemorgen", icon: "solar:sunrise-bold-duotone" },
-    { until: 18, word: "Goedemiddag", icon: "solar:sun-bold-duotone" },
-    { until: 23, word: "Goedenavond", icon: "solar:moon-bold-duotone" },
-    { until: 24, word: "Goedenacht", icon: "solar:moon-stars-bold-duotone" }
+    { until: 6, key: "night", icon: "solar:moon-stars-bold-duotone" },
+    { until: 12, key: "morning", icon: "solar:sunrise-bold-duotone" },
+    { until: 18, key: "afternoon", icon: "solar:sun-bold-duotone" },
+    { until: 23, key: "evening", icon: "solar:moon-bold-duotone" },
+    { until: 24, key: "night", icon: "solar:moon-stars-bold-duotone" }
   ];
   var friendly2 = (st, id) => st && st.attributes && st.attributes.friendly_name || id;
-  function joinNames(names) {
+  function joinNames(names, and) {
     if (names.length <= 1)
       return names[0] || "";
-    return `${names.slice(0, -1).join(", ")} en ${names[names.length - 1]}`;
+    return `${names.slice(0, -1).join(", ")} ${and} ${names[names.length - 1]}`;
   }
 
   class FibbersGreeting extends LitElement {
@@ -8463,6 +8772,7 @@
       const hass = this.hass;
       if (!hass)
         return "";
+      const hl = this._config.language || hass;
       const parts = [];
       const members = this._lightMembers();
       if (members.length) {
@@ -8475,19 +8785,21 @@
           else if (st.state === "on")
             on++;
         });
-        parts.push(`${on} van ${members.length} lampen aan`);
+        parts.push(t(hl, "greeting.lights_on", { on, total: members.length }));
         if (offline)
-          parts.push(`${offline} offline`);
+          parts.push(t(hl, "greeting.offline_count", { n: offline }));
       }
       const home = this._people().map((id) => hass.states[id]).filter((st) => st && st.state === "home").map((st, i, arr) => friendly2(st, arr[i].entity_id));
-      parts.push(home.length ? `${joinNames(home)} thuis` : "Niemand thuis");
+      parts.push(home.length ? t(hl, "greeting.someone_home", {
+        names: joinNames(home, t(hl, "common.and"))
+      }) : t(hl, "greeting.nobody_home"));
       (this._config.sensors || []).forEach((id) => {
         const st = hass.states[id];
         if (!st)
           return;
         const unit = st.attributes.unit_of_measurement || "";
         const n = Number(st.state);
-        const val = Number.isFinite(n) ? `${nl(n)}${unit ? ` ${unit}` : ""}` : fmtState(hass, st);
+        const val = Number.isFinite(n) ? `${fmtNum(hass, n)}${unit ? ` ${unit}` : ""}` : fmtState(hass, st);
         if (val)
           parts.push(val);
       });
@@ -8497,8 +8809,9 @@
       const cfg = this._config;
       if (!cfg)
         return html``;
+      const hl = cfg.language || this.hass;
       const period = this._period();
-      let title = period.word;
+      let title = t(hl, `greeting.${period.key}`);
       if (cfg.name_from) {
         const st = this.hass && this.hass.states[cfg.name_from];
         const nm = st && st.attributes && st.attributes.friendly_name;
@@ -8623,12 +8936,17 @@
       };
     }
     _secondary(s) {
+      const hl = this._config.language || this.hass;
       if (s.allOff)
-        return "Offline";
+        return t(hl, "light_group.offline");
       if (s.on === 0)
-        return "Uit";
-      const base = `${s.on} van ${s.total} aan · ${s.pct}%`;
-      return s.off ? `${base} · ${s.off} offline` : base;
+        return t(hl, "light_group.off");
+      const base = t(hl, "light_group.state_count", {
+        on: s.on,
+        total: s.total,
+        pct: s.pct
+      });
+      return s.off ? `${base} · ${t(hl, "light_group.offline_count", { off: s.off })}` : base;
     }
     _commit(pct) {
       if (!this.hass)
@@ -8643,10 +8961,10 @@
         });
     }
     _down(e) {
-      const t = e.currentTarget;
+      const t2 = e.currentTarget;
       this._dragging = true;
-      t.setPointerCapture && t.setPointerCapture(e.pointerId);
-      this._dragPct = Math.round(pctFromX(e.clientX, t));
+      t2.setPointerCapture && t2.setPointerCapture(e.pointerId);
+      this._dragPct = Math.round(pctFromX(e.clientX, t2));
       this._debouncedCommit(this._dragPct);
     }
     _move(e) {
@@ -8686,10 +9004,11 @@
       const cfg = this._config;
       if (!cfg)
         return html``;
+      const hl = cfg.language || this.hass;
       const s = this._state();
       const lit = s.on > 0;
       const pct = this._dragging ? this._dragPct : s.pct;
-      const name = cfg.name || "Lampen";
+      const name = cfg.name || t(hl, "light_group.default_name");
       const icon = cfg.icon || "solar:lightbulb-bold-duotone";
       const stripe = s.mixed ? ";background-image:repeating-linear-gradient(45deg,transparent 0,transparent 4px,rgba(0,0,0,.18) 4px,rgba(0,0,0,.18) 8px)" : "";
       return html`<div
@@ -8723,7 +9042,7 @@
           type="button"
           class="flex h-7 w-7 flex-none items-center justify-center rounded-lg text-muted
                  transition-transform active:scale-90"
-          aria-label=${this._open ? "inklappen" : "uitklappen"}
+          aria-label=${this._open ? t(hl, "light_group.collapse") : t(hl, "light_group.expand")}
           @click=${this._toggle}
         >
           <fib-icon
@@ -8880,17 +9199,18 @@
       const st = this._st();
       if (!st)
         return "";
+      const hl = this._config.language || this.hass;
       const mode = st.attributes.color_mode;
       if (mode && ["hs", "rgb", "rgbw", "rgbww", "xy"].includes(mode))
-        return "Kleur";
+        return t(hl, "light_row.color");
       const k = st.attributes.color_temp_kelvin || (st.attributes.color_temp ? Math.round(1e6 / st.attributes.color_temp) : null);
       if (k == null)
         return "";
       if (k < 3000)
-        return "Warm";
+        return t(hl, "light_row.warm");
       if (k < 4600)
-        return "Neutraal";
-      return "Koel";
+        return t(hl, "light_row.neutral");
+      return t(hl, "light_row.cool");
     }
     _down(e) {
       if (this._unavail())
@@ -8935,6 +9255,7 @@
       if (!cfg)
         return html``;
       const st = this._st();
+      const hl = cfg.language || this.hass;
       const unavail = this._unavail();
       const on = !unavail && st.state === "on";
       const pct = this._displayPct();
@@ -8942,12 +9263,12 @@
       const icon = cfg.icon || st && st.attributes.icon || "solar:lightbulb-bold-duotone";
       let val;
       if (unavail)
-        val = "Onbereikbaar";
+        val = t(hl, "light_row.unavailable");
       else if (on) {
         const w = this._warmth();
         val = w ? `${w} · ${pct}%` : `${pct}%`;
       } else
-        val = "Uit";
+        val = t(hl, "light_row.off");
       return html`
       <div
         class="grid grid-cols-[28px_1fr] grid-rows-[auto_auto] items-center gap-x-2.5
@@ -9085,10 +9406,11 @@
       const cfg = this._config;
       if (!cfg)
         return html``;
+      const hl = cfg.language || this.hass;
       const st = this._st();
       const a = st && st.attributes || {};
       const idle = this._idle();
-      const title = idle ? "Niets aan het spelen" : a.media_title || a.friendly_name || cfg.name || "Media";
+      const title = idle ? t(hl, "media.idle") : a.media_title || a.friendly_name || cfg.name || t(hl, "media.default_name");
       const artist = idle ? "" : a.media_artist || a.app_name || "";
       const art = a.entity_picture || a.media_image_url;
       const playIcon = this._playing() ? "solar:pause-bold-duotone" : "solar:play-bold-duotone";
@@ -9218,8 +9540,8 @@
       if (!config || !Array.isArray(config.tabs) || !config.tabs.length) {
         throw new Error("fibbers-nav: `tabs` must be a non-empty list of {name, icon, path}");
       }
-      config.tabs.forEach((t, i) => {
-        if (!t || !t.path)
+      config.tabs.forEach((t2, i) => {
+        if (!t2 || !t2.path)
           throw new Error(`fibbers-nav: tabs[${i}] is missing \`path\``);
       });
       if (config.offset_bottom != null && !Number.isFinite(Number(config.offset_bottom))) {
@@ -9244,7 +9566,7 @@
     }
     set hass(hass) {
       nav.hassRef = hass;
-      if (this._config && (this._config.tabs || []).some((t) => t.badge))
+      if (this._config && (this._config.tabs || []).some((t2) => t2.badge))
         renderBar();
     }
     connectedCallback() {
@@ -9347,10 +9669,10 @@
     _down(e) {
       if (this._unavail())
         return;
-      const t = e.currentTarget;
+      const t2 = e.currentTarget;
       this._dragging = true;
-      t.setPointerCapture && t.setPointerCapture(e.pointerId);
-      this._dragVal = this._valFromX(e.clientX, t);
+      t2.setPointerCapture && t2.setPointerCapture(e.pointerId);
+      this._dragVal = this._valFromX(e.clientX, t2);
       this._debouncedSet(this._dragVal);
     }
     _move(e) {
@@ -9376,13 +9698,14 @@
       const cfg = this._config;
       if (!cfg)
         return html``;
+      const hl = cfg.language || this.hass;
       const st = this._st();
       const unavail = this._unavail();
       const name = cfg.name || st && st.attributes.friendly_name || cfg.entity;
       const icon = cfg.icon || st && st.attributes.icon || "solar:tuning-2-bold-duotone";
       const unit = cfg.unit != null ? cfg.unit : st && st.attributes.unit_of_measurement || "";
       const v = this._value();
-      const val = unavail ? "Onbereikbaar" : `${nl(v, this._decimals())}${unit ? ` ${unit}` : ""}`;
+      const val = unavail ? t(hl, "number.unavailable") : `${fmtNum(this.hass, v, this._decimals())}${unit ? ` ${unit}` : ""}`;
       const pct = this._pct(v);
       const head = html`<div class="flex items-center gap-2.5">
       <div
@@ -9440,12 +9763,13 @@
     </div>`;
     }
     _stepBtn(icon, dir, unavail) {
+      const hl = this._config.language || this.hass;
       return html`<button
       type="button"
       class="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-card2
              text-accent transition-transform active:scale-90
              ${unavail ? "pointer-events-none opacity-40" : ""}"
-      aria-label=${dir > 0 ? "meer" : "minder"}
+      aria-label=${dir > 0 ? t(hl, "number.more") : t(hl, "number.less")}
       @click=${() => this._bump(dir)}
     >
       <fib-icon
@@ -9496,12 +9820,13 @@
       return st && st.state === "home";
     }
     _stateLabel(st) {
+      const hl = this._config.language || this.hass;
       if (!st)
         return "—";
       if (st.state === "home")
-        return "Thuis";
+        return t(hl, "presence.home");
       if (st.state === "not_home")
-        return "Weg";
+        return t(hl, "presence.away");
       return st.state;
     }
     _moreInfo(entity) {
@@ -9509,16 +9834,17 @@
     }
     render() {
       const people = this._people();
+      const hl = this._config.language || this.hass;
       const homeCount = people.filter((id) => this._isHome(this.hass && this.hass.states[id])).length;
       return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
       <div class="mb-2.5 flex items-baseline justify-between gap-2">
         ${this._config.title === false ? "" : html`<span
                 class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-                >Aanwezigheid</span
+                >${t(hl, "presence.title")}</span
               >`}
         <span
           class="text-[12px] font-semibold ${homeCount === 0 ? "text-muted" : "text-ink"}"
-          >${homeCount === 0 ? "Niemand thuis" : `${homeCount} thuis`}</span
+          >${homeCount === 0 ? t(hl, "presence.nobody_home") : t(hl, "presence.count_home", { n: homeCount })}</span
         >
       </div>
       <div class="flex flex-wrap gap-2">
@@ -9737,6 +10063,7 @@
     }
     _state() {
       const hass = this.hass;
+      const hl = this._config.language || hass;
       const lights = this._lights();
       if (!hass || !lights.length)
         return { label: "—", lit: false, offline: false };
@@ -9750,11 +10077,11 @@
           on++;
       });
       if (avail === 0)
-        return { label: "Offline", lit: false, offline: true };
+        return { label: t(hl, "room.offline"), lit: false, offline: true };
       if (on === 0)
-        return { label: "Uit", lit: false, offline: false };
+        return { label: t(hl, "room.off"), lit: false, offline: false };
       return {
-        label: `${on} van ${lights.length} aan`,
+        label: t(hl, "room.state_count", { on, total: lights.length }),
         lit: true,
         offline: false
       };
@@ -9819,8 +10146,8 @@
     if (!st)
       return 0;
     const raw = st.attributes && st.attributes.last_activated || st.state || null;
-    const t = raw ? Date.parse(raw) : NaN;
-    return isNaN(t) ? 0 : t;
+    const t2 = raw ? Date.parse(raw) : NaN;
+    return isNaN(t2) ? 0 : t2;
   };
 
   class FibbersScene extends LitElement {
@@ -9872,9 +10199,9 @@
         return -1;
       let best = -1, bestT = 0;
       this._config.scenes.forEach((s, i) => {
-        const t = activatedAt(this.hass.states[s.scene]);
-        if (t > bestT) {
-          bestT = t;
+        const t2 = activatedAt(this.hass.states[s.scene]);
+        if (t2 > bestT) {
+          bestT = t2;
           best = i;
         }
       });
@@ -9941,8 +10268,8 @@
     const [h, m] = hhmm2(s).split(":").map(Number);
     if (!Number.isFinite(h) || !Number.isFinite(m))
       return "";
-    const t = (h * 60 + m + Math.round(mins)) % (24 * 60);
-    return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
+    const t2 = (h * 60 + m + Math.round(mins)) % (24 * 60);
+    return `${String(Math.floor(t2 / 60)).padStart(2, "0")}:${String(t2 % 60).padStart(2, "0")}`;
   };
 
   class FibbersScheduler extends LitElement {
@@ -9961,7 +10288,7 @@
     static getStubConfig() {
       return {
         type: "custom:fibbers-scheduler",
-        name: "Wekker",
+        name: "Alarm",
         time: "input_datetime.wake_time",
         enable: "input_boolean.wake_enabled"
       };
@@ -9979,6 +10306,7 @@
       const cfg = this._config;
       if (!cfg)
         return html``;
+      const hl = cfg.language || this.hass;
       const timeSt = this._state(cfg.time);
       const time = hhmm2(timeSt && timeSt.state);
       const enSt = this._state(cfg.enable);
@@ -9994,11 +10322,11 @@
         ></fib-icon>
         <span
           class="flex-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-          >${cfg.name || "Wekker"}</span
+          >${cfg.name || t(hl, "scheduler.default_name")}</span
         >
         ${cfg.enable ? pillSwitch({
         on,
-        label: cfg.name || "Wekker",
+        label: cfg.name || t(hl, "scheduler.default_name"),
         onClick: () => this.hass && this.hass.callService("input_boolean", "toggle", {
           entity_id: cfg.enable
         })
@@ -10014,7 +10342,8 @@
           >${time || "—"}</span
         >
         ${windowEnd ? html`<span class="ml-2 text-[13px] text-muted"
-                >→ ${windowEnd}${dur ? html` · ${dur} min` : ""}</span
+                >→
+                ${windowEnd}${dur ? html` · ${t(hl, "scheduler.duration", { n: dur })}` : ""}</span
               >` : ""}
       </button>
 
@@ -10156,12 +10485,13 @@
       const cfg = this._config;
       if (!cfg)
         return html``;
+      const hl = cfg.language || this.hass;
       const st = this._st();
       if (!st) {
         return html`<div
         class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
       >
-        Niet beschikbaar
+        ${t(hl, "common.not_available")}
       </div>`;
       }
       const name = cfg.name || st.attributes.friendly_name || cfg.entity;
@@ -10587,9 +10917,9 @@
     green: "bg-accentbg text-green",
     red: "bg-amberbg text-red"
   };
-  var fmt = (raw, decimals) => {
+  var fmt = (hass, raw, decimals) => {
     const n = Number(String(raw).replace(",", "."));
-    return Number.isFinite(n) ? nl(n, decimals) : String(raw);
+    return Number.isFinite(n) ? fmtNum(hass, n, decimals) : String(raw);
   };
 
   class FibbersStat extends LitElement {
@@ -10647,10 +10977,10 @@
       if (offline)
         value = "—";
       else if (cfg.value != null)
-        value = fmt(cfg.value, cfg.decimals);
+        value = fmt(this.hass, cfg.value, cfg.decimals);
       else {
         const n = Number(String(st.state).replace(",", "."));
-        value = Number.isFinite(n) ? nl(n, cfg.decimals) : fmtState(this.hass, st);
+        value = Number.isFinite(n) ? fmtNum(this.hass, n, cfg.decimals) : fmtState(this.hass, st);
       }
       const unit = offline ? "" : cfg.unit != null ? cfg.unit : st && st.attributes.unit_of_measurement || "";
       const trend = ["up", "down", "flat"].includes(cfg.trend) ? cfg.trend : null;
@@ -10767,7 +11097,7 @@
       if (!Number.isFinite(n))
         return { text: fmtState(this.hass, st), unit: "" };
       const unit = m.unit != null ? m.unit : st.attributes.unit_of_measurement || "";
-      return { text: nl(n, m.decimals), unit };
+      return { text: fmtNum(this.hass, n, m.decimals), unit };
     }
     _sparkline() {
       const series = this._series;
@@ -10889,12 +11219,13 @@
       const cfg = this._config;
       if (!cfg)
         return html``;
+      const hl = cfg.language || this.hass;
       const st = this._st();
       if (!st) {
         return html`<div
         class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
       >
-        Niet beschikbaar
+        ${t(hl, "common.not_available")}
       </div>`;
       }
       const on = st.state === "on";
@@ -10946,30 +11277,13 @@
     "windy-variant": "solar:cloud-bold-duotone",
     exceptional: "solar:cloud-bold-duotone"
   };
-  var COND_NL = {
-    "clear-night": "Helder",
-    sunny: "Zonnig",
-    partlycloudy: "Half bewolkt",
-    cloudy: "Bewolkt",
-    fog: "Mist",
-    rainy: "Regen",
-    pouring: "Stortregen",
-    "lightning-rainy": "Onweer",
-    lightning: "Onweer",
-    snowy: "Sneeuw",
-    "snowy-rainy": "Natte sneeuw",
-    hail: "Hagel",
-    windy: "Winderig",
-    "windy-variant": "Winderig",
-    exceptional: "Extreem"
-  };
   var iconFor = (c) => COND_ICON[c] || "solar:cloud-bold-duotone";
   var round = (n) => Number.isFinite(Number(n)) ? Math.round(Number(n)) : null;
-  var dayNl = (iso) => {
-    const t = Date.parse(iso);
-    if (isNaN(t))
+  var dayNl = (iso, lang) => {
+    const parsed = Date.parse(iso);
+    if (isNaN(parsed))
       return "";
-    return new Date(t).toLocaleDateString("nl-NL", { weekday: "short" }).replace(".", "");
+    return new Date(parsed).toLocaleDateString(lang || "en", { weekday: "short" }).replace(".", "");
   };
 
   class FibbersWeather extends LitElement {
@@ -10998,12 +11312,13 @@
       const cfg = this._config;
       if (!cfg)
         return html``;
+      const hl = cfg.language || this.hass;
       const st = this.hass && this.hass.states[cfg.entity];
       if (!st)
         return html`<div
         class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
       >
-        Niet beschikbaar
+        ${t(hl, "common.not_available")}
       </div>`;
       const a = st.attributes || {};
       const days = (a.forecast || []).slice(0, cfg.days || 5);
@@ -11025,13 +11340,13 @@
             >
           </div>
           <div class="text-[12px] text-ink2">
-            ${COND_NL[st.state] || st.state}
+            ${COND_ICON[st.state] ? t(hl, `weather.conditions.${st.state}`) : st.state}
           </div>
         </div>
         <div class="ml-auto text-right">
           <span
             class="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted"
-            >${cfg.name || a.friendly_name || "Weer"}</span
+            >${cfg.name || a.friendly_name || t(hl, "weather.default_name")}</span
           >
         </div>
       </div>
@@ -11040,7 +11355,7 @@
                     class="flex flex-col items-center gap-1 rounded-[10px] bg-card2 px-0.5 py-2"
                   >
                     <span class="text-[10px] capitalize text-muted"
-                      >${f.datetime ? dayNl(f.datetime) : ""}</span
+                      >${f.datetime ? dayNl(f.datetime, langOf(hl)) : ""}</span
                     >
                     <fib-icon
                       class="h-[18px] w-[18px] [--mdc-icon-size:18px] text-ink2"

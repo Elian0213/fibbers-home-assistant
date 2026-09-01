@@ -18,7 +18,7 @@
     "format": "prettier --write \"src/**/*.js\" \"docs/*.html\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "check": "prettier --check \"src/**/*.js\" \"docs/*.html\" && bun run lint && bun run build && bun scripts/check-icons.mjs && node -e \"new Function(require('fs').readFileSync('dist/fibbers.js','utf8'))\""
+    "check": "prettier --check \"src/**/*.js\" \"docs/*.html\" && bun run lint && bun run build && bun scripts/check-icons.mjs && bun scripts/check-i18n.mjs && node -e \"new Function(require('fs').readFileSync('dist/fibbers.js','utf8'))\""
   },
   "devDependencies": {
     "@eslint/js": "^9",

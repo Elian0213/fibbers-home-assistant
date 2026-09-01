@@ -4,6 +4,7 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
+import { t, langOf } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import "../icon.js";
 
@@ -24,31 +25,14 @@ const COND_ICON = {
   "windy-variant": "solar:cloud-bold-duotone",
   exceptional: "solar:cloud-bold-duotone",
 };
-const COND_NL = {
-  "clear-night": "Helder",
-  sunny: "Zonnig",
-  partlycloudy: "Half bewolkt",
-  cloudy: "Bewolkt",
-  fog: "Mist",
-  rainy: "Regen",
-  pouring: "Stortregen",
-  "lightning-rainy": "Onweer",
-  lightning: "Onweer",
-  snowy: "Sneeuw",
-  "snowy-rainy": "Natte sneeuw",
-  hail: "Hagel",
-  windy: "Winderig",
-  "windy-variant": "Winderig",
-  exceptional: "Extreem",
-};
 const iconFor = (c) => COND_ICON[c] || "solar:cloud-bold-duotone";
 const round = (n) =>
   Number.isFinite(Number(n)) ? Math.round(Number(n)) : null;
-const dayNl = (iso) => {
-  const t = Date.parse(iso);
-  if (isNaN(t)) return "";
-  return new Date(t)
-    .toLocaleDateString("nl-NL", { weekday: "short" })
+const dayNl = (iso, lang) => {
+  const parsed = Date.parse(iso);
+  if (isNaN(parsed)) return "";
+  return new Date(parsed)
+    .toLocaleDateString(lang || "en", { weekday: "short" })
     .replace(".", "");
 };
 
@@ -82,12 +66,13 @@ export class FibbersWeather extends LitElement {
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
+    const hl = cfg.language || this.hass;
     const st = this.hass && this.hass.states[cfg.entity];
     if (!st)
       return html`<div
         class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
       >
-        Niet beschikbaar
+        ${t(hl, "common.not_available")}
       </div>`;
 
     const a = st.attributes || {};
@@ -111,13 +96,13 @@ export class FibbersWeather extends LitElement {
             >
           </div>
           <div class="text-[12px] text-ink2">
-            ${COND_NL[st.state] || st.state}
+            ${COND_ICON[st.state] ? t(hl, `weather.conditions.${st.state}`) : st.state}
           </div>
         </div>
         <div class="ml-auto text-right">
           <span
             class="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted"
-            >${cfg.name || a.friendly_name || "Weer"}</span
+            >${cfg.name || a.friendly_name || t(hl, "weather.default_name")}</span
           >
         </div>
       </div>
@@ -130,7 +115,7 @@ export class FibbersWeather extends LitElement {
                     class="flex flex-col items-center gap-1 rounded-[10px] bg-card2 px-0.5 py-2"
                   >
                     <span class="text-[10px] capitalize text-muted"
-                      >${f.datetime ? dayNl(f.datetime) : ""}</span
+                      >${f.datetime ? dayNl(f.datetime, langOf(hl)) : ""}</span
                     >
                     <fib-icon
                       class="h-[18px] w-[18px] [--mdc-icon-size:18px] text-ink2"

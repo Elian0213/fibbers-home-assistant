@@ -4,6 +4,7 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
+import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import { moreInfo } from "../util.js";
 import "../icon.js";
@@ -20,14 +21,14 @@ const DOMAIN_ICON = {
 
 const num = (s) => parseFloat(String(s).replace(",", "."));
 
-function ago(iso) {
-  const t = Date.parse(iso);
-  if (isNaN(t)) return "";
-  const mins = Math.max(0, Math.round((Date.now() - t) / 6e4));
-  if (mins < 60) return `${mins} min geleden`;
+function ago(iso, hl) {
+  const parsed = Date.parse(iso);
+  if (isNaN(parsed)) return "";
+  const mins = Math.max(0, Math.round((Date.now() - parsed) / 6e4));
+  if (mins < 60) return t(hl, "common.minutes_ago", { n: mins });
   const hrs = Math.round(mins / 60);
-  if (hrs < 24) return `${hrs} uur geleden`;
-  return `${Math.round(hrs / 24)} dagen geleden`;
+  if (hrs < 24) return t(hl, "common.hours_ago", { n: hrs });
+  return t(hl, "common.days_ago", { n: Math.round(hrs / 24) });
 }
 
 // Precompile each filter's `entity_id` regex once (in setConfig), validating it
@@ -87,7 +88,7 @@ export class FibbersEntities extends LitElement {
   static getStubConfig() {
     return {
       type: "custom:fibbers-entities",
-      title: "Onbereikbaar",
+      title: "Unavailable",
       filters: [{ domain: "light", state: ["unavailable", "unknown"] }],
     };
   }
@@ -136,8 +137,9 @@ export class FibbersEntities extends LitElement {
     );
   }
   _secondary(st) {
+    const hl = this._config.language || this.hass;
     const s = this._config.secondary || "state";
-    if (s === "last_changed") return ago(st.last_changed);
+    if (s === "last_changed") return ago(st.last_changed, hl);
     if (s.startsWith("attribute:")) {
       const k = s.slice("attribute:".length);
       return String((st.attributes || {})[k] ?? "");

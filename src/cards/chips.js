@@ -27,7 +27,7 @@ export class FibbersChips extends LitElement {
       type: "custom:fibbers-chips",
       chips: [
         {
-          name: "Alles uit",
+          name: "All off",
           icon: "solar:power-bold-duotone",
           action: { action: "toggle" },
         },

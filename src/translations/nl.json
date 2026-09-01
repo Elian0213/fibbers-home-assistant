@@ -1,0 +1,124 @@
+{
+  "common": {
+    "and": "en",
+    "not_available": "Niet beschikbaar",
+    "minutes_ago": "{n} min geleden",
+    "hours_ago": "{n} uur geleden",
+    "days_ago": "{n} dagen geleden"
+  },
+  "room": {
+    "off": "Uit",
+    "offline": "Offline",
+    "state_count": "{on} van {total} aan"
+  },
+  "light_row": {
+    "unavailable": "Onbereikbaar",
+    "off": "Uit",
+    "color": "Kleur",
+    "warm": "Warm",
+    "neutral": "Neutraal",
+    "cool": "Koel"
+  },
+  "light_group": {
+    "default_name": "Lampen",
+    "off": "Uit",
+    "offline": "Offline",
+    "state_count": "{on} van {total} aan · {pct}%",
+    "offline_count": "{off} offline",
+    "expand": "uitklappen",
+    "collapse": "inklappen"
+  },
+  "greeting": {
+    "morning": "Goedemorgen",
+    "afternoon": "Goedemiddag",
+    "evening": "Goedenavond",
+    "night": "Goedenacht",
+    "lights_on": "{on} van {total} lampen aan",
+    "offline_count": "{n} offline",
+    "someone_home": "{names} thuis",
+    "nobody_home": "Niemand thuis"
+  },
+  "backup": {
+    "default_name": "Back-up",
+    "none": "Geen back-up gevonden",
+    "succeeded": "Geslaagd",
+    "failed": "Mislukt",
+    "next": "volgende {time}"
+  },
+  "alert": {
+    "attention_needed": "Aandacht nodig",
+    "all_clear": "Alles in orde",
+    "lights_offline": "Lampen offline",
+    "lights_offline_one": "Lamp offline",
+    "low_battery": "Batterij laag",
+    "updates": "Updates",
+    "updates_available": "{n} updates beschikbaar",
+    "updates_available_one": "1 update beschikbaar",
+    "backup": "Back-up"
+  },
+  "climate": {
+    "default_name": "Thermostaat",
+    "setpoint": "Ingesteld",
+    "on": "Aan",
+    "off": "Uit",
+    "mode_heat": "Verwarmen",
+    "mode_cool": "Koelen",
+    "mode_fan_only": "Ventilator",
+    "mode_auto": "Auto",
+    "mode_dry": "Drogen",
+    "mode_off": "Uit",
+    "action_heating": "Verwarmt",
+    "action_cooling": "Koelt",
+    "action_drying": "Droogt",
+    "action_fan": "Ventileert",
+    "action_idle": "Inactief",
+    "action_off": "Uit"
+  },
+  "presence": {
+    "title": "Aanwezigheid",
+    "home": "Thuis",
+    "away": "Weg",
+    "nobody_home": "Niemand thuis",
+    "count_home": "{n} thuis"
+  },
+  "back": {
+    "back": "Terug",
+    "back_to": "Terug naar {name}"
+  },
+  "number": {
+    "unavailable": "Onbereikbaar",
+    "more": "meer",
+    "less": "minder"
+  },
+  "scheduler": {
+    "default_name": "Wekker",
+    "duration": "{n} min"
+  },
+  "weather": {
+    "default_name": "Weer",
+    "conditions": {
+      "clear-night": "Helder",
+      "sunny": "Zonnig",
+      "partlycloudy": "Half bewolkt",
+      "cloudy": "Bewolkt",
+      "fog": "Mist",
+      "rainy": "Regen",
+      "pouring": "Stortregen",
+      "lightning-rainy": "Onweer",
+      "lightning": "Onweer",
+      "snowy": "Sneeuw",
+      "snowy-rainy": "Natte sneeuw",
+      "hail": "Hagel",
+      "windy": "Winderig",
+      "windy-variant": "Winderig",
+      "exceptional": "Extreem"
+    }
+  },
+  "media": {
+    "default_name": "Media",
+    "idle": "Niets aan het spelen"
+  },
+  "graph": {
+    "no_history": "Geen historie"
+  }
+}

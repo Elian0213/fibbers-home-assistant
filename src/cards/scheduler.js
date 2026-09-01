@@ -4,6 +4,7 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
+import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import { pillSwitch } from "../ui.js";
 import { moreInfo } from "../util.js";
@@ -34,7 +35,7 @@ export class FibbersScheduler extends LitElement {
   static getStubConfig() {
     return {
       type: "custom:fibbers-scheduler",
-      name: "Wekker",
+      name: "Alarm",
       time: "input_datetime.wake_time",
       enable: "input_boolean.wake_enabled",
     };
@@ -56,6 +57,7 @@ export class FibbersScheduler extends LitElement {
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
+    const hl = cfg.language || this.hass;
     const timeSt = this._state(cfg.time);
     const time = hhmm(timeSt && timeSt.state);
     const enSt = this._state(cfg.enable);
@@ -72,13 +74,13 @@ export class FibbersScheduler extends LitElement {
         ></fib-icon>
         <span
           class="flex-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-          >${cfg.name || "Wekker"}</span
+          >${cfg.name || t(hl, "scheduler.default_name")}</span
         >
         ${
           cfg.enable
             ? pillSwitch({
                 on,
-                label: cfg.name || "Wekker",
+                label: cfg.name || t(hl, "scheduler.default_name"),
                 onClick: () =>
                   this.hass &&
                   this.hass.callService("input_boolean", "toggle", {
@@ -100,7 +102,8 @@ export class FibbersScheduler extends LitElement {
         ${
           windowEnd
             ? html`<span class="ml-2 text-[13px] text-muted"
-                >→ ${windowEnd}${dur ? html` · ${dur} min` : ""}</span
+                >→
+                ${windowEnd}${dur ? html` · ${t(hl, "scheduler.duration", { n: dur })}` : ""}</span
               >`
             : ""
         }

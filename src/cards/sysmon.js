@@ -5,7 +5,7 @@
 import { LitElement, html, css } from "lit";
 
 import { twSheet } from "../tw.js";
-import { nl, fmtState, isUnavail, fetchHistory } from "../util.js";
+import { fmtNum, fmtState, isUnavail, fetchHistory } from "../util.js";
 import "../icon.js";
 
 const W = 300;
@@ -81,7 +81,7 @@ export class FibbersSysmon extends LitElement {
     if (!Number.isFinite(n)) return { text: fmtState(this.hass, st), unit: "" };
     const unit =
       m.unit != null ? m.unit : st.attributes.unit_of_measurement || "";
-    return { text: nl(n, m.decimals), unit };
+    return { text: fmtNum(this.hass, n, m.decimals), unit };
   }
 
   _sparkline() {

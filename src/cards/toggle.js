@@ -4,6 +4,7 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
+import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import { pillSwitch } from "../ui.js";
 import { fmtState } from "../util.js";
@@ -60,12 +61,13 @@ export class FibbersToggle extends LitElement {
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
+    const hl = cfg.language || this.hass;
     const st = this._st();
     if (!st) {
       return html`<div
         class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
       >
-        Niet beschikbaar
+        ${t(hl, "common.not_available")}
       </div>`;
     }
     const on = st.state === "on";
