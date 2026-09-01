@@ -11,6 +11,12 @@ import "../icon.js";
 
 const hhmm = (s) => (typeof s === "string" ? s.slice(0, 5) : "");
 
+const EDITOR_SCHEMA = [
+  { name: "entity", selector: { entity: {} } },
+  { name: "name", selector: { text: {} } },
+  { name: "icon", selector: { icon: {} } },
+];
+
 export class FibbersDateTime extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -36,6 +42,12 @@ export class FibbersDateTime extends LitElement {
         "input_datetime.example",
       ),
     };
+  }
+
+  static getConfigElement() {
+    const el = document.createElement("fibbers-form-editor");
+    el.schema = EDITOR_SCHEMA;
+    return el;
   }
 
   setConfig(config) {

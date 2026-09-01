@@ -4,6 +4,7 @@
  * and modal sheet, then injects the theme. Edit src/, run `bun run build`.
  */
 import "./icon.js"; // registers <fib-icon>
+import "./editor.js"; // registers <fibbers-form-editor> for getConfigElement()
 import { bar } from "./body-layer.js";
 import { FibbersAlert } from "./cards/alert.js";
 import { FibbersBack } from "./cards/back.js";

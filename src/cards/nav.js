@@ -8,6 +8,26 @@ import { attach, detach, renderBar } from "../body-layer.js";
 import { nav } from "../nav-stack.js";
 import "../icon.js";
 
+const EDITOR_SCHEMA = [
+  {
+    name: "theme",
+    selector: {
+      select: {
+        mode: "dropdown",
+        options: [
+          { value: "none", label: "None" },
+          { value: "fibbers", label: "Fibbers (dark)" },
+          { value: "fibbers-light", label: "Fibbers Light" },
+          { value: "auto", label: "Auto" },
+        ],
+      },
+    },
+  },
+  { name: "respect_sidebar", selector: { boolean: {} } },
+  { name: "offset_bottom", selector: { number: { min: 0, mode: "box" } } },
+  { name: "extra_bottom", selector: { number: { min: 0, mode: "box" } } },
+];
+
 export class FibbersNav extends LitElement {
   static properties = { preview: { type: Boolean, reflect: true } };
   static styles = [
@@ -34,6 +54,12 @@ export class FibbersNav extends LitElement {
         },
       ],
     };
+  }
+
+  static getConfigElement() {
+    const el = document.createElement("fibbers-form-editor");
+    el.schema = EDITOR_SCHEMA;
+    return el;
   }
 
   setConfig(config) {

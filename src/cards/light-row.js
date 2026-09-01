@@ -11,6 +11,12 @@ import { sliderTrack } from "../ui.js";
 import { moreInfo, isUnavail, pctFromX, pickEntity } from "../util.js";
 import "../icon.js";
 
+const EDITOR_SCHEMA = [
+  { name: "entity", selector: { entity: { domain: "light" } } },
+  { name: "name", selector: { text: {} } },
+  { name: "icon", selector: { icon: {} } },
+];
+
 export class FibbersLightRow extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -33,6 +39,12 @@ export class FibbersLightRow extends LitElement {
       type: "custom:fibbers-light-row",
       entity: pickEntity("light", entities, entitiesFallback, "light.example"),
     };
+  }
+
+  static getConfigElement() {
+    const el = document.createElement("fibbers-form-editor");
+    el.schema = EDITOR_SCHEMA;
+    return el;
   }
 
   setConfig(config) {

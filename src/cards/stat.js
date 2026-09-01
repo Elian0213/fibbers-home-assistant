@@ -26,6 +26,25 @@ const fmt = (hass, raw, decimals) => {
   return Number.isFinite(n) ? fmtNum(hass, n, decimals) : String(raw);
 };
 
+// ha-form schema for the visual editor (getConfigElement). Unlisted keys (value,
+// sub, trend, tap_action) pass through untouched, so a YAML config round-trips.
+const EDITOR_SCHEMA = [
+  { name: "entity", selector: { entity: {} } },
+  { name: "name", selector: { text: {} } },
+  { name: "icon", selector: { icon: {} } },
+  { name: "unit", selector: { text: {} } },
+  {
+    name: "color",
+    selector: {
+      select: {
+        mode: "dropdown",
+        options: COLORS.map((c) => ({ value: c, label: c })),
+      },
+    },
+  },
+  { name: "decimals", selector: { number: { min: 0, max: 4, mode: "box" } } },
+];
+
 export class FibbersStat extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -51,6 +70,12 @@ export class FibbersStat extends LitElement {
         "sensor.example",
       ),
     };
+  }
+
+  static getConfigElement() {
+    const el = document.createElement("fibbers-form-editor");
+    el.schema = EDITOR_SCHEMA;
+    return el;
   }
 
   setConfig(config) {

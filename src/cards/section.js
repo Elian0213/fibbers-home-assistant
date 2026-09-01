@@ -5,6 +5,8 @@ import { LitElement, html, css } from "lit";
 
 import { twSheet } from "../tw.js";
 
+const EDITOR_SCHEMA = [{ name: "label", selector: { text: {} } }];
+
 export class FibbersSection extends LitElement {
   static properties = { _config: { state: true } };
   static styles = [
@@ -17,7 +19,13 @@ export class FibbersSection extends LitElement {
   ];
 
   static getStubConfig() {
-    return { type: "custom:fibbers-section", label: "Kamers" };
+    return { type: "custom:fibbers-section", label: "Section" };
+  }
+
+  static getConfigElement() {
+    const el = document.createElement("fibbers-form-editor");
+    el.schema = EDITOR_SCHEMA;
+    return el;
   }
 
   setConfig(config) {

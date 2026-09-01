@@ -6810,6 +6810,41 @@
       issueWarning3("multiple-versions", `Multiple versions of Lit loaded. Loading multiple versions ` + `is not recommended.`);
     });
   }
+  // src/editor.js
+  class FibbersFormEditor extends LitElement {
+    static properties = {
+      hass: { attribute: false },
+      schema: { attribute: false },
+      labels: { attribute: false },
+      _config: { state: true }
+    };
+    setConfig(config) {
+      this._config = config;
+    }
+    _computeLabel = (row) => this.labels && this.labels[row.name] || row.name.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
+    _valueChanged(ev) {
+      ev.stopPropagation();
+      this.dispatchEvent(new CustomEvent("config-changed", {
+        detail: { config: ev.detail.value },
+        bubbles: true,
+        composed: true
+      }));
+    }
+    render() {
+      if (!this.hass || !this._config || !this.schema)
+        return html``;
+      return html`<ha-form
+      .hass=${this.hass}
+      .data=${this._config}
+      .schema=${this.schema}
+      .computeLabel=${this._computeLabel}
+      @value-changed=${(ev) => this._valueChanged(ev)}
+    ></ha-form>`;
+    }
+  }
+  if (!customElements.get("fibbers-form-editor"))
+    customElements.define("fibbers-form-editor", FibbersFormEditor);
+
   // src/util.js
   var store = {
     get(key, fallback) {
@@ -8601,6 +8636,11 @@ ${decls}
 
   // src/cards/datetime.js
   var hhmm = (s) => typeof s === "string" ? s.slice(0, 5) : "";
+  var EDITOR_SCHEMA = [
+    { name: "entity", selector: { entity: {} } },
+    { name: "name", selector: { text: {} } },
+    { name: "icon", selector: { icon: {} } }
+  ];
 
   class FibbersDateTime extends LitElement {
     static properties = {
@@ -8620,6 +8660,11 @@ ${decls}
         type: "custom:fibbers-datetime",
         entity: pickEntity("input_datetime", entities, entitiesFallback, "input_datetime.example")
       };
+    }
+    static getConfigElement() {
+      const el = document.createElement("fibbers-form-editor");
+      el.schema = EDITOR_SCHEMA;
+      return el;
     }
     setConfig(config) {
       if (!config || !config.entity) {
@@ -9191,6 +9236,11 @@ ${decls}
 
   // src/cards/light-group.js
   var isLight = (id) => typeof id === "string" && id.startsWith("light.");
+  var EDITOR_SCHEMA2 = [
+    { name: "entity", selector: { entity: { domain: "light" } } },
+    { name: "name", selector: { text: {} } },
+    { name: "icon", selector: { icon: {} } }
+  ];
 
   class FibbersLightGroup extends LitElement {
     static properties = {
@@ -9216,6 +9266,11 @@ ${decls}
         ],
         name: "Lights"
       };
+    }
+    static getConfigElement() {
+      const el = document.createElement("fibbers-form-editor");
+      el.schema = EDITOR_SCHEMA2;
+      return el;
     }
     setConfig(config) {
       if (!config || !config.entity && !Array.isArray(config.entities)) {
@@ -9505,6 +9560,12 @@ ${decls}
   }
 
   // src/cards/light-row.js
+  var EDITOR_SCHEMA3 = [
+    { name: "entity", selector: { entity: { domain: "light" } } },
+    { name: "name", selector: { text: {} } },
+    { name: "icon", selector: { icon: {} } }
+  ];
+
   class FibbersLightRow extends LitElement {
     static properties = {
       hass: { attribute: false },
@@ -9525,6 +9586,11 @@ ${decls}
         type: "custom:fibbers-light-row",
         entity: pickEntity("light", entities, entitiesFallback, "light.example")
       };
+    }
+    static getConfigElement() {
+      const el = document.createElement("fibbers-form-editor");
+      el.schema = EDITOR_SCHEMA3;
+      return el;
     }
     setConfig(config) {
       if (!config || !config.entity) {
@@ -9870,6 +9936,26 @@ ${decls}
   }
 
   // src/cards/nav.js
+  var EDITOR_SCHEMA4 = [
+    {
+      name: "theme",
+      selector: {
+        select: {
+          mode: "dropdown",
+          options: [
+            { value: "none", label: "None" },
+            { value: "fibbers", label: "Fibbers (dark)" },
+            { value: "fibbers-light", label: "Fibbers Light" },
+            { value: "auto", label: "Auto" }
+          ]
+        }
+      }
+    },
+    { name: "respect_sidebar", selector: { boolean: {} } },
+    { name: "offset_bottom", selector: { number: { min: 0, mode: "box" } } },
+    { name: "extra_bottom", selector: { number: { min: 0, mode: "box" } } }
+  ];
+
   class FibbersNav extends LitElement {
     static properties = { preview: { type: Boolean, reflect: true } };
     static styles = [
@@ -9895,6 +9981,11 @@ ${decls}
           }
         ]
       };
+    }
+    static getConfigElement() {
+      const el = document.createElement("fibbers-form-editor");
+      el.schema = EDITOR_SCHEMA4;
+      return el;
     }
     setConfig(config) {
       if (!config || !Array.isArray(config.tabs) || !config.tabs.length) {
@@ -9975,6 +10066,25 @@ ${decls}
   }
 
   // src/cards/number.js
+  var EDITOR_SCHEMA5 = [
+    { name: "entity", selector: { entity: {} } },
+    { name: "name", selector: { text: {} } },
+    { name: "icon", selector: { icon: {} } },
+    { name: "unit", selector: { text: {} } },
+    {
+      name: "mode",
+      selector: {
+        select: {
+          mode: "dropdown",
+          options: [
+            { value: "slider", label: "Slider" },
+            { value: "stepper", label: "Stepper" }
+          ]
+        }
+      }
+    }
+  ];
+
   class FibbersNumber extends LitElement {
     static properties = {
       hass: { attribute: false },
@@ -9995,6 +10105,11 @@ ${decls}
         type: "custom:fibbers-number",
         entity: pickEntity("input_number", entities, entitiesFallback, "input_number.example")
       };
+    }
+    static getConfigElement() {
+      const el = document.createElement("fibbers-form-editor");
+      el.schema = EDITOR_SCHEMA5;
+      return el;
     }
     setConfig(config) {
       if (!config || !config.entity) {
@@ -10407,6 +10522,15 @@ ${decls}
 
   // src/cards/room.js
   var isLight2 = (id) => typeof id === "string" && id.startsWith("light.");
+  var EDITOR_SCHEMA6 = [
+    { name: "name", selector: { text: {} } },
+    { name: "icon", selector: { icon: {} } },
+    {
+      name: "entities",
+      selector: { entity: { domain: "light", multiple: true } }
+    },
+    { name: "sheet", selector: { text: {} } }
+  ];
 
   class FibbersRoom extends LitElement {
     static properties = {
@@ -10430,6 +10554,11 @@ ${decls}
           pickEntity("light", entities, entitiesFallback, "light.example")
         ]
       };
+    }
+    static getConfigElement() {
+      const el = document.createElement("fibbers-form-editor");
+      el.schema = EDITOR_SCHEMA6;
+      return el;
     }
     setConfig(config) {
       if (!config || !config.name) {
@@ -10786,6 +10915,8 @@ ${decls}
   }
 
   // src/cards/section.js
+  var EDITOR_SCHEMA7 = [{ name: "label", selector: { text: {} } }];
+
   class FibbersSection extends LitElement {
     static properties = { _config: { state: true } };
     static styles = [
@@ -10797,7 +10928,12 @@ ${decls}
     `
     ];
     static getStubConfig() {
-      return { type: "custom:fibbers-section", label: "Kamers" };
+      return { type: "custom:fibbers-section", label: "Section" };
+    }
+    static getConfigElement() {
+      const el = document.createElement("fibbers-form-editor");
+      el.schema = EDITOR_SCHEMA7;
+      return el;
     }
     setConfig(config) {
       if (!config || !config.label) {
@@ -10827,6 +10963,24 @@ ${decls}
   }
 
   // src/cards/select.js
+  var EDITOR_SCHEMA8 = [
+    { name: "entity", selector: { entity: {} } },
+    { name: "name", selector: { text: {} } },
+    { name: "icon", selector: { icon: {} } },
+    {
+      name: "mode",
+      selector: {
+        select: {
+          mode: "dropdown",
+          options: [
+            { value: "chips", label: "Chips" },
+            { value: "dropdown", label: "Dropdown" }
+          ]
+        }
+      }
+    }
+  ];
+
   class FibbersSelect extends LitElement {
     static properties = {
       hass: { attribute: false },
@@ -10846,6 +11000,11 @@ ${decls}
         type: "custom:fibbers-select",
         entity: pickEntity("input_select", entities, entitiesFallback, "input_select.example")
       };
+    }
+    static getConfigElement() {
+      const el = document.createElement("fibbers-form-editor");
+      el.schema = EDITOR_SCHEMA8;
+      return el;
     }
     setConfig(config) {
       if (!config || !config.entity) {
@@ -11374,6 +11533,22 @@ ${decls}
     const n = Number(String(raw).replace(",", "."));
     return Number.isFinite(n) ? fmtNum(hass, n, decimals) : String(raw);
   };
+  var EDITOR_SCHEMA9 = [
+    { name: "entity", selector: { entity: {} } },
+    { name: "name", selector: { text: {} } },
+    { name: "icon", selector: { icon: {} } },
+    { name: "unit", selector: { text: {} } },
+    {
+      name: "color",
+      selector: {
+        select: {
+          mode: "dropdown",
+          options: COLORS2.map((c) => ({ value: c, label: c }))
+        }
+      }
+    },
+    { name: "decimals", selector: { number: { min: 0, max: 4, mode: "box" } } }
+  ];
 
   class FibbersStat extends LitElement {
     static properties = {
@@ -11393,6 +11568,11 @@ ${decls}
         type: "custom:fibbers-stat",
         entity: pickEntity("sensor", entities, entitiesFallback, "sensor.example")
       };
+    }
+    static getConfigElement() {
+      const el = document.createElement("fibbers-form-editor");
+      el.schema = EDITOR_SCHEMA9;
+      return el;
     }
     setConfig(config) {
       if (!config || !config.entity && config.value == null) {
@@ -11635,6 +11815,14 @@ ${decls}
   }
 
   // src/cards/toggle.js
+  var EDITOR_SCHEMA10 = [
+    { name: "entity", selector: { entity: {} } },
+    { name: "name", selector: { text: {} } },
+    { name: "icon", selector: { icon: {} } },
+    { name: "secondary", selector: { text: {} } },
+    { name: "confirm", selector: { boolean: {} } }
+  ];
+
   class FibbersToggle extends LitElement {
     static properties = {
       hass: { attribute: false },
@@ -11653,6 +11841,11 @@ ${decls}
         type: "custom:fibbers-toggle",
         entity: pickEntity("input_boolean", entities, entitiesFallback, "input_boolean.example")
       };
+    }
+    static getConfigElement() {
+      const el = document.createElement("fibbers-form-editor");
+      el.schema = EDITOR_SCHEMA10;
+      return el;
     }
     setConfig(config) {
       if (!config || !config.entity) {

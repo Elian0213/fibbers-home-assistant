@@ -17,6 +17,25 @@ import {
 } from "../util.js";
 import "../icon.js";
 
+const EDITOR_SCHEMA = [
+  { name: "entity", selector: { entity: {} } },
+  { name: "name", selector: { text: {} } },
+  { name: "icon", selector: { icon: {} } },
+  { name: "unit", selector: { text: {} } },
+  {
+    name: "mode",
+    selector: {
+      select: {
+        mode: "dropdown",
+        options: [
+          { value: "slider", label: "Slider" },
+          { value: "stepper", label: "Stepper" },
+        ],
+      },
+    },
+  },
+];
+
 export class FibbersNumber extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -44,6 +63,12 @@ export class FibbersNumber extends LitElement {
         "input_number.example",
       ),
     };
+  }
+
+  static getConfigElement() {
+    const el = document.createElement("fibbers-form-editor");
+    el.schema = EDITOR_SCHEMA;
+    return el;
   }
 
   setConfig(config) {

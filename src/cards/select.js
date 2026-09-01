@@ -9,6 +9,24 @@ import { twSheet } from "../tw.js";
 import { pickEntity } from "../util.js";
 import "../icon.js";
 
+const EDITOR_SCHEMA = [
+  { name: "entity", selector: { entity: {} } },
+  { name: "name", selector: { text: {} } },
+  { name: "icon", selector: { icon: {} } },
+  {
+    name: "mode",
+    selector: {
+      select: {
+        mode: "dropdown",
+        options: [
+          { value: "chips", label: "Chips" },
+          { value: "dropdown", label: "Dropdown" },
+        ],
+      },
+    },
+  },
+];
+
 export class FibbersSelect extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -35,6 +53,12 @@ export class FibbersSelect extends LitElement {
         "input_select.example",
       ),
     };
+  }
+
+  static getConfigElement() {
+    const el = document.createElement("fibbers-form-editor");
+    el.schema = EDITOR_SCHEMA;
+    return el;
   }
 
   setConfig(config) {

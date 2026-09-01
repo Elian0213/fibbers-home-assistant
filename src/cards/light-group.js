@@ -12,6 +12,12 @@ import "../icon.js";
 
 const isLight = (id) => typeof id === "string" && id.startsWith("light.");
 
+const EDITOR_SCHEMA = [
+  { name: "entity", selector: { entity: { domain: "light" } } },
+  { name: "name", selector: { text: {} } },
+  { name: "icon", selector: { icon: {} } },
+];
+
 export class FibbersLightGroup extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -38,6 +44,12 @@ export class FibbersLightGroup extends LitElement {
       ],
       name: "Lights",
     };
+  }
+
+  static getConfigElement() {
+    const el = document.createElement("fibbers-form-editor");
+    el.schema = EDITOR_SCHEMA;
+    return el;
   }
 
   setConfig(config) {

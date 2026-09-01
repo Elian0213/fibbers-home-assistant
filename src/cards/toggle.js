@@ -10,6 +10,14 @@ import { pillSwitch } from "../ui.js";
 import { fmtState, pickEntity } from "../util.js";
 import "../icon.js";
 
+const EDITOR_SCHEMA = [
+  { name: "entity", selector: { entity: {} } },
+  { name: "name", selector: { text: {} } },
+  { name: "icon", selector: { icon: {} } },
+  { name: "secondary", selector: { text: {} } },
+  { name: "confirm", selector: { boolean: {} } },
+];
+
 export class FibbersToggle extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -35,6 +43,12 @@ export class FibbersToggle extends LitElement {
         "input_boolean.example",
       ),
     };
+  }
+
+  static getConfigElement() {
+    const el = document.createElement("fibbers-form-editor");
+    el.schema = EDITOR_SCHEMA;
+    return el;
   }
 
   setConfig(config) {
