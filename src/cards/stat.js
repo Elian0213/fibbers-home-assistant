@@ -89,13 +89,26 @@ export class FibbersStat extends LitElement {
       cfg.icon || (st && st.attributes.icon) || "solar:widget-bold-duotone";
     const label =
       cfg.name || (st && st.attributes.friendly_name) || cfg.entity || "";
-    // Numeric states format with our nl-NL helper; a config `value` override is
-    // kept verbatim through `fmt`. A non-numeric entity state (motion, timestamp,
-    // enum) is handed to HA's own localiser instead of printing the raw slug.
+    // A literal `value` is kept verbatim through `fmt`. A timestamp entity renders
+    // relative ("2 days ago", live-updating) so an absolute date can't overflow the
+    // tile — `absolute_time: true` opts back into the full value. Numeric states go
+    // through the locale-aware formatter; anything else (motion, enum) is handed to
+    // HA's own localiser instead of printing the raw slug.
+    const deviceClass = st && st.attributes && st.attributes.device_class;
     let value;
+    let valueTpl = null;
     if (offline) value = "—";
     else if (cfg.value != null) value = fmt(this.hass, cfg.value, cfg.decimals);
-    else {
+    else if (
+      deviceClass === "timestamp" &&
+      !cfg.absolute_time &&
+      !isNaN(Date.parse(st.state))
+    ) {
+      valueTpl = html`<ha-relative-time
+        .hass=${this.hass}
+        .datetime=${new Date(st.state)}
+      ></ha-relative-time>`;
+    } else {
       const n = Number(String(st.state).replace(",", "."));
       value = Number.isFinite(n)
         ? fmtNum(this.hass, n, cfg.decimals)
@@ -141,7 +154,7 @@ export class FibbersStat extends LitElement {
           <span
             class="text-[22px] font-semibold leading-tight tracking-tight
                    ${offline ? "text-muted" : "text-ink"}"
-            >${value}</span
+            >${valueTpl || value}</span
           >
           <span class="text-[12px] font-medium text-ink2">${unit}</span>
           ${

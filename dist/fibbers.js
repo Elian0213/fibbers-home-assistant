@@ -11346,12 +11346,19 @@ ${decls}
       const color = cfg.color || "accent";
       const icon = cfg.icon || st && st.attributes.icon || "solar:widget-bold-duotone";
       const label = cfg.name || st && st.attributes.friendly_name || cfg.entity || "";
+      const deviceClass = st && st.attributes && st.attributes.device_class;
       let value;
+      let valueTpl = null;
       if (offline)
         value = "—";
       else if (cfg.value != null)
         value = fmt(this.hass, cfg.value, cfg.decimals);
-      else {
+      else if (deviceClass === "timestamp" && !cfg.absolute_time && !isNaN(Date.parse(st.state))) {
+        valueTpl = html`<ha-relative-time
+        .hass=${this.hass}
+        .datetime=${new Date(st.state)}
+      ></ha-relative-time>`;
+      } else {
         const n = Number(String(st.state).replace(",", "."));
         value = Number.isFinite(n) ? fmtNum(this.hass, n, cfg.decimals) : fmtState(this.hass, st);
       }
@@ -11384,7 +11391,7 @@ ${decls}
           <span
             class="text-[22px] font-semibold leading-tight tracking-tight
                    ${offline ? "text-muted" : "text-ink"}"
-            >${value}</span
+            >${valueTpl || value}</span
           >
           <span class="text-[12px] font-medium text-ink2">${unit}</span>
           ${trend ? html`<span class="ml-0.5 text-[11px] font-semibold ${trendCls}"
