@@ -1,6 +1,6 @@
 /* ================================================================== *
  * fibbers-media — media_player: now-playing, transport, drag volume, and
- * optional `sources` chips. `compact: true` is the tight "Nu bezig" row.
+ * optional `sources` chips. `compact: true` is the tight now-playing row.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 

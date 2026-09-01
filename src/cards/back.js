@@ -1,5 +1,5 @@
 /* ================================================================== *
- * fibbers-back — "Terug naar X" from the nav stack; `fallback` on cold deep-link.
+ * fibbers-back — "Back to X" from the nav stack; `fallback` on cold deep-link.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 

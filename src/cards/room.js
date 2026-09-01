@@ -1,6 +1,6 @@
 /* ================================================================== *
- * fibbers-room — room tile that computes its own light state (Uit / N van M aan /
- * Offline; green glow when lit). Tap → sheet, hold → more-info.
+ * fibbers-room — room tile that computes its own light state (off / N of M on /
+ * offline; green glow when lit). Tap → sheet, hold → more-info.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
@@ -18,6 +18,7 @@ const EDITOR_SCHEMA = [
     name: "entities",
     selector: { entity: { domain: "light", multiple: true } },
   },
+  { name: "area", selector: { area: {} } },
   { name: "sheet", selector: { text: {} } },
 ];
 

@@ -118,6 +118,7 @@ export class FibbersNav extends LitElement {
   }
 
   set hass(hass) {
+    if (this.preview) return; // card picker: never touch the nav singleton
     nav.hassRef = hass;
     if (this._config && (this._config.tabs || []).some((t) => t.badge))
       renderBar();

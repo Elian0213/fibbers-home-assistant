@@ -1,5 +1,5 @@
 /* ================================================================== *
- * fibbers-presence — "who's home" summary over person tiles (Thuis/Weg, green
+ * fibbers-presence — "who's home" summary over person tiles (home/away, green
  * when home). `people` lists them, or it auto-collects every `person.*`.
  * ================================================================== */
 import { LitElement, html, css } from "lit";

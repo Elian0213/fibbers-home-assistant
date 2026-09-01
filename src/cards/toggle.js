@@ -15,6 +15,7 @@ const EDITOR_SCHEMA = [
   { name: "name", selector: { text: {} } },
   { name: "icon", selector: { icon: {} } },
   { name: "secondary", selector: { text: {} } },
+  { name: "secondary_entity", selector: { entity: {} } },
   { name: "confirm", selector: { boolean: {} } },
 ];
 

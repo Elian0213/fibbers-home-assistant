@@ -42,6 +42,6 @@ export function t(hl, key, vars) {
   const plural = vars && Number(vars.count) === 1 ? `${key}_one` : null;
   let str = (plural && pick(cat, plural)) ?? pick(cat, key);
   if (str == null) str = (plural && pick(en, plural)) ?? pick(en, key);
-  if (str == null) str = key; // unreachable if en.json is complete; never a raw slug in practice
+  if (str == null) str = key; // only a mistyped key reaches here — a debugging aid, never a normal path
   return interpolate(str, vars);
 }

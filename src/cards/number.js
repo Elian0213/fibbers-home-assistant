@@ -22,6 +22,7 @@ const EDITOR_SCHEMA = [
   { name: "name", selector: { text: {} } },
   { name: "icon", selector: { icon: {} } },
   { name: "unit", selector: { text: {} } },
+  { name: "step", selector: { number: {} } },
   {
     name: "mode",
     selector: {

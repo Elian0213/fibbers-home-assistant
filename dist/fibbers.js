@@ -10018,6 +10018,8 @@ ${decls}
         attach(this, this._config);
     }
     set hass(hass) {
+      if (this.preview)
+        return;
       nav.hassRef = hass;
       if (this._config && (this._config.tabs || []).some((t2) => t2.badge))
         renderBar();
@@ -10071,6 +10073,7 @@ ${decls}
     { name: "name", selector: { text: {} } },
     { name: "icon", selector: { icon: {} } },
     { name: "unit", selector: { text: {} } },
+    { name: "step", selector: { number: {} } },
     {
       name: "mode",
       selector: {
@@ -10529,6 +10532,7 @@ ${decls}
       name: "entities",
       selector: { entity: { domain: "light", multiple: true } }
     },
+    { name: "area", selector: { area: {} } },
     { name: "sheet", selector: { text: {} } }
   ];
 
@@ -10978,7 +10982,8 @@ ${decls}
           ]
         }
       }
-    }
+    },
+    { name: "chips_max", selector: { number: { min: 1, mode: "box" } } }
   ];
 
   class FibbersSelect extends LitElement {
@@ -11466,6 +11471,8 @@ ${decls}
         registerSheet(config.id, this);
     }
     set hass(hass) {
+      if (this.preview)
+        return;
       this._hass = hass;
       if (this._config)
         updateSheetHass(this._config.id, hass);
@@ -11820,6 +11827,7 @@ ${decls}
     { name: "name", selector: { text: {} } },
     { name: "icon", selector: { icon: {} } },
     { name: "secondary", selector: { text: {} } },
+    { name: "secondary_entity", selector: { entity: {} } },
     { name: "confirm", selector: { boolean: {} } }
   ];
 

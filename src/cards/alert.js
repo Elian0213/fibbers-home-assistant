@@ -1,6 +1,6 @@
 /* ================================================================== *
- * fibbers-alert — "Aandacht nodig" from real checks (offline lights, low
- * batteries, updates, stale backups). Green tick when everything's clear.
+ * fibbers-alert — an "attention needed" card from real checks (offline lights,
+ * low batteries, updates, stale backups). Green tick when everything's clear.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 

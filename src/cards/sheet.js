@@ -54,6 +54,7 @@ export class FibbersSheet extends LitElement {
   }
 
   set hass(hass) {
+    if (this.preview) return; // card picker: never touch the sheet singleton
     this._hass = hass;
     if (this._config) updateSheetHass(this._config.id, hass);
   }

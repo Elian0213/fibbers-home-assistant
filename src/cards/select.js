@@ -25,6 +25,7 @@ const EDITOR_SCHEMA = [
       },
     },
   },
+  { name: "chips_max", selector: { number: { min: 1, mode: "box" } } },
 ];
 
 export class FibbersSelect extends LitElement {
