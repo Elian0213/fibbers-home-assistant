@@ -7,7 +7,7 @@ import { LitElement, html, css } from "lit";
 import { runAction } from "../actions.js";
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
-import { sliderTrack } from "../ui.js";
+import { sliderTrack, activateOnKey } from "../ui.js";
 import { moreInfo, isUnavail, pctFromX, pickEntity } from "../util.js";
 import "../icon.js";
 
@@ -160,6 +160,8 @@ export class FibbersLightRow extends LitElement {
       >
         <div
           role="button"
+          tabindex=${unavail ? -1 : 0}
+          aria-label=${name}
           class="row-span-2 flex h-7 w-7 items-center justify-center rounded-lg
                  transition-transform active:scale-90 ${
                    on ? "bg-accentbg" : "bg-card2"
@@ -171,6 +173,14 @@ export class FibbersLightRow extends LitElement {
               this,
               cfg.icon_entity || cfg.entity,
             )}
+          @keydown=${activateOnKey(() =>
+            runAction(
+              this._iconAction(),
+              this.hass,
+              this,
+              cfg.icon_entity || cfg.entity,
+            ),
+          )}
         >
           <fib-icon
             class="h-[17px] w-[17px] [--mdc-icon-size:17px] ${

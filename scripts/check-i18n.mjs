@@ -26,7 +26,8 @@ const DUTCH = [
   "geleden", "Batterij", "beschikbaar", "Lampen", "lampen", "Kleur", "Neutraal",
   "Helder", "Zonnig", "Bewolkt", "bewolkt", "Stortregen", "Onweer", "Sneeuw",
   "Hagel", "Winderig", "inklappen", "uitklappen", "historie", "Aandacht",
-  "orde", "spelen", "volgende", "Afstandsbediening",
+  "orde", "spelen", "volgende", "Afstandsbediening", "Minder", "Alle",
+  "scènes", "Avond",
 ];
 const DENY = new RegExp(`\\b(${DUTCH.join("|")})\\b`);
 

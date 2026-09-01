@@ -93,6 +93,10 @@
   "remote": {
     "default_name": "Remote"
   },
+  "scene": {
+    "show_less": "Less",
+    "show_all": "All {n} scenes"
+  },
   "scheduler": {
     "default_name": "Alarm",
     "duration": "{n} min"

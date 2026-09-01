@@ -94,8 +94,14 @@ export class FibbersMedia extends LitElement {
   }
 
   _transportBtn(icon, service, big = false) {
+    const LABELS = {
+      media_previous_track: "Previous track",
+      media_play_pause: "Play / pause",
+      media_next_track: "Next track",
+    };
     return html`<button
       type="button"
+      aria-label=${LABELS[service] || service}
       class="flex ${big ? "h-11 w-11" : "h-9 w-9"} items-center justify-center rounded-full
              bg-card2 text-ink transition-transform active:scale-90"
       @click=${() => this._svc(service)}

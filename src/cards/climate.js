@@ -121,6 +121,7 @@ export class FibbersClimate extends LitElement {
       <div class="mb-3 flex items-center justify-center gap-4">
         <button
           type="button"
+          aria-label="Lower setpoint"
           class="flex h-10 w-10 items-center justify-center rounded-full bg-card2 text-ink
                  transition-transform active:scale-90"
           @click=${() => this._bump(-1)}
@@ -142,6 +143,7 @@ export class FibbersClimate extends LitElement {
         </div>
         <button
           type="button"
+          aria-label="Raise setpoint"
           class="flex h-10 w-10 items-center justify-center rounded-full bg-card2 text-ink
                  transition-transform active:scale-90"
           @click=${() => this._bump(1)}

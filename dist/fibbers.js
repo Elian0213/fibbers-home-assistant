@@ -7828,6 +7828,10 @@ ${FOCUS_RING}`);
     remote: {
       default_name: "Remote"
     },
+    scene: {
+      show_less: "Less",
+      show_all: "All {n} scenes"
+    },
     scheduler: {
       default_name: "Alarm",
       duration: "{n} min"
@@ -7955,6 +7959,10 @@ ${FOCUS_RING}`);
     },
     remote: {
       default_name: "Afstandsbediening"
+    },
+    scene: {
+      show_less: "Minder",
+      show_all: "Alle {n} scènes"
     },
     scheduler: {
       default_name: "Wekker",
@@ -8445,6 +8453,7 @@ ${FOCUS_RING}`);
         const active = this._active(chip);
         return html`<button
           type="button"
+          aria-label=${chip.name || chip.entity || "action"}
           class="inline-flex items-center gap-[5px] rounded-full border px-2.5 py-[5px]
                  text-[10.5px] font-medium
                  ${active ? "border-blueline bg-bluebg text-blueink" : "border-line bg-card2 text-ink2"}"
@@ -8572,6 +8581,7 @@ ${FOCUS_RING}`);
       <div class="mb-3 flex items-center justify-center gap-4">
         <button
           type="button"
+          aria-label="Lower setpoint"
           class="flex h-10 w-10 items-center justify-center rounded-full bg-card2 text-ink
                  transition-transform active:scale-90"
           @click=${() => this._bump(-1)}
@@ -8593,6 +8603,7 @@ ${FOCUS_RING}`);
         </div>
         <button
           type="button"
+          aria-label="Raise setpoint"
           class="flex h-10 w-10 items-center justify-center rounded-full bg-card2 text-ink
                  transition-transform active:scale-90"
           @click=${() => this._bump(1)}
@@ -8733,6 +8744,113 @@ ${FOCUS_RING}`);
     getGridOptions() {
       return { columns: "full", rows: "auto" };
     }
+  }
+
+  // src/ui.js
+  function activateOnKey(fn) {
+    return (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        fn(e);
+      }
+    };
+  }
+  function stepFromKey(key, { value, min, max, step }) {
+    const big = Math.max(step, (max - min) / 10);
+    let next;
+    switch (key) {
+      case "ArrowRight":
+      case "ArrowUp":
+        next = value + step;
+        break;
+      case "ArrowLeft":
+      case "ArrowDown":
+        next = value - step;
+        break;
+      case "PageUp":
+        next = value + big;
+        break;
+      case "PageDown":
+        next = value - big;
+        break;
+      case "Home":
+        next = min;
+        break;
+      case "End":
+        next = max;
+        break;
+      default:
+        return null;
+    }
+    return Math.min(max, Math.max(min, next));
+  }
+  function sliderTrack({
+    pct,
+    disabled = false,
+    cls = "",
+    onDown,
+    onMove,
+    onUp,
+    onCancel,
+    label,
+    value,
+    min = 0,
+    max = 100,
+    step = 1,
+    valueText,
+    onInput
+  }) {
+    const keydown = disabled || !onInput ? undefined : (e) => {
+      const next = stepFromKey(e.key, { value, min, max, step });
+      if (next == null)
+        return;
+      e.preventDefault();
+      if (next !== value)
+        onInput(next);
+    };
+    return html`<div
+    class="relative h-1.5 cursor-pointer touch-none rounded-[3px] bg-[#2C3639]
+           ${cls} ${disabled ? "pointer-events-none" : ""}"
+    role="slider"
+    tabindex=${disabled ? -1 : 0}
+    aria-label=${label || "slider"}
+    aria-valuemin=${min}
+    aria-valuemax=${max}
+    aria-valuenow=${value != null ? value : Math.round(pct)}
+    aria-valuetext=${valueText != null ? valueText : nothing}
+    aria-disabled=${disabled ? "true" : "false"}
+    @pointerdown=${onDown}
+    @pointermove=${onMove}
+    @pointerup=${onUp}
+    @pointercancel=${onCancel || onUp}
+    @keydown=${keydown}
+  >
+    ${disabled ? "" : html`<div
+              class="absolute bottom-0 left-0 top-0 rounded-[3px] bg-accent"
+              style="width:${pct}%"
+            ></div>
+            <div
+              class="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2
+                   rounded-full bg-accent shadow-[0_1px_3px_rgba(0,0,0,.4)]"
+              style="left:${pct}%"
+            ></div>`}
+  </div>`;
+  }
+  function pillSwitch({ on, onClick, label = "" }) {
+    return html`<button
+    type="button"
+    class="relative h-5 w-9 flex-none rounded-full transition-colors
+           ${on ? "bg-accent" : "bg-card2"}"
+    role="switch"
+    aria-checked=${on ? "true" : "false"}
+    aria-label=${label || "toggle"}
+    @click=${onClick}
+  >
+    <span
+      class="absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all
+             ${on ? "left-[18px]" : "left-0.5"}"
+    ></span>
+  </button>`;
   }
 
   // src/cards/entities.js
@@ -8896,9 +9014,11 @@ ${FOCUS_RING}`);
             </div>` : ""}
       ${rows.length ? rows.map((st) => html`<div
                   role="button"
+                  tabindex="0"
                   class="grid cursor-pointer grid-cols-[28px_1fr_auto] items-center gap-x-2.5
                      rounded-[10px] px-2.5 py-2 hover:bg-card2"
                   @click=${() => moreInfo(this, st.entity_id)}
+                  @keydown=${activateOnKey(() => moreInfo(this, st.entity_id))}
                 >
                   <div
                     class="flex h-7 w-7 items-center justify-center rounded-lg bg-card2"
@@ -9235,105 +9355,6 @@ ${FOCUS_RING}`);
     getGridOptions() {
       return { columns: "full", rows: "auto" };
     }
-  }
-
-  // src/ui.js
-  function stepFromKey(key, { value, min, max, step }) {
-    const big = Math.max(step, (max - min) / 10);
-    let next;
-    switch (key) {
-      case "ArrowRight":
-      case "ArrowUp":
-        next = value + step;
-        break;
-      case "ArrowLeft":
-      case "ArrowDown":
-        next = value - step;
-        break;
-      case "PageUp":
-        next = value + big;
-        break;
-      case "PageDown":
-        next = value - big;
-        break;
-      case "Home":
-        next = min;
-        break;
-      case "End":
-        next = max;
-        break;
-      default:
-        return null;
-    }
-    return Math.min(max, Math.max(min, next));
-  }
-  function sliderTrack({
-    pct,
-    disabled = false,
-    cls = "",
-    onDown,
-    onMove,
-    onUp,
-    onCancel,
-    label,
-    value,
-    min = 0,
-    max = 100,
-    step = 1,
-    valueText,
-    onInput
-  }) {
-    const keydown = disabled || !onInput ? undefined : (e) => {
-      const next = stepFromKey(e.key, { value, min, max, step });
-      if (next == null)
-        return;
-      e.preventDefault();
-      if (next !== value)
-        onInput(next);
-    };
-    return html`<div
-    class="relative h-1.5 cursor-pointer touch-none rounded-[3px] bg-[#2C3639]
-           ${cls} ${disabled ? "pointer-events-none" : ""}"
-    role="slider"
-    tabindex=${disabled ? -1 : 0}
-    aria-label=${label || "slider"}
-    aria-valuemin=${min}
-    aria-valuemax=${max}
-    aria-valuenow=${value != null ? value : Math.round(pct)}
-    aria-valuetext=${valueText != null ? valueText : nothing}
-    aria-disabled=${disabled ? "true" : "false"}
-    @pointerdown=${onDown}
-    @pointermove=${onMove}
-    @pointerup=${onUp}
-    @pointercancel=${onCancel || onUp}
-    @keydown=${keydown}
-  >
-    ${disabled ? "" : html`<div
-              class="absolute bottom-0 left-0 top-0 rounded-[3px] bg-accent"
-              style="width:${pct}%"
-            ></div>
-            <div
-              class="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2
-                   rounded-full bg-accent shadow-[0_1px_3px_rgba(0,0,0,.4)]"
-              style="left:${pct}%"
-            ></div>`}
-  </div>`;
-  }
-  function pillSwitch({ on, onClick, label = "" }) {
-    return html`<button
-    type="button"
-    class="relative h-5 w-9 flex-none rounded-full transition-colors
-           ${on ? "bg-accent" : "bg-card2"}"
-    role="switch"
-    aria-checked=${on ? "true" : "false"}
-    aria-label=${label || "toggle"}
-    @click=${onClick}
-  >
-    <span
-      class="absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all
-             ${on ? "left-[18px]" : "left-0.5"}"
-    ></span>
-  </button>`;
   }
 
   // src/cards/light-group.js
@@ -9777,9 +9798,12 @@ ${FOCUS_RING}`);
       >
         <div
           role="button"
+          tabindex=${unavail ? -1 : 0}
+          aria-label=${name}
           class="row-span-2 flex h-7 w-7 items-center justify-center rounded-lg
                  transition-transform active:scale-90 ${on ? "bg-accentbg" : "bg-card2"} ${unavail ? "pointer-events-none" : "cursor-pointer"}"
           @click=${() => runAction(this._iconAction(), this.hass, this, cfg.icon_entity || cfg.entity)}
+          @keydown=${activateOnKey(() => runAction(this._iconAction(), this.hass, this, cfg.icon_entity || cfg.entity))}
         >
           <fib-icon
             class="h-[17px] w-[17px] [--mdc-icon-size:17px] ${on ? "text-accent" : "text-muted"}"
@@ -9901,8 +9925,14 @@ ${FOCUS_RING}`);
       this._svc("volume_set", { volume_level: v / 100 });
     }
     _transportBtn(icon, service, big = false) {
+      const LABELS = {
+        media_previous_track: "Previous track",
+        media_play_pause: "Play / pause",
+        media_next_track: "Next track"
+      };
       return html`<button
       type="button"
+      aria-label=${LABELS[service] || service}
       class="flex ${big ? "h-11 w-11" : "h-9 w-9"} items-center justify-center rounded-full
              bg-card2 text-ink transition-transform active:scale-90"
       @click=${() => this._svc(service)}
@@ -10808,9 +10838,9 @@ ${FOCUS_RING}`);
         type: "custom:fibbers-scene",
         scenes: [
           {
-            name: "Avond",
+            name: "Evening",
             icon: "solar:moon-bold-duotone",
-            scene: "scene.avond"
+            scene: "scene.example"
           }
         ]
       };
@@ -10850,6 +10880,7 @@ ${FOCUS_RING}`);
       const cfg = this._config;
       if (!cfg)
         return html``;
+      const hl = cfg.language || this.hass;
       const fav = this._fav();
       const active = this._activeIndex();
       const total = cfg.scenes.length;
@@ -10884,7 +10915,9 @@ ${FOCUS_RING}`);
                    border border-line bg-transparent py-[9px] text-[11px] font-medium text-ink2"
               @click=${() => this._open = !this._open}
             >
-              <span>${this._open ? "Minder" : `Alle ${total} scènes`}</span>
+              <span
+                >${this._open ? t(hl, "scene.show_less") : t(hl, "scene.show_all", { n: total })}</span
+              >
               <fib-icon
                 class="h-[15px] w-[15px] text-muted transition-transform [--mdc-icon-size:15px]
                      ${this._open ? "rotate-180" : ""}"
@@ -11741,7 +11774,9 @@ ${FOCUS_RING}`);
                border border-line bg-card p-3 shadow-[0_1px_3px_rgba(0,0,0,.35)]
                ${tappable ? "cursor-pointer" : ""}"
         role=${tappable ? "button" : "presentation"}
+        tabindex=${tappable ? 0 : nothing}
         @click=${() => tappable && this._tap()}
+        @keydown=${tappable ? activateOnKey(() => this._tap()) : nothing}
       >
         <div
           class="row-span-2 flex h-[34px] w-[34px] items-center justify-center rounded-[10px]

@@ -2,10 +2,11 @@
  * fibbers-stat — value tile: icon, label, value + unit, optional trend.
  * Reads `entity` or a literal `value`; tap runs `tap_action` (default more-info).
  * ================================================================== */
-import { LitElement, html, css } from "lit";
+import { LitElement, html, css, nothing } from "lit";
 
 import { runAction } from "../actions.js";
 import { twSheet } from "../tw.js";
+import { activateOnKey } from "../ui.js";
 import { fmtNum, fmtState, isUnavail, pickEntity } from "../util.js";
 import "../icon.js"; // registers <fib-icon>
 
@@ -166,7 +167,9 @@ export class FibbersStat extends LitElement {
                border border-line bg-card p-3 shadow-[0_1px_3px_rgba(0,0,0,.35)]
                ${tappable ? "cursor-pointer" : ""}"
         role=${tappable ? "button" : "presentation"}
+        tabindex=${tappable ? 0 : nothing}
         @click=${() => tappable && this._tap()}
+        @keydown=${tappable ? activateOnKey(() => this._tap()) : nothing}
       >
         <div
           class="row-span-2 flex h-[34px] w-[34px] items-center justify-center rounded-[10px]

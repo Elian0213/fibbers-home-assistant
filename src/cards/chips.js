@@ -59,6 +59,7 @@ export class FibbersChips extends LitElement {
         const active = this._active(chip);
         return html`<button
           type="button"
+          aria-label=${chip.name || chip.entity || "action"}
           class="inline-flex items-center gap-[5px] rounded-full border px-2.5 py-[5px]
                  text-[10.5px] font-medium
                  ${

@@ -8,6 +8,17 @@ import { html, nothing } from "lit";
 // slider so keyboard behaviour is identical. PageUp/Down jump by a tenth of the
 // range (or one step, whichever is larger). Returns null when the key isn't one
 // we handle, so the caller can ignore it.
+// Enter/Space → activate, for elements that carry role="button" instead of being
+// a real <button> (a native button gets this for free). Pair with tabindex="0".
+export function activateOnKey(fn) {
+  return (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      fn(e);
+    }
+  };
+}
+
 export function stepFromKey(key, { value, min, max, step }) {
   const big = Math.max(step, (max - min) / 10);
   let next;

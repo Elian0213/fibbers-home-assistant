@@ -6,6 +6,7 @@ import { LitElement, html, css } from "lit";
 
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
+import { activateOnKey } from "../ui.js";
 import { moreInfo } from "../util.js";
 import "../icon.js";
 
@@ -178,9 +179,11 @@ export class FibbersEntities extends LitElement {
               (st) =>
                 html`<div
                   role="button"
+                  tabindex="0"
                   class="grid cursor-pointer grid-cols-[28px_1fr_auto] items-center gap-x-2.5
                      rounded-[10px] px-2.5 py-2 hover:bg-card2"
                   @click=${() => moreInfo(this, st.entity_id)}
+                  @keydown=${activateOnKey(() => moreInfo(this, st.entity_id))}
                 >
                   <div
                     class="flex h-7 w-7 items-center justify-center rounded-lg bg-card2"

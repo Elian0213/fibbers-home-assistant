@@ -4,6 +4,7 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
+import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import "../icon.js";
 
@@ -35,9 +36,9 @@ export class FibbersScene extends LitElement {
       type: "custom:fibbers-scene",
       scenes: [
         {
-          name: "Avond",
+          name: "Evening",
           icon: "solar:moon-bold-duotone",
-          scene: "scene.avond",
+          scene: "scene.example",
         },
       ],
     };
@@ -83,6 +84,7 @@ export class FibbersScene extends LitElement {
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
+    const hl = cfg.language || this.hass;
     const fav = this._fav();
     const active = this._activeIndex();
     const total = cfg.scenes.length;
@@ -129,7 +131,13 @@ export class FibbersScene extends LitElement {
                    border border-line bg-transparent py-[9px] text-[11px] font-medium text-ink2"
               @click=${() => (this._open = !this._open)}
             >
-              <span>${this._open ? "Minder" : `Alle ${total} scènes`}</span>
+              <span
+                >${
+                  this._open
+                    ? t(hl, "scene.show_less")
+                    : t(hl, "scene.show_all", { n: total })
+                }</span
+              >
               <fib-icon
                 class="h-[15px] w-[15px] text-muted transition-transform [--mdc-icon-size:15px]
                      ${this._open ? "rotate-180" : ""}"

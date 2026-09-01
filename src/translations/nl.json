@@ -93,6 +93,10 @@
   "remote": {
     "default_name": "Afstandsbediening"
   },
+  "scene": {
+    "show_less": "Minder",
+    "show_all": "Alle {n} scènes"
+  },
   "scheduler": {
     "default_name": "Wekker",
     "duration": "{n} min"
