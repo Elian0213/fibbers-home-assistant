@@ -8,6 +8,7 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 import { twSheet } from "../tw.js";
+import { moreInfo } from "../util.js";
 import "../icon.js";
 
 const isLight = (id) => typeof id === "string" && id.startsWith("light.");
@@ -108,15 +109,7 @@ export class FibbersRoom extends LitElement {
     if (this._config.sheet) window.location.hash = this._config.sheet;
   }
   _moreInfo() {
-    const ent = this._lights()[0] || this._entities()[0];
-    if (!ent) return;
-    this.dispatchEvent(
-      new CustomEvent("hass-more-info", {
-        detail: { entityId: ent },
-        bubbles: true,
-        composed: true,
-      }),
-    );
+    moreInfo(this, this._lights()[0] || this._entities()[0]);
   }
 
   render() {

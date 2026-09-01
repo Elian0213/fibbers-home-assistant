@@ -14,6 +14,11 @@ All notable changes to this project are documented here. This project adheres to
   rendered as an empty glyph (invisible on desktop, a missing icon on the phone/app). Adds ~½ MB
   gzipped to the bundle — a one-time, per-version cached download; still one file, still no
   external network.
+- **`fibbers-entities`** no longer crashes on an invalid `entity_id` regex — the pattern is now
+  compiled and validated once in `setConfig` (a clear config error) instead of being rebuilt for
+  every entity on every render.
+- Fixed a leaked `orientationchange` listener that accumulated on repeated dashboard mounts, and
+  guarded `fibbers-scheduler`'s service calls against a missing `hass`.
 
 ### Changed
 

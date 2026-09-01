@@ -7,16 +7,10 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 import { twSheet } from "../tw.js";
+import { nl } from "../util.js";
 import "../icon.js";
 
 const W = 300;
-const nl = (n, d) =>
-  Number.isFinite(n)
-    ? n.toLocaleString(
-        "nl-NL",
-        d != null ? { minimumFractionDigits: d, maximumFractionDigits: d } : {},
-      )
-    : String(n);
 
 export class FibbersSysmon extends LitElement {
   static properties = {

@@ -8,9 +8,8 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 import { twSheet } from "../tw.js";
+import { clamp } from "../util.js";
 import "../icon.js";
-
-const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
 
 export class FibbersMedia extends LitElement {
   static properties = {

@@ -8,6 +8,7 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 import { twSheet } from "../tw.js";
+import { nl } from "../util.js";
 
 const COLORS = ["accent", "amber", "blue", "green", "red"];
 /* full class strings so Tailwind's scanner emits every one (a dynamic
@@ -20,13 +21,6 @@ const STROKE = {
   red: "text-red",
 };
 const W = 300;
-const nl = (n, d) =>
-  Number.isFinite(n)
-    ? n.toLocaleString(
-        "nl-NL",
-        d != null ? { minimumFractionDigits: d, maximumFractionDigits: d } : {},
-      )
-    : String(n);
 
 export class FibbersGraph extends LitElement {
   static properties = {

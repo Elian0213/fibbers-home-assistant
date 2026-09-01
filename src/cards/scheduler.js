@@ -8,6 +8,7 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 import { twSheet } from "../tw.js";
+import { moreInfo } from "../util.js";
 import "../icon.js";
 
 const hhmm = (s) => (typeof s === "string" ? s.slice(0, 5) : "");
@@ -53,15 +54,6 @@ export class FibbersScheduler extends LitElement {
   _state(id) {
     return id && this.hass ? this.hass.states[id] : null;
   }
-  _moreInfo(entity) {
-    this.dispatchEvent(
-      new CustomEvent("hass-more-info", {
-        detail: { entityId: entity },
-        bubbles: true,
-        composed: true,
-      }),
-    );
-  }
 
   render() {
     const cfg = this._config;
@@ -93,6 +85,7 @@ export class FibbersScheduler extends LitElement {
                 role="switch"
                 aria-checked=${on}
                 @click=${() =>
+                  this.hass &&
                   this.hass.callService("input_boolean", "toggle", {
                     entity_id: cfg.enable,
                   })}
@@ -109,7 +102,7 @@ export class FibbersScheduler extends LitElement {
       <button
         type="button"
         class="text-left ${on ? "" : "opacity-50"}"
-        @click=${() => this._moreInfo(cfg.time)}
+        @click=${() => moreInfo(this, cfg.time)}
       >
         <span class="text-[30px] font-semibold leading-none text-ink"
           >${time || "—"}</span
@@ -140,6 +133,7 @@ export class FibbersScheduler extends LitElement {
                        }"
                   @click=${() =>
                     obj &&
+                    this.hass &&
                     this.hass.callService("input_boolean", "toggle", {
                       entity_id: d.entity,
                     })}

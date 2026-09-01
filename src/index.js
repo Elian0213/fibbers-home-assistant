@@ -1,9 +1,10 @@
 /*!
  * Fibbers — custom cards + theming for the Thuis Home Assistant dashboard.
  *
- * Ships:
- *   custom:fibbers-nav    bottom navigation bar, genuinely pinned to the viewport
- *   custom:fibbers-back   back control driven by a real navigation stack
+ * Ships ~20 custom cards (see the CARDS registry below) plus the body-appended
+ * nav bar and modal sheet, and injects the dark theme globally. The two most
+ * load-bearing pieces are `fibbers-nav` (viewport-pinned bottom bar) and
+ * `fibbers-back` (a back control driven by a real navigation stack).
  *
  * WHY THE BAR RENDERS INTO document.body
  * Inside a Lovelace view, `position: fixed` resolves against the scrolling

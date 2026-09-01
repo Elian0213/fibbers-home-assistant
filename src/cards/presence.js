@@ -7,6 +7,7 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 import { twSheet } from "../tw.js";
+import { moreInfo } from "../util.js";
 import "../icon.js";
 
 export class FibbersPresence extends LitElement {
@@ -51,13 +52,7 @@ export class FibbersPresence extends LitElement {
     return st.state;
   }
   _moreInfo(entity) {
-    this.dispatchEvent(
-      new CustomEvent("hass-more-info", {
-        detail: { entityId: entity },
-        bubbles: true,
-        composed: true,
-      }),
-    );
+    moreInfo(this, entity);
   }
 
   render() {

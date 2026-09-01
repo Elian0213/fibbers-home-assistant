@@ -3,16 +3,18 @@
  * pattern as icons.gen.js, so the bundle stays a single IIFE with no CSS
  * loader. Run via `bun run gen-tw` (build does it automatically). */
 import { execSync } from "node:child_process";
-import { readFileSync, writeFileSync, mkdtempSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const out = join(mkdtempSync(join(tmpdir(), "fibtw-")), "tw.css");
+const dir = mkdtempSync(join(tmpdir(), "fibtw-"));
+const out = join(dir, "tw.css");
 execSync(`bunx @tailwindcss/cli -i styles/tailwind.css -o "${out}" --minify`, {
   stdio: "inherit",
 });
 
 const css = readFileSync(out, "utf8");
+rmSync(dir, { recursive: true, force: true }); // don't leave temp dirs behind
 const esc = css
   .replace(/\\/g, "\\\\")
   .replace(/`/g, "\\`")

@@ -7,10 +7,8 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 import { twSheet } from "../tw.js";
+import { isUnavail } from "../util.js";
 import "../icon.js";
-
-const isUnavail = (st) =>
-  !st || st.state === "unavailable" || st.state === "unknown";
 
 function ago(iso) {
   const t = Date.parse(iso);

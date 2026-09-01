@@ -12,6 +12,7 @@
 import { LitElement, html, css } from "lit";
 import { twSheet } from "../tw.js";
 import { runAction } from "../actions.js";
+import { nl } from "../util.js";
 import "../icon.js"; // registers <fib-icon>
 
 const COLORS = ["accent", "amber", "blue", "green", "red"];
@@ -28,12 +29,7 @@ const IC = {
 /** nl-NL number formatting; leaves non-numeric states intact. */
 const fmt = (raw, decimals) => {
   const n = Number(String(raw).replace(",", "."));
-  if (!Number.isFinite(n)) return String(raw);
-  const o =
-    decimals != null
-      ? { minimumFractionDigits: decimals, maximumFractionDigits: decimals }
-      : {};
-  return n.toLocaleString("nl-NL", o);
+  return Number.isFinite(n) ? nl(n, decimals) : String(raw);
 };
 
 export class FibbersStat extends LitElement {

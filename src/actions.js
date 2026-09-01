@@ -6,7 +6,7 @@
  * `hass-more-info`), and a fallback entity used by `toggle`/`more-info` when
  * the action doesn't name its own.
  * ================================================================== */
-import { navigate } from "./util.js";
+import { navigate, moreInfo } from "./util.js";
 
 export function runAction(action, hass, host, fallbackEntity) {
   const a = action || { action: "none" };
@@ -27,18 +27,9 @@ export function runAction(action, hass, host, fallbackEntity) {
         hass.callService("homeassistant", "toggle", { entity_id: entity });
       break;
     }
-    case "more-info": {
-      const entityId = a.entity || fallbackEntity;
-      if (entityId)
-        host.dispatchEvent(
-          new CustomEvent("hass-more-info", {
-            detail: { entityId },
-            bubbles: true,
-            composed: true,
-          }),
-        );
+    case "more-info":
+      moreInfo(host, a.entity || fallbackEntity);
       break;
-    }
     case "call-service":
     case "perform-action": {
       const svc = a.service || a.perform_action;

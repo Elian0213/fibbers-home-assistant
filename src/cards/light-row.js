@@ -12,9 +12,8 @@
 import { LitElement, html, css } from "lit";
 import { twSheet } from "../tw.js";
 import { runAction } from "../actions.js";
+import { moreInfo, clamp } from "../util.js";
 import "../icon.js";
-
-const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
 
 export class FibbersLightRow extends LitElement {
   static properties = {
@@ -126,13 +125,7 @@ export class FibbersLightRow extends LitElement {
     return this._config.icon_tap_action || { action: "toggle" };
   }
   _moreInfo() {
-    this.dispatchEvent(
-      new CustomEvent("hass-more-info", {
-        detail: { entityId: this._config.entity },
-        bubbles: true,
-        composed: true,
-      }),
-    );
+    moreInfo(this, this._config.entity);
   }
 
   render() {

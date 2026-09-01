@@ -58,6 +58,11 @@ export function measureBar() {
   }
 }
 
+// Named module-level handlers so re-adding on a rebuild is a no-op (the browser
+// dedupes identical type+listener+options) — an anonymous closure would leak one
+// listener per attach/detach cycle.
+const onOrientationChange = () => setTimeout(measureBar, 250);
+
 function buildBar() {
   const host = document.createElement("div");
   host.id = "fibbers-nav";
@@ -71,9 +76,7 @@ function buildBar() {
 
   if (window.ResizeObserver)
     new ResizeObserver(() => measureBar()).observe(div);
-  window.addEventListener("orientationchange", () =>
-    setTimeout(measureBar, 250),
-  );
+  window.addEventListener("orientationchange", onOrientationChange);
   window.addEventListener("resize", measureBar);
 
   return host;

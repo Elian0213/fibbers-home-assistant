@@ -80,6 +80,18 @@
   };
   var norm = (p) => String(p || "").replace(/\/+$/, "") || "/";
   var here = () => norm(window.location.pathname);
+  function moreInfo(host, entityId) {
+    if (!host || !entityId)
+      return;
+    host.dispatchEvent(new CustomEvent("hass-more-info", {
+      detail: { entityId },
+      bubbles: true,
+      composed: true
+    }));
+  }
+  var nl = (n, d) => Number.isFinite(n) ? n.toLocaleString("nl-NL", d != null ? { minimumFractionDigits: d, maximumFractionDigits: d } : {}) : String(n);
+  var isUnavail = (st) => !st || st.state === "unavailable" || st.state === "unknown";
+  var clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
   function navigate(path, { replace = false } = {}) {
     if (!path)
       return;
@@ -7135,6 +7147,7 @@
       bar.owners.forEach((o) => o._syncSpacer && o._syncSpacer());
     }
   }
+  var onOrientationChange = () => setTimeout(measureBar, 250);
   function buildBar() {
     const host = document.createElement("div");
     host.id = "fibbers-nav";
@@ -7147,7 +7160,7 @@
     document.body.appendChild(host);
     if (window.ResizeObserver)
       new ResizeObserver(() => measureBar()).observe(div);
-    window.addEventListener("orientationchange", () => setTimeout(measureBar, 250));
+    window.addEventListener("orientationchange", onOrientationChange);
     window.addEventListener("resize", measureBar);
     return host;
   }
@@ -7939,14 +7952,7 @@ ${decls}
         window.location.hash = this._config.sheet;
     }
     _moreInfo() {
-      const ent = this._lights()[0] || this._entities()[0];
-      if (!ent)
-        return;
-      this.dispatchEvent(new CustomEvent("hass-more-info", {
-        detail: { entityId: ent },
-        bubbles: true,
-        composed: true
-      }));
+      moreInfo(this, this._lights()[0] || this._entities()[0]);
     }
     render() {
       if (!this._config)
@@ -8002,16 +8008,9 @@ ${decls}
           hass.callService("homeassistant", "toggle", { entity_id: entity });
         break;
       }
-      case "more-info": {
-        const entityId = a.entity || fallbackEntity;
-        if (entityId)
-          host.dispatchEvent(new CustomEvent("hass-more-info", {
-            detail: { entityId },
-            bubbles: true,
-            composed: true
-          }));
+      case "more-info":
+        moreInfo(host, a.entity || fallbackEntity);
         break;
-      }
       case "call-service":
       case "perform-action": {
         const svc = a.service || a.perform_action;
@@ -8027,8 +8026,6 @@ ${decls}
   }
 
   // src/cards/light-row.js
-  var clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
-
   class FibbersLightRow extends LitElement {
     static properties = {
       hass: { attribute: false },
@@ -8131,11 +8128,7 @@ ${decls}
       return this._config.icon_tap_action || { action: "toggle" };
     }
     _moreInfo() {
-      this.dispatchEvent(new CustomEvent("hass-more-info", {
-        detail: { entityId: this._config.entity },
-        bubbles: true,
-        composed: true
-      }));
+      moreInfo(this, this._config.entity);
     }
     render() {
       const cfg = this._config;
@@ -8213,7 +8206,6 @@ ${decls}
 
   // src/cards/alert.js
   var friendly = (s) => s.attributes && s.attributes.friendly_name || s.entity_id;
-  var isUnavail = (st) => !st || st.state === "unavailable" || st.state === "unknown";
   function runCheck(check, hass) {
     const states = Object.values(hass.states);
     const out = [];
@@ -8307,13 +8299,7 @@ ${decls}
       return out;
     }
     _moreInfo(entity) {
-      if (!entity)
-        return;
-      this.dispatchEvent(new CustomEvent("hass-more-info", {
-        detail: { entityId: entity },
-        bubbles: true,
-        composed: true
-      }));
+      moreInfo(this, entity);
     }
     render() {
       if (!this._config)
@@ -8555,10 +8541,7 @@ ${decls}
   };
   var fmt = (raw, decimals) => {
     const n = Number(String(raw).replace(",", "."));
-    if (!Number.isFinite(n))
-      return String(raw);
-    const o = decimals != null ? { minimumFractionDigits: decimals, maximumFractionDigits: decimals } : {};
-    return n.toLocaleString("nl-NL", o);
+    return Number.isFinite(n) ? nl(n, decimals) : String(raw);
   };
 
   class FibbersStat extends LitElement {
@@ -8675,7 +8658,6 @@ ${decls}
     red: "text-red"
   };
   var W = 300;
-  var nl = (n, d2) => Number.isFinite(n) ? n.toLocaleString("nl-NL", d2 != null ? { minimumFractionDigits: d2, maximumFractionDigits: d2 } : {}) : String(n);
 
   class FibbersGraph extends LitElement {
     static properties = {
@@ -8848,10 +8830,21 @@ ${decls}
       return `${hrs} uur geleden`;
     return `${Math.round(hrs / 24)} dagen geleden`;
   }
+  function compileFilters(filters, label) {
+    return (filters || []).map((f) => {
+      if (!f.entity_id)
+        return f;
+      try {
+        return { ...f, _re: new RegExp(f.entity_id) };
+      } catch (e) {
+        throw new Error(`fibbers-entities: invalid ${label} entity_id regex "${f.entity_id}" — ${e.message}`);
+      }
+    });
+  }
   function matches(st, f) {
     if (f.domain && !st.entity_id.startsWith(f.domain + "."))
       return false;
-    if (f.entity_id && !new RegExp(f.entity_id).test(st.entity_id))
+    if (f._re && !f._re.test(st.entity_id))
       return false;
     if (f.state != null) {
       const want = Array.isArray(f.state) ? f.state : [f.state];
@@ -8906,18 +8899,19 @@ ${decls}
         throw new Error("fibbers-entities: `filters` must be a non-empty list");
       }
       this._config = config;
+      this._filters = compileFilters(config.filters, "filter");
+      this._exclude = compileFilters(config.exclude, "exclude");
     }
     _matched() {
       const hass = this.hass;
       if (!hass)
         return [];
-      const exclude = this._config.exclude || [];
       const seen = new Set;
       const out = [];
       for (const st of Object.values(hass.states)) {
-        if (!this._config.filters.some((f) => matches(st, f)))
+        if (!this._filters.some((f) => matches(st, f)))
           continue;
-        if (exclude.some((f) => matches(st, f)))
+        if (this._exclude.some((f) => matches(st, f)))
           continue;
         if (seen.has(st.entity_id))
           continue;
@@ -8953,13 +8947,6 @@ ${decls}
       const u = (st.attributes || {}).unit_of_measurement;
       return u ? `${st.state} ${u}` : st.state;
     }
-    _moreInfo(entity) {
-      this.dispatchEvent(new CustomEvent("hass-more-info", {
-        detail: { entityId: entity },
-        bubbles: true,
-        composed: true
-      }));
-    }
     render() {
       const cfg = this._config;
       if (!cfg)
@@ -8982,7 +8969,7 @@ ${decls}
                   role="button"
                   class="grid cursor-pointer grid-cols-[28px_1fr_auto] items-center gap-x-2.5
                      rounded-[10px] px-2.5 py-2 hover:bg-card2"
-                  @click=${() => this._moreInfo(st.entity_id)}
+                  @click=${() => moreInfo(this, st.entity_id)}
                 >
                   <div
                     class="flex h-7 w-7 items-center justify-center rounded-lg bg-card2"
@@ -9062,11 +9049,7 @@ ${decls}
       return st.state;
     }
     _moreInfo(entity) {
-      this.dispatchEvent(new CustomEvent("hass-more-info", {
-        detail: { entityId: entity },
-        bubbles: true,
-        composed: true
-      }));
+      moreInfo(this, entity);
     }
     render() {
       const people = this._people();
@@ -9125,7 +9108,6 @@ ${decls}
   }
 
   // src/cards/backup.js
-  var isUnavail2 = (st) => !st || st.state === "unavailable" || st.state === "unknown";
   function ago2(iso) {
     const t = Date.parse(iso);
     if (isNaN(t))
@@ -9179,7 +9161,7 @@ ${decls}
         return html``;
       const st = this.hass && this.hass.states[cfg.entity];
       let value, sub, warn;
-      if (isUnavail2(st)) {
+      if (isUnavail(st)) {
         value = "—";
         sub = "Geen back-up gevonden";
         warn = true;
@@ -9195,7 +9177,7 @@ ${decls}
         const bits = [failed ? "Mislukt" : "Geslaagd"];
         if (cfg.next) {
           const n = this.hass.states[cfg.next];
-          if (n && !isUnavail2(n))
+          if (n && !isUnavail(n))
             bits.push(`volgende ${clock(n.state)}`);
         }
         sub = bits.join(" · ");
@@ -9373,8 +9355,6 @@ ${decls}
   }
 
   // src/cards/media.js
-  var clamp2 = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
-
   class FibbersMedia extends LitElement {
     static properties = {
       hass: { attribute: false },
@@ -9434,7 +9414,7 @@ ${decls}
     }
     _volFromX(clientX, track) {
       const r = track.getBoundingClientRect();
-      return Math.round(clamp2((clientX - r.left) / r.width * 100, 0, 100));
+      return Math.round(clamp((clientX - r.left) / r.width * 100, 0, 100));
     }
     _down(e) {
       this._dragging = true;
@@ -9576,7 +9556,6 @@ ${decls}
 
   // src/cards/sysmon.js
   var W2 = 300;
-  var nl2 = (n, d2) => Number.isFinite(n) ? n.toLocaleString("nl-NL", d2 != null ? { minimumFractionDigits: d2, maximumFractionDigits: d2 } : {}) : String(n);
 
   class FibbersSysmon extends LitElement {
     static properties = {
@@ -9641,7 +9620,7 @@ ${decls}
       if (!st || st.state === "unavailable" || st.state === "unknown")
         return { text: "—", unit: "" };
       const unit = m.unit != null ? m.unit : st.attributes.unit_of_measurement || "";
-      return { text: nl2(Number(st.state), m.decimals) || st.state, unit };
+      return { text: nl(Number(st.state), m.decimals) || st.state, unit };
     }
     _sparkline() {
       const series = this._series;
@@ -9752,13 +9731,6 @@ ${decls}
     _state(id) {
       return id && this.hass ? this.hass.states[id] : null;
     }
-    _moreInfo(entity) {
-      this.dispatchEvent(new CustomEvent("hass-more-info", {
-        detail: { entityId: entity },
-        bubbles: true,
-        composed: true
-      }));
-    }
     render() {
       const cfg = this._config;
       if (!cfg)
@@ -9786,7 +9758,7 @@ ${decls}
                      ${on ? "bg-accent" : "bg-card2"}"
                 role="switch"
                 aria-checked=${on}
-                @click=${() => this.hass.callService("input_boolean", "toggle", {
+                @click=${() => this.hass && this.hass.callService("input_boolean", "toggle", {
         entity_id: cfg.enable
       })}
               >
@@ -9800,7 +9772,7 @@ ${decls}
       <button
         type="button"
         class="text-left ${on ? "" : "opacity-50"}"
-        @click=${() => this._moreInfo(cfg.time)}
+        @click=${() => moreInfo(this, cfg.time)}
       >
         <span class="text-[30px] font-semibold leading-none text-ink"
           >${time || "—"}</span
@@ -9819,7 +9791,7 @@ ${decls}
                   type="button"
                   class="rounded-full border px-2.5 py-1 text-[10.5px] font-medium
                        ${active ? "border-accentline bg-accentbg text-accent" : "border-line bg-card2 text-ink2"}"
-                  @click=${() => obj && this.hass.callService("input_boolean", "toggle", {
+                  @click=${() => obj && this.hass && this.hass.callService("input_boolean", "toggle", {
           entity_id: d2.entity
         })}
                 >
@@ -10116,9 +10088,10 @@ ${decls}
   /*!
    * Fibbers — custom cards + theming for the Thuis Home Assistant dashboard.
    *
-   * Ships:
-   *   custom:fibbers-nav    bottom navigation bar, genuinely pinned to the viewport
-   *   custom:fibbers-back   back control driven by a real navigation stack
+   * Ships ~20 custom cards (see the CARDS registry below) plus the body-appended
+   * nav bar and modal sheet, and injects the dark theme globally. The two most
+   * load-bearing pieces are `fibbers-nav` (viewport-pinned bottom bar) and
+   * `fibbers-back` (a back control driven by a real navigation stack).
    *
    * WHY THE BAR RENDERS INTO document.body
    * Inside a Lovelace view, `position: fixed` resolves against the scrolling

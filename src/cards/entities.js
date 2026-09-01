@@ -8,6 +8,7 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 import { twSheet } from "../tw.js";
+import { moreInfo } from "../util.js";
 import "../icon.js";
 
 const DOMAIN_ICON = {
@@ -32,9 +33,24 @@ function ago(iso) {
   return `${Math.round(hrs / 24)} dagen geleden`;
 }
 
+// Precompile each filter's `entity_id` regex once (in setConfig), validating it
+// there so a bad pattern is a clear config error instead of a per-render throw.
+function compileFilters(filters, label) {
+  return (filters || []).map((f) => {
+    if (!f.entity_id) return f;
+    try {
+      return { ...f, _re: new RegExp(f.entity_id) };
+    } catch (e) {
+      throw new Error(
+        `fibbers-entities: invalid ${label} entity_id regex "${f.entity_id}" — ${e.message}`,
+      );
+    }
+  });
+}
+
 function matches(st, f) {
   if (f.domain && !st.entity_id.startsWith(f.domain + ".")) return false;
-  if (f.entity_id && !new RegExp(f.entity_id).test(st.entity_id)) return false;
+  if (f._re && !f._re.test(st.entity_id)) return false;
   if (f.state != null) {
     const want = Array.isArray(f.state) ? f.state : [f.state];
     if (!want.map(String).includes(String(st.state))) return false;
@@ -84,17 +100,18 @@ export class FibbersEntities extends LitElement {
       throw new Error("fibbers-entities: `filters` must be a non-empty list");
     }
     this._config = config;
+    this._filters = compileFilters(config.filters, "filter");
+    this._exclude = compileFilters(config.exclude, "exclude");
   }
 
   _matched() {
     const hass = this.hass;
     if (!hass) return [];
-    const exclude = this._config.exclude || [];
     const seen = new Set();
     const out = [];
     for (const st of Object.values(hass.states)) {
-      if (!this._config.filters.some((f) => matches(st, f))) continue;
-      if (exclude.some((f) => matches(st, f))) continue;
+      if (!this._filters.some((f) => matches(st, f))) continue;
+      if (this._exclude.some((f) => matches(st, f))) continue;
       if (seen.has(st.entity_id)) continue;
       seen.add(st.entity_id);
       out.push(st);
@@ -131,16 +148,6 @@ export class FibbersEntities extends LitElement {
     const u = (st.attributes || {}).unit_of_measurement;
     return u ? `${st.state} ${u}` : st.state;
   }
-  _moreInfo(entity) {
-    this.dispatchEvent(
-      new CustomEvent("hass-more-info", {
-        detail: { entityId: entity },
-        bubbles: true,
-        composed: true,
-      }),
-    );
-  }
-
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
@@ -174,7 +181,7 @@ export class FibbersEntities extends LitElement {
                   role="button"
                   class="grid cursor-pointer grid-cols-[28px_1fr_auto] items-center gap-x-2.5
                      rounded-[10px] px-2.5 py-2 hover:bg-card2"
-                  @click=${() => this._moreInfo(st.entity_id)}
+                  @click=${() => moreInfo(this, st.entity_id)}
                 >
                   <div
                     class="flex h-7 w-7 items-center justify-center rounded-lg bg-card2"

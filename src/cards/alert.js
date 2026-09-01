@@ -8,12 +8,11 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 import { twSheet } from "../tw.js";
+import { moreInfo, isUnavail } from "../util.js";
 import "../icon.js";
 
 const friendly = (s) =>
   (s.attributes && s.attributes.friendly_name) || s.entity_id;
-const isUnavail = (st) =>
-  !st || st.state === "unavailable" || st.state === "unknown";
 
 function runCheck(check, hass) {
   const states = Object.values(hass.states);
@@ -135,14 +134,7 @@ export class FibbersAlert extends LitElement {
   }
 
   _moreInfo(entity) {
-    if (!entity) return;
-    this.dispatchEvent(
-      new CustomEvent("hass-more-info", {
-        detail: { entityId: entity },
-        bubbles: true,
-        composed: true,
-      }),
-    );
+    moreInfo(this, entity);
   }
 
   render() {
