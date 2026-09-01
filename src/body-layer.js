@@ -9,7 +9,7 @@ import { setTabHiding, removeTabHiding } from "./hide-tabs.js";
 import { nav, registerTabs } from "./nav-stack.js";
 import { T } from "./tokens.js";
 import { twSheet } from "./tw.js";
-import { norm, here, navigate } from "./util.js";
+import { norm, here, navigate, deepFind } from "./util.js";
 import "./icon.js";
 
 export const bar = {
@@ -40,6 +40,9 @@ const HOST_CSS = `
     box-shadow: 0 60px 0 60px ${T.nav};
     transform: translateZ(0);
   }
+  /* desktop sidebar inset: drop the 60px horizontal spread so the overscroll
+     floor never bleeds a nav-coloured slab over the sidebar */
+  :host([data-inset="true"]) .bar { box-shadow: 0 60px 0 0 ${T.nav}; }
 `;
 const hostSheet = new CSSStyleSheet();
 hostSheet.replaceSync(HOST_CSS);
@@ -57,7 +60,67 @@ export function measureBar() {
 // Named module-level handlers so re-adding on a rebuild is a no-op (the browser
 // dedupes identical type+listener+options) — an anonymous closure would leak one
 // listener per attach/detach cycle.
-const onOrientationChange = () => setTimeout(measureBar, 250);
+const onOrientationChange = () => {
+  setTimeout(measureBar, 250);
+  scheduleInset();
+};
+const onResizeInset = () => scheduleInset();
+
+/* ------------------------------------------------------------------ *
+ * Sidebar inset — on desktop the docked ha-sidebar overlaps the pinned bar,
+ * so inset the bar's start edge by the sidebar's measured width. 0 when the
+ * drawer is modal (narrow), the sidebar is hidden, or respect_sidebar: false.
+ * ------------------------------------------------------------------ */
+let sidebarRO = null;
+let drawerMO = null;
+let insetScheduled = false;
+
+function computeInset() {
+  if (!bar.config || bar.config.respect_sidebar === false) return 0;
+  const drawer = deepFind("ha-drawer");
+  if (drawer && drawer.getAttribute("type") === "modal") return 0; // narrow → overlay
+  if (nav.hassRef && nav.hassRef.dockedSidebar === "always_hidden") return 0;
+  const sidebar = deepFind("ha-sidebar");
+  const w = sidebar ? sidebar.getBoundingClientRect().width : 0;
+  return w > 0 ? Math.round(w) : 0;
+}
+
+// Attach the observers once HA's shell exists; idempotent, safe to re-call.
+function observeSidebar() {
+  if (!sidebarRO && window.ResizeObserver) {
+    const sidebar = deepFind("ha-sidebar");
+    if (sidebar) {
+      sidebarRO = new ResizeObserver(scheduleInset); // expand/collapse + rail
+      sidebarRO.observe(sidebar);
+    }
+  }
+  if (!drawerMO && window.MutationObserver) {
+    const drawer = deepFind("ha-drawer");
+    if (drawer) {
+      drawerMO = new MutationObserver(scheduleInset); // narrow ↔ wide flip
+      drawerMO.observe(drawer, { attributes: true, attributeFilter: ["type"] });
+    }
+  }
+}
+
+function syncSidebarInset() {
+  if (!bar.host) return;
+  observeSidebar();
+  const inset = computeInset();
+  bar.host.style.insetInlineStart = inset ? `${inset}px` : ""; // RTL-correct; right:0 stays
+  if (inset) bar.host.setAttribute("data-inset", "true");
+  else bar.host.removeAttribute("data-inset");
+}
+
+// One write per frame — the sidebar animates and fires a lot.
+function scheduleInset() {
+  if (insetScheduled) return;
+  insetScheduled = true;
+  requestAnimationFrame(() => {
+    insetScheduled = false;
+    syncSidebarInset();
+  });
+}
 
 function buildBar() {
   const host = document.createElement("div");
@@ -74,6 +137,7 @@ function buildBar() {
     new ResizeObserver(() => measureBar()).observe(div);
   window.addEventListener("orientationchange", onOrientationChange);
   window.addEventListener("resize", measureBar);
+  window.addEventListener("resize", onResizeInset);
 
   return host;
 }
@@ -192,6 +256,8 @@ export function attach(owner, config) {
   bar.host.style.bottom = offset ? `${offset}px` : "";
   renderBar();
   measureBar();
+  syncSidebarInset();
+  setTimeout(scheduleInset, 200); // HA's shell may mount the sidebar a beat later
   if (config.auto_hide) enableAutoHide();
   setTabHiding(config.hide_ha_tabs);
 }
@@ -202,6 +268,14 @@ export function detach(owner) {
     bar.host.remove();
     bar.host = null;
     bar.height = 0;
+    if (sidebarRO) {
+      sidebarRO.disconnect();
+      sidebarRO = null;
+    }
+    if (drawerMO) {
+      drawerMO.disconnect();
+      drawerMO = null;
+    }
     removeTabHiding();
   }
 }

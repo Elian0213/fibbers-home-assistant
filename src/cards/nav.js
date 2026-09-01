@@ -68,6 +68,12 @@ export class FibbersNav extends LitElement {
         'fibbers-nav: `hide_ha_tabs` must be false, true, or "header"',
       );
     }
+    if (
+      config.respect_sidebar != null &&
+      typeof config.respect_sidebar !== "boolean"
+    ) {
+      throw new Error("fibbers-nav: `respect_sidebar` must be true or false");
+    }
     this._config = config;
     this._syncSpacer();
     if (this.isConnected) attach(this, this._config);

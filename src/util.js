@@ -22,6 +22,19 @@ export const store = {
 export const norm = (p) => String(p || "").replace(/\/+$/, "") || "/";
 export const here = () => norm(window.location.pathname);
 
+// First open-shadow descendant with this localName. HA reshuffles its ancestor
+// chain between releases, so we never hard-code the path.
+export function deepFind(localName) {
+  const stack = [document.documentElement];
+  while (stack.length) {
+    const el = stack.pop();
+    if (el.localName === localName) return el;
+    if (el.shadowRoot) stack.push(...el.shadowRoot.children);
+    if (el.children) stack.push(...el.children);
+  }
+  return null;
+}
+
 /* ------------------------------------------------------------------ *
  * Shared card helpers (kept dependency-free so any card can import).
  * ------------------------------------------------------------------ */

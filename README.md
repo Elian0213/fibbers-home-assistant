@@ -73,7 +73,7 @@ Done. The cards and the theming load together.
 25 cards sharing one design-token set, so they match out of the box. User-facing strings are
 Dutch (it’s a home dashboard); config keys are English.
 
-**Shell & navigation** — the app shell: a pinned bottom bar, a back button, drag-away modal sheets, a section label, and the greeting header. (The bar and an open sheet are up top.)
+**Shell & navigation** — the app shell: a pinned bottom bar (sidebar-aware on desktop), a back button, drag-away modal sheets, a section label, and the greeting header. (The bar and an open sheet are up top.)
 
 <img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/nav.png" alt="fibbers-nav — the bottom bar" width="620">
 

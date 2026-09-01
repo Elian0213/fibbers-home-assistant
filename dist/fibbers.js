@@ -6810,6 +6810,98 @@
       issueWarning3("multiple-versions", `Multiple versions of Lit loaded. Loading multiple versions ` + `is not recommended.`);
     });
   }
+  // src/util.js
+  var store = {
+    get(key, fallback) {
+      try {
+        const raw = sessionStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (_) {
+        return fallback;
+      }
+    },
+    set(key, value) {
+      try {
+        sessionStorage.setItem(key, JSON.stringify(value));
+      } catch (_) {}
+    }
+  };
+  var norm = (p) => String(p || "").replace(/\/+$/, "") || "/";
+  var here = () => norm(window.location.pathname);
+  function deepFind(localName) {
+    const stack = [document.documentElement];
+    while (stack.length) {
+      const el = stack.pop();
+      if (el.localName === localName)
+        return el;
+      if (el.shadowRoot)
+        stack.push(...el.shadowRoot.children);
+      if (el.children)
+        stack.push(...el.children);
+    }
+    return null;
+  }
+  function moreInfo(host, entityId) {
+    if (!host || !entityId)
+      return;
+    host.dispatchEvent(new CustomEvent("hass-more-info", {
+      detail: { entityId },
+      bubbles: true,
+      composed: true
+    }));
+  }
+  var nl = (n, d2) => Number.isFinite(n) ? n.toLocaleString("nl-NL", d2 != null ? { minimumFractionDigits: d2, maximumFractionDigits: d2 } : {}) : String(n);
+  var isUnavail = (st) => !st || st.state === "unavailable" || st.state === "unknown";
+  var clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+  function fmtState(hass, st) {
+    try {
+      if (hass && typeof hass.formatEntityState === "function")
+        return hass.formatEntityState(st);
+    } catch (_) {}
+    return st ? st.state : "";
+  }
+  function debounce(fn, ms) {
+    let t;
+    const wrapped = (...args) => {
+      clearTimeout(t);
+      t = setTimeout(() => fn(...args), ms);
+    };
+    wrapped.cancel = () => clearTimeout(t);
+    return wrapped;
+  }
+  function pctFromX(clientX, track) {
+    const r = track.getBoundingClientRect();
+    return clamp((clientX - r.left) / r.width * 100, 0, 100);
+  }
+  async function fetchHistory(hass, entityId, hours = 24) {
+    if (!hass || !hass.callWS)
+      return [];
+    const end = new Date;
+    const start = new Date(end.getTime() - hours * 3600000);
+    const res = await hass.callWS({
+      type: "history/history_during_period",
+      start_time: start.toISOString(),
+      end_time: end.toISOString(),
+      entity_ids: [entityId],
+      minimal_response: true,
+      no_attributes: true
+    });
+    return (res && res[entityId] || []).map((r) => Number(r.s != null ? r.s : r.state)).filter((n) => Number.isFinite(n));
+  }
+  function navigate(path, { replace = false } = {}) {
+    if (!path)
+      return;
+    if (String(path).startsWith("#")) {
+      window.location.hash = path;
+      return;
+    }
+    if (replace)
+      history.replaceState(null, "", path);
+    else
+      history.pushState(null, "", path);
+    window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace } }));
+  }
+
   // src/hide-tabs.js
   var STYLE_ID = "fibbers-hide-tabs";
   var CSS = {
@@ -6830,32 +6922,8 @@
       return false;
     }
   }
-  function findHuiRoot() {
-    const stack = [document.documentElement];
-    while (stack.length) {
-      const el = stack.pop();
-      if (el.localName === "hui-root")
-        return el;
-      if (el.shadowRoot)
-        stack.push(...el.shadowRoot.children);
-      if (el.children)
-        stack.push(...el.children);
-    }
-    return null;
-  }
-  function findResolvedPanel() {
-    const stack = [document.documentElement];
-    while (stack.length) {
-      const el = stack.pop();
-      if (el.localName === "partial-panel-resolver")
-        return el;
-      if (el.shadowRoot)
-        stack.push(...el.shadowRoot.children);
-      if (el.children)
-        stack.push(...el.children);
-    }
-    return null;
-  }
+  var findHuiRoot = () => deepFind("hui-root");
+  var findResolvedPanel = () => deepFind("partial-panel-resolver");
   function paint() {
     if (!state.mode || suppressed())
       return removeStyle();
@@ -6925,85 +6993,6 @@
   }
   window.addEventListener("location-changed", schedulePaint);
   window.addEventListener("popstate", schedulePaint);
-
-  // src/util.js
-  var store = {
-    get(key, fallback) {
-      try {
-        const raw = sessionStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-      } catch (_) {
-        return fallback;
-      }
-    },
-    set(key, value) {
-      try {
-        sessionStorage.setItem(key, JSON.stringify(value));
-      } catch (_) {}
-    }
-  };
-  var norm = (p) => String(p || "").replace(/\/+$/, "") || "/";
-  var here = () => norm(window.location.pathname);
-  function moreInfo(host, entityId) {
-    if (!host || !entityId)
-      return;
-    host.dispatchEvent(new CustomEvent("hass-more-info", {
-      detail: { entityId },
-      bubbles: true,
-      composed: true
-    }));
-  }
-  var nl = (n, d2) => Number.isFinite(n) ? n.toLocaleString("nl-NL", d2 != null ? { minimumFractionDigits: d2, maximumFractionDigits: d2 } : {}) : String(n);
-  var isUnavail = (st) => !st || st.state === "unavailable" || st.state === "unknown";
-  var clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
-  function fmtState(hass, st) {
-    try {
-      if (hass && typeof hass.formatEntityState === "function")
-        return hass.formatEntityState(st);
-    } catch (_) {}
-    return st ? st.state : "";
-  }
-  function debounce(fn, ms) {
-    let t;
-    const wrapped = (...args) => {
-      clearTimeout(t);
-      t = setTimeout(() => fn(...args), ms);
-    };
-    wrapped.cancel = () => clearTimeout(t);
-    return wrapped;
-  }
-  function pctFromX(clientX, track) {
-    const r = track.getBoundingClientRect();
-    return clamp((clientX - r.left) / r.width * 100, 0, 100);
-  }
-  async function fetchHistory(hass, entityId, hours = 24) {
-    if (!hass || !hass.callWS)
-      return [];
-    const end = new Date;
-    const start = new Date(end.getTime() - hours * 3600000);
-    const res = await hass.callWS({
-      type: "history/history_during_period",
-      start_time: start.toISOString(),
-      end_time: end.toISOString(),
-      entity_ids: [entityId],
-      minimal_response: true,
-      no_attributes: true
-    });
-    return (res && res[entityId] || []).map((r) => Number(r.s != null ? r.s : r.state)).filter((n) => Number.isFinite(n));
-  }
-  function navigate(path, { replace = false } = {}) {
-    if (!path)
-      return;
-    if (String(path).startsWith("#")) {
-      window.location.hash = path;
-      return;
-    }
-    if (replace)
-      history.replaceState(null, "", path);
-    else
-      history.pushState(null, "", path);
-    window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace } }));
-  }
 
   // src/nav-stack.js
   var NAV_KEY = "fibbers:navstack";
@@ -7169,6 +7158,9 @@
     box-shadow: 0 60px 0 60px ${T.nav};
     transform: translateZ(0);
   }
+  /* desktop sidebar inset: drop the 60px horizontal spread so the overscroll
+     floor never bleeds a nav-coloured slab over the sidebar */
+  :host([data-inset="true"]) .bar { box-shadow: 0 60px 0 0 ${T.nav}; }
 `;
   var hostSheet = new CSSStyleSheet;
   hostSheet.replaceSync(HOST_CSS);
@@ -7182,7 +7174,62 @@
       bar.owners.forEach((o) => o._syncSpacer && o._syncSpacer());
     }
   }
-  var onOrientationChange = () => setTimeout(measureBar, 250);
+  var onOrientationChange = () => {
+    setTimeout(measureBar, 250);
+    scheduleInset();
+  };
+  var onResizeInset = () => scheduleInset();
+  var sidebarRO = null;
+  var drawerMO = null;
+  var insetScheduled = false;
+  function computeInset() {
+    if (!bar.config || bar.config.respect_sidebar === false)
+      return 0;
+    const drawer = deepFind("ha-drawer");
+    if (drawer && drawer.getAttribute("type") === "modal")
+      return 0;
+    if (nav.hassRef && nav.hassRef.dockedSidebar === "always_hidden")
+      return 0;
+    const sidebar = deepFind("ha-sidebar");
+    const w = sidebar ? sidebar.getBoundingClientRect().width : 0;
+    return w > 0 ? Math.round(w) : 0;
+  }
+  function observeSidebar() {
+    if (!sidebarRO && window.ResizeObserver) {
+      const sidebar = deepFind("ha-sidebar");
+      if (sidebar) {
+        sidebarRO = new ResizeObserver(scheduleInset);
+        sidebarRO.observe(sidebar);
+      }
+    }
+    if (!drawerMO && window.MutationObserver) {
+      const drawer = deepFind("ha-drawer");
+      if (drawer) {
+        drawerMO = new MutationObserver(scheduleInset);
+        drawerMO.observe(drawer, { attributes: true, attributeFilter: ["type"] });
+      }
+    }
+  }
+  function syncSidebarInset() {
+    if (!bar.host)
+      return;
+    observeSidebar();
+    const inset = computeInset();
+    bar.host.style.insetInlineStart = inset ? `${inset}px` : "";
+    if (inset)
+      bar.host.setAttribute("data-inset", "true");
+    else
+      bar.host.removeAttribute("data-inset");
+  }
+  function scheduleInset() {
+    if (insetScheduled)
+      return;
+    insetScheduled = true;
+    requestAnimationFrame(() => {
+      insetScheduled = false;
+      syncSidebarInset();
+    });
+  }
   function buildBar() {
     const host = document.createElement("div");
     host.id = "fibbers-nav";
@@ -7197,6 +7244,7 @@
       new ResizeObserver(() => measureBar()).observe(div);
     window.addEventListener("orientationchange", onOrientationChange);
     window.addEventListener("resize", measureBar);
+    window.addEventListener("resize", onResizeInset);
     return host;
   }
   function tabMatches(tab, path) {
@@ -7297,6 +7345,8 @@
     bar.host.style.bottom = offset ? `${offset}px` : "";
     renderBar();
     measureBar();
+    syncSidebarInset();
+    setTimeout(scheduleInset, 200);
     if (config.auto_hide)
       enableAutoHide();
     setTabHiding(config.hide_ha_tabs);
@@ -7307,6 +7357,14 @@
       bar.host.remove();
       bar.host = null;
       bar.height = 0;
+      if (sidebarRO) {
+        sidebarRO.disconnect();
+        sidebarRO = null;
+      }
+      if (drawerMO) {
+        drawerMO.disconnect();
+        drawerMO = null;
+      }
       removeTabHiding();
     }
   }
@@ -8911,6 +8969,9 @@
       }
       if (config.hide_ha_tabs != null && config.hide_ha_tabs !== true && config.hide_ha_tabs !== false && config.hide_ha_tabs !== "header") {
         throw new Error('fibbers-nav: `hide_ha_tabs` must be false, true, or "header"');
+      }
+      if (config.respect_sidebar != null && typeof config.respect_sidebar !== "boolean") {
+        throw new Error("fibbers-nav: `respect_sidebar` must be true or false");
       }
       this._config = config;
       this._syncSpacer();

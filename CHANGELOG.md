@@ -3,6 +3,15 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **`fibbers-nav`** is now sidebar-aware on desktop: it insets its start edge past Home Assistant's
+  docked sidebar (so the leftmost tab is no longer hidden behind it) and follows the sidebar as it
+  expands / collapses. It stays full-width on narrow (modal-drawer) layouts and when the sidebar is
+  hidden. Opt out with `respect_sidebar: false`.
+
 ## [0.4.0] — 2026-09-01
 
 ### Added

@@ -4,6 +4,7 @@
  * so we inject a <style> there, the way card-mod does.
  * Modes: false = untouched; true = hide ha-tab-group; "header" = hide .header.
  * ================================================================== */
+import { deepFind } from "./util.js";
 
 const STYLE_ID = "fibbers-hide-tabs";
 const CSS = {
@@ -27,32 +28,10 @@ function suppressed() {
   }
 }
 
-/**
- * Walk OPEN shadow roots to find hui-root. Deliberately generic — HA reshuffles
- * the ancestor chain between releases, so we never hard-code it.
- */
-export function findHuiRoot() {
-  const stack = [document.documentElement];
-  while (stack.length) {
-    const el = stack.pop();
-    if (el.localName === "hui-root") return el;
-    if (el.shadowRoot) stack.push(...el.shadowRoot.children);
-    if (el.children) stack.push(...el.children);
-  }
-  return null;
-}
+export const findHuiRoot = () => deepFind("hui-root");
 
-/** The panel wrapper we observe for re-renders (best-effort, generic walk). */
-function findResolvedPanel() {
-  const stack = [document.documentElement];
-  while (stack.length) {
-    const el = stack.pop();
-    if (el.localName === "partial-panel-resolver") return el;
-    if (el.shadowRoot) stack.push(...el.shadowRoot.children);
-    if (el.children) stack.push(...el.children);
-  }
-  return null;
-}
+/** The panel wrapper we observe for re-renders. */
+const findResolvedPanel = () => deepFind("partial-panel-resolver");
 
 /** Append or update the single injected style inside hui-root.shadowRoot. */
 function paint() {
