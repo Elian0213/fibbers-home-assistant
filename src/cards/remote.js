@@ -126,4 +126,7 @@ export class FibbersRemote extends LitElement {
   getLayoutOptions() {
     return { grid_columns: 6, grid_rows: 4 };
   }
+  getGridOptions() {
+    return { columns: 6, rows: "auto", min_columns: 3 };
+  }
 }

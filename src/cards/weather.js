@@ -147,4 +147,7 @@ export class FibbersWeather extends LitElement {
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 2 };
   }
+  getGridOptions() {
+    return { columns: "full", rows: "auto" };
+  }
 }

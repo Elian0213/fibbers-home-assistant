@@ -67,4 +67,7 @@ export class FibbersSheet extends LitElement {
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 1 };
   }
+  getGridOptions() {
+    return { columns: 1, rows: 1, min_columns: 1, min_rows: 1 };
+  }
 }

@@ -8039,6 +8039,9 @@ ${decls}
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 2 };
     }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
+    }
   }
 
   // src/cards/back.js
@@ -8106,6 +8109,9 @@ ${decls}
     }
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
     }
   }
 
@@ -8219,6 +8225,9 @@ ${decls}
     getLayoutOptions() {
       return { grid_columns: 6, grid_rows: 1 };
     }
+    getGridOptions() {
+      return { columns: 6, rows: "auto", min_columns: 3 };
+    }
   }
 
   // src/actions.js
@@ -8323,6 +8332,9 @@ ${decls}
     }
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
     }
   }
 
@@ -8485,6 +8497,9 @@ ${decls}
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 3 };
     }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
+    }
   }
 
   // src/cards/datetime.js
@@ -8569,6 +8584,9 @@ ${decls}
     }
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
     }
   }
 
@@ -8770,6 +8788,9 @@ ${decls}
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 2 };
     }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
+    }
   }
 
   // src/cards/graph.js
@@ -8930,6 +8951,9 @@ ${decls}
     getLayoutOptions() {
       return { grid_columns: 6, grid_rows: 2 };
     }
+    getGridOptions() {
+      return { columns: 6, rows: "auto", min_columns: 3 };
+    }
   }
 
   // src/cards/greeting.js
@@ -9062,6 +9086,9 @@ ${decls}
     }
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
     }
   }
 
@@ -9327,6 +9354,9 @@ ${decls}
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 2 };
     }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
+    }
   }
 
   // src/ui.js
@@ -9539,6 +9569,9 @@ ${decls}
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 1 };
     }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
+    }
   }
 
   // src/cards/media.js
@@ -9729,6 +9762,9 @@ ${decls}
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 3 };
     }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
+    }
   }
 
   // src/cards/nav.js
@@ -9815,6 +9851,9 @@ ${decls}
     }
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: 1, rows: 1, min_columns: 1, min_rows: 1 };
     }
   }
 
@@ -10013,6 +10052,9 @@ ${decls}
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 1 };
     }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
+    }
   }
 
   // src/cards/presence.js
@@ -10115,6 +10157,9 @@ ${decls}
     }
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
     }
   }
 
@@ -10230,6 +10275,9 @@ ${decls}
     }
     getLayoutOptions() {
       return { grid_columns: 6, grid_rows: 4 };
+    }
+    getGridOptions() {
+      return { columns: 6, rows: "auto", min_columns: 3 };
     }
   }
 
@@ -10368,6 +10416,9 @@ ${decls}
     getLayoutOptions() {
       return { grid_columns: 6, grid_rows: 1 };
     }
+    getGridOptions() {
+      return { columns: 6, rows: "auto", min_columns: 3 };
+    }
   }
 
   // src/cards/scene.js
@@ -10489,6 +10540,9 @@ ${decls}
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 1 };
     }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
+    }
   }
 
   // src/cards/scheduler.js
@@ -10601,6 +10655,9 @@ ${decls}
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 2 };
     }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
+    }
   }
 
   // src/cards/section.js
@@ -10638,6 +10695,9 @@ ${decls}
     }
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
     }
   }
 
@@ -10799,6 +10859,9 @@ ${decls}
     }
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
     }
   }
 
@@ -11135,6 +11198,9 @@ ${decls}
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 1 };
     }
+    getGridOptions() {
+      return { columns: 1, rows: 1, min_columns: 1, min_rows: 1 };
+    }
   }
 
   // src/cards/stat.js
@@ -11259,6 +11325,9 @@ ${decls}
     }
     getLayoutOptions() {
       return { grid_columns: 6, grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: 6, rows: "auto", min_columns: 3 };
     }
   }
 
@@ -11395,6 +11464,9 @@ ${decls}
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 3 };
     }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
+    }
   }
 
   // src/cards/toggle.js
@@ -11485,6 +11557,9 @@ ${decls}
     }
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
     }
   }
 
@@ -11605,6 +11680,9 @@ ${decls}
     }
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: 2 };
+    }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
     }
   }
 

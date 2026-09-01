@@ -159,4 +159,7 @@ export class FibbersSysmon extends LitElement {
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 3 };
   }
+  getGridOptions() {
+    return { columns: "full", rows: "auto" };
+  }
 }

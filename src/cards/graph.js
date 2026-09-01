@@ -187,4 +187,7 @@ export class FibbersGraph extends LitElement {
   getLayoutOptions() {
     return { grid_columns: 6, grid_rows: 2 };
   }
+  getGridOptions() {
+    return { columns: 6, rows: "auto", min_columns: 3 };
+  }
 }
