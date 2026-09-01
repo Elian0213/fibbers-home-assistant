@@ -1,6 +1,7 @@
 /* ================================================================== *
- * fibbers-media — media_player: now-playing, transport, drag volume, and
- * optional `sources` chips. `compact: true` is the tight now-playing row.
+ * fibbers-media — media_player: now-playing with a drift-corrected seek bar,
+ * transport, volume, source chips, optional speaker `group:` (join/unjoin) and
+ * `favourites:` (play_media). `compact: true` is the tight now-playing row.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
@@ -10,12 +11,25 @@ import { sliderTrack } from "../ui.js";
 import { pctFromX, pickEntity } from "../util.js";
 import "../icon.js";
 
+const fmtTime = (s) => {
+  if (!Number.isFinite(s) || s < 0) return "0:00";
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${m}:${String(sec).padStart(2, "0")}`;
+};
+
+const VIDEO_TYPES = ["tvshow", "movie", "video", "channel", "episode"];
+const VIDEO_APPS =
+  /netflix|youtube|plex|kodi|disney|hbo|prime|twitch|jellyfin/i;
+
 export class FibbersMedia extends LitElement {
   static properties = {
     hass: { attribute: false },
     _config: { state: true },
     _dragging: { state: true },
     _dragVol: { state: true },
+    _seeking: { state: true },
+    _dragSeek: { state: true },
   };
   static styles = [
     twSheet,
@@ -45,9 +59,39 @@ export class FibbersMedia extends LitElement {
     if (config.sources != null && !Array.isArray(config.sources)) {
       throw new Error("fibbers-media: `sources` must be a list");
     }
+    if (config.group != null && !Array.isArray(config.group)) {
+      throw new Error("fibbers-media: `group` must be a list of media_players");
+    }
+    if (config.favourites != null && !Array.isArray(config.favourites)) {
+      throw new Error("fibbers-media: `favourites` must be a list");
+    }
     this._config = config;
     this._dragging = false;
     this._dragVol = 0;
+    this._seeking = false;
+    this._dragSeek = 0;
+  }
+
+  // A seek bar showing live elapsed time needs its own 1s tick while playing —
+  // hass only pushes a new media_position occasionally.
+  updated() {
+    const p = this._pos();
+    if (this._playing() && p && p.dur) this._startTick();
+    else this._stopTick();
+  }
+  _startTick() {
+    if (this._tick) return;
+    this._tick = setInterval(() => this.requestUpdate(), 1000);
+  }
+  _stopTick() {
+    if (this._tick) {
+      clearInterval(this._tick);
+      this._tick = null;
+    }
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this._stopTick();
   }
 
   _st() {
@@ -68,12 +112,51 @@ export class FibbersMedia extends LitElement {
     return v != null ? Math.round(v * 100) : 0;
   }
 
+  // Current playback position with drift correction: media_position is a snapshot
+  // taken at media_position_updated_at, so while playing we add the elapsed wall
+  // time rather than letting the bar sit still between state pushes.
+  _pos() {
+    const a = (this._st() && this._st().attributes) || {};
+    const base = Number(a.media_position);
+    if (!Number.isFinite(base)) return null;
+    const dur = Number(a.media_duration) || 0;
+    let pos = base;
+    if (this._playing() && a.media_position_updated_at) {
+      const upd = Date.parse(a.media_position_updated_at);
+      if (!isNaN(upd)) pos = base + (Date.now() - upd) / 1000;
+    }
+    return { pos: Math.max(0, dur ? Math.min(dur, pos) : pos), dur };
+  }
+
+  // Fallback tile icon (when there's no artwork): video for TV apps/content, else
+  // a music note — so a TV playing Netflix doesn't show a music note.
+  _contentIcon() {
+    const a = (this._st() && this._st().attributes) || {};
+    if (
+      VIDEO_TYPES.includes(a.media_content_type) ||
+      VIDEO_APPS.test(a.app_name || "")
+    )
+      return "solar:tv-bold-duotone";
+    return "solar:music-note-bold-duotone";
+  }
+
   _svc(service, data) {
     if (this.hass)
       this.hass.callService("media_player", service, {
         entity_id: this._config.entity,
         ...data,
       });
+  }
+  _join(entityId) {
+    if (this.hass)
+      this.hass.callService("media_player", "join", {
+        entity_id: this._config.entity,
+        group_members: [entityId],
+      });
+  }
+  _unjoin(entityId) {
+    if (this.hass)
+      this.hass.callService("media_player", "unjoin", { entity_id: entityId });
   }
 
   _down(e) {
@@ -93,24 +176,82 @@ export class FibbersMedia extends LitElement {
     this._svc("volume_set", { volume_level: v / 100 });
   }
 
-  _transportBtn(icon, service, big = false) {
+  _seekFromX(e) {
+    const dur = (this._pos() || {}).dur || 0;
+    return (pctFromX(e.clientX, e.currentTarget) / 100) * dur;
+  }
+  _seekDown(e) {
+    this._seeking = true;
+    e.currentTarget.setPointerCapture &&
+      e.currentTarget.setPointerCapture(e.pointerId);
+    this._dragSeek = this._seekFromX(e);
+  }
+  _seekMove(e) {
+    if (this._seeking) this._dragSeek = this._seekFromX(e);
+  }
+  _seekUp(e) {
+    if (!this._seeking) return;
+    const s = this._seekFromX(e);
+    this._seeking = false;
+    this._svc("media_seek", { seek_position: Math.round(s) });
+  }
+
+  _transportBtn(icon, service, opts = {}) {
     const LABELS = {
       media_previous_track: "Previous track",
       media_play_pause: "Play / pause",
       media_next_track: "Next track",
     };
+    const big = opts.big;
     return html`<button
       type="button"
       aria-label=${LABELS[service] || service}
       class="flex ${big ? "h-11 w-11" : "h-9 w-9"} items-center justify-center rounded-full
-             bg-card2 text-ink transition-transform active:scale-90"
+             ${opts.accent ? "bg-accentbg text-accent" : "bg-card2 text-ink"}
+             transition-transform active:scale-90"
       @click=${() => this._svc(service)}
     >
       <fib-icon
-        class="${big ? "h-6 w-6 [--mdc-icon-size:24px]" : "h-[18px] w-[18px] [--mdc-icon-size:18px]"}"
+        class="${
+          big
+            ? "h-6 w-6 [--mdc-icon-size:24px]"
+            : "h-[18px] w-[18px] [--mdc-icon-size:18px]"
+        }"
         icon=${icon}
       ></fib-icon>
     </button>`;
+  }
+
+  _seekBar() {
+    const p = this._pos();
+    if (!p || !p.dur) return "";
+    const pos = this._seeking ? this._dragSeek : p.pos;
+    const pct = p.dur ? (pos / p.dur) * 100 : 0;
+    return html`<div class="mb-3">
+      ${sliderTrack({
+        pct,
+        label: "Seek",
+        value: Math.round(pos),
+        min: 0,
+        max: Math.round(p.dur),
+        step: 10,
+        valueText: fmtTime(pos),
+        onInput: (v) =>
+          this._svc("media_seek", { seek_position: Math.round(v) }),
+        onDown: this._seekDown,
+        onMove: this._seekMove,
+        onUp: this._seekUp,
+        onCancel: () => {
+          this._seeking = false;
+        },
+      })}
+      <div
+        class="mt-1 flex justify-between text-[10px] tabular-nums text-muted"
+      >
+        <span>${fmtTime(pos)}</span>
+        <span>-${fmtTime(p.dur - pos)}</span>
+      </div>
+    </div>`;
   }
 
   render() {
@@ -142,7 +283,7 @@ export class FibbersMedia extends LitElement {
           ? ""
           : html`<fib-icon
               class="h-6 w-6 [--mdc-icon-size:24px] text-muted"
-              icon="solar:music-note-bold-duotone"
+              icon=${this._contentIcon()}
             ></fib-icon>`
       }
     </div>`;
@@ -158,7 +299,7 @@ export class FibbersMedia extends LitElement {
           </div>
           <div class="truncate text-[11px] text-muted">${artist}</div>
         </div>
-        ${this._transportBtn(playIcon, "media_play_pause")}
+        ${this._transportBtn(playIcon, "media_play_pause", { accent: true })}
         ${this._transportBtn("solar:skip-next-bold-duotone", "media_next_track")}
       </div>`;
     }
@@ -183,12 +324,17 @@ export class FibbersMedia extends LitElement {
         </div>
       </div>
 
+      ${this._seekBar()}
+
       <div class="mb-3 flex items-center justify-center gap-4">
         ${this._transportBtn(
           "solar:skip-previous-bold-duotone",
           "media_previous_track",
         )}
-        ${this._transportBtn(playIcon, "media_play_pause", true)}
+        ${this._transportBtn(playIcon, "media_play_pause", {
+          big: true,
+          accent: true,
+        })}
         ${this._transportBtn("solar:skip-next-bold-duotone", "media_next_track")}
       </div>
 
@@ -224,10 +370,11 @@ export class FibbersMedia extends LitElement {
         Array.isArray(cfg.sources) && cfg.sources.length
           ? html`<div class="mt-3 flex flex-wrap gap-[7px]">
               ${cfg.sources.map((s) => {
-                const active =
-                  st && st.attributes.source === (s.source || s.name);
+                const active = a.source === (s.source || s.name);
                 return html`<button
                   type="button"
+                  aria-label=${s.name}
+                  aria-pressed=${active ? "true" : "false"}
                   class="inline-flex items-center rounded-full border px-2.5 py-[5px] text-[10.5px]
                        font-medium ${
                          active
@@ -243,6 +390,87 @@ export class FibbersMedia extends LitElement {
             </div>`
           : ""
       }
+      ${this._groupRow(a)} ${this._favouritesGrid()}
+    </div>`;
+  }
+
+  _groupRow(a) {
+    const cfg = this._config;
+    if (!Array.isArray(cfg.group) || !cfg.group.length) return "";
+    const hl = cfg.language || this.hass;
+    const members = a.group_members || [];
+    return html`<div class="mt-3">
+      <div
+        class="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
+      >
+        ${t(hl, "media.speakers")}
+      </div>
+      <div class="flex flex-wrap gap-1.5">
+        ${cfg.group.map((g) => {
+          const gid = typeof g === "string" ? g : g.entity;
+          const gname =
+            (typeof g === "object" && g.name) ||
+            (this.hass &&
+              this.hass.states[gid] &&
+              this.hass.states[gid].attributes.friendly_name) ||
+            gid;
+          const joined = members.includes(gid);
+          return html`<button
+            type="button"
+            aria-label=${gname}
+            aria-pressed=${joined ? "true" : "false"}
+            class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[5px]
+                   text-[10.5px] font-medium ${
+                     joined
+                       ? "border-accentline bg-accentbg text-accent"
+                       : "border-line bg-card2 text-ink2"
+                   }"
+            @click=${() => (joined ? this._unjoin(gid) : this._join(gid))}
+          >
+            <fib-icon
+              class="h-[13px] w-[13px] [--mdc-icon-size:13px]"
+              icon="solar:speaker-bold-duotone"
+            ></fib-icon>
+            ${gname}
+          </button>`;
+        })}
+      </div>
+    </div>`;
+  }
+
+  _favouritesGrid() {
+    const favs = this._config.favourites;
+    if (!Array.isArray(favs) || !favs.length) return "";
+    return html`<div class="mt-3 grid grid-cols-4 gap-2">
+      ${favs.map(
+        (f) =>
+          html`<button
+            type="button"
+            aria-label=${f.name || f.media_content_id}
+            class="flex flex-col items-center gap-1 text-[10px] text-ink2"
+            @click=${() =>
+              this._svc("play_media", {
+                media_content_id: f.media_content_id,
+                media_content_type: f.media_content_type || "music",
+              })}
+          >
+            <div
+              class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-[10px]
+                   bg-card2 bg-cover bg-center"
+              style=${f.thumbnail ? `background-image:url("${f.thumbnail}")` : ""}
+            >
+              ${
+                f.thumbnail
+                  ? ""
+                  : html`<fib-icon
+                      class="h-5 w-5 [--mdc-icon-size:20px] text-muted"
+                      icon=${f.icon || "solar:play-bold-duotone"}
+                    ></fib-icon>`
+              }
+            </div>
+            <span class="w-full truncate text-center">${f.name || ""}</span>
+          </button>`,
+      )}
     </div>`;
   }
 

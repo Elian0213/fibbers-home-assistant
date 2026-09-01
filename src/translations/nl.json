@@ -127,7 +127,8 @@
   },
   "media": {
     "default_name": "Media",
-    "idle": "Niets aan het spelen"
+    "idle": "Niets aan het spelen",
+    "speakers": "Luidsprekers"
   },
   "graph": {
     "no_history": "Geen historie"

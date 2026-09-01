@@ -127,7 +127,8 @@
   },
   "media": {
     "default_name": "Media",
-    "idle": "Nothing playing"
+    "idle": "Nothing playing",
+    "speakers": "Speakers"
   },
   "graph": {
     "no_history": "No history"
