@@ -9,7 +9,7 @@ import { LitElement, html, css } from "lit";
 
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
-import { sliderTrack, overflowChips } from "../ui.js";
+import { sliderTrack, overflowChips, SliderHold } from "../ui.js";
 import { pickEntity, pctFromX } from "../util.js";
 import "../icon.js";
 
@@ -88,6 +88,7 @@ export class FibbersRemote extends LitElement {
     this._dragging = false;
     this._dragVol = 0;
     this._srcOpen = false;
+    this._volHold = new SliderHold(this, { tolerance: 2 });
   }
 
   disconnectedCallback() {
@@ -169,7 +170,11 @@ export class FibbersRemote extends LitElement {
     if (!this._dragging) return;
     const v = Math.round(pctFromX(e.clientX, e.currentTarget));
     this._dragging = false;
-    this._mpService("volume_set", { volume_level: v / 100 });
+    this._setVol(v);
+  }
+  _setVol(pct) {
+    this._volHold.hold(pct);
+    this._mpService("volume_set", { volume_level: pct / 100 });
   }
 
   // --- render helpers ------------------------------------------------
@@ -318,9 +323,10 @@ export class FibbersRemote extends LitElement {
       )}`;
 
     if (hasVol) {
-      const vol = this._dragging
-        ? this._dragVol
-        : Math.round(mp.attributes.volume_level * 100);
+      const vol = this._volHold.value(
+        Math.round(mp.attributes.volume_level * 100),
+        { dragging: this._dragging, dragValue: this._dragVol },
+      );
       return html`<div class="flex flex-col gap-3">
         <div class="flex items-center gap-2.5">
           <button
@@ -350,8 +356,7 @@ export class FibbersRemote extends LitElement {
             max: 100,
             step: 5,
             valueText: `${vol}%`,
-            onInput: (v) =>
-              this._mpService("volume_set", { volume_level: v / 100 }),
+            onInput: (v) => this._setVol(v),
             onDown: this._volDown,
             onMove: this._volMove,
             onUp: this._volUp,

@@ -6,7 +6,7 @@ import { LitElement, html, css } from "lit";
 
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
-import { sliderTrack } from "../ui.js";
+import { sliderTrack, SliderHold } from "../ui.js";
 import {
   fmtNum,
   clamp,
@@ -80,6 +80,7 @@ export class FibbersNumber extends LitElement {
     this._dragging = false;
     this._dragVal = 0;
     this._debouncedSet = debounce((v) => this._setValue(v), 150);
+    this._hold = new SliderHold(this, { tolerance: 0.5 });
   }
 
   _st() {
@@ -103,9 +104,13 @@ export class FibbersNumber extends LitElement {
     return i < 0 ? 0 : String(s).length - i - 1;
   }
   _value() {
-    if (this._dragging) return this._dragVal;
     const n = Number(this._st() && this._st().state);
-    return Number.isFinite(n) ? n : this._bounds().min;
+    const entityVal = Number.isFinite(n) ? n : this._bounds().min;
+    return this._hold.value(entityVal, {
+      dragging: this._dragging,
+      dragValue: this._dragVal,
+      gone: this._unavail(),
+    });
   }
   _snap(v) {
     const { min, max, step } = this._bounds();
@@ -123,6 +128,7 @@ export class FibbersNumber extends LitElement {
 
   _setValue(value) {
     if (!this.hass) return;
+    this._hold.hold(value); // hold the set value until the entity reports it
     const domain = this._config.entity.split(".")[0]; // input_number | number
     this.hass.callService(domain, "set_value", {
       entity_id: this._config.entity,

@@ -7,7 +7,7 @@ import { LitElement, html, css } from "lit";
 import { runAction } from "../actions.js";
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
-import { sliderTrack, activateOnKey } from "../ui.js";
+import { sliderTrack, activateOnKey, SliderHold } from "../ui.js";
 import { moreInfo, isUnavail, pctFromX, pickEntity } from "../util.js";
 import "../icon.js";
 
@@ -63,6 +63,7 @@ export class FibbersLightRow extends LitElement {
     this._config = config;
     this._dragging = false;
     this._dragPct = 0;
+    this._hold = new SliderHold(this, { tolerance: 2 });
   }
 
   _st() {
@@ -78,7 +79,11 @@ export class FibbersLightRow extends LitElement {
     return b != null ? Math.round((b / 255) * 100) : 100;
   }
   _displayPct() {
-    return this._dragging ? this._dragPct : this._pctFromHass();
+    return this._hold.value(this._pctFromHass(), {
+      dragging: this._dragging,
+      dragValue: this._dragPct,
+      gone: this._unavail(),
+    });
   }
 
   _warmth() {
@@ -118,6 +123,7 @@ export class FibbersLightRow extends LitElement {
   }
   _commit(pct) {
     if (!this.hass) return;
+    this._hold.hold(pct); // show the committed value until the bulb catches up
     const entity_id = this._config.entity;
     if (pct <= 0) this.hass.callService("light", "turn_off", { entity_id });
     else

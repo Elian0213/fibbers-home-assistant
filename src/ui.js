@@ -21,6 +21,61 @@ export function activateOnKey(fn) {
   };
 }
 
+/**
+ * Fixes the "slider snaps back for one round trip" bug once, for every slider.
+ * After a commit we HOLD the committed value on screen until the entity catches
+ * up (within `tolerance`) or `timeout` elapses — so releasing at 70% on a lamp
+ * still reporting 5% doesn't flash 70 → 5 → 70. A Lit ReactiveController so the
+ * timeout can re-render, and it cleans up on disconnect.
+ *
+ *   this._hold = new SliderHold(this, { tolerance: 2 });     // in setConfig
+ *   this._hold.hold(pct);                                    // in commit, before callService
+ *   this._hold.value(hassPct, { dragging, dragValue, gone }) // when computing the display
+ */
+export class SliderHold {
+  constructor(host, { tolerance = 2, timeout = 2000 } = {}) {
+    this.host = host;
+    host.addController(this);
+    this.tolerance = tolerance;
+    this.timeout = timeout;
+    this._pending = null;
+    this._timer = null;
+  }
+
+  hold(value) {
+    this._pending = value;
+    clearTimeout(this._timer);
+    this._timer = setTimeout(() => {
+      this._pending = null;
+      this._timer = null;
+      this.host.requestUpdate();
+    }, this.timeout);
+  }
+
+  // drag value while dragging; else the held value until the entity lands (or
+  // vanishes); else the entity value. Never compares for equality — `tolerance`
+  // absorbs brightness_pct↔0-255 rounding and seek drift.
+  value(entityValue, { dragging, dragValue, gone } = {}) {
+    if (dragging) return dragValue;
+    if (this._pending == null) return entityValue;
+    const landed =
+      entityValue != null &&
+      Math.abs(entityValue - this._pending) <= this.tolerance;
+    if (gone || landed) {
+      // already rendering the entity value — clear silently, no requestUpdate
+      this._pending = null;
+      clearTimeout(this._timer);
+      this._timer = null;
+      return entityValue;
+    }
+    return this._pending;
+  }
+
+  hostDisconnected() {
+    clearTimeout(this._timer);
+  }
+}
+
 export function stepFromKey(key, { value, min, max, step }) {
   const big = Math.max(step, (max - min) / 10);
   let next;
@@ -104,7 +159,8 @@ export function sliderTrack({
     @pointerdown=${onDown}
     @pointermove=${onMove}
     @pointerup=${onUp}
-    @pointercancel=${onCancel || onUp}
+    @pointercancel=${onCancel}
+    @lostpointercapture=${onCancel}
     @keydown=${keydown}
   >
     ${

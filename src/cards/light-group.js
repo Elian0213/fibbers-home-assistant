@@ -7,7 +7,7 @@ import { LitElement, html, css } from "lit";
 
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
-import { stepFromKey } from "../ui.js";
+import { stepFromKey, SliderHold } from "../ui.js";
 import { store, isUnavail, pctFromX, debounce, pickEntity } from "../util.js";
 import "../icon.js";
 
@@ -72,6 +72,7 @@ export class FibbersLightGroup extends LitElement {
     this._config = config;
     this._dragging = false;
     this._dragPct = 0;
+    this._hold = new SliderHold(this, { tolerance: 2 });
     this._debouncedCommit = debounce((p) => this._commit(p), 150);
     this._rowCache = new Map();
     this._loggedGhosts = false;
@@ -161,6 +162,7 @@ export class FibbersLightGroup extends LitElement {
   // Absolute set on every member (via the group entity when there is one).
   _commit(pct) {
     if (!this.hass) return;
+    this._hold.hold(pct); // show the committed value until the group catches up
     const entity_id = this._config.entity || this._members();
     if (pct <= 0) this.hass.callService("light", "turn_off", { entity_id });
     else
@@ -228,7 +230,11 @@ export class FibbersLightGroup extends LitElement {
     const hl = cfg.language || this.hass;
     const s = this._state();
     const lit = s.on > 0;
-    const pct = this._dragging ? this._dragPct : s.pct;
+    const pct = this._hold.value(s.pct, {
+      dragging: this._dragging,
+      dragValue: this._dragPct,
+      gone: s.allOff,
+    });
     const name = cfg.name || t(hl, "light_group.default_name");
     const icon = cfg.icon || "solar:lightbulb-bold-duotone";
     const stripe = s.mixed

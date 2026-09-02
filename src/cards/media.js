@@ -7,7 +7,7 @@ import { LitElement, html, css } from "lit";
 
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
-import { sliderTrack, overflowChips } from "../ui.js";
+import { sliderTrack, overflowChips, SliderHold } from "../ui.js";
 import { pctFromX, pickEntity } from "../util.js";
 import "../icon.js";
 
@@ -76,6 +76,8 @@ export class FibbersMedia extends LitElement {
     this._seeking = false;
     this._dragSeek = 0;
     this._srcOpen = false;
+    this._volHold = new SliderHold(this, { tolerance: 2 });
+    this._seekHold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
   }
 
   // A seek bar showing live elapsed time needs its own 1s tick while playing —
@@ -112,10 +114,14 @@ export class FibbersMedia extends LitElement {
     return !st || ["off", "idle", "standby", "unavailable"].includes(st.state);
   }
   _vol() {
-    if (this._dragging) return this._dragVol;
     const st = this._st();
     const v = st && st.attributes.volume_level;
-    return v != null ? Math.round(v * 100) : 0;
+    const entityVol = v != null ? Math.round(v * 100) : 0;
+    return this._volHold.value(entityVol, {
+      dragging: this._dragging,
+      dragValue: this._dragVol,
+      gone: this._idle(),
+    });
   }
 
   // Current playback position with drift correction: media_position is a snapshot
@@ -165,6 +171,16 @@ export class FibbersMedia extends LitElement {
         ...data,
       });
   }
+  // Hold the committed value on screen until the player reports it (no snap-back).
+  _setVol(pct) {
+    this._volHold.hold(pct);
+    this._svc("volume_set", { volume_level: pct / 100 });
+  }
+  _seek(seconds) {
+    this._seekHold.hold(seconds);
+    this._svc("media_seek", { seek_position: Math.round(seconds) });
+  }
+
   _join(entityId) {
     if (this.hass)
       this.hass.callService("media_player", "join", {
@@ -191,7 +207,7 @@ export class FibbersMedia extends LitElement {
     if (!this._dragging) return;
     const v = Math.round(pctFromX(e.clientX, e.currentTarget));
     this._dragging = false;
-    this._svc("volume_set", { volume_level: v / 100 });
+    this._setVol(v);
   }
 
   _seekFromX(e) {
@@ -211,7 +227,7 @@ export class FibbersMedia extends LitElement {
     if (!this._seeking) return;
     const s = this._seekFromX(e);
     this._seeking = false;
-    this._svc("media_seek", { seek_position: Math.round(s) });
+    this._seek(s);
   }
 
   _transportBtn(icon, service, opts = {}) {
@@ -243,7 +259,11 @@ export class FibbersMedia extends LitElement {
   _seekBar() {
     const p = this._pos();
     if (!p || !p.dur) return "";
-    const pos = this._seeking ? this._dragSeek : p.pos;
+    const pos = this._seekHold.value(p.pos, {
+      dragging: this._seeking,
+      dragValue: this._dragSeek,
+      gone: this._idle(),
+    });
     const pct = p.dur ? (pos / p.dur) * 100 : 0;
     return html`<div class="mb-3">
       ${sliderTrack({
@@ -254,8 +274,7 @@ export class FibbersMedia extends LitElement {
         max: Math.round(p.dur),
         step: 10,
         valueText: fmtTime(pos),
-        onInput: (v) =>
-          this._svc("media_seek", { seek_position: Math.round(v) }),
+        onInput: (v) => this._seek(v),
         onDown: this._seekDown,
         onMove: this._seekMove,
         onUp: this._seekUp,
@@ -370,7 +389,7 @@ export class FibbersMedia extends LitElement {
           max: 100,
           step: 5,
           valueText: `${this._vol()}%`,
-          onInput: (v) => this._svc("volume_set", { volume_level: v / 100 }),
+          onInput: (v) => this._setVol(v),
           onDown: this._down,
           onMove: this._move,
           onUp: this._up,

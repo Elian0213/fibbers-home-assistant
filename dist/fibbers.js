@@ -8078,6 +8078,43 @@ ${BASE_CSS}`);
       }
     };
   }
+
+  class SliderHold {
+    constructor(host, { tolerance = 2, timeout = 2000 } = {}) {
+      this.host = host;
+      host.addController(this);
+      this.tolerance = tolerance;
+      this.timeout = timeout;
+      this._pending = null;
+      this._timer = null;
+    }
+    hold(value) {
+      this._pending = value;
+      clearTimeout(this._timer);
+      this._timer = setTimeout(() => {
+        this._pending = null;
+        this._timer = null;
+        this.host.requestUpdate();
+      }, this.timeout);
+    }
+    value(entityValue, { dragging, dragValue, gone } = {}) {
+      if (dragging)
+        return dragValue;
+      if (this._pending == null)
+        return entityValue;
+      const landed = entityValue != null && Math.abs(entityValue - this._pending) <= this.tolerance;
+      if (gone || landed) {
+        this._pending = null;
+        clearTimeout(this._timer);
+        this._timer = null;
+        return entityValue;
+      }
+      return this._pending;
+    }
+    hostDisconnected() {
+      clearTimeout(this._timer);
+    }
+  }
   function stepFromKey(key, { value, min, max, step }) {
     const big = Math.max(step, (max - min) / 10);
     let next;
@@ -8145,7 +8182,8 @@ ${BASE_CSS}`);
     @pointerdown=${onDown}
     @pointermove=${onMove}
     @pointerup=${onUp}
-    @pointercancel=${onCancel || onUp}
+    @pointercancel=${onCancel}
+    @lostpointercapture=${onCancel}
     @keydown=${keydown}
   >
     ${disabled ? "" : html`<div
@@ -9515,6 +9553,7 @@ ${BASE_CSS}`);
       this._config = config;
       this._dragging = false;
       this._dragPct = 0;
+      this._hold = new SliderHold(this, { tolerance: 2 });
       this._debouncedCommit = debounce((p) => this._commit(p), 150);
       this._rowCache = new Map;
       this._loggedGhosts = false;
@@ -9591,6 +9630,7 @@ ${BASE_CSS}`);
     _commit(pct) {
       if (!this.hass)
         return;
+      this._hold.hold(pct);
       const entity_id = this._config.entity || this._members();
       if (pct <= 0)
         this.hass.callService("light", "turn_off", { entity_id });
@@ -9659,7 +9699,11 @@ ${BASE_CSS}`);
       const hl = cfg.language || this.hass;
       const s = this._state();
       const lit = s.on > 0;
-      const pct = this._dragging ? this._dragPct : s.pct;
+      const pct = this._hold.value(s.pct, {
+        dragging: this._dragging,
+        dragValue: this._dragPct,
+        gone: s.allOff
+      });
       const name = cfg.name || t(hl, "light_group.default_name");
       const icon = cfg.icon || "solar:lightbulb-bold-duotone";
       const stripe = s.mixed ? ";background-image:repeating-linear-gradient(45deg,transparent 0,transparent 4px,rgba(0,0,0,.18) 4px,rgba(0,0,0,.18) 8px)" : "";
@@ -9810,6 +9854,7 @@ ${BASE_CSS}`);
       this._config = config;
       this._dragging = false;
       this._dragPct = 0;
+      this._hold = new SliderHold(this, { tolerance: 2 });
     }
     _st() {
       return this.hass && this.hass.states[this._config.entity];
@@ -9825,7 +9870,11 @@ ${BASE_CSS}`);
       return b != null ? Math.round(b / 255 * 100) : 100;
     }
     _displayPct() {
-      return this._dragging ? this._dragPct : this._pctFromHass();
+      return this._hold.value(this._pctFromHass(), {
+        dragging: this._dragging,
+        dragValue: this._dragPct,
+        gone: this._unavail()
+      });
     }
     _warmth() {
       const st = this._st();
@@ -9867,6 +9916,7 @@ ${BASE_CSS}`);
     _commit(pct) {
       if (!this.hass)
         return;
+      this._hold.hold(pct);
       const entity_id = this._config.entity;
       if (pct <= 0)
         this.hass.callService("light", "turn_off", { entity_id });
@@ -10018,6 +10068,8 @@ ${BASE_CSS}`);
       this._seeking = false;
       this._dragSeek = 0;
       this._srcOpen = false;
+      this._volHold = new SliderHold(this, { tolerance: 2 });
+      this._seekHold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
     }
     updated() {
       const p = this._pos();
@@ -10053,11 +10105,14 @@ ${BASE_CSS}`);
       return !st || ["off", "idle", "standby", "unavailable"].includes(st.state);
     }
     _vol() {
-      if (this._dragging)
-        return this._dragVol;
       const st = this._st();
       const v = st && st.attributes.volume_level;
-      return v != null ? Math.round(v * 100) : 0;
+      const entityVol = v != null ? Math.round(v * 100) : 0;
+      return this._volHold.value(entityVol, {
+        dragging: this._dragging,
+        dragValue: this._dragVol,
+        gone: this._idle()
+      });
     }
     _pos() {
       const a = this._st() && this._st().attributes || {};
@@ -10093,6 +10148,14 @@ ${BASE_CSS}`);
           ...data
         });
     }
+    _setVol(pct) {
+      this._volHold.hold(pct);
+      this._svc("volume_set", { volume_level: pct / 100 });
+    }
+    _seek(seconds) {
+      this._seekHold.hold(seconds);
+      this._svc("media_seek", { seek_position: Math.round(seconds) });
+    }
     _join(entityId) {
       if (this.hass)
         this.hass.callService("media_player", "join", {
@@ -10118,7 +10181,7 @@ ${BASE_CSS}`);
         return;
       const v = Math.round(pctFromX(e.clientX, e.currentTarget));
       this._dragging = false;
-      this._svc("volume_set", { volume_level: v / 100 });
+      this._setVol(v);
     }
     _seekFromX(e) {
       const dur = (this._pos() || {}).dur || 0;
@@ -10138,7 +10201,7 @@ ${BASE_CSS}`);
         return;
       const s = this._seekFromX(e);
       this._seeking = false;
-      this._svc("media_seek", { seek_position: Math.round(s) });
+      this._seek(s);
     }
     _transportBtn(icon, service, opts = {}) {
       const LABELS = {
@@ -10165,7 +10228,11 @@ ${BASE_CSS}`);
       const p = this._pos();
       if (!p || !p.dur)
         return "";
-      const pos = this._seeking ? this._dragSeek : p.pos;
+      const pos = this._seekHold.value(p.pos, {
+        dragging: this._seeking,
+        dragValue: this._dragSeek,
+        gone: this._idle()
+      });
       const pct = p.dur ? pos / p.dur * 100 : 0;
       return html`<div class="mb-3">
       ${sliderTrack({
@@ -10176,7 +10243,7 @@ ${BASE_CSS}`);
         max: Math.round(p.dur),
         step: 10,
         valueText: fmtTime(pos),
-        onInput: (v) => this._svc("media_seek", { seek_position: Math.round(v) }),
+        onInput: (v) => this._seek(v),
         onDown: this._seekDown,
         onMove: this._seekMove,
         onUp: this._seekUp,
@@ -10270,7 +10337,7 @@ ${BASE_CSS}`);
         max: 100,
         step: 5,
         valueText: `${this._vol()}%`,
-        onInput: (v) => this._svc("volume_set", { volume_level: v / 100 }),
+        onInput: (v) => this._setVol(v),
         onDown: this._down,
         onMove: this._move,
         onUp: this._up,
@@ -10567,6 +10634,7 @@ ${BASE_CSS}`);
       this._dragging = false;
       this._dragVal = 0;
       this._debouncedSet = debounce((v) => this._setValue(v), 150);
+      this._hold = new SliderHold(this, { tolerance: 0.5 });
     }
     _st() {
       return this.hass && this.hass.states[this._config.entity];
@@ -10590,10 +10658,13 @@ ${BASE_CSS}`);
       return i < 0 ? 0 : String(s).length - i - 1;
     }
     _value() {
-      if (this._dragging)
-        return this._dragVal;
       const n = Number(this._st() && this._st().state);
-      return Number.isFinite(n) ? n : this._bounds().min;
+      const entityVal = Number.isFinite(n) ? n : this._bounds().min;
+      return this._hold.value(entityVal, {
+        dragging: this._dragging,
+        dragValue: this._dragVal,
+        gone: this._unavail()
+      });
     }
     _snap(v) {
       const { min, max, step } = this._bounds();
@@ -10611,6 +10682,7 @@ ${BASE_CSS}`);
     _setValue(value) {
       if (!this.hass)
         return;
+      this._hold.hold(value);
       const domain = this._config.entity.split(".")[0];
       this.hass.callService(domain, "set_value", {
         entity_id: this._config.entity,
@@ -10918,6 +10990,7 @@ ${BASE_CSS}`);
       this._dragging = false;
       this._dragVol = 0;
       this._srcOpen = false;
+      this._volHold = new SliderHold(this, { tolerance: 2 });
     }
     disconnectedCallback() {
       super.disconnectedCallback();
@@ -10983,7 +11056,11 @@ ${BASE_CSS}`);
         return;
       const v = Math.round(pctFromX(e.clientX, e.currentTarget));
       this._dragging = false;
-      this._mpService("volume_set", { volume_level: v / 100 });
+      this._setVol(v);
+    }
+    _setVol(pct) {
+      this._volHold.hold(pct);
+      this._mpService("volume_set", { volume_level: pct / 100 });
     }
     _round(label, icon, onClick, size = "h-11 w-11") {
       return html`<button
@@ -11075,7 +11152,7 @@ ${BASE_CSS}`);
       >
       ${this._holdBtn("Channel up", "solar:alt-arrow-up-bold-duotone", "channel_up")}`;
       if (hasVol) {
-        const vol = this._dragging ? this._dragVol : Math.round(mp.attributes.volume_level * 100);
+        const vol = this._volHold.value(Math.round(mp.attributes.volume_level * 100), { dragging: this._dragging, dragValue: this._dragVol });
         return html`<div class="flex flex-col gap-3">
         <div class="flex items-center gap-2.5">
           <button
@@ -11100,7 +11177,7 @@ ${BASE_CSS}`);
           max: 100,
           step: 5,
           valueText: `${vol}%`,
-          onInput: (v) => this._mpService("volume_set", { volume_level: v / 100 }),
+          onInput: (v) => this._setVol(v),
           onDown: this._volDown,
           onMove: this._volMove,
           onUp: this._volUp,
