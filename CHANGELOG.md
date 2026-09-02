@@ -3,6 +3,50 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.7.4] — 2026-09-02
+
+One remote for every device, honest touch targets, and a bundle a fraction of the
+size.
+
+### Added
+
+- **`fibbers-remote` holds many devices.** Give it a `devices:` list and it draws a
+  segmented switcher (a real tablist, with a live on/off dot per device) instead of
+  one card per TV. A speaker with only a `media_player:` (no remote entity) is a
+  valid device — it shows transport + volume and no d-pad. `remember:` keeps the
+  last device per browser; `auto_select: playing` jumps to whatever's playing on
+  mount. A single-`entity:` config from 0.7.x is unchanged (no switcher).
+- **A volume slider wherever the device reports a level.** One row shape across all
+  devices so the card doesn't jump on switch: a draggable slider when the player
+  reports `volume_level` (mute only when `VOLUME_MUTE` is supported), otherwise
+  − / + for step-only players.
+- **`dpad: grid`** — a 3×3 d-pad option alongside the circle/swipe surface.
+
+### Fixed
+
+- **The d-pad no longer paints outside the card.** It was sized with `min(72vw,…)`
+  — the viewport, not the card — so on a wide screen it overflowed a narrow cell by
+  ~61px. Layout is now container-relative and, on a wide card, container-queries
+  into a tidy two-column arrangement.
+- **Touch targets are a real 44px.** Tailwind's `h-11`/`h-12` are rem-based and
+  render 38.5/42px on a 14px root; a single `--fib-hit: 44px` knob now sizes the
+  sliders and remote buttons in absolute px. Wrapping chip rows got a wider vertical
+  gap so their 44px hit boxes stop overlapping the row below.
+- **The nav bar is a navigation landmark, not a fake tablist** — its buttons
+  navigate away, so `role=tablist`/`tab`/`aria-selected` were wrong; plain buttons
+  with `aria-current=page` remain.
+- The remote's volume hold now releases when the player drops out mid-drag; the
+  `SliderHold` controller is reused across `setConfig` in every card (it was leaking
+  one per editor keystroke); `fibbers-number`'s hold tolerance scales to the
+  entity's range.
+
+### Changed
+
+- **Bundle: 2.27MB → ~0.37MB.** The 1325-icon Solar set was 91% of it and loaded
+  eagerly; now only the icons the code uses ship in the bundle, and the full set is
+  fetched once on demand from a sibling `icons.full.json`. Any YAML config can still
+  name any Solar icon.
+
 ## [0.7.3] — 2026-09-02
 
 A full audit pass against a live HA 2026.8 install — bigger touch targets, real

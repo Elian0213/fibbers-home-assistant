@@ -37,7 +37,7 @@ import { nav, goBack, previous } from "./nav-stack.js";
 import { T, styleBlock } from "./tokens.js";
 import { navigate } from "./util.js";
 
-const VERSION = "0.7.3";
+const VERSION = "0.7.4";
 
 /* ================================================================== *
  * REGISTRY
