@@ -12984,7 +12984,8 @@ ${BASE_CSS}`);
   class FibbersWeather extends LitElement {
     static properties = {
       hass: { attribute: false },
-      _config: { state: true }
+      _config: { state: true },
+      _forecast: { state: true }
     };
     static styles = [
       twSheet,
@@ -13005,6 +13006,43 @@ ${BASE_CSS}`);
         throw new Error("fibbers-weather: `entity` (a weather.* entity) is required");
       }
       this._config = config;
+      this._forecast = null;
+    }
+    updated(changed) {
+      if (changed.has("hass"))
+        this._maybeSubscribe();
+    }
+    _maybeSubscribe() {
+      const id = this._config && this._config.entity;
+      if (!id || this._subFor === id)
+        return;
+      const conn = this.hass && this.hass.connection;
+      if (!conn || !conn.subscribeMessage)
+        return;
+      this._unsub();
+      this._subFor = id;
+      conn.subscribeMessage((msg) => {
+        this._forecast = msg && msg.forecast || [];
+      }, {
+        type: "weather/subscribe_forecast",
+        entity_id: id,
+        forecast_type: "daily"
+      }).then((unsub) => {
+        this._unsubFn = unsub;
+      }).catch(() => {
+        this._subFor = null;
+      });
+    }
+    _unsub() {
+      if (this._unsubFn) {
+        this._unsubFn();
+        this._unsubFn = null;
+      }
+    }
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      this._unsub();
+      this._subFor = null;
     }
     render() {
       const cfg = this._config;
@@ -13019,7 +13057,7 @@ ${BASE_CSS}`);
         ${t(hl, "common.not_available")}
       </div>`;
       const a = st.attributes || {};
-      const days = (a.forecast || []).slice(0, cfg.days || 5);
+      const days = (this._forecast || []).slice(0, cfg.days || 5);
       return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
       <div class="flex items-center gap-3">
         <div

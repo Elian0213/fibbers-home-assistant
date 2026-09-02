@@ -1,6 +1,7 @@
 /* ================================================================== *
  * fibbers-weather — current temp + condition and a short forecast strip from a
- * `weather.*` entity (reads its `forecast` attribute).
+ * `weather.*` entity. Subscribes to weather/subscribe_forecast (the `forecast`
+ * state attribute was deprecated in 2023.9 and removed in HA 2024.4).
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
@@ -41,6 +42,7 @@ export class FibbersWeather extends LitElement {
   static properties = {
     hass: { attribute: false },
     _config: { state: true },
+    _forecast: { state: true },
   };
   static styles = [
     twSheet,
@@ -70,6 +72,50 @@ export class FibbersWeather extends LitElement {
       );
     }
     this._config = config;
+    this._forecast = null;
+  }
+
+  updated(changed) {
+    if (changed.has("hass")) this._maybeSubscribe();
+  }
+
+  // Subscribe to the daily forecast push feed (what HA's own weather card uses);
+  // re-subscribe on entity change, unsubscribe on disconnect.
+  _maybeSubscribe() {
+    const id = this._config && this._config.entity;
+    if (!id || this._subFor === id) return;
+    const conn = this.hass && this.hass.connection;
+    if (!conn || !conn.subscribeMessage) return;
+    this._unsub();
+    this._subFor = id;
+    conn
+      .subscribeMessage(
+        (msg) => {
+          this._forecast = (msg && msg.forecast) || [];
+        },
+        {
+          type: "weather/subscribe_forecast",
+          entity_id: id,
+          forecast_type: "daily",
+        },
+      )
+      .then((unsub) => {
+        this._unsubFn = unsub;
+      })
+      .catch(() => {
+        this._subFor = null; // let a later hass update retry
+      });
+  }
+  _unsub() {
+    if (this._unsubFn) {
+      this._unsubFn();
+      this._unsubFn = null;
+    }
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this._unsub();
+    this._subFor = null;
   }
 
   render() {
@@ -85,7 +131,7 @@ export class FibbersWeather extends LitElement {
       </div>`;
 
     const a = st.attributes || {};
-    const days = (a.forecast || []).slice(0, cfg.days || 5);
+    const days = (this._forecast || []).slice(0, cfg.days || 5);
 
     return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
       <div class="flex items-center gap-3">
