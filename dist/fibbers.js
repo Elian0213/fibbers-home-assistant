@@ -6799,12 +6799,11 @@ ${BASE_CSS}`);
     const host = document.createElement("div");
     host.id = "fibbers-nav";
     host.setAttribute("role", "navigation");
+    host.setAttribute("aria-label", "Dashboard sections");
     const shadow = host.attachShadow({ mode: "open" });
     shadow.adoptedStyleSheets = [twSheet, hostSheet];
     const div = document.createElement("div");
     div.className = "bar";
-    div.setAttribute("role", "tablist");
-    div.setAttribute("aria-label", "Dashboard sections");
     shadow.append(div);
     document.body.appendChild(host);
     if (window.ResizeObserver)
@@ -6839,24 +6838,6 @@ ${BASE_CSS}`);
     return !["off", "unavailable", "unknown"].includes(st.state);
   }
   var press = (e4, on) => on ? e4.currentTarget.setAttribute("data-pressed", "true") : e4.currentTarget.removeAttribute("data-pressed");
-  function onTabKey(e4) {
-    const delta = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
-    const btns = [
-      ...e4.currentTarget.parentElement.querySelectorAll('[role="tab"]')
-    ];
-    const idx = btns.indexOf(e4.currentTarget);
-    let next;
-    if (e4.key in delta)
-      next = (idx + delta[e4.key] + btns.length) % btns.length;
-    else if (e4.key === "Home")
-      next = 0;
-    else if (e4.key === "End")
-      next = btns.length - 1;
-    else
-      return;
-    e4.preventDefault();
-    btns[next].focus();
-  }
   function renderBar() {
     if (!bar.host || !bar.config)
       return;
@@ -6867,14 +6848,10 @@ ${BASE_CSS}`);
       const badge = tab.badge && badgeActive(tab.badge, nav.hassRef);
       return b2`<button
         type="button"
-        role="tab"
-        aria-selected=${i5 === active ? "true" : "false"}
         aria-current=${i5 === active ? "page" : A}
-        tabindex=${i5 === active ? 0 : -1}
         class="group relative flex min-w-0 flex-1 flex-col items-center pb-[3px] pt-[5px]
                focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent
                focus-visible:[outline-offset:-2px]"
-        @keydown=${onTabKey}
         @pointerdown=${(e4) => press(e4, true)}
         @pointerup=${(e4) => press(e4, false)}
         @pointercancel=${(e4) => press(e4, false)}

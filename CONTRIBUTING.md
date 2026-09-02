@@ -6,9 +6,10 @@ app-like dashboard.
 
 ## Architecture at a glance
 
-- **Vanilla web components**, no framework, **zero runtime dependencies**. Source lives in
-  `src/` as small ES modules and is bundled into a single committed IIFE at `dist/fibbers.js`
-  by `bun build` — no transpile, no minify, no polyfills.
+- **Lit web components** — Lit is the one runtime dependency; styling is Tailwind utilities
+  compiled into a shared adopted stylesheet. Source lives in `src/` as small ES modules and is
+  bundled into a single committed IIFE at `dist/fibbers.js` by `bun build` (production Lit, no
+  minify, no polyfills).
 - **Everything a user loads ships from `dist/fibbers.js`.** It's a generated artifact but is
   committed on purpose (HACS serves it). **Edit `src/`, run `bun run build`; never hand-edit
   the bundle.**
