@@ -7796,6 +7796,7 @@ ${BASE_CSS}`);
     },
     light_row: {
       unavailable: "Unavailable",
+      on: "On",
       off: "Off",
       color: "Colour",
       warm: "Warm",
@@ -7937,6 +7938,7 @@ ${BASE_CSS}`);
     },
     light_row: {
       unavailable: "Onbereikbaar",
+      on: "Aan",
       off: "Uit",
       color: "Kleur",
       warm: "Warm",
@@ -8135,8 +8137,18 @@ ${BASE_CSS}`);
       }
       return this._pending;
     }
-    hostDisconnected() {
+    clear() {
+      if (this._pending == null && this._timer == null)
+        return;
+      this._pending = null;
       clearTimeout(this._timer);
+      this._timer = null;
+      this.host.requestUpdate();
+    }
+    hostDisconnected() {
+      this._pending = null;
+      clearTimeout(this._timer);
+      this._timer = null;
     }
   }
   function stepFromKey(key, { value, min, max, step }) {
@@ -9607,7 +9619,7 @@ ${BASE_CSS}`);
       this._config = config;
       this._dragging = false;
       this._dragPct = 0;
-      this._hold = new SliderHold(this, { tolerance: 2 });
+      this._hold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
       this._debouncedCommit = debounce((p) => this._commit(p), 150);
       this._rowCache = new Map;
       this._loggedGhosts = false;
@@ -9641,6 +9653,7 @@ ${BASE_CSS}`);
       let avail = 0;
       let off = 0;
       let sum = 0;
+      let dim = 0;
       let bmin = Infinity;
       let bmax = -Infinity;
       members.forEach((id) => {
@@ -9653,18 +9666,21 @@ ${BASE_CSS}`);
         if (st.state === "on") {
           on += 1;
           const b = st.attributes.brightness;
-          const pct = b != null ? Math.round(b / 255 * 100) : 100;
-          sum += pct;
-          bmin = Math.min(bmin, pct);
-          bmax = Math.max(bmax, pct);
+          if (b != null) {
+            const pct = Math.round(b / 255 * 100);
+            sum += pct;
+            dim += 1;
+            bmin = Math.min(bmin, pct);
+            bmax = Math.max(bmax, pct);
+          }
         }
       });
       return {
         on,
         total: members.length,
         off,
-        pct: on ? Math.round(sum / on) : 0,
-        mixed: on > 1 && bmax - bmin > 2,
+        pct: dim ? Math.round(sum / dim) : on ? 100 : 0,
+        mixed: dim > 1 && bmax - bmin > 2,
         allOff: avail === 0
       };
     }
@@ -9686,25 +9702,27 @@ ${BASE_CSS}`);
         return;
       this._hold.hold(pct);
       const entity_id = this._config.entity || this._members();
-      if (pct <= 0)
-        this.hass.callService("light", "turn_off", { entity_id });
-      else
-        this.hass.callService("light", "turn_on", {
-          entity_id,
-          brightness_pct: pct
-        });
+      const p = pct <= 0 ? this.hass.callService("light", "turn_off", { entity_id }) : this.hass.callService("light", "turn_on", {
+        entity_id,
+        brightness_pct: pct
+      });
+      Promise.resolve(p).catch(() => this._hold.clear());
     }
     _down(e) {
       const el = e.currentTarget;
       this._dragging = true;
+      this._downX = e.clientX;
+      this._moved = false;
       el.setPointerCapture && el.setPointerCapture(e.pointerId);
       this._dragPct = Math.round(pctFromX(e.clientX, el));
-      this._debouncedCommit(this._dragPct);
     }
     _move(e) {
       if (!this._dragging)
         return;
       this._dragPct = Math.round(pctFromX(e.clientX, e.currentTarget));
+      if (!this._moved && Math.abs(e.clientX - this._downX) < 4)
+        return;
+      this._moved = true;
       this._debouncedCommit(this._dragPct);
     }
     _up(e) {
@@ -9719,11 +9737,19 @@ ${BASE_CSS}`);
       this._dragging = false;
       this._debouncedCommit.cancel();
     }
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      this._debouncedCommit.cancel();
+    }
     _onKey(e) {
       const s = this._state();
       if (s.allOff)
         return;
-      const cur = this._dragging ? this._dragPct : s.pct;
+      const cur = this._hold.value(s.pct, {
+        dragging: this._dragging,
+        dragValue: this._dragPct,
+        gone: s.allOff
+      });
       const next = stepFromKey(e.key, { value: cur, min: 0, max: 100, step: 5 });
       if (next == null)
         return;
@@ -9917,7 +9943,12 @@ ${BASE_CSS}`);
       this._config = config;
       this._dragging = false;
       this._dragPct = 0;
-      this._hold = new SliderHold(this, { tolerance: 2 });
+      this._hold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
+    }
+    _dimmable() {
+      const st = this._st();
+      const modes = st && st.attributes.supported_color_modes;
+      return !Array.isArray(modes) || modes.some((m) => m !== "onoff");
     }
     _st() {
       return this.hass && this.hass.states[this._config.entity];
@@ -9981,13 +10012,18 @@ ${BASE_CSS}`);
         return;
       this._hold.hold(pct);
       const entity_id = this._config.entity;
-      if (pct <= 0)
-        this.hass.callService("light", "turn_off", { entity_id });
-      else
-        this.hass.callService("light", "turn_on", {
-          entity_id,
-          brightness_pct: pct
-        });
+      const p = pct <= 0 ? this.hass.callService("light", "turn_off", { entity_id }) : this.hass.callService("light", "turn_on", {
+        entity_id,
+        brightness_pct: pct
+      });
+      Promise.resolve(p).catch(() => this._hold.clear());
+    }
+    _toggle() {
+      if (!this.hass || this._unavail())
+        return;
+      this.hass.callService("light", "toggle", {
+        entity_id: this._config.entity
+      });
     }
     _iconAction() {
       return this._config.icon_tap_action || { action: "toggle" };
@@ -10003,12 +10039,15 @@ ${BASE_CSS}`);
       const hl = cfg.language || this.hass;
       const unavail = this._unavail();
       const on = !unavail && st.state === "on";
+      const dimmable = this._dimmable();
       const pct = this._displayPct();
       const name = cfg.name || st && st.attributes.friendly_name || cfg.entity;
       const icon = cfg.icon || st && st.attributes.icon || "solar:lightbulb-bold-duotone";
       let val;
       if (unavail)
         val = t(hl, "light_row.unavailable");
+      else if (on && !dimmable)
+        val = t(hl, "light_row.on");
       else if (on) {
         const w = this._warmth();
         val = w ? `${w} · ${pct}%` : `${pct}%`;
@@ -10046,7 +10085,7 @@ ${BASE_CSS}`);
           <span class="whitespace-nowrap text-[10.5px] text-muted">${val}</span>
         </div>
 
-        ${sliderTrack({
+        ${dimmable ? sliderTrack({
         pct,
         disabled: unavail,
         label: name,
@@ -10062,7 +10101,13 @@ ${BASE_CSS}`);
         onCancel: () => {
           this._dragging = false;
         }
+      }) : html`<div class="flex min-h-11 items-center">
+                ${pillSwitch({
+        on,
+        label: name,
+        onClick: () => this._toggle()
       })}
+              </div>`}
       </div>
     `;
     }
@@ -10206,19 +10251,20 @@ ${BASE_CSS}`);
       return cfg.sources === "auto" ? (a.source_list || []).map((s) => ({ name: s, source: s })) : cfg.sources.map((s) => typeof s === "string" ? { name: s, source: s } : s);
     }
     _svc(service, data) {
-      if (this.hass)
-        this.hass.callService("media_player", service, {
-          entity_id: this._config.entity,
-          ...data
-        });
+      if (!this.hass)
+        return Promise.resolve();
+      return Promise.resolve(this.hass.callService("media_player", service, {
+        entity_id: this._config.entity,
+        ...data
+      }));
     }
     _setVol(pct) {
       this._volHold.hold(pct);
-      this._svc("volume_set", { volume_level: pct / 100 });
+      this._svc("volume_set", { volume_level: pct / 100 }).catch(() => this._volHold.clear());
     }
     _seek(seconds) {
       this._seekHold.hold(seconds);
-      this._svc("media_seek", { seek_position: Math.round(seconds) });
+      this._svc("media_seek", { seek_position: Math.round(seconds) }).catch(() => this._seekHold.clear());
     }
     _join(entityId) {
       if (this.hass)
@@ -10707,7 +10753,11 @@ ${BASE_CSS}`);
       this._dragging = false;
       this._dragVal = 0;
       this._debouncedSet = debounce((v) => this._setValue(v), 150);
-      this._hold = new SliderHold(this, { tolerance: 0.5 });
+      this._hold = new SliderHold(this, { tolerance: 0.5, timeout: 5000 });
+    }
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      this._debouncedSet.cancel();
     }
     _st() {
       return this.hass && this.hass.states[this._config.entity];
@@ -10757,24 +10807,29 @@ ${BASE_CSS}`);
         return;
       this._hold.hold(value);
       const domain = this._config.entity.split(".")[0];
-      this.hass.callService(domain, "set_value", {
+      const p = this.hass.callService(domain, "set_value", {
         entity_id: this._config.entity,
         value
       });
+      Promise.resolve(p).catch(() => this._hold.clear());
     }
     _down(e) {
       if (this._unavail())
         return;
       const el = e.currentTarget;
       this._dragging = true;
+      this._downX = e.clientX;
+      this._moved = false;
       el.setPointerCapture && el.setPointerCapture(e.pointerId);
       this._dragVal = this._valFromX(e.clientX, el);
-      this._debouncedSet(this._dragVal);
     }
     _move(e) {
       if (!this._dragging)
         return;
       this._dragVal = this._valFromX(e.clientX, e.currentTarget);
+      if (!this._moved && Math.abs(e.clientX - this._downX) < 4)
+        return;
+      this._moved = true;
       this._debouncedSet(this._dragVal);
     }
     _up(e) {
@@ -10784,6 +10839,10 @@ ${BASE_CSS}`);
       this._dragging = false;
       this._debouncedSet.cancel();
       this._setValue(v);
+    }
+    _cancel() {
+      this._dragging = false;
+      this._debouncedSet.cancel();
     }
     _bump(dir) {
       if (this._unavail())
@@ -10861,9 +10920,7 @@ ${BASE_CSS}`);
           onDown: this._down,
           onMove: this._move,
           onUp: this._up,
-          onCancel: () => {
-            this._dragging = false;
-          }
+          onCancel: () => this._cancel()
         });
       })()}
     </div>`;

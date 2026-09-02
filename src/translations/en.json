@@ -15,6 +15,7 @@
   },
   "light_row": {
     "unavailable": "Unavailable",
+    "on": "On",
     "off": "Off",
     "color": "Colour",
     "warm": "Warm",

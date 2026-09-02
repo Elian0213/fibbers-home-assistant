@@ -80,7 +80,12 @@ export class FibbersNumber extends LitElement {
     this._dragging = false;
     this._dragVal = 0;
     this._debouncedSet = debounce((v) => this._setValue(v), 150);
-    this._hold = new SliderHold(this, { tolerance: 0.5 });
+    this._hold = new SliderHold(this, { tolerance: 0.5, timeout: 5000 });
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this._debouncedSet.cancel();
   }
 
   _st() {
@@ -130,23 +135,29 @@ export class FibbersNumber extends LitElement {
     if (!this.hass) return;
     this._hold.hold(value); // hold the set value until the entity reports it
     const domain = this._config.entity.split(".")[0]; // input_number | number
-    this.hass.callService(domain, "set_value", {
+    const p = this.hass.callService(domain, "set_value", {
       entity_id: this._config.entity,
       value,
     });
+    Promise.resolve(p).catch(() => this._hold.clear());
   }
 
   _down(e) {
     if (this._unavail()) return;
     const el = e.currentTarget;
     this._dragging = true;
+    this._downX = e.clientX;
+    this._moved = false;
     el.setPointerCapture && el.setPointerCapture(e.pointerId);
+    // Leading commit suppressed: a tap writes once on pointerup; a drag streams
+    // through the debounce only after clearing the ~4px slop threshold.
     this._dragVal = this._valFromX(e.clientX, el);
-    this._debouncedSet(this._dragVal);
   }
   _move(e) {
     if (!this._dragging) return;
     this._dragVal = this._valFromX(e.clientX, e.currentTarget);
+    if (!this._moved && Math.abs(e.clientX - this._downX) < 4) return;
+    this._moved = true;
     this._debouncedSet(this._dragVal);
   }
   _up(e) {
@@ -155,6 +166,10 @@ export class FibbersNumber extends LitElement {
     this._dragging = false;
     this._debouncedSet.cancel();
     this._setValue(v); // final value wins immediately
+  }
+  _cancel() {
+    this._dragging = false;
+    this._debouncedSet.cancel();
   }
   _bump(dir) {
     if (this._unavail()) return;
@@ -242,9 +257,7 @@ export class FibbersNumber extends LitElement {
           onDown: this._down,
           onMove: this._move,
           onUp: this._up,
-          onCancel: () => {
-            this._dragging = false;
-          },
+          onCancel: () => this._cancel(),
         });
       })()}
     </div>`;

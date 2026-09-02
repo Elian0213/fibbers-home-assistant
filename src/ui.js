@@ -71,8 +71,21 @@ export class SliderHold {
     return this._pending;
   }
 
-  hostDisconnected() {
+  // Drop a pending hold without waiting for the entity to land — call from a
+  // failed commit (`.catch`) so a service error doesn't freeze the display on the
+  // optimistic value until the timeout.
+  clear() {
+    if (this._pending == null && this._timer == null) return;
+    this._pending = null;
     clearTimeout(this._timer);
+    this._timer = null;
+    this.host.requestUpdate();
+  }
+
+  hostDisconnected() {
+    this._pending = null;
+    clearTimeout(this._timer);
+    this._timer = null;
   }
 }
 

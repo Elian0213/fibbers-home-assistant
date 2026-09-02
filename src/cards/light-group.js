@@ -72,7 +72,7 @@ export class FibbersLightGroup extends LitElement {
     this._config = config;
     this._dragging = false;
     this._dragPct = 0;
-    this._hold = new SliderHold(this, { tolerance: 2 });
+    this._hold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
     this._debouncedCommit = debounce((p) => this._commit(p), 150);
     this._rowCache = new Map();
     this._loggedGhosts = false;
@@ -117,6 +117,7 @@ export class FibbersLightGroup extends LitElement {
     let avail = 0;
     let off = 0;
     let sum = 0;
+    let dim = 0;
     let bmin = Infinity;
     let bmax = -Infinity;
     members.forEach((id) => {
@@ -128,19 +129,25 @@ export class FibbersLightGroup extends LitElement {
       avail += 1;
       if (st.state === "on") {
         on += 1;
+        // Only members that actually report a brightness feed the average — an
+        // on/off member with no `brightness` used to inject a phantom 100% and
+        // drag the master slider up.
         const b = st.attributes.brightness;
-        const pct = b != null ? Math.round((b / 255) * 100) : 100;
-        sum += pct;
-        bmin = Math.min(bmin, pct);
-        bmax = Math.max(bmax, pct);
+        if (b != null) {
+          const pct = Math.round((b / 255) * 100);
+          sum += pct;
+          dim += 1;
+          bmin = Math.min(bmin, pct);
+          bmax = Math.max(bmax, pct);
+        }
       }
     });
     return {
       on,
       total: members.length,
       off,
-      pct: on ? Math.round(sum / on) : 0,
-      mixed: on > 1 && bmax - bmin > 2,
+      pct: dim ? Math.round(sum / dim) : on ? 100 : 0,
+      mixed: dim > 1 && bmax - bmin > 2,
       allOff: avail === 0,
     };
   }
@@ -164,24 +171,32 @@ export class FibbersLightGroup extends LitElement {
     if (!this.hass) return;
     this._hold.hold(pct); // show the committed value until the group catches up
     const entity_id = this._config.entity || this._members();
-    if (pct <= 0) this.hass.callService("light", "turn_off", { entity_id });
-    else
-      this.hass.callService("light", "turn_on", {
-        entity_id,
-        brightness_pct: pct,
-      });
+    const p =
+      pct <= 0
+        ? this.hass.callService("light", "turn_off", { entity_id })
+        : this.hass.callService("light", "turn_on", {
+            entity_id,
+            brightness_pct: pct,
+          });
+    Promise.resolve(p).catch(() => this._hold.clear());
   }
 
   _down(e) {
     const el = e.currentTarget;
     this._dragging = true;
+    this._downX = e.clientX;
+    this._moved = false;
     el.setPointerCapture && el.setPointerCapture(e.pointerId);
+    // Leading commit suppressed: a tap commits once on pointerup; a drag streams
+    // through the debounce only after it clears the ~4px slop threshold, so a
+    // stationary press never writes a value.
     this._dragPct = Math.round(pctFromX(e.clientX, el));
-    this._debouncedCommit(this._dragPct);
   }
   _move(e) {
     if (!this._dragging) return;
     this._dragPct = Math.round(pctFromX(e.clientX, e.currentTarget));
+    if (!this._moved && Math.abs(e.clientX - this._downX) < 4) return;
+    this._moved = true;
     this._debouncedCommit(this._dragPct);
   }
   _up(e) {
@@ -199,11 +214,22 @@ export class FibbersLightGroup extends LitElement {
     this._debouncedCommit.cancel();
   }
 
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this._debouncedCommit.cancel();
+  }
+
   // Keyboard control for the master slider (arrows/Home/End/PageUp-Down by 5%).
+  // Steps from the on-screen value (the held/dragged one) — not the raw entity —
+  // so repeated key presses during a hold don't jump back to the stale brightness.
   _onKey(e) {
     const s = this._state();
     if (s.allOff) return;
-    const cur = this._dragging ? this._dragPct : s.pct;
+    const cur = this._hold.value(s.pct, {
+      dragging: this._dragging,
+      dragValue: this._dragPct,
+      gone: s.allOff,
+    });
     const next = stepFromKey(e.key, { value: cur, min: 0, max: 100, step: 5 });
     if (next == null) return;
     e.preventDefault();

@@ -7,7 +7,7 @@ import { LitElement, html, css } from "lit";
 import { runAction } from "../actions.js";
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
-import { sliderTrack, activateOnKey, SliderHold } from "../ui.js";
+import { sliderTrack, pillSwitch, activateOnKey, SliderHold } from "../ui.js";
 import { moreInfo, isUnavail, pctFromX, pickEntity } from "../util.js";
 import "../icon.js";
 
@@ -63,7 +63,16 @@ export class FibbersLightRow extends LitElement {
     this._config = config;
     this._dragging = false;
     this._dragPct = 0;
-    this._hold = new SliderHold(this, { tolerance: 2 });
+    this._hold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
+  }
+
+  // An on/off-only light (supported_color_modes === ["onoff"]) has no brightness,
+  // so the drag slider is meaningless — render a plain toggle instead. Absent the
+  // attribute (legacy) we assume dimmable.
+  _dimmable() {
+    const st = this._st();
+    const modes = st && st.attributes.supported_color_modes;
+    return !Array.isArray(modes) || modes.some((m) => m !== "onoff");
   }
 
   _st() {
@@ -125,12 +134,21 @@ export class FibbersLightRow extends LitElement {
     if (!this.hass) return;
     this._hold.hold(pct); // show the committed value until the bulb catches up
     const entity_id = this._config.entity;
-    if (pct <= 0) this.hass.callService("light", "turn_off", { entity_id });
-    else
-      this.hass.callService("light", "turn_on", {
-        entity_id,
-        brightness_pct: pct,
-      });
+    const p =
+      pct <= 0
+        ? this.hass.callService("light", "turn_off", { entity_id })
+        : this.hass.callService("light", "turn_on", {
+            entity_id,
+            brightness_pct: pct,
+          });
+    // A failed service call must not freeze the display on the optimistic value.
+    Promise.resolve(p).catch(() => this._hold.clear());
+  }
+  _toggle() {
+    if (!this.hass || this._unavail()) return;
+    this.hass.callService("light", "toggle", {
+      entity_id: this._config.entity,
+    });
   }
 
   _iconAction() {
@@ -147,6 +165,7 @@ export class FibbersLightRow extends LitElement {
     const hl = cfg.language || this.hass;
     const unavail = this._unavail();
     const on = !unavail && st.state === "on";
+    const dimmable = this._dimmable();
     const pct = this._displayPct();
     const name = cfg.name || (st && st.attributes.friendly_name) || cfg.entity;
     const icon =
@@ -154,6 +173,7 @@ export class FibbersLightRow extends LitElement {
 
     let val;
     if (unavail) val = t(hl, "light_row.unavailable");
+    else if (on && !dimmable) val = t(hl, "light_row.on");
     else if (on) {
       const w = this._warmth();
       val = w ? `${w} · ${pct}%` : `${pct}%`;
@@ -208,23 +228,33 @@ export class FibbersLightRow extends LitElement {
           <span class="whitespace-nowrap text-[10.5px] text-muted">${val}</span>
         </div>
 
-        ${sliderTrack({
-          pct,
-          disabled: unavail,
-          label: name,
-          value: pct,
-          min: 0,
-          max: 100,
-          step: 5,
-          valueText: `${pct}%`,
-          onInput: (v) => this._commit(Math.round(v)),
-          onDown: this._down,
-          onMove: this._move,
-          onUp: this._up,
-          onCancel: () => {
-            this._dragging = false;
-          },
-        })}
+        ${
+          dimmable
+            ? sliderTrack({
+                pct,
+                disabled: unavail,
+                label: name,
+                value: pct,
+                min: 0,
+                max: 100,
+                step: 5,
+                valueText: `${pct}%`,
+                onInput: (v) => this._commit(Math.round(v)),
+                onDown: this._down,
+                onMove: this._move,
+                onUp: this._up,
+                onCancel: () => {
+                  this._dragging = false;
+                },
+              })
+            : html`<div class="flex min-h-11 items-center">
+                ${pillSwitch({
+                  on,
+                  label: name,
+                  onClick: () => this._toggle(),
+                })}
+              </div>`
+        }
       </div>
     `;
   }

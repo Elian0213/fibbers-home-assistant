@@ -169,20 +169,27 @@ export class FibbersMedia extends LitElement {
   }
 
   _svc(service, data) {
-    if (this.hass)
+    if (!this.hass) return Promise.resolve();
+    return Promise.resolve(
       this.hass.callService("media_player", service, {
         entity_id: this._config.entity,
         ...data,
-      });
+      }),
+    );
   }
-  // Hold the committed value on screen until the player reports it (no snap-back).
+  // Hold the committed value on screen until the player reports it (no snap-back);
+  // a failed call clears the hold instead of freezing on the optimistic value.
   _setVol(pct) {
     this._volHold.hold(pct);
-    this._svc("volume_set", { volume_level: pct / 100 });
+    this._svc("volume_set", { volume_level: pct / 100 }).catch(() =>
+      this._volHold.clear(),
+    );
   }
   _seek(seconds) {
     this._seekHold.hold(seconds);
-    this._svc("media_seek", { seek_position: Math.round(seconds) });
+    this._svc("media_seek", { seek_position: Math.round(seconds) }).catch(() =>
+      this._seekHold.clear(),
+    );
   }
 
   _join(entityId) {

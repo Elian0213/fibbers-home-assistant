@@ -15,6 +15,7 @@
   },
   "light_row": {
     "unavailable": "Onbereikbaar",
+    "on": "Aan",
     "off": "Uit",
     "color": "Kleur",
     "warm": "Warm",
