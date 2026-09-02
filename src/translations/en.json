@@ -95,6 +95,7 @@
   },
   "remote": {
     "default_name": "Remote",
+    "devices": "Devices",
     "on": "On",
     "off": "Off"
   },

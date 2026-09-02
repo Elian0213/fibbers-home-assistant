@@ -95,6 +95,7 @@
   },
   "remote": {
     "default_name": "Afstandsbediening",
+    "devices": "Apparaten",
     "on": "Aan",
     "off": "Uit"
   },
