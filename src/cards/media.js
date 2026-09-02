@@ -22,6 +22,10 @@ const VIDEO_TYPES = ["tvshow", "movie", "video", "channel", "episode"];
 const VIDEO_APPS =
   /netflix|youtube|plex|kodi|disney|hbo|prime|twitch|jellyfin/i;
 
+// "on" (a TV powered on but playing nothing) and "unknown" (integration reload,
+// pre-first-poll) both mean "nothing to show" — not "playing".
+const IDLE_STATES = ["off", "idle", "standby", "unavailable", "unknown", "on"];
+
 export class FibbersMedia extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -111,7 +115,7 @@ export class FibbersMedia extends LitElement {
   }
   _idle() {
     const st = this._st();
-    return !st || ["off", "idle", "standby", "unavailable"].includes(st.state);
+    return !st || IDLE_STATES.includes(st.state);
   }
   _vol() {
     const st = this._st();
@@ -300,12 +304,9 @@ export class FibbersMedia extends LitElement {
     const idle = this._idle();
     const title = idle
       ? t(hl, "media.idle")
-      : a.media_title ||
-        a.friendly_name ||
-        cfg.name ||
-        t(hl, "media.default_name");
+      : a.media_title || a.app_name || a.source || cfg.name || a.friendly_name;
     const artist = idle ? "" : a.media_artist || a.app_name || "";
-    const art = a.entity_picture || a.media_image_url;
+    const art = a.entity_picture; // media_image_url is a Python property, never a state attr
     const playIcon = this._playing()
       ? "solar:pause-bold-duotone"
       : "solar:play-bold-duotone";

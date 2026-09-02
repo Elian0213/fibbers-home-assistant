@@ -15,6 +15,7 @@ export class FibbersSysmon extends LitElement {
     hass: { attribute: false },
     _config: { state: true },
     _series: { state: true },
+    _settled: { state: true },
   };
   static styles = [
     twSheet,
@@ -44,6 +45,10 @@ export class FibbersSysmon extends LitElement {
     this._series = null;
     this._fetchedFor = null;
     this._lastTry = 0;
+    this._fetchedAt = 0;
+    this._misses = 0;
+    this._settled = false;
+    this._gen = (this._gen || 0) + 1; // discard any in-flight fetch for the old config
   }
 
   updated(changed) {
@@ -51,26 +56,41 @@ export class FibbersSysmon extends LitElement {
   }
   async _maybeFetch() {
     const id = this._config.graph;
-    if (!this.hass || this._fetchedFor === id || !this.hass.callWS) return;
-    // Back off so a genuinely history-less entity doesn't refetch on every state
-    // change, but a cold-load miss still retries on a later hass update.
+    if (!this.hass || !this.hass.callWS) return;
     const now = Date.now();
-    if (this._lastTry && now - this._lastTry < 8000) return;
+    // Cache expiry: refetch when the window is ~a 20th stale (min 60s).
+    const maxAge = Math.max(
+      60e3,
+      ((this._config.graph_hours || 24) * 3600e3) / 20,
+    );
+    if (this._fetchedFor === id && now - this._fetchedAt < maxAge) return;
+    // Fast retry on a cold miss (recorder lag); slow 8s backoff only once we have a
+    // series (a genuinely history-less entity).
+    const backoff = this._series
+      ? 8000
+      : Math.min(500 * 2 ** this._misses, 8000);
+    if (this._lastTry && now - this._lastTry < backoff) return;
     this._lastTry = now;
+    const gen = (this._gen += 1);
     try {
       const nums = await fetchHistory(
         this.hass,
         id,
         this._config.graph_hours || 24,
       );
-      // Only mark done once we actually got rows — an empty cold-load response
-      // must not disable the sparkline permanently.
+      if (gen !== this._gen) return; // a newer config/fetch superseded this one
       if (nums.length) {
         this._series = nums;
         this._fetchedFor = id;
+        this._fetchedAt = Date.now();
+        this._misses = 0;
+      } else {
+        this._misses += 1;
       }
     } catch (_e) {
-      /* history unavailable — retry after the backoff */
+      if (gen === this._gen) this._misses += 1;
+    } finally {
+      if (gen === this._gen) this._settled = true;
     }
   }
 
@@ -86,7 +106,14 @@ export class FibbersSysmon extends LitElement {
 
   _sparkline() {
     const series = this._series;
-    if (!series || series.length < 2) return "";
+    if (!series || series.length < 2) {
+      // A configured sparkline that hasn't loaded yet gets a skeleton (not a
+      // collapsed gap); no `graph:` at all renders nothing.
+      if (!this._config.graph || this._settled) return "";
+      return html`<div
+        class="mt-3 h-10 animate-pulse rounded-[6px] bg-card2"
+      ></div>`;
+    }
     const h = 40;
     let min = Math.min(...series),
       max = Math.max(...series);

@@ -25,6 +25,7 @@ export class FibbersGraph extends LitElement {
     hass: { attribute: false },
     _config: { state: true },
     _series: { state: true },
+    _settled: { state: true },
   };
   static styles = [
     twSheet,
@@ -61,6 +62,10 @@ export class FibbersGraph extends LitElement {
     this._series = Array.isArray(config.data) ? config.data.map(Number) : null;
     this._fetchedFor = null;
     this._lastTry = 0;
+    this._fetchedAt = 0;
+    this._misses = 0;
+    this._settled = this._series != null; // literal `data:` is already "loaded"
+    this._gen = (this._gen || 0) + 1; // discard any in-flight fetch for the old config
   }
 
   updated(changed) {
@@ -70,22 +75,35 @@ export class FibbersGraph extends LitElement {
 
   async _maybeFetch() {
     const id = this._config.entity;
-    if (!this.hass || this._fetchedFor === id || !this.hass.callWS) return;
-    // Back off so a genuinely history-less entity doesn't refetch on every state
-    // change, but a cold-load miss still retries on a later hass update.
+    if (!this.hass || !this.hass.callWS) return;
     const now = Date.now();
-    if (this._lastTry && now - this._lastTry < 8000) return;
+    // Cache expiry: refetch when the window is ~a 20th stale (min 60s), so a wall
+    // tablet's "last 24h" curve isn't frozen at page-load forever.
+    const maxAge = Math.max(60e3, ((this._config.hours || 24) * 3600e3) / 20);
+    if (this._fetchedFor === id && now - this._fetchedAt < maxAge) return;
+    // Fast retry on a cold miss (recorder lag); slow 8s backoff only once we have a
+    // series (a genuinely history-less entity).
+    const backoff = this._series
+      ? 8000
+      : Math.min(500 * 2 ** this._misses, 8000);
+    if (this._lastTry && now - this._lastTry < backoff) return;
     this._lastTry = now;
+    const gen = (this._gen += 1);
     try {
       const nums = await fetchHistory(this.hass, id, this._config.hours || 24);
-      // Only mark done once we actually got rows — an empty cold-load response
-      // must not disable the graph permanently (it retries after the backoff).
+      if (gen !== this._gen) return; // a newer config/fetch superseded this one
       if (nums.length) {
         this._series = nums;
         this._fetchedFor = id;
+        this._fetchedAt = Date.now();
+        this._misses = 0;
+      } else {
+        this._misses += 1;
       }
     } catch (_e) {
-      /* history unavailable — the header still shows the live value */
+      if (gen === this._gen) this._misses += 1;
+    } finally {
+      if (gen === this._gen) this._settled = true;
     }
   }
 
@@ -121,12 +139,19 @@ export class FibbersGraph extends LitElement {
 
     let body;
     if (!series || series.length < 2) {
-      body = html`<div
-        class="flex items-center text-[11px] text-muted"
-        style="height:${h}px"
-      >
-        ${t(hl, "graph.no_history")}
-      </div>`;
+      // Until a fetch actually settles, show a skeleton — not "no history", which
+      // used to flash on every cold load while the recorder was still answering.
+      body = this._settled
+        ? html`<div
+            class="flex items-center text-[11px] text-muted"
+            style="height:${h}px"
+          >
+            ${t(hl, "graph.no_history")}
+          </div>`
+        : html`<div
+            class="animate-pulse rounded-[6px] bg-card2"
+            style="height:${h}px"
+          ></div>`;
     } else {
       let min = Math.min(...series);
       let max = Math.max(...series);

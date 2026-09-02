@@ -128,10 +128,21 @@ export class FibbersNav extends LitElement {
     super.connectedCallback();
     // In the card picker HA sets `preview` — never spawn the real body-portal bar.
     if (this.preview) return;
+    // This card renders into document.body, so its grid cell is empty; collapse
+    // the <hui-card> wrapper so it doesn't reserve a 56px row.
+    const cell = this.getRootNode().host;
+    if (cell) {
+      this._cell = cell;
+      cell.style.display = "none";
+    }
     if (this._config) attach(this, this._config);
   }
   disconnectedCallback() {
     super.disconnectedCallback();
+    if (this._cell) {
+      this._cell.style.display = "";
+      this._cell = null;
+    }
     if (!this.preview) detach(this);
   }
 

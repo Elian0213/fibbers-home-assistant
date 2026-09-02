@@ -63,10 +63,21 @@ export class FibbersSheet extends LitElement {
     super.connectedCallback();
     // Card picker: HA sets `preview` — don't register with the sheet singleton.
     if (this.preview) return;
+    // The sheet is invisible (display:none); collapse the <hui-card> wrapper so it
+    // doesn't reserve an empty grid row.
+    const cell = this.getRootNode().host;
+    if (cell) {
+      this._cell = cell;
+      cell.style.display = "none";
+    }
     if (this._config) registerSheet(this._config.id, this);
   }
   disconnectedCallback() {
     super.disconnectedCallback();
+    if (this._cell) {
+      this._cell.style.display = "";
+      this._cell = null;
+    }
     if (this.preview) return;
     if (this._config) unregisterSheet(this._config.id, this);
   }
