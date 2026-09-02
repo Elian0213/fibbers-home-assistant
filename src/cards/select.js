@@ -155,12 +155,12 @@ export class FibbersSelect extends LitElement {
 
     const body =
       mode === "chips"
-        ? html`<div class="flex flex-wrap gap-1.5">
+        ? html`<div class="flex flex-wrap gap-2">
             ${options.map((o) => {
               const active = o === current;
               return html`<button
                 type="button"
-                class="rounded-full border px-2.5 py-1 text-[10.5px] font-medium
+                class="fib-hit rounded-full border px-2.5 py-1 text-[10.5px] font-medium
                        ${
                          active
                            ? "border-accentline bg-accentbg text-accent"

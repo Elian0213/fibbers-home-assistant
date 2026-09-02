@@ -121,14 +121,14 @@ export class FibbersScheduler extends LitElement {
 
       ${
         Array.isArray(cfg.days) && cfg.days.length
-          ? html`<div class="mt-3 flex flex-wrap gap-1.5">
+          ? html`<div class="mt-3 flex flex-wrap gap-2">
               ${cfg.days.map((d) => {
                 const obj = typeof d === "object";
                 const st = obj ? this._state(d.entity) : null;
                 const active = obj ? st && st.state === "on" : true;
                 return html`<button
                   type="button"
-                  class="rounded-full border px-2.5 py-1 text-[10.5px] font-medium
+                  class="fib-hit rounded-full border px-2.5 py-1 text-[10.5px] font-medium
                        ${
                          active
                            ? "border-accentline bg-accentbg text-accent"

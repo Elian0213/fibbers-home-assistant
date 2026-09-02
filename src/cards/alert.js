@@ -191,7 +191,7 @@ export class FibbersAlert extends LitElement {
                     role="button"
                     tabindex="0"
                     aria-label=${`${f.label} — ${t(hl, "common.more_info")}`}
-                    class="cursor-pointer text-[11.5px] leading-[1.42] text-ambertx"
+                    class="fib-hit cursor-pointer text-[11.5px] leading-[1.42] text-ambertx"
                     @click=${() => this._moreInfo(f.entity)}
                     @keydown=${activateOnKey(() => this._moreInfo(f.entity))}
                   >

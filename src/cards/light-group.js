@@ -192,6 +192,13 @@ export class FibbersLightGroup extends LitElement {
     this._commit(pct);
   }
 
+  // A cancelled / capture-lost gesture aborts: clear dragging and cancel any
+  // trailing commit so the abandoned value is never written.
+  _cancel() {
+    this._dragging = false;
+    this._debouncedCommit.cancel();
+  }
+
   // Keyboard control for the master slider (arrows/Home/End/PageUp-Down by 5%).
   _onKey(e) {
     const s = this._state();
@@ -276,7 +283,7 @@ export class FibbersLightGroup extends LitElement {
         </button>
         <button
           type="button"
-          class="flex h-7 w-7 flex-none items-center justify-center rounded-lg text-muted
+          class="fib-hit flex h-7 w-7 flex-none items-center justify-center rounded-lg text-muted
                  transition-transform active:scale-90"
           aria-label=${
             this._open
@@ -295,7 +302,7 @@ export class FibbersLightGroup extends LitElement {
       </div>
 
       <div
-        class="relative mt-3 h-2.5 cursor-pointer touch-none rounded-full bg-[#2C3639]
+        class="relative mt-2 flex h-11 cursor-pointer touch-none items-center
                ${s.allOff ? "pointer-events-none opacity-50" : ""}"
         role="slider"
         tabindex=${s.allOff ? -1 : 0}
@@ -308,22 +315,27 @@ export class FibbersLightGroup extends LitElement {
         @pointerdown=${this._down}
         @pointermove=${this._move}
         @pointerup=${this._up}
-        @pointercancel=${() => (this._dragging = false)}
+        @pointercancel=${this._cancel}
+        @lostpointercapture=${this._cancel}
         @keydown=${this._onKey}
       >
-        ${
-          s.allOff
-            ? ""
-            : html`<div
-                  class="absolute bottom-0 left-0 top-0 rounded-full bg-accent"
-                  style="width:${pct}%${stripe}"
-                ></div>
-                <div
-                  class="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full
-                       bg-accent shadow-[0_1px_3px_rgba(0,0,0,.4)]"
-                  style="left:${pct}%"
-                ></div>`
-        }
+        <div
+          class="pointer-events-none relative h-2.5 w-full rounded-full bg-[#2C3639]"
+        >
+          ${
+            s.allOff
+              ? ""
+              : html`<div
+                    class="absolute bottom-0 left-0 top-0 rounded-full bg-accent"
+                    style="width:${pct}%${stripe}"
+                  ></div>
+                  <div
+                    class="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full
+                         bg-accent shadow-[0_1px_3px_rgba(0,0,0,.4)]"
+                    style="left:${pct}%"
+                  ></div>`
+          }
+        </div>
       </div>
 
       ${this._open ? this._expanded() : ""}

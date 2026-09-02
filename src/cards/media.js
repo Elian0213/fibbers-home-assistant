@@ -240,7 +240,7 @@ export class FibbersMedia extends LitElement {
     return html`<button
       type="button"
       aria-label=${LABELS[service] || service}
-      class="flex ${big ? "h-11 w-11" : "h-9 w-9"} items-center justify-center rounded-full
+      class="fib-hit flex ${big ? "h-11 w-11" : "h-9 w-9"} items-center justify-center rounded-full
              ${opts.accent ? "bg-accentbg text-accent" : "bg-card2 text-ink"}
              transition-transform active:scale-90"
       @click=${() => this._svc(service)}

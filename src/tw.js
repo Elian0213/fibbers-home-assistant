@@ -17,7 +17,9 @@ const supportsAdopt =
 // a prefers-reduced-motion reset so no card animates for a user who asked not to
 // see motion (the nav bar and sheet honour it in their own stylesheets already).
 const BASE_CSS = `:focus-visible{outline:2px solid var(--color-accent,#74B98A);outline-offset:2px}
-@media (prefers-reduced-motion:reduce){*,::before,::after{transition-duration:.01ms !important;animation-duration:.01ms !important}}`;
+@media (prefers-reduced-motion:reduce){*,::before,::after{transition-duration:.01ms !important;animation-duration:.01ms !important}}
+.fib-hit{position:relative}
+.fib-hit::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:44px;min-height:44px;width:100%;height:100%}`;
 
 /** The shared utility sheet, ready to drop into a Lit card's `static styles`. */
 export let twSheet;

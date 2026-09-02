@@ -162,13 +162,13 @@ export class FibbersLightRow extends LitElement {
     return html`
       <div
         class="grid grid-cols-[28px_1fr] grid-rows-[auto_auto] items-center gap-x-2.5
-               gap-y-2 py-2 ${unavail ? "opacity-50" : ""}"
+               gap-y-0 ${unavail ? "opacity-50" : ""}"
       >
         <div
           role="button"
           tabindex=${unavail ? -1 : 0}
           aria-label=${name}
-          class="row-span-2 flex h-7 w-7 items-center justify-center rounded-lg
+          class="fib-hit row-span-2 flex h-7 w-7 items-center justify-center rounded-lg
                  transition-transform active:scale-90 ${
                    on ? "bg-accentbg" : "bg-card2"
                  } ${unavail ? "pointer-events-none" : "cursor-pointer"}"
@@ -200,7 +200,7 @@ export class FibbersLightRow extends LitElement {
           role="button"
           tabindex="0"
           aria-label=${`${name} — ${t(hl, "common.more_info")}`}
-          class="flex cursor-pointer items-baseline justify-between gap-2"
+          class="flex min-h-11 cursor-pointer items-center justify-between gap-2"
           @click=${() => this._moreInfo()}
           @keydown=${activateOnKey(() => this._moreInfo())}
         >

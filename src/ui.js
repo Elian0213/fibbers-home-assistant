@@ -145,8 +145,12 @@ export function sliderTrack({
           e.preventDefault();
           if (next !== value) onInput(next);
         };
+  // The element carrying role="slider" + the pointer handlers is a 44px-tall
+  // transparent wrapper (a real touch target); the painted 6px bar is an inert
+  // child. pctFromX still measures e.currentTarget (the wrapper) — same width, so
+  // the maths is unchanged.
   return html`<div
-    class="relative h-1.5 cursor-pointer touch-none rounded-[3px] bg-[#2C3639]
+    class="relative flex h-11 cursor-pointer touch-none items-center
            ${cls} ${disabled ? "pointer-events-none" : ""}"
     role="slider"
     tabindex=${disabled ? -1 : 0}
@@ -163,19 +167,23 @@ export function sliderTrack({
     @lostpointercapture=${onCancel}
     @keydown=${keydown}
   >
-    ${
-      disabled
-        ? ""
-        : html`<div
-              class="absolute bottom-0 left-0 top-0 rounded-[3px] bg-accent"
-              style="width:${pct}%"
-            ></div>
-            <div
-              class="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2
-                   rounded-full bg-accent shadow-[0_1px_3px_rgba(0,0,0,.4)]"
-              style="left:${pct}%"
-            ></div>`
-    }
+    <div
+      class="pointer-events-none relative h-1.5 w-full rounded-[3px] bg-[#2C3639]"
+    >
+      ${
+        disabled
+          ? ""
+          : html`<div
+                class="absolute bottom-0 left-0 top-0 rounded-[3px] bg-accent"
+                style="width:${pct}%"
+              ></div>
+              <div
+                class="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2
+                     rounded-full bg-accent shadow-[0_1px_3px_rgba(0,0,0,.4)]"
+                style="left:${pct}%"
+              ></div>`
+      }
+    </div>
   </div>`;
 }
 
@@ -221,7 +229,7 @@ export function overflowChips({
       type="button"
       aria-label=${s.name}
       aria-pressed=${active ? "true" : "false"}
-      class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[5px]
+      class="fib-hit inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[5px]
              text-[10.5px] font-medium ${
                active
                  ? "border-accentline bg-accentbg text-accent"
@@ -250,7 +258,7 @@ export function overflowChips({
         ? html`<button
             type="button"
             aria-expanded=${open ? "true" : "false"}
-            class="inline-flex items-center gap-1 rounded-full border border-line bg-transparent
+            class="fib-hit inline-flex items-center gap-1 rounded-full border border-line bg-transparent
                  px-2.5 py-[5px] text-[10.5px] font-medium text-ink2"
             @click=${onToggle}
           >
@@ -274,7 +282,7 @@ export function overflowChips({
 export function pillSwitch({ on, onClick, label = "" }) {
   return html`<button
     type="button"
-    class="relative h-5 w-9 flex-none rounded-full transition-colors
+    class="fib-hit relative h-5 w-9 flex-none rounded-full transition-colors
            ${on ? "bg-accent" : "bg-card2"}"
     role="switch"
     aria-checked=${on ? "true" : "false"}

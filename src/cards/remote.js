@@ -517,7 +517,7 @@ export class FibbersRemote extends LitElement {
             type="button"
             aria-label="Mute"
             aria-pressed=${muted ? "true" : "false"}
-            class="flex h-9 w-9 flex-none items-center justify-center rounded-full
+            class="fib-hit flex h-9 w-9 flex-none items-center justify-center rounded-full
                    ${muted ? "bg-accentbg text-accent" : "bg-card2 text-muted"}"
             @click=${() =>
               this._mpService("volume_mute", { is_volume_muted: !muted })}

@@ -221,7 +221,7 @@ async function renderContent(card) {
       <button
         type="button"
         aria-label=${t(card._hass, "sheet.close")}
-        class="flex h-[30px] w-[30px] flex-none cursor-pointer items-center justify-center
+        class="fib-hit flex h-[30px] w-[30px] flex-none cursor-pointer items-center justify-center
                rounded-full border-0 bg-card2 text-[15px] leading-none text-ink2"
         @click=${() => closeSheet()}
       >

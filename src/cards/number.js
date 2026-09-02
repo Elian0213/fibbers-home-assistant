@@ -254,7 +254,7 @@ export class FibbersNumber extends LitElement {
     const hl = this._config.language || this.hass;
     return html`<button
       type="button"
-      class="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-card2
+      class="fib-hit flex h-8 w-8 flex-none items-center justify-center rounded-full bg-card2
              text-accent transition-transform active:scale-90
              ${unavail ? "pointer-events-none opacity-40" : ""}"
       aria-label=${dir > 0 ? t(hl, "number.more") : t(hl, "number.less")}

@@ -54,13 +54,13 @@ export class FibbersChips extends LitElement {
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
-    return html`<div class="flex flex-wrap gap-[7px]">
+    return html`<div class="flex flex-wrap gap-2">
       ${cfg.chips.map((chip) => {
         const active = this._active(chip);
         return html`<button
           type="button"
           aria-label=${chip.name || chip.entity || "action"}
-          class="inline-flex items-center gap-[5px] rounded-full border px-2.5 py-[5px]
+          class="fib-hit inline-flex items-center gap-[5px] rounded-full border px-2.5 py-[5px]
                  text-[10.5px] font-medium
                  ${
                    active
