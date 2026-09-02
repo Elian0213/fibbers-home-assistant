@@ -1,7 +1,7 @@
 # generated / committed build artifact
 dist/
 # generated icon registry (produced by scripts/gen-icons.mjs)
-src/icons.gen.js
+src/icons.core.gen.js
 # generated Tailwind CSS (produced by scripts/gen-tw.mjs)
 src/tailwind.gen.js
 node_modules/

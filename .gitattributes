@@ -6,5 +6,6 @@
 
 # generated artifacts — keep out of GitHub language stats & diffs
 dist/fibbers.js linguist-generated
-src/icons.gen.js linguist-generated
+dist/icons.full.json linguist-generated -diff
+src/icons.core.gen.js linguist-generated -diff
 bun.lock linguist-generated -diff

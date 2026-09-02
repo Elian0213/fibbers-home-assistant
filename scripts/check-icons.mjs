@@ -1,22 +1,23 @@
 /**
  * check-icons.mjs — fail the build if the repo references a `solar:` icon that
- * isn't baked into src/icons.gen.js.
+ * isn't in the eager core set (src/icons.core.gen.js).
  *
- * An un-baked `solar:` name renders as a silent blank in Home Assistant (HA has
- * no `solar` iconset), so this guard keeps src/ and the stories honest. The full
- * Solar bold-duotone style is shipped, so in practice this catches a non-duotone
- * style (e.g. `-linear`) or a typo. Run via `bun run check`; use a
- * `solar:<name>-bold-duotone` name, or an mdi: name.
+ * The core set is what ships statically; anything else is fetched lazily from
+ * dist/icons.full.json at runtime. This guard keeps that split honest: a name used
+ * in src/ (or the stories) must be in core, so a code-path icon never depends on a
+ * network fetch. `gen-icons` derives core from these same references, so a failure
+ * here means gen-icons wasn't re-run (or core was hand-edited). Run via `bun run
+ * check`; use a `solar:<name>-bold-duotone` name, or an mdi: name.
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join, relative } from "node:path";
-import { ICONS } from "../src/icons.gen.js";
+import { ICONS } from "../src/icons.core.gen.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..");
 const roots = [join(root, "src"), join(root, "storybook/stories")];
-const skip = join(root, "src/icons.gen.js");
+const skip = join(root, "src/icons.core.gen.js");
 
 function jsFiles(dir) {
   const out = [];
@@ -46,7 +47,8 @@ for (const base of roots) {
 
 if (missing.size) {
   console.error(
-    "check-icons: these `solar:` names are used but not baked into src/icons.gen.js:",
+    "check-icons: these `solar:` names are used in src/ but missing from the core " +
+      "set (src/icons.core.gen.js) — run `bun run gen-icons`:",
   );
   for (const [name, files] of missing)
     console.error(`  ${name}  (${files.join(", ")})`);
@@ -56,4 +58,4 @@ if (missing.size) {
   process.exit(1);
 }
 
-console.log("check-icons: all `solar:` references are baked.");
+console.log("check-icons: all `solar:` references are in the core set.");

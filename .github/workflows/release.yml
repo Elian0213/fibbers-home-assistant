@@ -22,14 +22,21 @@ jobs:
       - name: Install
         run: bun install --frozen-lockfile
 
+      - name: Regenerate icons
+        run: bun run gen-icons
+
       - name: Check (prettier + eslint + build + icon guard + parse)
         run: bun run check
 
-      - name: dist/ is in sync with src/
-        run: git diff --exit-code dist/fibbers.js
+      - name: dist/ and generated files are in sync with src/
+        run: git diff --exit-code dist/fibbers.js dist/icons.full.json src/icons.core.gen.js src/tailwind.gen.js
 
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/fibbers.js
+          # icons.full.json ships next to fibbers.js so <fib-icon> can fetch the
+          # full Solar set on demand (see icon.js).
+          files: |
+            dist/fibbers.js
+            dist/icons.full.json
           generate_release_notes: true
