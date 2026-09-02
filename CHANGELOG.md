@@ -47,8 +47,10 @@ correctness fixes.
 
 ### Changed
 
-- **Smaller, quieter bundle.** The build now minifies with production Lit, dropping
-  Lit's dev-mode warnings and ~130KB.
+- **Quieter bundle.** The build compiles Lit in production mode
+  (`--conditions=production`), dropping its dev-mode warnings and asserts. Output
+  stays an unminified single IIFE so the committed bundle reproduces byte-for-byte
+  in CI regardless of the bundler's minifier version.
 - Global listeners in the theme / tab-hiding / view-reserve modules bind only while
   their feature is active, so a default dashboard does no per-navigation work.
 
