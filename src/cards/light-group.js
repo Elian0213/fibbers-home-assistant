@@ -173,10 +173,10 @@ export class FibbersLightGroup extends LitElement {
   }
 
   _down(e) {
-    const t = e.currentTarget;
+    const el = e.currentTarget;
     this._dragging = true;
-    t.setPointerCapture && t.setPointerCapture(e.pointerId);
-    this._dragPct = Math.round(pctFromX(e.clientX, t));
+    el.setPointerCapture && el.setPointerCapture(e.pointerId);
+    this._dragPct = Math.round(pctFromX(e.clientX, el));
     this._debouncedCommit(this._dragPct);
   }
   _move(e) {

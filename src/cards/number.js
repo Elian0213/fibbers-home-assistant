@@ -138,10 +138,10 @@ export class FibbersNumber extends LitElement {
 
   _down(e) {
     if (this._unavail()) return;
-    const t = e.currentTarget;
+    const el = e.currentTarget;
     this._dragging = true;
-    t.setPointerCapture && t.setPointerCapture(e.pointerId);
-    this._dragVal = this._valFromX(e.clientX, t);
+    el.setPointerCapture && el.setPointerCapture(e.pointerId);
+    this._dragVal = this._valFromX(e.clientX, el);
     this._debouncedSet(this._dragVal);
   }
   _move(e) {

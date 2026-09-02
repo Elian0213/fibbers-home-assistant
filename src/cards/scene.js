@@ -12,8 +12,8 @@ const activatedAt = (st) => {
   if (!st) return 0;
   const raw =
     (st.attributes && st.attributes.last_activated) || st.state || null;
-  const t = raw ? Date.parse(raw) : NaN;
-  return isNaN(t) ? 0 : t;
+  const ts = raw ? Date.parse(raw) : NaN;
+  return isNaN(ts) ? 0 : ts;
 };
 
 export class FibbersScene extends LitElement {
@@ -72,9 +72,9 @@ export class FibbersScene extends LitElement {
     let best = -1,
       bestT = 0;
     this._config.scenes.forEach((s, i) => {
-      const t = activatedAt(this.hass.states[s.scene]);
-      if (t > bestT) {
-        bestT = t;
+      const ts = activatedAt(this.hass.states[s.scene]);
+      if (ts > bestT) {
+        bestT = ts;
         best = i;
       }
     });

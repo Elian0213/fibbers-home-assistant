@@ -8335,13 +8335,13 @@ ${BASE_CSS}`);
         const st = hass.states[check.entity];
         const max = check.max_hours != null ? check.max_hours : 26;
         if (st && !isUnavail(st)) {
-          const t2 = Date.parse(st.state);
-          if (!isNaN(t2)) {
-            const hours = (Date.now() - t2) / 3600000;
+          const ts = Date.parse(st.state);
+          if (!isNaN(ts)) {
+            const hours = (Date.now() - ts) / 3600000;
             if (hours > max)
               out.push({
-                label: t2(hl, "alert.backup"),
-                detail: t2(hl, "common.hours_ago", { n: Math.round(hours) }),
+                label: t(hl, "alert.backup"),
+                detail: t(hl, "common.hours_ago", { n: Math.round(hours) }),
                 entity: check.entity
               });
           }
@@ -9061,8 +9061,8 @@ ${BASE_CSS}`);
     if (f.above != null && !(num(st.state) > f.above))
       return false;
     if (f.stale_hours != null) {
-      const t2 = Date.parse(st.last_changed);
-      if (isNaN(t2) || (Date.now() - t2) / 3600000 < f.stale_hours)
+      const ts = Date.parse(st.last_changed);
+      if (isNaN(ts) || (Date.now() - ts) / 3600000 < f.stale_hours)
         return false;
     }
     return true;
@@ -9641,10 +9641,10 @@ ${BASE_CSS}`);
         });
     }
     _down(e) {
-      const t2 = e.currentTarget;
+      const el = e.currentTarget;
       this._dragging = true;
-      t2.setPointerCapture && t2.setPointerCapture(e.pointerId);
-      this._dragPct = Math.round(pctFromX(e.clientX, t2));
+      el.setPointerCapture && el.setPointerCapture(e.pointerId);
+      this._dragPct = Math.round(pctFromX(e.clientX, el));
       this._debouncedCommit(this._dragPct);
     }
     _move(e) {
@@ -10692,10 +10692,10 @@ ${BASE_CSS}`);
     _down(e) {
       if (this._unavail())
         return;
-      const t2 = e.currentTarget;
+      const el = e.currentTarget;
       this._dragging = true;
-      t2.setPointerCapture && t2.setPointerCapture(e.pointerId);
-      this._dragVal = this._valFromX(e.clientX, t2);
+      el.setPointerCapture && el.setPointerCapture(e.pointerId);
+      this._dragVal = this._valFromX(e.clientX, el);
       this._debouncedSet(this._dragVal);
     }
     _move(e) {
@@ -11578,8 +11578,8 @@ ${BASE_CSS}`);
     if (!st)
       return 0;
     const raw = st.attributes && st.attributes.last_activated || st.state || null;
-    const t2 = raw ? Date.parse(raw) : NaN;
-    return isNaN(t2) ? 0 : t2;
+    const ts = raw ? Date.parse(raw) : NaN;
+    return isNaN(ts) ? 0 : ts;
   };
 
   class FibbersScene extends LitElement {
@@ -11631,9 +11631,9 @@ ${BASE_CSS}`);
         return -1;
       let best = -1, bestT = 0;
       this._config.scenes.forEach((s, i) => {
-        const t2 = activatedAt(this.hass.states[s.scene]);
-        if (t2 > bestT) {
-          bestT = t2;
+        const ts = activatedAt(this.hass.states[s.scene]);
+        if (ts > bestT) {
+          bestT = ts;
           best = i;
         }
       });
@@ -11706,8 +11706,8 @@ ${BASE_CSS}`);
     const [h, m] = hhmm2(s).split(":").map(Number);
     if (!Number.isFinite(h) || !Number.isFinite(m))
       return "";
-    const t2 = (h * 60 + m + Math.round(mins)) % (24 * 60);
-    return `${String(Math.floor(t2 / 60)).padStart(2, "0")}:${String(t2 % 60).padStart(2, "0")}`;
+    const total = (h * 60 + m + Math.round(mins)) % (24 * 60);
+    return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
   };
 
   class FibbersScheduler extends LitElement {

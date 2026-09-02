@@ -66,8 +66,8 @@ function matches(st, f) {
   if (f.below != null && !(num(st.state) < f.below)) return false;
   if (f.above != null && !(num(st.state) > f.above)) return false;
   if (f.stale_hours != null) {
-    const t = Date.parse(st.last_changed);
-    if (isNaN(t) || (Date.now() - t) / 3.6e6 < f.stale_hours) return false;
+    const ts = Date.parse(st.last_changed);
+    if (isNaN(ts) || (Date.now() - ts) / 3.6e6 < f.stale_hours) return false;
   }
   return true;
 }

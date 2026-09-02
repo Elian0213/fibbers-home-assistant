@@ -13,6 +13,9 @@ import { defineConfig, globalIgnores } from "eslint/config";
 const airbnb = {
   "no-var": "error",
   "prefer-const": "error",
+  // A local shadowing an import (`const t = …` over the i18n `t`) is a silent
+  // data-loss class of bug (see alert.js backup_age); make it an error.
+  "no-shadow": ["error", { builtinGlobals: false }],
   "object-shorthand": ["warn", "always"],
   "prefer-template": "warn",
   "no-else-return": ["warn", { allowElseIf: false }],

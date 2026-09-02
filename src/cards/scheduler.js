@@ -14,8 +14,8 @@ const hhmm = (s) => (typeof s === "string" ? s.slice(0, 5) : "");
 const addMinutes = (s, mins) => {
   const [h, m] = hhmm(s).split(":").map(Number);
   if (!Number.isFinite(h) || !Number.isFinite(m)) return "";
-  const t = (h * 60 + m + Math.round(mins)) % (24 * 60);
-  return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;
+  const total = (h * 60 + m + Math.round(mins)) % (24 * 60);
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 };
 
 export class FibbersScheduler extends LitElement {

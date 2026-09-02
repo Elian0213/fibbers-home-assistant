@@ -91,9 +91,9 @@ function runCheck(check, hass, hl) {
       const st = hass.states[check.entity];
       const max = check.max_hours != null ? check.max_hours : 26;
       if (st && !isUnavail(st)) {
-        const t = Date.parse(st.state);
-        if (!isNaN(t)) {
-          const hours = (Date.now() - t) / 3.6e6;
+        const ts = Date.parse(st.state);
+        if (!isNaN(ts)) {
+          const hours = (Date.now() - ts) / 3.6e6;
           if (hours > max)
             out.push({
               label: t(hl, "alert.backup"),
