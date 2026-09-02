@@ -3,6 +3,55 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.7.3] — 2026-09-02
+
+A full audit pass against a live HA 2026.8 install — bigger touch targets, real
+more-info from sheets, a working Apple-TV power button, and a long tail of
+correctness fixes.
+
+### Fixed
+
+- **Sliders are far easier to hit.** The brightness / number / volume tracks now
+  carry a full 44px-tall transparent hit area around the 6px painted bar, and the
+  sub-44px controls (chips, day chips, light-row icon, chevrons, media prev/next,
+  remote mute/power, number ±, sheet close) get a shared `.fib-hit` expander.
+- **More-info opens from sheets and the nav bar.** Those render into
+  `document.body` (a sibling of `<home-assistant>`), so a bubbling `hass-more-info`
+  never reached HA's listener — it's now dispatched at `<home-assistant>` directly.
+  The sheet scroll-lock moved off `<body>` onto hui-root's `#view`, so HA's own
+  dialogs lay out correctly over an open sheet.
+- **Apple-TV (and other) power works.** The remote power button now calls the
+  remote entity's real `turn_on`/`turn_off`/`toggle` from its own state instead of
+  sending a bogus transport command; the card dims and short-circuits when the
+  remote is unavailable, resets its derived platform on reconfigure, and renders
+  Back/Menu once when aliased.
+- **Weather forecast returns.** `fibbers-weather` subscribes to
+  `weather/subscribe_forecast` (the `forecast` attribute was removed in HA 2024.4)
+  and unsubscribes on disconnect.
+- **Sparklines don't flash "no history".** `fibbers-graph` / `fibbers-sysmon` show a
+  skeleton until a fetch actually settles, retry fast on a cold miss, expire the
+  cache so a wall tablet isn't frozen at page-load, and discard stale responses.
+- **Media controls match the player.** Transport, seek and volume are gated on the
+  player's `supported_features`, so a CEC TV with no volume no longer shows a dead
+  slider; the now-playing title falls back through `app_name`/`source`.
+- **A shadowed `t` no longer breaks a stale-backup alert.** `alert.js` reused the
+  i18n helper's name for a timestamp; ESLint `no-shadow` now guards against it.
+- **Slider commit lifecycle.** A failed service call clears the optimistic hold
+  instead of freezing on it; a tap no longer streams a value on press; on/off-only
+  lights render a toggle; the group average ignores brightness-less members.
+- Empty nav/sheet grid rows collapse; `clamp` no longer yields `NaN`; scheduler /
+  datetime parse `HH:MM` strictly; climate handles heat_cool and unavailability;
+  entity-picture URLs are escaped; entities sort by locale and localise their
+  secondary text; plus a batch of smaller correctness fixes across the cards and
+  the nav/theme/tabs/view-reserve infrastructure.
+
+### Changed
+
+- **Smaller, quieter bundle.** The build now minifies with production Lit, dropping
+  Lit's dev-mode warnings and ~130KB.
+- Global listeners in the theme / tab-hiding / view-reserve modules bind only while
+  their feature is active, so a default dashboard does no per-navigation work.
+
 ## [0.7.2] — 2026-09-02
 
 Two real bugs, sliders and the remote.
