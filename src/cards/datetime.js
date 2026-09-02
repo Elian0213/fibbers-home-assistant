@@ -9,7 +9,11 @@ import { twSheet } from "../tw.js";
 import { moreInfo, fmtState, pickEntity } from "../util.js";
 import "../icon.js";
 
-const hhmm = (s) => (typeof s === "string" ? s.slice(0, 5) : "");
+// Only a real HH:MM prefix, so "unavailable" falls through to "—".
+const hhmm = (s) => {
+  const m = typeof s === "string" && s.match(/^(\d{2}:\d{2})/);
+  return m ? m[1] : "";
+};
 
 const EDITOR_SCHEMA = [
   { name: "entity", selector: { entity: {} } },

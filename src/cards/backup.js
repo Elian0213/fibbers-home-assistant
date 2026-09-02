@@ -11,7 +11,9 @@ import "../icon.js";
 
 function ago(iso, hl) {
   const time = Date.parse(iso);
-  if (isNaN(time)) return { text: String(iso), hours: 0 };
+  // A non-timestamp state (a broken sensor) counts as infinitely stale so the
+  // card warns, rather than hours:0 masquerading as a fresh backup.
+  if (isNaN(time)) return { text: String(iso), hours: Infinity };
   const hours = (Date.now() - time) / 3.6e6;
   const mins = Math.round(hours * 60);
   let text;

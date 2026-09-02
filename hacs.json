@@ -1,6 +1,6 @@
 {
   "name": "Fibbers",
   "filename": "fibbers.js",
-  "homeassistant": "2024.11.0",
+  "homeassistant": "2025.1.0",
   "render_readme": true
 }

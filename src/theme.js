@@ -89,10 +89,20 @@ function palette() {
   return null;
 }
 
+// The sidebar and HA's dialogs (more-info, the scrim) render outside hui-root, so
+// vars scoped to hui-root's :host can never reach them — drop them here (they stay
+// in the source objects for the global-css path, which sets them on <html>).
+const unreachable = (k) =>
+  k.startsWith("--sidebar-") ||
+  /dialog/.test(k) ||
+  k === "--mdc-theme-surface" ||
+  k === "--more-info-header-background";
+
 // Scope the vars to hui-root's shadow host: closer than HA's own theme root, so
 // they win for the dashboard subtree without !important and without leaking out.
 function cssFor(vars) {
   const decls = Object.entries(vars)
+    .filter(([k]) => !unreachable(k))
     .map(([k, v]) => `  ${k}: ${v};`)
     .join("\n");
   return `:host {\n${decls}\n}`;
@@ -189,6 +199,7 @@ export function applyTheme(mode) {
   }
   paint();
   startObserver();
+  startNavListeners();
   if (normalized === "auto") watchScheme();
   else unwatchScheme();
 }
@@ -197,10 +208,24 @@ export function applyTheme(mode) {
 export function removeTheme() {
   state.mode = "none";
   stopObserver();
+  stopNavListeners();
   unwatchScheme();
   removeStyle();
 }
 
-// Re-apply after HA swaps hui-root / rebuilds the view on navigation.
-window.addEventListener("location-changed", schedulePaint);
-window.addEventListener("popstate", schedulePaint);
+// Re-apply after HA swaps hui-root / rebuilds the view on navigation — but only
+// bind these while a theme is actually active, so a dashboard with `theme: none`
+// (the default) doesn't run a repaint on every navigation.
+let navBound = false;
+function startNavListeners() {
+  if (navBound) return;
+  navBound = true;
+  window.addEventListener("location-changed", schedulePaint);
+  window.addEventListener("popstate", schedulePaint);
+}
+function stopNavListeners() {
+  if (!navBound) return;
+  navBound = false;
+  window.removeEventListener("location-changed", schedulePaint);
+  window.removeEventListener("popstate", schedulePaint);
+}

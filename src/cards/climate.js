@@ -6,7 +6,7 @@ import { LitElement, html, css } from "lit";
 
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
-import { pickEntity } from "../util.js";
+import { pickEntity, isUnavail, clamp } from "../util.js";
 import "../icon.js";
 
 const MODE = {
@@ -66,16 +66,16 @@ export class FibbersClimate extends LitElement {
 
   _bump(delta) {
     const st = this._st();
-    if (!st) return;
-    const step = st.attributes.target_temp_step || 0.5;
+    if (!st || isUnavail(st)) return;
+    const step = Number(st.attributes.target_temp_step) || 0.5;
     const cur = Number(st.attributes.temperature);
-    if (!Number.isFinite(cur)) return;
+    if (!Number.isFinite(cur)) return; // heat_cool/range has no single setpoint
     const min = st.attributes.min_temp ?? 5;
     const max = st.attributes.max_temp ?? 35;
-    const next = Math.min(
-      max,
-      Math.max(min, Math.round((cur + delta * step) * 10) / 10),
-    );
+    // Snap onto the step grid (not a fixed 0.1) so 0.5-step and 1-step
+    // thermostats both land on valid setpoints; toFixed kills float drift.
+    const snapped = Math.round((cur + delta * step) / step) * step;
+    const next = clamp(Number(snapped.toFixed(2)), min, max);
     this.hass.callService("climate", "set_temperature", {
       entity_id: this._config.entity,
       temperature: next,
@@ -94,12 +94,23 @@ export class FibbersClimate extends LitElement {
         ${t(hl, "common.not_available")}
       </div>`;
     const a = st.attributes;
+    const unavail = isUnavail(st);
     const cur = a.current_temperature;
     const target = a.temperature;
+    const low = a.target_temp_low;
+    const high = a.target_temp_high;
+    // heat_cool / range: no single `temperature`, so the −/+ can't act — show the
+    // low–high band and disable the steppers.
+    const range = target == null && (low != null || high != null);
+    const canBump = !unavail && !range && target != null;
     const modes = (a.hvac_modes || []).filter((m) => MODE[m]);
     const action = a.hvac_action;
 
-    return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
+    return html`<div
+      class="rounded-[14px] border border-line bg-card p-[13px] ${
+        unavail ? "opacity-50" : ""
+      }"
+    >
       <div class="mb-3 flex items-baseline justify-between gap-2">
         <div>
           <div
@@ -122,8 +133,10 @@ export class FibbersClimate extends LitElement {
         <button
           type="button"
           aria-label="Lower setpoint"
+          ?disabled=${!canBump}
           class="fib-hit flex h-10 w-10 items-center justify-center rounded-full bg-card2 text-ink
-                 transition-transform active:scale-90"
+                 transition-transform active:scale-90
+                 ${canBump ? "" : "pointer-events-none opacity-40"}"
           @click=${() => this._bump(-1)}
         >
           <fib-icon
@@ -133,7 +146,13 @@ export class FibbersClimate extends LitElement {
         </button>
         <div class="min-w-[68px] text-center">
           <div class="text-[26px] font-semibold leading-none text-accent">
-            ${target != null ? target : "—"}<span class="text-[14px]">°</span>
+            ${
+              range
+                ? html`${low ?? "—"}–${high ?? "—"}`
+                : target != null
+                  ? target
+                  : "—"
+            }<span class="text-[14px]">°</span>
           </div>
           <div
             class="mt-0.5 text-[9.5px] uppercase tracking-[0.08em] text-muted"
@@ -144,8 +163,10 @@ export class FibbersClimate extends LitElement {
         <button
           type="button"
           aria-label="Raise setpoint"
+          ?disabled=${!canBump}
           class="fib-hit flex h-10 w-10 items-center justify-center rounded-full bg-card2 text-ink
-                 transition-transform active:scale-90"
+                 transition-transform active:scale-90
+                 ${canBump ? "" : "pointer-events-none opacity-40"}"
           @click=${() => this._bump(1)}
         >
           <fib-icon
@@ -162,12 +183,13 @@ export class FibbersClimate extends LitElement {
                 const active = st.state === m;
                 return html`<button
                   type="button"
+                  ?disabled=${unavail}
                   class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[5px]
                        text-[10.5px] font-medium ${
                          active
                            ? "border-accentline bg-accentbg text-accent"
                            : "border-line bg-card2 text-ink2"
-                       }"
+                       } ${unavail ? "pointer-events-none opacity-40" : ""}"
                   @click=${() =>
                     this.hass.callService("climate", "set_hvac_mode", {
                       entity_id: cfg.entity,

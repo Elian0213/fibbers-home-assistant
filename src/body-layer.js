@@ -264,25 +264,30 @@ export function renderBar() {
   measureBar();
 }
 
+// Named so it can be removed on detach (an inline closure couldn't be), and the
+// options object is shared so add/remove match.
+const AUTO_HIDE_OPTS = { capture: true, passive: true };
+function onScrollHide(e) {
+  const y = (e.target && e.target.scrollTop) || 0;
+  const dy = y - bar.lastScroll;
+  if (Math.abs(dy) < 6) return;
+  bar.lastScroll = y;
+  const hide = dy > 0 && y > 40;
+  if (hide !== bar.hidden && bar.host) {
+    bar.hidden = hide;
+    bar.host.setAttribute("data-hidden", String(hide));
+  }
+}
 let autoHideBound = false;
 function enableAutoHide() {
   if (autoHideBound) return;
   autoHideBound = true;
-  document.addEventListener(
-    "scroll",
-    (e) => {
-      const y = (e.target && e.target.scrollTop) || 0;
-      const dy = y - bar.lastScroll;
-      if (Math.abs(dy) < 6) return;
-      bar.lastScroll = y;
-      const hide = dy > 0 && y > 40;
-      if (hide !== bar.hidden && bar.host) {
-        bar.hidden = hide;
-        bar.host.setAttribute("data-hidden", String(hide));
-      }
-    },
-    { capture: true, passive: true },
-  );
+  document.addEventListener("scroll", onScrollHide, AUTO_HIDE_OPTS);
+}
+function disableAutoHide() {
+  if (!autoHideBound) return;
+  autoHideBound = false;
+  document.removeEventListener("scroll", onScrollHide, AUTO_HIDE_OPTS);
 }
 
 export function attach(owner, config) {
@@ -305,6 +310,12 @@ export function attach(owner, config) {
 export function detach(owner) {
   bar.owners.delete(owner);
   if (bar.owners.size === 0 && bar.host) {
+    // The window listeners were added in buildBar; tear them down with the host
+    // so nothing keeps firing against a removed bar.
+    window.removeEventListener("orientationchange", onOrientationChange);
+    window.removeEventListener("resize", measureBar);
+    window.removeEventListener("resize", onResizeInset);
+    disableAutoHide();
     bar.host.remove();
     bar.host = null;
     bar.height = 0;

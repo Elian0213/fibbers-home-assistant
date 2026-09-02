@@ -106,15 +106,29 @@ export function setViewReserve(px) {
   }
   paint();
   startObserver();
+  startNavListeners();
 }
 
 /** Full teardown — called from detach() when the last fibbers-nav unmounts. */
 export function removeViewReserve() {
   state.px = 0;
   stopObserver();
+  stopNavListeners();
   removeStyle();
 }
 
-// Re-apply after HA swaps hui-root / rebuilds the view on navigation.
-window.addEventListener("location-changed", schedulePaint);
-window.addEventListener("popstate", schedulePaint);
+// Re-apply after HA swaps hui-root / rebuilds the view on navigation — bound only
+// while a reserve is active, so no work happens on dashboards without a bar.
+let navBound = false;
+function startNavListeners() {
+  if (navBound) return;
+  navBound = true;
+  window.addEventListener("location-changed", schedulePaint);
+  window.addEventListener("popstate", schedulePaint);
+}
+function stopNavListeners() {
+  if (!navBound) return;
+  navBound = false;
+  window.removeEventListener("location-changed", schedulePaint);
+  window.removeEventListener("popstate", schedulePaint);
+}

@@ -10,7 +10,12 @@ import { pillSwitch } from "../ui.js";
 import { moreInfo, pickEntity } from "../util.js";
 import "../icon.js";
 
-const hhmm = (s) => (typeof s === "string" ? s.slice(0, 5) : "");
+// Only a real HH:MM prefix — so "unavailable"/"unknown" renders as "—" instead
+// of a garbage "unava" big-time.
+const hhmm = (s) => {
+  const m = typeof s === "string" && s.match(/^(\d{2}:\d{2})/);
+  return m ? m[1] : "";
+};
 const addMinutes = (s, mins) => {
   const [h, m] = hhmm(s).split(":").map(Number);
   if (!Number.isFinite(h) || !Number.isFinite(m)) return "";
@@ -93,7 +98,7 @@ export class FibbersScheduler extends LitElement {
                 label: cfg.name || t(hl, "scheduler.default_name"),
                 onClick: () =>
                   this.hass &&
-                  this.hass.callService("input_boolean", "toggle", {
+                  this.hass.callService("homeassistant", "toggle", {
                     entity_id: cfg.enable,
                   }),
               })
@@ -137,7 +142,7 @@ export class FibbersScheduler extends LitElement {
                   @click=${() =>
                     obj &&
                     this.hass &&
-                    this.hass.callService("input_boolean", "toggle", {
+                    this.hass.callService("homeassistant", "toggle", {
                       entity_id: d.entity,
                     })}
                 >

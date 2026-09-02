@@ -4,10 +4,10 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
-import { t } from "../i18n.js";
+import { t, langOf } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import { activateOnKey } from "../ui.js";
-import { moreInfo } from "../util.js";
+import { moreInfo, fmtState } from "../util.js";
 import "../icon.js";
 
 const DOMAIN_ICON = {
@@ -120,7 +120,8 @@ export class FibbersEntities extends LitElement {
         (a, b) => Date.parse(a.last_changed) - Date.parse(b.last_changed),
       );
     } else {
-      out.sort((a, b) => this._name(a).localeCompare(this._name(b), "nl"));
+      const lang = langOf(this._config.language || this.hass);
+      out.sort((a, b) => this._name(a).localeCompare(this._name(b), lang));
     }
     const max = this._config.max;
     return max ? out.slice(0, max) : out;
@@ -145,8 +146,28 @@ export class FibbersEntities extends LitElement {
       const k = s.slice("attribute:".length);
       return String((st.attributes || {})[k] ?? "");
     }
-    const u = (st.attributes || {}).unit_of_measurement;
-    return u ? `${st.state} ${u}` : st.state;
+    // HA's localised state text: enums translated, numbers formatted with the
+    // unit — instead of the raw `on`/`23.4` state string.
+    return fmtState(this.hass, st);
+  }
+
+  // Only re-render when a matched row's visible content actually changed — a card
+  // filled from all of hass.states would otherwise re-render on every state push.
+  shouldUpdate(changed) {
+    if (!this._config) return false;
+    if (changed.has("_config")) {
+      this._sig = null;
+      return true;
+    }
+    const sig = this._matched()
+      .map(
+        (st) =>
+          `${st.entity_id}=${st.state}|${this._name(st)}|${this._secondary(st)}`,
+      )
+      .join(";");
+    if (sig === this._sig) return false;
+    this._sig = sig;
+    return true;
   }
   render() {
     const cfg = this._config;

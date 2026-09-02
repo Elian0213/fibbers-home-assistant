@@ -59,7 +59,9 @@ export class FibbersGraph extends LitElement {
       );
     }
     this._config = config;
-    this._series = Array.isArray(config.data) ? config.data.map(Number) : null;
+    this._series = Array.isArray(config.data)
+      ? config.data.map(Number).filter(Number.isFinite)
+      : null;
     this._fetchedFor = null;
     this._lastTry = 0;
     this._fetchedAt = 0;

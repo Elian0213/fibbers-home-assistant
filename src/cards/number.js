@@ -17,8 +17,10 @@ import {
 } from "../util.js";
 import "../icon.js";
 
+const DOMAINS = ["input_number", "number"];
+
 const EDITOR_SCHEMA = [
-  { name: "entity", selector: { entity: {} } },
+  { name: "entity", selector: { entity: { domain: DOMAINS } } },
   { name: "name", selector: { text: {} } },
   { name: "icon", selector: { icon: {} } },
   { name: "unit", selector: { text: {} } },
@@ -75,6 +77,11 @@ export class FibbersNumber extends LitElement {
   setConfig(config) {
     if (!config || !config.entity) {
       throw new Error("fibbers-number: `entity` is required");
+    }
+    if (!DOMAINS.includes(String(config.entity).split(".")[0])) {
+      throw new Error(
+        "fibbers-number: `entity` must be an input_number.* or number.*",
+      );
     }
     this._config = config;
     this._dragging = false;

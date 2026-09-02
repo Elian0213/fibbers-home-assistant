@@ -135,10 +135,17 @@ export class FibbersStat extends LitElement {
       !cfg.absolute_time &&
       !isNaN(Date.parse(st.state))
     ) {
-      valueTpl = html`<ha-relative-time
-        .hass=${this.hass}
-        .datetime=${new Date(st.state)}
-      ></ha-relative-time>`;
+      // <ha-relative-time> is HA's own element — if the frontend hasn't defined it
+      // (older core, some contexts) it would render blank, so fall back to HA's
+      // localised state string.
+      if (customElements.get("ha-relative-time")) {
+        valueTpl = html`<ha-relative-time
+          .hass=${this.hass}
+          .datetime=${new Date(st.state)}
+        ></ha-relative-time>`;
+      } else {
+        value = fmtState(this.hass, st);
+      }
     } else {
       const n = Number(String(st.state).replace(",", "."));
       value = Number.isFinite(n)

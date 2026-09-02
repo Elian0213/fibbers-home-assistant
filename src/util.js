@@ -85,7 +85,15 @@ export function pickEntity(domain, entities, entitiesFallback, fallback) {
 export const isUnavail = (st) =>
   !st || st.state === "unavailable" || st.state === "unknown";
 
-export const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+// NaN (a bad/absent state, `Number("")`) clamps to the low bound rather than
+// propagating NaN into a `width:NaN%` or `value=NaN`.
+export const clamp = (n, lo, hi) =>
+  Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : lo;
+
+// A CSS `url("…")` value safe to interpolate into an inline style. encodeURI
+// escapes the `"` (and control chars) that could otherwise break out of the
+// quotes, so a signed entity_picture URL with odd characters can't inject CSS.
+export const cssUrl = (url) => `url("${encodeURI(String(url))}")`;
 
 // HA's own localised state text (motion → "Vrij", timestamp → "2 dagen geleden",
 // enum → translated). Falls back to the raw state if the helper is missing/throws.

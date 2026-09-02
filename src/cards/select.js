@@ -9,8 +9,10 @@ import { twSheet } from "../tw.js";
 import { pickEntity } from "../util.js";
 import "../icon.js";
 
+const DOMAINS = ["input_select", "select"];
+
 const EDITOR_SCHEMA = [
-  { name: "entity", selector: { entity: {} } },
+  { name: "entity", selector: { entity: { domain: DOMAINS } } },
   { name: "name", selector: { text: {} } },
   { name: "icon", selector: { icon: {} } },
   {
@@ -65,6 +67,11 @@ export class FibbersSelect extends LitElement {
   setConfig(config) {
     if (!config || !config.entity) {
       throw new Error("fibbers-select: `entity` is required");
+    }
+    if (!DOMAINS.includes(String(config.entity).split(".")[0])) {
+      throw new Error(
+        "fibbers-select: `entity` must be an input_select.* or select.*",
+      );
     }
     this._config = config;
     this._open = false;

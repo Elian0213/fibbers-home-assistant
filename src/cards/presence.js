@@ -6,7 +6,7 @@ import { LitElement, html, css } from "lit";
 
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
-import { moreInfo } from "../util.js";
+import { moreInfo, cssUrl } from "../util.js";
 import "../icon.js";
 
 export class FibbersPresence extends LitElement {
@@ -97,7 +97,7 @@ export class FibbersPresence extends LitElement {
             <div
               class="flex h-[26px] w-[26px] flex-none items-center justify-center
                      overflow-hidden rounded-full bg-card bg-cover bg-center"
-              style=${pic ? `background-image:url("${pic}")` : ""}
+              style=${pic ? `background-image:${cssUrl(pic)}` : ""}
             >
               ${
                 pic

@@ -103,6 +103,7 @@ export function setTabHiding(mode) {
   }
   paint();
   startObserver();
+  startNavListeners();
 }
 
 /**
@@ -112,9 +113,23 @@ export function setTabHiding(mode) {
 export function removeTabHiding() {
   state.mode = false;
   stopObserver();
+  stopNavListeners();
   removeStyle();
 }
 
-// Re-apply after HA swaps hui-root / rebuilds the toolbar on navigation.
-window.addEventListener("location-changed", schedulePaint);
-window.addEventListener("popstate", schedulePaint);
+// Re-apply after HA swaps hui-root / rebuilds the toolbar on navigation — bound
+// only while tabs are actually being hidden, so an unthemed dashboard doesn't run
+// a repaint on every navigation.
+let navBound = false;
+function startNavListeners() {
+  if (navBound) return;
+  navBound = true;
+  window.addEventListener("location-changed", schedulePaint);
+  window.addEventListener("popstate", schedulePaint);
+}
+function stopNavListeners() {
+  if (!navBound) return;
+  navBound = false;
+  window.removeEventListener("location-changed", schedulePaint);
+  window.removeEventListener("popstate", schedulePaint);
+}

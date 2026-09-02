@@ -8,7 +8,7 @@ import { LitElement, html, css } from "lit";
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import { sliderTrack, overflowChips, SliderHold } from "../ui.js";
-import { pctFromX, pickEntity } from "../util.js";
+import { pctFromX, pickEntity, cssUrl, debounce } from "../util.js";
 import "../icon.js";
 
 const fmtTime = (s) => {
@@ -93,14 +93,30 @@ export class FibbersMedia extends LitElement {
     this._srcOpen = false;
     this._volHold = new SliderHold(this, { tolerance: 2 });
     this._seekHold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
+    // Keyboard nudges on the sliders shouldn't fire a service call per keydown.
+    this._volInput = debounce((v) => this._setVol(v), 150);
+    this._seekInput = debounce((v) => this._seek(v), 150);
   }
 
   // A seek bar showing live elapsed time needs its own 1s tick while playing —
   // hass only pushes a new media_position occasionally.
   updated() {
+    if (!this._config) return;
     const p = this._pos();
     if (this._playing() && p && p.dur) this._startTick();
     else this._stopTick();
+    // The seek bar is gone (playback stopped / no duration) but a drag was still
+    // in progress — clear it so a stale _seeking doesn't wedge the next render.
+    if (this._seeking && !(p && p.dur)) this._seeking = false;
+    // Clear the post-seek hold as soon as the player reports a fresh position
+    // (its updated-at moved), instead of waiting on the tolerance/timeout — seek
+    // targets drift with playback and may never match within tolerance.
+    const upd =
+      (this._st() && this._st().attributes.media_position_updated_at) || null;
+    if (this._seekAt != null && upd !== this._seekAt) {
+      this._seekAt = null;
+      this._seekHold.clear();
+    }
   }
   _startTick() {
     if (this._tick) return;
@@ -115,6 +131,8 @@ export class FibbersMedia extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     this._stopTick();
+    this._volInput.cancel();
+    this._seekInput.cancel();
   }
 
   _st() {
@@ -205,6 +223,10 @@ export class FibbersMedia extends LitElement {
   }
   _seek(seconds) {
     this._seekHold.hold(seconds);
+    // Remember the position timestamp at seek time; the hold clears once the
+    // player pushes a newer one (see updated()).
+    this._seekAt =
+      (this._st() && this._st().attributes.media_position_updated_at) || null;
     this._svc("media_seek", { seek_position: Math.round(seconds) }).catch(() =>
       this._seekHold.clear(),
     );
@@ -305,7 +327,7 @@ export class FibbersMedia extends LitElement {
         max: Math.round(p.dur),
         step: 10,
         valueText: fmtTime(pos),
-        onInput: (v) => this._seek(v),
+        onInput: (v) => this._seekInput(v),
         onDown: this._seekDown,
         onMove: this._seekMove,
         onUp: this._seekUp,
@@ -345,7 +367,7 @@ export class FibbersMedia extends LitElement {
     const artBox = html`<div
       class="flex ${cfg.compact ? "h-11 w-11" : "h-14 w-14"} flex-none items-center
              justify-center overflow-hidden rounded-xl bg-card2 bg-cover bg-center"
-      style=${art ? `background-image:url("${art}")` : ""}
+      style=${art ? `background-image:${cssUrl(art)}` : ""}
     >
       ${
         art
@@ -451,7 +473,7 @@ export class FibbersMedia extends LitElement {
                 max: 100,
                 step: 5,
                 valueText: `${this._vol()}%`,
-                onInput: (v) => this._setVol(v),
+                onInput: (v) => this._volInput(v),
                 onDown: this._down,
                 onMove: this._move,
                 onUp: this._up,
@@ -552,7 +574,7 @@ export class FibbersMedia extends LitElement {
             <div
               class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-[10px]
                    bg-card2 bg-cover bg-center"
-              style=${f.thumbnail ? `background-image:url("${f.thumbnail}")` : ""}
+              style=${f.thumbnail ? `background-image:${cssUrl(f.thumbnail)}` : ""}
             >
               ${
                 f.thumbnail
