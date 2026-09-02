@@ -117,7 +117,7 @@ export class FibbersLightGroup extends LitElement {
     let avail = 0;
     let off = 0;
     let sum = 0;
-    let dim = 0;
+    let withBrightness = 0;
     let bmin = Infinity;
     let bmax = -Infinity;
     members.forEach((id) => {
@@ -136,7 +136,7 @@ export class FibbersLightGroup extends LitElement {
         if (b != null) {
           const pct = Math.round((b / 255) * 100);
           sum += pct;
-          dim += 1;
+          withBrightness += 1;
           bmin = Math.min(bmin, pct);
           bmax = Math.max(bmax, pct);
         }
@@ -146,8 +146,8 @@ export class FibbersLightGroup extends LitElement {
       on,
       total: members.length,
       off,
-      pct: dim ? Math.round(sum / dim) : on ? 100 : 0,
-      mixed: dim > 1 && bmax - bmin > 2,
+      pct: withBrightness ? Math.round(sum / withBrightness) : on ? 100 : 0,
+      mixed: withBrightness > 1 && bmax - bmin > 2,
       allOff: avail === 0,
     };
   }

@@ -100,6 +100,13 @@ export class FibbersWeather extends LitElement {
         },
       )
       .then((unsub) => {
+        // Disconnected (or re-subscribed to another entity) before this resolved —
+        // drop the now-orphaned subscription instead of storing an unsub nobody
+        // will ever call.
+        if (!this.isConnected || this._subFor !== id) {
+          unsub();
+          return;
+        }
         this._unsubFn = unsub;
       })
       .catch(() => {

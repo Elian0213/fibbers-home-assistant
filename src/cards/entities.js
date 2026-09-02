@@ -101,11 +101,17 @@ export class FibbersEntities extends LitElement {
     this._config = config;
     this._filters = compileFilters(config.filters, "filter");
     this._exclude = compileFilters(config.exclude, "exclude");
+    this._matchedHass = null;
+    this._matchedCache = null;
   }
 
+  // Memoised by the current hass ref: shouldUpdate() and render() both need the
+  // matched set, and re-scanning every state (+ sort) twice per push is wasteful
+  // on a large instance.
   _matched() {
     const hass = this.hass;
     if (!hass) return [];
+    if (this._matchedHass === hass) return this._matchedCache;
     const seen = new Set();
     const out = [];
     for (const st of Object.values(hass.states)) {
@@ -124,7 +130,10 @@ export class FibbersEntities extends LitElement {
       out.sort((a, b) => this._name(a).localeCompare(this._name(b), lang));
     }
     const max = this._config.max;
-    return max ? out.slice(0, max) : out;
+    const rows = max ? out.slice(0, max) : out;
+    this._matchedHass = hass;
+    this._matchedCache = rows;
+    return rows;
   }
 
   _name(st) {
@@ -162,7 +171,7 @@ export class FibbersEntities extends LitElement {
     const sig = this._matched()
       .map(
         (st) =>
-          `${st.entity_id}=${st.state}|${this._name(st)}|${this._secondary(st)}`,
+          `${st.entity_id}=${st.state}|${this._icon(st)}|${this._name(st)}|${this._secondary(st)}`,
       )
       .join(";");
     if (sig === this._sig) return false;

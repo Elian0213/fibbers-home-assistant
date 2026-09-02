@@ -288,7 +288,7 @@ export function closeSheet() {
     if (opener && opener.focus) opener.focus(); // return focus to the trigger
   };
   // A cancellation token so a deferred close can't run after the card is gone
-  // (unregisterSheet clears it) — see §3.
+  // (unregisterSheet clears it).
   if (reduceMotion()) finish();
   else layer.closeTimer = setTimeout(finish, 300);
 }

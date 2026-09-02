@@ -308,8 +308,6 @@ export class FibbersMedia extends LitElement {
   }
 
   _seekBar() {
-    // A player that can't seek shouldn't show a draggable progress bar at all.
-    if (!this._supports(MF.SEEK)) return "";
     const p = this._pos();
     if (!p || !p.dur) return "";
     const pos = this._seekHold.value(p.pos, {
@@ -318,6 +316,26 @@ export class FibbersMedia extends LitElement {
       gone: this._idle(),
     });
     const pct = p.dur ? (pos / p.dur) * 100 : 0;
+    const times = html`<div
+      class="mt-1 flex justify-between text-[10px] tabular-nums text-muted"
+    >
+      <span>${fmtTime(pos)}</span>
+      <span>-${fmtTime(p.dur - pos)}</span>
+    </div>`;
+    // No SEEK support: show the position as a read-only progress bar (fill only, no
+    // knob or handlers) rather than hiding it — many players report position but
+    // can't seek.
+    if (!this._supports(MF.SEEK)) {
+      return html`<div class="mb-3">
+        <div class="h-1.5 w-full rounded-[3px] bg-[#2C3639]">
+          <div
+            class="h-full rounded-[3px] bg-accent"
+            style="width:${pct}%"
+          ></div>
+        </div>
+        ${times}
+      </div>`;
+    }
     return html`<div class="mb-3">
       ${sliderTrack({
         pct,
@@ -335,12 +353,7 @@ export class FibbersMedia extends LitElement {
           this._seeking = false;
         },
       })}
-      <div
-        class="mt-1 flex justify-between text-[10px] tabular-nums text-muted"
-      >
-        <span>${fmtTime(pos)}</span>
-        <span>-${fmtTime(p.dur - pos)}</span>
-      </div>
+      ${times}
     </div>`;
   }
 
