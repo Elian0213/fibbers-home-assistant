@@ -453,10 +453,8 @@ export class FibbersRemote extends LitElement {
         ? "D-pad — swipe, tap an arrow, or use the arrow keys"
         : "D-pad — swipe or use the arrow keys";
     return html`<div
-      class="relative mx-auto touch-none rounded-full bg-card2 ${
-        swipe ? "cursor-pointer" : ""
-      }"
-      style="width:min(72vw,260px);height:min(72vw,260px)"
+      class="relative mx-auto aspect-square w-full max-w-[260px] touch-none rounded-full
+             bg-card2 ${swipe ? "cursor-pointer" : ""}"
       role="group"
       aria-label=${label}
       tabindex=${swipe ? 0 : nothing}
