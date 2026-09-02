@@ -1,9 +1,10 @@
 /* ================================================================== *
- * fibbers-remote — a real TV remote: a round d-pad, transport, source/app
- * launcher and volume, over `remote.send_command`. Point `media_player:` at the
- * player and the card also shows now-playing, a source grid (`select_source`)
- * and a volume slider. `device:` (philips | appletv | generic) sets the header
- * icon so two remotes on one page are distinguishable.
+ * fibbers-remote — a real TV remote over `remote.send_command`, with the correct
+ * command names per platform. The command family is derived from the entity's
+ * integration (apple_tv → pyatv lowercase, philips_js → Cursor…/Standby, Android
+ * TV → DPAD_…); `device:` overrides the guess and `commands:` overrides per key.
+ * Point `media_player:` at the player for now-playing, a select_source grid and a
+ * volume slider. Buttons a platform doesn't support aren't rendered.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
@@ -13,29 +14,75 @@ import { sliderTrack, overflowChips, SliderHold } from "../ui.js";
 import { pickEntity, pctFromX } from "../util.js";
 import "../icon.js";
 
-const DEFAULTS = {
-  power: "POWER",
-  up: "DPAD_UP",
-  down: "DPAD_DOWN",
-  left: "DPAD_LEFT",
-  right: "DPAD_RIGHT",
-  ok: "DPAD_CENTER",
-  back: "BACK",
-  home: "HOME",
-  menu: "MENU",
-  volume_up: "VOLUME_UP",
-  volume_down: "VOLUME_DOWN",
-  volume_mute: "MUTE",
-  channel_up: "CHANNEL_UP",
-  channel_down: "CHANNEL_DOWN",
-  previous: "MEDIA_PREVIOUS",
-  next: "MEDIA_NEXT",
-  play: "MEDIA_PLAY_PAUSE",
+// Per-platform command names. A key absent here (and from `commands:`) means the
+// device can't do it, so that button doesn't render.
+const COMMANDS = {
+  appletv: {
+    up: "up",
+    down: "down",
+    left: "left",
+    right: "right",
+    ok: "select",
+    menu: "menu",
+    home: "home",
+    back: "menu",
+    play: "play_pause",
+    next: "next",
+    previous: "previous",
+    volume_up: "volume_up",
+    volume_down: "volume_down",
+    turn_on: "turn_on",
+    turn_off: "turn_off",
+  },
+  philips: {
+    up: "CursorUp",
+    down: "CursorDown",
+    left: "CursorLeft",
+    right: "CursorRight",
+    ok: "Confirm",
+    back: "Back",
+    home: "Home",
+    play: "Play",
+    volume_up: "VolumeUp",
+    volume_down: "VolumeDown",
+    volume_mute: "Mute",
+    channel_up: "ChannelStepUp",
+    channel_down: "ChannelStepDown",
+    power: "Standby",
+  },
+  androidtv: {
+    power: "POWER",
+    up: "DPAD_UP",
+    down: "DPAD_DOWN",
+    left: "DPAD_LEFT",
+    right: "DPAD_RIGHT",
+    ok: "DPAD_CENTER",
+    back: "BACK",
+    home: "HOME",
+    menu: "MENU",
+    volume_up: "VOLUME_UP",
+    volume_down: "VOLUME_DOWN",
+    volume_mute: "MUTE",
+    channel_up: "CHANNEL_UP",
+    channel_down: "CHANNEL_DOWN",
+    previous: "MEDIA_PREVIOUS",
+    next: "MEDIA_NEXT",
+    play: "MEDIA_PLAY_PAUSE",
+  },
+  generic: {},
+};
+
+const PLATFORM_DEVICE = {
+  apple_tv: "appletv",
+  philips_js: "philips",
+  androidtv: "androidtv",
+  android_tv: "androidtv",
 };
 
 const DEVICE_ICON = {
-  philips: "solar:tv-bold-duotone",
   appletv: "solar:tv-bold-duotone",
+  philips: "solar:tv-bold-duotone",
+  androidtv: "solar:tv-bold-duotone",
   generic: "solar:gamepad-bold-duotone",
 };
 
@@ -46,6 +93,8 @@ export class FibbersRemote extends LitElement {
     _dragging: { state: true },
     _dragVol: { state: true },
     _srcOpen: { state: true },
+    _platform: { state: true },
+    _flash: { state: true },
   };
   static styles = [
     twSheet,
@@ -79,9 +128,22 @@ export class FibbersRemote extends LitElement {
     ) {
       throw new Error('fibbers-remote: `sources` must be "auto" or a list');
     }
-    if (config.device != null && !DEVICE_ICON[config.device]) {
+    if (config.device != null && !COMMANDS[config.device]) {
       throw new Error(
-        'fibbers-remote: `device` must be "philips", "appletv" or "generic"',
+        'fibbers-remote: `device` must be "appletv", "philips", "androidtv" or "generic"',
+      );
+    }
+    if (config.device === "generic" && !config.commands) {
+      throw new Error(
+        "fibbers-remote: `device: generic` makes no command assumptions — provide a `commands:` map",
+      );
+    }
+    if (
+      config.dpad != null &&
+      !["swipe", "buttons", "both"].includes(config.dpad)
+    ) {
+      throw new Error(
+        'fibbers-remote: `dpad` must be "swipe", "buttons" or "both"',
       );
     }
     this._config = config;
@@ -91,24 +153,91 @@ export class FibbersRemote extends LitElement {
     this._volHold = new SliderHold(this, { tolerance: 2 });
   }
 
+  connectedCallback() {
+    super.connectedCallback();
+    this._onHidden = () => {
+      if (document.hidden) this._release();
+    };
+    document.addEventListener("visibilitychange", this._onHidden);
+  }
   disconnectedCallback() {
     super.disconnectedCallback();
-    this._release(); // don't let a held button keep firing after unmount
+    this._release(); // a held button must not keep firing after unmount
+    document.removeEventListener("visibilitychange", this._onHidden);
   }
 
-  // The optional media_player backing now-playing / sources / volume.
+  // Resolve the entity's integration once, so the default command family is right
+  // without the user picking. Unknown platform → generic (needs `commands:`).
+  updated(changed) {
+    if (changed.has("hass")) this._resolvePlatform();
+  }
+  async _resolvePlatform() {
+    if (this._platformTried || !this.hass || !this.hass.callWS) return;
+    this._platformTried = true;
+    try {
+      const reg = await this.hass.callWS({
+        type: "config/entity_registry/get",
+        entity_id: this._config.entity,
+      });
+      if (reg && reg.platform) this._platform = reg.platform;
+    } catch (_) {
+      /* left undefined → generic */
+    }
+  }
+
+  _device() {
+    return this._config.device || PLATFORM_DEVICE[this._platform] || "generic";
+  }
+  // The command string for a logical key: `commands:` override, else the device
+  // map. undefined → the platform can't do it (button won't render).
+  _cmd(key) {
+    const override = (this._config.commands || {})[key];
+    if (override != null) return override;
+    return (COMMANDS[this._device()] || {})[key];
+  }
+
   _mp() {
     const id = this._config.media_player;
     return id && this.hass ? this.hass.states[id] : null;
   }
 
-  _send(key) {
-    const cmd = (this._config.commands || {})[key] || DEFAULTS[key];
-    if (cmd && this.hass)
-      this.hass.callService("remote", "send_command", {
+  // A rejected send_command dies silently in a fire-and-forget call; catch it,
+  // warn once per key with the command + platform, and flash the button — a dead
+  // remote shouldn't look identical to a working one.
+  async _send(key) {
+    const cmd = this._cmd(key);
+    if (!cmd || !this.hass) return;
+    try {
+      await this.hass.callService("remote", "send_command", {
         entity_id: this._config.entity,
         command: cmd,
       });
+    } catch (e) {
+      this._warned = this._warned || new Set();
+      if (!this._warned.has(key)) {
+        this._warned.add(key);
+        console.warn(
+          `[fibbers-remote] command "${cmd}" was rejected by ${this._config.entity} ` +
+            `(platform: ${this._platform || "unknown"}). ${e && e.message ? e.message : e}`,
+        );
+      }
+      this._flash = key;
+      clearTimeout(this._flashTimer);
+      this._flashTimer = setTimeout(() => {
+        this._flash = null;
+      }, 500);
+    }
+  }
+
+  _power() {
+    if (this._device() === "appletv") {
+      const mp = this._mp();
+      const on =
+        mp && !["off", "standby", "unavailable", "unknown"].includes(mp.state);
+      this._send(on ? "turn_off" : "turn_on");
+    } else {
+      this._send("power");
+    }
   }
 
   _mpService(service, data) {
@@ -120,19 +249,22 @@ export class FibbersRemote extends LitElement {
       });
   }
 
-  // Long-press repeat (volume / channel): fire once, then every 140ms until release.
+  // Long-press repeat, bounded: ~3/s (not 7/s), capped, and stopped on release /
+  // cancel / lost capture / the tab hiding (handled in connectedCallback).
   _hold(key) {
+    this._release();
     this._send(key);
-    clearInterval(this._repeat);
-    this._repeat = setInterval(() => this._send(key), 140);
+    let count = 0;
+    this._repeat = setInterval(() => {
+      if ((count += 1) > 40) return this._release(); // hard cap ~12s
+      return this._send(key);
+    }, 300);
   }
   _release() {
     clearInterval(this._repeat);
     this._repeat = null;
   }
 
-  // The full source list: explicit `sources` (strings or {name, source, icon}),
-  // or `auto` from the player's source_list.
   _allSources() {
     const cfg = this._config;
     if (!cfg.sources) return [];
@@ -146,9 +278,6 @@ export class FibbersRemote extends LitElement {
           typeof s === "string" ? { name: s, source: s } : s,
         );
   }
-
-  // The collapsed row: `favourites` in their listed order (each resolved against
-  // the full list). null → no favourites, so no drawer and everything shows.
   _favSources(all) {
     const favs = this._config.favourites;
     if (!Array.isArray(favs) || !favs.length) return null;
@@ -156,6 +285,10 @@ export class FibbersRemote extends LitElement {
     return favs.map((f) => byValue.get(f) || { name: f, source: f });
   }
 
+  _setVol(pct) {
+    this._volHold.hold(pct);
+    this._mpService("volume_set", { volume_level: pct / 100 });
+  }
   _volDown(e) {
     this._dragging = true;
     e.currentTarget.setPointerCapture &&
@@ -172,99 +305,144 @@ export class FibbersRemote extends LitElement {
     this._dragging = false;
     this._setVol(v);
   }
-  _setVol(pct) {
-    this._volHold.hold(pct);
-    this._mpService("volume_set", { volume_level: pct / 100 });
-  }
 
   // --- render helpers ------------------------------------------------
 
-  _round(label, icon, onClick, size = "h-11 w-11") {
+  _flashCls(key) {
+    return this._flash === key ? "opacity-40" : "";
+  }
+
+  // A round button; ≥44px. `key` (optional) drives the rejected-command flash.
+  _round(label, icon, onClick, size = "h-12 w-12", key) {
     return html`<button
       type="button"
       aria-label=${label}
       class="flex ${size} flex-none items-center justify-center rounded-full bg-card2
-             text-ink transition-transform active:scale-90"
+             text-ink transition-transform active:scale-90 ${this._flashCls(key)}"
       @click=${onClick}
     >
       <fib-icon
-        class="h-[19px] w-[19px] [--mdc-icon-size:19px]"
+        class="h-[20px] w-[20px] [--mdc-icon-size:20px]"
         icon=${icon}
       ></fib-icon>
     </button>`;
   }
 
-  // Press-and-hold button (volume / channel) with repeat.
   _holdBtn(label, icon, key) {
+    if (!this._cmd(key)) return "";
     return html`<button
       type="button"
       aria-label=${label}
-      class="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-card2
-             text-ink transition-transform active:scale-90"
+      class="flex h-12 w-12 flex-none items-center justify-center rounded-full bg-card2
+             text-ink transition-transform active:scale-90 ${this._flashCls(key)}"
       @pointerdown=${() => this._hold(key)}
       @pointerup=${() => this._release()}
       @pointercancel=${() => this._release()}
       @pointerleave=${() => this._release()}
+      @lostpointercapture=${() => this._release()}
     >
       <fib-icon
-        class="h-[19px] w-[19px] [--mdc-icon-size:19px]"
+        class="h-[20px] w-[20px] [--mdc-icon-size:20px]"
         icon=${icon}
       ></fib-icon>
     </button>`;
   }
 
+  _swipeStart(e) {
+    this._sw = { x: e.clientX, y: e.clientY };
+    e.currentTarget.setPointerCapture &&
+      e.currentTarget.setPointerCapture(e.pointerId);
+  }
+  _swipeEnd(e) {
+    const s = this._sw;
+    this._sw = null;
+    if (!s) return;
+    const dx = e.clientX - s.x;
+    const dy = e.clientY - s.y;
+    if (Math.hypot(dx, dy) < 24) return this._send("ok"); // tap
+    return this._send(
+      Math.abs(dx) > Math.abs(dy)
+        ? dx > 0
+          ? "right"
+          : "left"
+        : dy > 0
+          ? "down"
+          : "up",
+    );
+  }
+
   _dpad() {
+    const mode =
+      this._config.dpad || (this._device() === "appletv" ? "both" : "buttons");
+    const swipe = mode !== "buttons";
+    const buttons = mode !== "swipe";
+    // Buttons win over the swipe surface: stop the container from also seeing it.
+    const stop = swipe ? (e) => e.stopPropagation() : undefined;
     const arrow = (key, icon, label, pos) =>
       html`<button
         type="button"
         aria-label=${label}
-        class="absolute ${pos} flex h-12 w-12 items-center justify-center rounded-full
-             text-ink transition-transform hover:bg-card active:scale-90"
+        class="absolute ${pos} flex h-14 w-14 items-center justify-center rounded-full
+             text-ink transition-transform hover:bg-card active:scale-90 ${this._flashCls(
+               key,
+             )}"
+        @pointerdown=${stop}
         @click=${() => this._send(key)}
       >
         <fib-icon
-          class="h-[22px] w-[22px] [--mdc-icon-size:22px]"
+          class="h-[24px] w-[24px] [--mdc-icon-size:24px]"
           icon=${icon}
         ></fib-icon>
       </button>`;
     return html`<div
-      class="relative mx-auto h-[168px] w-[168px] rounded-full bg-card2"
+      class="relative mx-auto touch-none rounded-full bg-card2"
+      style="width:min(72vw,260px);height:min(72vw,260px)"
       role="group"
-      aria-label="D-pad"
+      aria-label=${swipe ? "D-pad (swipe or tap the arrows)" : "D-pad"}
+      @pointerdown=${swipe ? this._swipeStart : undefined}
+      @pointerup=${swipe ? this._swipeEnd : undefined}
+      @pointercancel=${swipe ? () => (this._sw = null) : undefined}
     >
-      ${arrow(
-        "up",
-        "solar:alt-arrow-up-bold-duotone",
-        "Up",
-        "left-1/2 top-1 -translate-x-1/2",
-      )}
-      ${arrow(
-        "down",
-        "solar:alt-arrow-down-bold-duotone",
-        "Down",
-        "bottom-1 left-1/2 -translate-x-1/2",
-      )}
-      ${arrow(
-        "left",
-        "solar:alt-arrow-left-bold-duotone",
-        "Left",
-        "left-1 top-1/2 -translate-y-1/2",
-      )}
-      ${arrow(
-        "right",
-        "solar:alt-arrow-right-bold-duotone",
-        "Right",
-        "right-1 top-1/2 -translate-y-1/2",
-      )}
+      ${
+        buttons
+          ? html`${arrow(
+              "up",
+              "solar:alt-arrow-up-bold-duotone",
+              "Up",
+              "left-1/2 top-2 -translate-x-1/2",
+            )}
+            ${arrow(
+              "down",
+              "solar:alt-arrow-down-bold-duotone",
+              "Down",
+              "bottom-2 left-1/2 -translate-x-1/2",
+            )}
+            ${arrow(
+              "left",
+              "solar:alt-arrow-left-bold-duotone",
+              "Left",
+              "left-2 top-1/2 -translate-y-1/2",
+            )}
+            ${arrow(
+              "right",
+              "solar:alt-arrow-right-bold-duotone",
+              "Right",
+              "right-2 top-1/2 -translate-y-1/2",
+            )}`
+          : ""
+      }
       <button
         type="button"
         aria-label="OK"
-        class="absolute left-1/2 top-1/2 flex h-[60px] w-[60px] -translate-x-1/2 -translate-y-1/2
+        class="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2
                items-center justify-center rounded-full bg-accentbg text-accent
-               shadow-[0_1px_3px_rgba(0,0,0,.4)] transition-transform active:scale-90"
+               shadow-[0_1px_3px_rgba(0,0,0,.4)] transition-transform active:scale-90 ${this._flashCls(
+                 "ok",
+               )}"
+        @pointerdown=${stop}
         @click=${() => this._send("ok")}
       >
-        <span class="text-[13px] font-semibold">OK</span>
+        <span class="text-[15px] font-semibold">OK</span>
       </button>
     </div>`;
   }
@@ -275,13 +453,21 @@ export class FibbersRemote extends LitElement {
       mp && mp.state === "playing"
         ? "solar:pause-bold-duotone"
         : "solar:play-bold-duotone";
-    const tp = (label, icon, key, mpService) =>
-      this._round(
+    const tp = (label, icon, key, mpService) => {
+      if (!this._cmd(key) && !mp) return "";
+      return this._round(
         label,
         icon,
         mp ? () => this._mpService(mpService) : () => this._send(key),
+        "h-12 w-12",
+        key,
       );
-    return html`<div class="flex items-center justify-center gap-2.5">
+    };
+    const nav = (label, icon, key) =>
+      this._cmd(key)
+        ? this._round(label, icon, () => this._send(key), "h-12 w-12", key)
+        : "";
+    return html`<div class="flex flex-wrap items-center justify-center gap-2.5">
       ${tp(
         "Previous",
         "solar:skip-previous-bold-duotone",
@@ -291,38 +477,36 @@ export class FibbersRemote extends LitElement {
       ${tp("Play / pause", playIcon, "play", "media_play_pause")}
       ${tp("Next", "solar:skip-next-bold-duotone", "next", "media_next_track")}
       <span class="mx-0.5 h-8 w-px flex-none bg-line"></span>
-      ${this._round("Back", "solar:arrow-left-bold-duotone", () =>
-        this._send("back"),
-      )}
-      ${this._round("Home", "solar:home-2-bold-duotone", () =>
-        this._send("home"),
-      )}
-      ${this._round("Menu", "solar:menu-dots-bold-duotone", () =>
-        this._send("menu"),
-      )}
+      ${nav("Back", "solar:arrow-left-bold-duotone", "back")}
+      ${nav("Home", "solar:home-2-bold-duotone", "home")}
+      ${nav("Menu", "solar:menu-dots-bold-duotone", "menu")}
     </div>`;
   }
 
   _volume() {
     const mp = this._mp();
-    const hasVol = mp && mp.attributes.volume_level != null;
+    const hasSlider = mp && mp.attributes.volume_level != null;
+    const hasVolCmd = this._cmd("volume_up");
     const muted = mp && mp.attributes.is_volume_muted;
-    const channel = html`${this._holdBtn(
-        "Channel down",
-        "solar:alt-arrow-down-bold-duotone",
-        "channel_down",
-      )}
-      <span
-        class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-        >CH</span
-      >
-      ${this._holdBtn(
-        "Channel up",
-        "solar:alt-arrow-up-bold-duotone",
-        "channel_up",
-      )}`;
+    const hasChannel = this._cmd("channel_up");
+    const channel = hasChannel
+      ? html`${this._holdBtn(
+            "Channel down",
+            "solar:alt-arrow-down-bold-duotone",
+            "channel_down",
+          )}
+          <span
+            class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
+            >CH</span
+          >
+          ${this._holdBtn(
+            "Channel up",
+            "solar:alt-arrow-up-bold-duotone",
+            "channel_up",
+          )}`
+      : "";
 
-    if (hasVol) {
+    if (hasSlider) {
       const vol = this._volHold.value(
         Math.round(mp.attributes.volume_level * 100),
         { dragging: this._dragging, dragValue: this._dragVol },
@@ -333,7 +517,7 @@ export class FibbersRemote extends LitElement {
             type="button"
             aria-label="Mute"
             aria-pressed=${muted ? "true" : "false"}
-            class="flex h-8 w-8 flex-none items-center justify-center rounded-full
+            class="flex h-9 w-9 flex-none items-center justify-center rounded-full
                    ${muted ? "bg-accentbg text-accent" : "bg-card2 text-muted"}"
             @click=${() =>
               this._mpService("volume_mute", { is_volume_muted: !muted })}
@@ -369,25 +553,48 @@ export class FibbersRemote extends LitElement {
             icon="solar:volume-loud-bold-duotone"
           ></fib-icon>
         </div>
-        <div class="flex items-center justify-center gap-2.5">${channel}</div>
+        ${
+          hasChannel
+            ? html`<div class="flex items-center justify-center gap-2.5">
+                ${channel}
+              </div>`
+            : ""
+        }
       </div>`;
     }
 
-    return html`<div class="flex items-center justify-center gap-2.5">
-      ${this._holdBtn(
-        "Volume down",
-        "solar:volume-small-bold-duotone",
-        "volume_down",
-      )}
-      ${this._round("Mute", "solar:volume-cross-bold-duotone", () =>
-        this._send("volume_mute"),
-      )}
-      ${this._holdBtn(
-        "Volume up",
-        "solar:volume-loud-bold-duotone",
-        "volume_up",
-      )}
-      <span class="mx-0.5 h-8 w-px flex-none bg-line"></span>
+    if (!hasVolCmd && !hasChannel) return "";
+    return html`<div class="flex flex-wrap items-center justify-center gap-2.5">
+      ${
+        hasVolCmd
+          ? html`${this._holdBtn(
+              "Volume down",
+              "solar:volume-small-bold-duotone",
+              "volume_down",
+            )}
+            ${
+              this._cmd("volume_mute")
+                ? this._round(
+                    "Mute",
+                    "solar:volume-cross-bold-duotone",
+                    () => this._send("volume_mute"),
+                    "h-12 w-12",
+                    "volume_mute",
+                  )
+                : ""
+            }
+            ${this._holdBtn(
+              "Volume up",
+              "solar:volume-loud-bold-duotone",
+              "volume_up",
+            )}`
+          : ""
+      }
+      ${
+        hasVolCmd && hasChannel
+          ? html`<span class="mx-0.5 h-8 w-px flex-none bg-line"></span>`
+          : ""
+      }
       ${channel}
     </div>`;
   }
@@ -420,7 +627,7 @@ export class FibbersRemote extends LitElement {
         >
           <fib-icon
             class="h-[19px] w-[19px] [--mdc-icon-size:19px]"
-            icon=${DEVICE_ICON[cfg.device] || DEVICE_ICON.generic}
+            icon=${DEVICE_ICON[this._device()] || DEVICE_ICON.generic}
           ></fib-icon>
         </div>
         <div class="min-w-0 flex-1">
@@ -432,8 +639,9 @@ export class FibbersRemote extends LitElement {
         ${this._round(
           "Power",
           "solar:power-bold-duotone",
-          () => this._send("power"),
-          "h-9 w-9",
+          () => this._power(),
+          "h-11 w-11",
+          "power",
         )}
       </div>
 
