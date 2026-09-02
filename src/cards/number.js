@@ -87,7 +87,11 @@ export class FibbersNumber extends LitElement {
     this._dragging = false;
     this._dragVal = 0;
     this._debouncedSet = debounce((v) => this._setValue(v), 150);
-    this._hold = new SliderHold(this, { tolerance: 0.5, timeout: 5000 });
+    // Construct once (addController has no counterpart); tolerance is set per-read
+    // in _value() from the entity's own range/step.
+    if (!this._hold)
+      this._hold = new SliderHold(this, { tolerance: 0.5, timeout: 5000 });
+    else this._hold.clear();
   }
 
   disconnectedCallback() {
@@ -117,7 +121,11 @@ export class FibbersNumber extends LitElement {
   }
   _value() {
     const n = Number(this._st() && this._st().state);
-    const entityVal = Number.isFinite(n) ? n : this._bounds().min;
+    const { min, max, step } = this._bounds();
+    const entityVal = Number.isFinite(n) ? n : min;
+    // Step-relative tolerance: a fixed 0.5 clears the hold on the first update for
+    // an entity whose whole range is ≤ 1, bringing the snap-back back.
+    this._hold.tolerance = Math.max(step / 2, (max - min) / 1000);
     return this._hold.value(entityVal, {
       dragging: this._dragging,
       dragValue: this._dragVal,

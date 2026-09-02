@@ -599,9 +599,12 @@ export class FibbersRemote extends LitElement {
       : "";
 
     if (hasSlider) {
+      // If the player drops out mid-hold, release the optimistic value instead of
+      // freezing the knob on it until the timeout.
+      const gone = !mp || ["unavailable", "unknown", "off"].includes(mp.state);
       const vol = this._volHold.value(
         Math.round(mp.attributes.volume_level * 100),
-        { dragging: this._dragging, dragValue: this._dragVol },
+        { dragging: this._dragging, dragValue: this._dragVol, gone },
       );
       return html`<div class="flex flex-col gap-3">
         <div class="flex items-center gap-2.5">
@@ -625,6 +628,7 @@ export class FibbersRemote extends LitElement {
           </button>
           ${sliderTrack({
             pct: vol,
+            disabled: gone,
             cls: "flex-1",
             label: "Volume",
             value: vol,
@@ -638,6 +642,7 @@ export class FibbersRemote extends LitElement {
             onUp: this._volUp,
             onCancel: () => {
               this._dragging = false;
+              this._volHold.clear();
             },
           })}
           <fib-icon

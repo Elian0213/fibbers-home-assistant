@@ -63,7 +63,12 @@ export class FibbersLightRow extends LitElement {
     this._config = config;
     this._dragging = false;
     this._dragPct = 0;
-    this._hold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
+    // Construct the hold once — SliderHold.addController has no counterpart, so a
+    // fresh one per setConfig (HA calls it per keystroke in the editor) would
+    // orphan controllers on the element.
+    if (!this._hold)
+      this._hold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
+    else this._hold.clear();
   }
 
   // An on/off-only light (supported_color_modes === ["onoff"]) has no brightness,

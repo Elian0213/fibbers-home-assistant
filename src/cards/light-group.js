@@ -72,7 +72,11 @@ export class FibbersLightGroup extends LitElement {
     this._config = config;
     this._dragging = false;
     this._dragPct = 0;
-    this._hold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
+    // Construct the hold once — addController has no counterpart, so a fresh one
+    // per setConfig (per editor keystroke) would orphan controllers.
+    if (!this._hold)
+      this._hold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
+    else this._hold.clear();
     this._debouncedCommit = debounce((p) => this._commit(p), 150);
     this._rowCache = new Map();
     this._loggedGhosts = false;

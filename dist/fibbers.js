@@ -8852,7 +8852,10 @@ ${BASE_CSS}`);
       this._config = config;
       this._dragging = false;
       this._dragPct = 0;
-      this._hold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
+      if (!this._hold)
+        this._hold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
+      else
+        this._hold.clear();
       this._debouncedCommit = debounce((p3) => this._commit(p3), 150);
       this._rowCache = new Map;
       this._loggedGhosts = false;
@@ -9176,7 +9179,10 @@ ${BASE_CSS}`);
       this._config = config;
       this._dragging = false;
       this._dragPct = 0;
-      this._hold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
+      if (!this._hold)
+        this._hold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
+      else
+        this._hold.clear();
     }
     _dimmable() {
       const st = this._st();
@@ -9418,8 +9424,13 @@ ${BASE_CSS}`);
       this._seeking = false;
       this._dragSeek = 0;
       this._srcOpen = false;
-      this._volHold = new SliderHold(this, { tolerance: 2 });
-      this._seekHold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
+      if (!this._volHold) {
+        this._volHold = new SliderHold(this, { tolerance: 2 });
+        this._seekHold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
+      } else {
+        this._volHold.clear();
+        this._seekHold.clear();
+      }
       this._volInput = debounce((v2) => this._setVol(v2), 150);
       this._seekInput = debounce((v2) => this._seek(v2), 150);
     }
@@ -10030,7 +10041,10 @@ ${BASE_CSS}`);
       this._dragging = false;
       this._dragVal = 0;
       this._debouncedSet = debounce((v2) => this._setValue(v2), 150);
-      this._hold = new SliderHold(this, { tolerance: 0.5, timeout: 5000 });
+      if (!this._hold)
+        this._hold = new SliderHold(this, { tolerance: 0.5, timeout: 5000 });
+      else
+        this._hold.clear();
     }
     disconnectedCallback() {
       super.disconnectedCallback();
@@ -10059,7 +10073,9 @@ ${BASE_CSS}`);
     }
     _value() {
       const n4 = Number(this._st() && this._st().state);
-      const entityVal = Number.isFinite(n4) ? n4 : this._bounds().min;
+      const { min, max, step } = this._bounds();
+      const entityVal = Number.isFinite(n4) ? n4 : min;
+      this._hold.tolerance = Math.max(step / 2, (max - min) / 1000);
       return this._hold.value(entityVal, {
         dragging: this._dragging,
         dragValue: this._dragVal,
@@ -10766,7 +10782,8 @@ ${BASE_CSS}`);
           >
           ${this._holdBtn("Channel up", "solar:alt-arrow-up-bold-duotone", "channel_up")}` : "";
       if (hasSlider) {
-        const vol = this._volHold.value(Math.round(mp.attributes.volume_level * 100), { dragging: this._dragging, dragValue: this._dragVol });
+        const gone = !mp || ["unavailable", "unknown", "off"].includes(mp.state);
+        const vol = this._volHold.value(Math.round(mp.attributes.volume_level * 100), { dragging: this._dragging, dragValue: this._dragVol, gone });
         return b2`<div class="flex flex-col gap-3">
         <div class="flex items-center gap-2.5">
           <button
@@ -10784,6 +10801,7 @@ ${BASE_CSS}`);
           </button>
           ${sliderTrack({
           pct: vol,
+          disabled: gone,
           cls: "flex-1",
           label: "Volume",
           value: vol,
@@ -10797,6 +10815,7 @@ ${BASE_CSS}`);
           onUp: this._volUp,
           onCancel: () => {
             this._dragging = false;
+            this._volHold.clear();
           }
         })}
           <fib-icon

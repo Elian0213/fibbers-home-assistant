@@ -91,8 +91,15 @@ export class FibbersMedia extends LitElement {
     this._seeking = false;
     this._dragSeek = 0;
     this._srcOpen = false;
-    this._volHold = new SliderHold(this, { tolerance: 2 });
-    this._seekHold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
+    // Construct the holds once — addController has no counterpart, so a fresh pair
+    // per setConfig (per editor keystroke) would orphan controllers.
+    if (!this._volHold) {
+      this._volHold = new SliderHold(this, { tolerance: 2 });
+      this._seekHold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
+    } else {
+      this._volHold.clear();
+      this._seekHold.clear();
+    }
     // Keyboard nudges on the sliders shouldn't fire a service call per keydown.
     this._volInput = debounce((v) => this._setVol(v), 150);
     this._seekInput = debounce((v) => this._seek(v), 150);
