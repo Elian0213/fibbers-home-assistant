@@ -11,8 +11,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "bun run gen-tw && bun build src/index.js --outfile dist/fibbers.js --format=iife --target=browser --banner=\"/*! Fibbers v0.7.2 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */\"",
-    "watch": "bun build src/index.js --outfile dist/fibbers.js --format=iife --target=browser --banner=\"/*! Fibbers v0.7.2 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */\" --watch",
+    "build": "bun run gen-tw && bun build src/index.js --outfile dist/fibbers.js --format=iife --target=browser --minify --conditions=production --define process.env.NODE_ENV='\"production\"' --banner=\"/*! Fibbers v0.7.2 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */\"",
+    "watch": "bun build src/index.js --outfile dist/fibbers.js --format=iife --target=browser --define process.env.NODE_ENV='\"development\"' --banner=\"/*! Fibbers v0.7.2 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */\" --watch",
     "gen-icons": "bun scripts/gen-icons.mjs",
     "gen-tw": "bun scripts/gen-tw.mjs",
     "format": "prettier --write \"src/**/*.js\" \"docs/*.html\"",
