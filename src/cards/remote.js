@@ -6,12 +6,12 @@
  * Point `media_player:` at the player for now-playing, a select_source grid and a
  * volume slider. Buttons a platform doesn't support aren't rendered.
  * ================================================================== */
-import { LitElement, html, css } from "lit";
+import { LitElement, html, css, nothing } from "lit";
 
 import { t } from "../i18n.js";
 import { twSheet } from "../tw.js";
 import { sliderTrack, overflowChips, SliderHold } from "../ui.js";
-import { pickEntity, pctFromX } from "../util.js";
+import { pickEntity, pctFromX, isUnavail } from "../util.js";
 import "../icon.js";
 
 // Per-platform command names. A key absent here (and from `commands:`) means the
@@ -31,8 +31,6 @@ const COMMANDS = {
     previous: "previous",
     volume_up: "volume_up",
     volume_down: "volume_down",
-    turn_on: "turn_on",
-    turn_off: "turn_off",
   },
   philips: {
     up: "CursorUp",
@@ -75,8 +73,8 @@ const COMMANDS = {
 const PLATFORM_DEVICE = {
   apple_tv: "appletv",
   philips_js: "philips",
-  androidtv: "androidtv",
-  android_tv: "androidtv",
+  androidtv: "androidtv", // the media_player platform
+  androidtv_remote: "androidtv", // the remote.* platform that uses these keycodes
 };
 
 const DEVICE_ICON = {
@@ -85,6 +83,10 @@ const DEVICE_ICON = {
   androidtv: "solar:tv-bold-duotone",
   generic: "solar:gamepad-bold-duotone",
 };
+
+// A remote/player is "off" in any of these — so `unknown` isn't treated as on
+// (used for the header dot and the Apple TV power direction).
+const OFF_STATES = ["off", "standby", "unavailable", "unknown"];
 
 export class FibbersRemote extends LitElement {
   static properties = {
@@ -146,11 +148,24 @@ export class FibbersRemote extends LitElement {
         'fibbers-remote: `dpad` must be "swipe", "buttons" or "both"',
       );
     }
+    if ((config.sources || config.favourites) && !config.media_player) {
+      throw new Error(
+        "fibbers-remote: `sources`/`favourites` need a `media_player:` — they call media_player.select_source",
+      );
+    }
     this._config = config;
     this._dragging = false;
     this._dragVol = 0;
     this._srcOpen = false;
-    this._volHold = new SliderHold(this, { tolerance: 2 });
+    // HA reuses card elements and calls setConfig per keystroke in the editor:
+    // re-resolve the platform and reset the warn/flash state for the new entity,
+    // else an apple_tv → philips_js swap keeps sending pyatv names to a Philips TV.
+    this._platform = undefined;
+    this._platformTried = false;
+    this._warned = null;
+    // Construct the hold once — SliderHold.addController has no removeController,
+    // so a new one per setConfig would orphan controllers in the editor.
+    if (!this._volHold) this._volHold = new SliderHold(this, { tolerance: 2 });
   }
 
   connectedCallback() {
@@ -163,6 +178,7 @@ export class FibbersRemote extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     this._release(); // a held button must not keep firing after unmount
+    clearTimeout(this._flashTimer);
     document.removeEventListener("visibilitychange", this._onHidden);
   }
 
@@ -200,44 +216,56 @@ export class FibbersRemote extends LitElement {
     const id = this._config.media_player;
     return id && this.hass ? this.hass.states[id] : null;
   }
+  _st() {
+    return this.hass && this.hass.states[this._config.entity];
+  }
+  _unavail() {
+    return isUnavail(this._st());
+  }
 
   // A rejected send_command dies silently in a fire-and-forget call; catch it,
   // warn once per key with the command + platform, and flash the button — a dead
   // remote shouldn't look identical to a working one.
   async _send(key) {
     const cmd = this._cmd(key);
-    if (!cmd || !this.hass) return;
+    if (!cmd || !this.hass || this._unavail()) return;
     try {
       await this.hass.callService("remote", "send_command", {
         entity_id: this._config.entity,
         command: cmd,
       });
     } catch (e) {
-      this._warned = this._warned || new Set();
-      if (!this._warned.has(key)) {
-        this._warned.add(key);
-        console.warn(
-          `[fibbers-remote] command "${cmd}" was rejected by ${this._config.entity} ` +
-            `(platform: ${this._platform || "unknown"}). ${e && e.message ? e.message : e}`,
-        );
-      }
-      this._flash = key;
-      clearTimeout(this._flashTimer);
-      this._flashTimer = setTimeout(() => {
-        this._flash = null;
-      }, 500);
+      this._flashFail(key, e, cmd);
     }
   }
 
-  _power() {
-    if (this._device() === "appletv") {
-      const mp = this._mp();
-      const on =
-        mp && !["off", "standby", "unavailable", "unknown"].includes(mp.state);
-      this._send(on ? "turn_off" : "turn_on");
-    } else {
-      this._send("power");
+  _flashFail(key, e, cmd) {
+    this._warned = this._warned || new Set();
+    if (!this._warned.has(key)) {
+      this._warned.add(key);
+      console.warn(
+        `[fibbers-remote] command "${cmd || key}" was rejected by ${this._config.entity} ` +
+          `(platform: ${this._platform || "unknown"}). ${e && e.message ? e.message : e}`,
+      );
     }
+    this._flash = key;
+    clearTimeout(this._flashTimer);
+    this._flashTimer = setTimeout(() => {
+      this._flash = null;
+    }, 500);
+  }
+
+  // Apple TV power lives on the remote's own turn_on/turn_off/toggle services, not
+  // in the command map; direction follows the remote entity's own state.
+  _power() {
+    if (this._device() !== "appletv") return this._send("power");
+    if (!this.hass || this._unavail()) return;
+    const st = this._st();
+    const on = st ? !OFF_STATES.includes(st.state) : null;
+    const svc = on === null ? "toggle" : on ? "turn_off" : "turn_on";
+    this.hass
+      .callService("remote", svc, { entity_id: this._config.entity })
+      .catch((e) => this._flashFail("power", e, `remote.${svc}`));
   }
 
   _mpService(service, data) {
@@ -252,6 +280,7 @@ export class FibbersRemote extends LitElement {
   // Long-press repeat, bounded: ~3/s (not 7/s), capped, and stopped on release /
   // cancel / lost capture / the tab hiding (handled in connectedCallback).
   _hold(key) {
+    if (this._unavail()) return;
     this._release();
     this._send(key);
     let count = 0;
@@ -340,12 +369,31 @@ export class FibbersRemote extends LitElement {
       @pointercancel=${() => this._release()}
       @pointerleave=${() => this._release()}
       @lostpointercapture=${() => this._release()}
+      @click=${(e) => {
+        if (e.detail === 0) this._send(key); // keyboard activation (no repeat)
+      }}
     >
       <fib-icon
         class="h-[20px] w-[20px] [--mdc-icon-size:20px]"
         icon=${icon}
       ></fib-icon>
     </button>`;
+  }
+
+  // Keyboard for the swipe d-pad (which has no arrow buttons to Tab to).
+  _dpadKey(e) {
+    const map = {
+      ArrowUp: "up",
+      ArrowDown: "down",
+      ArrowLeft: "left",
+      ArrowRight: "right",
+      Enter: "ok",
+      " ": "ok",
+    };
+    const key = map[e.key];
+    if (!key) return;
+    e.preventDefault();
+    this._send(key);
   }
 
   _swipeStart(e) {
@@ -372,6 +420,9 @@ export class FibbersRemote extends LitElement {
   }
 
   _dpad() {
+    const has = (k) => !!this._cmd(k);
+    // No directional commands (e.g. generic with none) → no d-pad of dead buttons.
+    if (!["up", "down", "left", "right", "ok"].some(has)) return "";
     const mode =
       this._config.dpad || (this._device() === "appletv" ? "both" : "buttons");
     const swipe = mode !== "buttons";
@@ -379,26 +430,37 @@ export class FibbersRemote extends LitElement {
     // Buttons win over the swipe surface: stop the container from also seeing it.
     const stop = swipe ? (e) => e.stopPropagation() : undefined;
     const arrow = (key, icon, label, pos) =>
-      html`<button
-        type="button"
-        aria-label=${label}
-        class="absolute ${pos} flex h-14 w-14 items-center justify-center rounded-full
-             text-ink transition-transform hover:bg-card active:scale-90 ${this._flashCls(
-               key,
-             )}"
-        @pointerdown=${stop}
-        @click=${() => this._send(key)}
-      >
-        <fib-icon
-          class="h-[24px] w-[24px] [--mdc-icon-size:24px]"
-          icon=${icon}
-        ></fib-icon>
-      </button>`;
+      has(key)
+        ? html`<button
+            type="button"
+            aria-label=${label}
+            class="absolute ${pos} flex h-14 w-14 items-center justify-center rounded-full
+                 text-ink transition-transform hover:bg-card active:scale-90 ${this._flashCls(
+                   key,
+                 )}"
+            @pointerdown=${stop}
+            @click=${() => this._send(key)}
+          >
+            <fib-icon
+              class="h-[24px] w-[24px] [--mdc-icon-size:24px]"
+              icon=${icon}
+            ></fib-icon>
+          </button>`
+        : "";
+    const label = !swipe
+      ? "D-pad"
+      : buttons
+        ? "D-pad — swipe, tap an arrow, or use the arrow keys"
+        : "D-pad — swipe or use the arrow keys";
     return html`<div
-      class="relative mx-auto touch-none rounded-full bg-card2"
+      class="relative mx-auto touch-none rounded-full bg-card2 ${
+        swipe ? "cursor-pointer" : ""
+      }"
       style="width:min(72vw,260px);height:min(72vw,260px)"
       role="group"
-      aria-label=${swipe ? "D-pad (swipe or tap the arrows)" : "D-pad"}
+      aria-label=${label}
+      tabindex=${swipe ? 0 : nothing}
+      @keydown=${swipe ? this._dpadKey : undefined}
       @pointerdown=${swipe ? this._swipeStart : undefined}
       @pointerup=${swipe ? this._swipeEnd : undefined}
       @pointercancel=${swipe ? () => (this._sw = null) : undefined}
@@ -431,19 +493,23 @@ export class FibbersRemote extends LitElement {
             )}`
           : ""
       }
-      <button
-        type="button"
-        aria-label="OK"
-        class="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2
-               items-center justify-center rounded-full bg-accentbg text-accent
-               shadow-[0_1px_3px_rgba(0,0,0,.4)] transition-transform active:scale-90 ${this._flashCls(
-                 "ok",
-               )}"
-        @pointerdown=${stop}
-        @click=${() => this._send("ok")}
-      >
-        <span class="text-[15px] font-semibold">OK</span>
-      </button>
+      ${
+        has("ok")
+          ? html`<button
+              type="button"
+              aria-label="OK"
+              class="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2
+                   items-center justify-center rounded-full bg-accentbg text-accent
+                   shadow-[0_1px_3px_rgba(0,0,0,.4)] transition-transform active:scale-90 ${this._flashCls(
+                     "ok",
+                   )}"
+              @pointerdown=${stop}
+              @click=${() => this._send("ok")}
+            >
+              <span class="text-[15px] font-semibold">OK</span>
+            </button>`
+          : ""
+      }
     </div>`;
   }
 
@@ -467,19 +533,35 @@ export class FibbersRemote extends LitElement {
       this._cmd(key)
         ? this._round(label, icon, () => this._send(key), "h-12 w-12", key)
         : "";
-    return html`<div class="flex flex-wrap items-center justify-center gap-2.5">
-      ${tp(
+    const transport = [
+      tp(
         "Previous",
         "solar:skip-previous-bold-duotone",
         "previous",
         "media_previous_track",
-      )}
-      ${tp("Play / pause", playIcon, "play", "media_play_pause")}
-      ${tp("Next", "solar:skip-next-bold-duotone", "next", "media_next_track")}
-      <span class="mx-0.5 h-8 w-px flex-none bg-line"></span>
-      ${nav("Back", "solar:arrow-left-bold-duotone", "back")}
-      ${nav("Home", "solar:home-2-bold-duotone", "home")}
-      ${nav("Menu", "solar:menu-dots-bold-duotone", "menu")}
+      ),
+      tp("Play / pause", playIcon, "play", "media_play_pause"),
+      tp("Next", "solar:skip-next-bold-duotone", "next", "media_next_track"),
+    ];
+    // Apple TV aliases Back → menu; render Menu only when it's a distinct command.
+    const showMenu =
+      this._cmd("menu") && this._cmd("menu") !== this._cmd("back");
+    const navs = [
+      nav("Back", "solar:arrow-left-bold-duotone", "back"),
+      nav("Home", "solar:home-2-bold-duotone", "home"),
+      showMenu ? nav("Menu", "solar:menu-dots-bold-duotone", "menu") : "",
+    ];
+    const hasT = transport.some((x) => x !== "");
+    const hasN = navs.some((x) => x !== "");
+    if (!hasT && !hasN) return "";
+    return html`<div class="flex flex-wrap items-center justify-center gap-2.5">
+      ${transport}
+      ${
+        hasT && hasN
+          ? html`<span class="mx-0.5 h-8 w-px flex-none bg-line"></span>`
+          : ""
+      }
+      ${navs}
     </div>`;
   }
 
@@ -604,21 +686,26 @@ export class FibbersRemote extends LitElement {
     if (!cfg) return html``;
     const hl = cfg.language || this.hass;
     const mp = this._mp();
-    const on = mp
-      ? !["off", "unavailable", "standby"].includes(mp.state)
-      : null;
+    const rst = this._st();
+    // The dot follows the remote entity's own state (it works with no media_player).
+    const on = rst
+      ? !OFF_STATES.includes(rst.state)
+      : mp
+        ? !OFF_STATES.includes(mp.state)
+        : null;
     const nowLine = mp
       ? mp.attributes.media_title ||
         mp.attributes.app_name ||
         mp.attributes.source ||
-        (on ? "On" : "Off")
+        t(hl, on ? "remote.on" : "remote.off")
       : "";
     const all = this._allSources();
     const collapsed = this._favSources(all);
     const activeSource = mp && mp.attributes.source;
 
     return html`<div
-      class="flex flex-col gap-3 rounded-[14px] border border-line bg-card p-[13px]"
+      class="flex flex-col gap-3 rounded-[14px] border border-line bg-card p-[13px]
+             ${this._unavail() ? "opacity-50" : ""}"
     >
       <div class="flex items-center gap-2.5">
         <div

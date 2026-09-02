@@ -93,7 +93,9 @@
     "less": "less"
   },
   "remote": {
-    "default_name": "Remote"
+    "default_name": "Remote",
+    "on": "On",
+    "off": "Off"
   },
   "scene": {
     "show_less": "Less",

@@ -7874,7 +7874,9 @@ ${BASE_CSS}`);
       less: "less"
     },
     remote: {
-      default_name: "Remote"
+      default_name: "Remote",
+      on: "On",
+      off: "Off"
     },
     scene: {
       show_less: "Less",
@@ -8013,7 +8015,9 @@ ${BASE_CSS}`);
       less: "minder"
     },
     remote: {
-      default_name: "Afstandsbediening"
+      default_name: "Afstandsbediening",
+      on: "Aan",
+      off: "Uit"
     },
     scene: {
       show_less: "Minder",
@@ -8248,7 +8252,8 @@ ${BASE_CSS}`);
     onSelect
   }) {
     const valueOf = (s) => s.source || s.name;
-    const hasMore = collapsed && all.length > collapsed.length;
+    const shownSet = collapsed && new Set(collapsed.map(valueOf));
+    const hasMore = !!shownSet && all.some((a) => !shownSet.has(valueOf(a)));
     const shown = open || !collapsed ? all : collapsed;
     const chip = (s) => {
       const active = activeValue != null && activeValue === valueOf(s);
@@ -10976,9 +10981,7 @@ ${BASE_CSS}`);
       next: "next",
       previous: "previous",
       volume_up: "volume_up",
-      volume_down: "volume_down",
-      turn_on: "turn_on",
-      turn_off: "turn_off"
+      volume_down: "volume_down"
     },
     philips: {
       up: "CursorUp",
@@ -11021,7 +11024,7 @@ ${BASE_CSS}`);
     apple_tv: "appletv",
     philips_js: "philips",
     androidtv: "androidtv",
-    android_tv: "androidtv"
+    androidtv_remote: "androidtv"
   };
   var DEVICE_ICON = {
     appletv: "solar:tv-bold-duotone",
@@ -11029,6 +11032,7 @@ ${BASE_CSS}`);
     androidtv: "solar:tv-bold-duotone",
     generic: "solar:gamepad-bold-duotone"
   };
+  var OFF_STATES = ["off", "standby", "unavailable", "unknown"];
 
   class FibbersRemote extends LitElement {
     static properties = {
@@ -11070,11 +11074,18 @@ ${BASE_CSS}`);
       if (config.dpad != null && !["swipe", "buttons", "both"].includes(config.dpad)) {
         throw new Error('fibbers-remote: `dpad` must be "swipe", "buttons" or "both"');
       }
+      if ((config.sources || config.favourites) && !config.media_player) {
+        throw new Error("fibbers-remote: `sources`/`favourites` need a `media_player:` — they call media_player.select_source");
+      }
       this._config = config;
       this._dragging = false;
       this._dragVol = 0;
       this._srcOpen = false;
-      this._volHold = new SliderHold(this, { tolerance: 2 });
+      this._platform = undefined;
+      this._platformTried = false;
+      this._warned = null;
+      if (!this._volHold)
+        this._volHold = new SliderHold(this, { tolerance: 2 });
     }
     connectedCallback() {
       super.connectedCallback();
@@ -11087,6 +11098,7 @@ ${BASE_CSS}`);
     disconnectedCallback() {
       super.disconnectedCallback();
       this._release();
+      clearTimeout(this._flashTimer);
       document.removeEventListener("visibilitychange", this._onHidden);
     }
     updated(changed) {
@@ -11119,9 +11131,15 @@ ${BASE_CSS}`);
       const id = this._config.media_player;
       return id && this.hass ? this.hass.states[id] : null;
     }
+    _st() {
+      return this.hass && this.hass.states[this._config.entity];
+    }
+    _unavail() {
+      return isUnavail(this._st());
+    }
     async _send(key) {
       const cmd = this._cmd(key);
-      if (!cmd || !this.hass)
+      if (!cmd || !this.hass || this._unavail())
         return;
       try {
         await this.hass.callService("remote", "send_command", {
@@ -11129,26 +11147,30 @@ ${BASE_CSS}`);
           command: cmd
         });
       } catch (e) {
-        this._warned = this._warned || new Set;
-        if (!this._warned.has(key)) {
-          this._warned.add(key);
-          console.warn(`[fibbers-remote] command "${cmd}" was rejected by ${this._config.entity} ` + `(platform: ${this._platform || "unknown"}). ${e && e.message ? e.message : e}`);
-        }
-        this._flash = key;
-        clearTimeout(this._flashTimer);
-        this._flashTimer = setTimeout(() => {
-          this._flash = null;
-        }, 500);
+        this._flashFail(key, e, cmd);
       }
     }
-    _power() {
-      if (this._device() === "appletv") {
-        const mp = this._mp();
-        const on = mp && !["off", "standby", "unavailable", "unknown"].includes(mp.state);
-        this._send(on ? "turn_off" : "turn_on");
-      } else {
-        this._send("power");
+    _flashFail(key, e, cmd) {
+      this._warned = this._warned || new Set;
+      if (!this._warned.has(key)) {
+        this._warned.add(key);
+        console.warn(`[fibbers-remote] command "${cmd || key}" was rejected by ${this._config.entity} ` + `(platform: ${this._platform || "unknown"}). ${e && e.message ? e.message : e}`);
       }
+      this._flash = key;
+      clearTimeout(this._flashTimer);
+      this._flashTimer = setTimeout(() => {
+        this._flash = null;
+      }, 500);
+    }
+    _power() {
+      if (this._device() !== "appletv")
+        return this._send("power");
+      if (!this.hass || this._unavail())
+        return;
+      const st = this._st();
+      const on = st ? !OFF_STATES.includes(st.state) : null;
+      const svc = on === null ? "toggle" : on ? "turn_off" : "turn_on";
+      this.hass.callService("remote", svc, { entity_id: this._config.entity }).catch((e) => this._flashFail("power", e, `remote.${svc}`));
     }
     _mpService(service, data) {
       const mp = this._mp();
@@ -11159,6 +11181,8 @@ ${BASE_CSS}`);
         });
     }
     _hold(key) {
+      if (this._unavail())
+        return;
       this._release();
       this._send(key);
       let count = 0;
@@ -11239,12 +11263,31 @@ ${BASE_CSS}`);
       @pointercancel=${() => this._release()}
       @pointerleave=${() => this._release()}
       @lostpointercapture=${() => this._release()}
+      @click=${(e) => {
+        if (e.detail === 0)
+          this._send(key);
+      }}
     >
       <fib-icon
         class="h-[20px] w-[20px] [--mdc-icon-size:20px]"
         icon=${icon}
       ></fib-icon>
     </button>`;
+    }
+    _dpadKey(e) {
+      const map = {
+        ArrowUp: "up",
+        ArrowDown: "down",
+        ArrowLeft: "left",
+        ArrowRight: "right",
+        Enter: "ok",
+        " ": "ok"
+      };
+      const key = map[e.key];
+      if (!key)
+        return;
+      e.preventDefault();
+      this._send(key);
     }
     _swipeStart(e) {
       this._sw = { x: e.clientX, y: e.clientY };
@@ -11262,28 +11305,34 @@ ${BASE_CSS}`);
       return this._send(Math.abs(dx) > Math.abs(dy) ? dx > 0 ? "right" : "left" : dy > 0 ? "down" : "up");
     }
     _dpad() {
+      const has = (k) => !!this._cmd(k);
+      if (!["up", "down", "left", "right", "ok"].some(has))
+        return "";
       const mode = this._config.dpad || (this._device() === "appletv" ? "both" : "buttons");
       const swipe = mode !== "buttons";
       const buttons = mode !== "swipe";
       const stop = swipe ? (e) => e.stopPropagation() : undefined;
-      const arrow = (key, icon, label, pos) => html`<button
-        type="button"
-        aria-label=${label}
-        class="absolute ${pos} flex h-14 w-14 items-center justify-center rounded-full
-             text-ink transition-transform hover:bg-card active:scale-90 ${this._flashCls(key)}"
-        @pointerdown=${stop}
-        @click=${() => this._send(key)}
-      >
-        <fib-icon
-          class="h-[24px] w-[24px] [--mdc-icon-size:24px]"
-          icon=${icon}
-        ></fib-icon>
-      </button>`;
+      const arrow = (key, icon, label2, pos) => has(key) ? html`<button
+            type="button"
+            aria-label=${label2}
+            class="absolute ${pos} flex h-14 w-14 items-center justify-center rounded-full
+                 text-ink transition-transform hover:bg-card active:scale-90 ${this._flashCls(key)}"
+            @pointerdown=${stop}
+            @click=${() => this._send(key)}
+          >
+            <fib-icon
+              class="h-[24px] w-[24px] [--mdc-icon-size:24px]"
+              icon=${icon}
+            ></fib-icon>
+          </button>` : "";
+      const label = !swipe ? "D-pad" : buttons ? "D-pad — swipe, tap an arrow, or use the arrow keys" : "D-pad — swipe or use the arrow keys";
       return html`<div
-      class="relative mx-auto touch-none rounded-full bg-card2"
+      class="relative mx-auto touch-none rounded-full bg-card2 ${swipe ? "cursor-pointer" : ""}"
       style="width:min(72vw,260px);height:min(72vw,260px)"
       role="group"
-      aria-label=${swipe ? "D-pad (swipe or tap the arrows)" : "D-pad"}
+      aria-label=${label}
+      tabindex=${swipe ? 0 : nothing}
+      @keydown=${swipe ? this._dpadKey : undefined}
       @pointerdown=${swipe ? this._swipeStart : undefined}
       @pointerup=${swipe ? this._swipeEnd : undefined}
       @pointercancel=${swipe ? () => this._sw = null : undefined}
@@ -11292,17 +11341,17 @@ ${BASE_CSS}`);
             ${arrow("down", "solar:alt-arrow-down-bold-duotone", "Down", "bottom-2 left-1/2 -translate-x-1/2")}
             ${arrow("left", "solar:alt-arrow-left-bold-duotone", "Left", "left-2 top-1/2 -translate-y-1/2")}
             ${arrow("right", "solar:alt-arrow-right-bold-duotone", "Right", "right-2 top-1/2 -translate-y-1/2")}` : ""}
-      <button
-        type="button"
-        aria-label="OK"
-        class="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2
-               items-center justify-center rounded-full bg-accentbg text-accent
-               shadow-[0_1px_3px_rgba(0,0,0,.4)] transition-transform active:scale-90 ${this._flashCls("ok")}"
-        @pointerdown=${stop}
-        @click=${() => this._send("ok")}
-      >
-        <span class="text-[15px] font-semibold">OK</span>
-      </button>
+      ${has("ok") ? html`<button
+              type="button"
+              aria-label="OK"
+              class="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2
+                   items-center justify-center rounded-full bg-accentbg text-accent
+                   shadow-[0_1px_3px_rgba(0,0,0,.4)] transition-transform active:scale-90 ${this._flashCls("ok")}"
+              @pointerdown=${stop}
+              @click=${() => this._send("ok")}
+            >
+              <span class="text-[15px] font-semibold">OK</span>
+            </button>` : ""}
     </div>`;
     }
     _transport() {
@@ -11314,14 +11363,25 @@ ${BASE_CSS}`);
         return this._round(label, icon, mp ? () => this._mpService(mpService) : () => this._send(key), "h-12 w-12", key);
       };
       const nav2 = (label, icon, key) => this._cmd(key) ? this._round(label, icon, () => this._send(key), "h-12 w-12", key) : "";
+      const transport = [
+        tp("Previous", "solar:skip-previous-bold-duotone", "previous", "media_previous_track"),
+        tp("Play / pause", playIcon, "play", "media_play_pause"),
+        tp("Next", "solar:skip-next-bold-duotone", "next", "media_next_track")
+      ];
+      const showMenu = this._cmd("menu") && this._cmd("menu") !== this._cmd("back");
+      const navs = [
+        nav2("Back", "solar:arrow-left-bold-duotone", "back"),
+        nav2("Home", "solar:home-2-bold-duotone", "home"),
+        showMenu ? nav2("Menu", "solar:menu-dots-bold-duotone", "menu") : ""
+      ];
+      const hasT = transport.some((x) => x !== "");
+      const hasN = navs.some((x) => x !== "");
+      if (!hasT && !hasN)
+        return "";
       return html`<div class="flex flex-wrap items-center justify-center gap-2.5">
-      ${tp("Previous", "solar:skip-previous-bold-duotone", "previous", "media_previous_track")}
-      ${tp("Play / pause", playIcon, "play", "media_play_pause")}
-      ${tp("Next", "solar:skip-next-bold-duotone", "next", "media_next_track")}
-      <span class="mx-0.5 h-8 w-px flex-none bg-line"></span>
-      ${nav2("Back", "solar:arrow-left-bold-duotone", "back")}
-      ${nav2("Home", "solar:home-2-bold-duotone", "home")}
-      ${nav2("Menu", "solar:menu-dots-bold-duotone", "menu")}
+      ${transport}
+      ${hasT && hasN ? html`<span class="mx-0.5 h-8 w-px flex-none bg-line"></span>` : ""}
+      ${navs}
     </div>`;
     }
     _volume() {
@@ -11396,13 +11456,15 @@ ${BASE_CSS}`);
         return html``;
       const hl = cfg.language || this.hass;
       const mp = this._mp();
-      const on = mp ? !["off", "unavailable", "standby"].includes(mp.state) : null;
-      const nowLine = mp ? mp.attributes.media_title || mp.attributes.app_name || mp.attributes.source || (on ? "On" : "Off") : "";
+      const rst = this._st();
+      const on = rst ? !OFF_STATES.includes(rst.state) : mp ? !OFF_STATES.includes(mp.state) : null;
+      const nowLine = mp ? mp.attributes.media_title || mp.attributes.app_name || mp.attributes.source || t(hl, on ? "remote.on" : "remote.off") : "";
       const all = this._allSources();
       const collapsed = this._favSources(all);
       const activeSource = mp && mp.attributes.source;
       return html`<div
-      class="flex flex-col gap-3 rounded-[14px] border border-line bg-card p-[13px]"
+      class="flex flex-col gap-3 rounded-[14px] border border-line bg-card p-[13px]
+             ${this._unavail() ? "opacity-50" : ""}"
     >
       <div class="flex items-center gap-2.5">
         <div

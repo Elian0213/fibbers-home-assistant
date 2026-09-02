@@ -221,7 +221,10 @@ export function overflowChips({
   onSelect,
 }) {
   const valueOf = (s) => s.source || s.name;
-  const hasMore = collapsed && all.length > collapsed.length;
+  // By set membership, not length: `collapsed` may synthesise favourites not in
+  // `all`, so a length compare could hide real overflow.
+  const shownSet = collapsed && new Set(collapsed.map(valueOf));
+  const hasMore = !!shownSet && all.some((a) => !shownSet.has(valueOf(a)));
   const shown = open || !collapsed ? all : collapsed;
   const chip = (s) => {
     const active = activeValue != null && activeValue === valueOf(s);

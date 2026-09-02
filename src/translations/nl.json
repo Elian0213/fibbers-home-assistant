@@ -93,7 +93,9 @@
     "less": "minder"
   },
   "remote": {
-    "default_name": "Afstandsbediening"
+    "default_name": "Afstandsbediening",
+    "on": "Aan",
+    "off": "Uit"
   },
   "scene": {
     "show_less": "Minder",
