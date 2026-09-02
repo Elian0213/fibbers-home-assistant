@@ -26,6 +26,17 @@ const VIDEO_APPS =
 // pre-first-poll) both mean "nothing to show" — not "playing".
 const IDLE_STATES = ["off", "idle", "standby", "unavailable", "unknown", "on"];
 
+// MediaPlayerEntityFeature bits (HA core) — only render a control the player
+// actually advertises, so a CEC TV with no volume doesn't show a dead slider.
+const MF = {
+  PAUSE: 1,
+  SEEK: 2,
+  VOLUME_SET: 4,
+  PREV: 16,
+  NEXT: 32,
+  PLAY: 16384,
+};
+
 export class FibbersMedia extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -112,6 +123,13 @@ export class FibbersMedia extends LitElement {
   _playing() {
     const st = this._st();
     return st && st.state === "playing";
+  }
+  // Does the player advertise this MediaPlayerEntityFeature bit? A missing
+  // supported_features (integration reload / off) reads as 0 → nothing offered.
+  _supports(bit) {
+    const st = this._st();
+    const f = (st && st.attributes.supported_features) || 0;
+    return (f & bit) === bit;
   }
   _idle() {
     const st = this._st();
@@ -268,6 +286,8 @@ export class FibbersMedia extends LitElement {
   }
 
   _seekBar() {
+    // A player that can't seek shouldn't show a draggable progress bar at all.
+    if (!this._supports(MF.SEEK)) return "";
     const p = this._pos();
     if (!p || !p.dur) return "";
     const pos = this._seekHold.value(p.pos, {
@@ -317,6 +337,10 @@ export class FibbersMedia extends LitElement {
     const playIcon = this._playing()
       ? "solar:pause-bold-duotone"
       : "solar:play-bold-duotone";
+    const canPlay = this._supports(MF.PLAY) || this._supports(MF.PAUSE);
+    const canPrev = this._supports(MF.PREV);
+    const canNext = this._supports(MF.NEXT);
+    const canVol = this._supports(MF.VOLUME_SET);
 
     const artBox = html`<div
       class="flex ${cfg.compact ? "h-11 w-11" : "h-14 w-14"} flex-none items-center
@@ -344,8 +368,19 @@ export class FibbersMedia extends LitElement {
           </div>
           <div class="truncate text-[11px] text-muted">${artist}</div>
         </div>
-        ${this._transportBtn(playIcon, "media_play_pause", { accent: true })}
-        ${this._transportBtn("solar:skip-next-bold-duotone", "media_next_track")}
+        ${
+          canPlay
+            ? this._transportBtn(playIcon, "media_play_pause", { accent: true })
+            : ""
+        }
+        ${
+          canNext
+            ? this._transportBtn(
+                "solar:skip-next-bold-duotone",
+                "media_next_track",
+              )
+            : ""
+        }
       </div>`;
     }
 
@@ -370,47 +405,67 @@ export class FibbersMedia extends LitElement {
       </div>
 
       ${this._seekBar()}
-
-      <div class="mb-3 flex items-center justify-center gap-4">
-        ${this._transportBtn(
-          "solar:skip-previous-bold-duotone",
-          "media_previous_track",
-        )}
-        ${this._transportBtn(playIcon, "media_play_pause", {
-          big: true,
-          accent: true,
-        })}
-        ${this._transportBtn("solar:skip-next-bold-duotone", "media_next_track")}
-      </div>
-
-      <div class="mb-1 flex items-center gap-2.5">
-        <fib-icon
-          class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-muted"
-          icon="solar:volume-small-bold-duotone"
-        ></fib-icon>
-        ${sliderTrack({
-          pct: this._vol(),
-          cls: "flex-1",
-          label: "Volume",
-          value: this._vol(),
-          min: 0,
-          max: 100,
-          step: 5,
-          valueText: `${this._vol()}%`,
-          onInput: (v) => this._setVol(v),
-          onDown: this._down,
-          onMove: this._move,
-          onUp: this._up,
-          onCancel: () => {
-            this._dragging = false;
-          },
-        })}
-        <fib-icon
-          class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-muted"
-          icon="solar:volume-loud-bold-duotone"
-        ></fib-icon>
-      </div>
-
+      ${
+        canPrev || canPlay || canNext
+          ? html`<div class="mb-3 flex items-center justify-center gap-4">
+              ${
+                canPrev
+                  ? this._transportBtn(
+                      "solar:skip-previous-bold-duotone",
+                      "media_previous_track",
+                    )
+                  : ""
+              }
+              ${
+                canPlay
+                  ? this._transportBtn(playIcon, "media_play_pause", {
+                      big: true,
+                      accent: true,
+                    })
+                  : ""
+              }
+              ${
+                canNext
+                  ? this._transportBtn(
+                      "solar:skip-next-bold-duotone",
+                      "media_next_track",
+                    )
+                  : ""
+              }
+            </div>`
+          : ""
+      }
+      ${
+        canVol
+          ? html`<div class="mb-1 flex items-center gap-2.5">
+              <fib-icon
+                class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-muted"
+                icon="solar:volume-small-bold-duotone"
+              ></fib-icon>
+              ${sliderTrack({
+                pct: this._vol(),
+                cls: "flex-1",
+                label: "Volume",
+                value: this._vol(),
+                min: 0,
+                max: 100,
+                step: 5,
+                valueText: `${this._vol()}%`,
+                onInput: (v) => this._setVol(v),
+                onDown: this._down,
+                onMove: this._move,
+                onUp: this._up,
+                onCancel: () => {
+                  this._dragging = false;
+                },
+              })}
+              <fib-icon
+                class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-muted"
+                icon="solar:volume-loud-bold-duotone"
+              ></fib-icon>
+            </div>`
+          : ""
+      }
       ${(() => {
         const all = this._allSources();
         if (!all.length) return "";
