@@ -342,7 +342,13 @@ export class FibbersRemote extends LitElement {
   }
 
   // A round button; ≥44px. `key` (optional) drives the rejected-command flash.
-  _round(label, icon, onClick, size = "h-12 w-12", key) {
+  _round(
+    label,
+    icon,
+    onClick,
+    size = "h-[var(--fib-hit)] w-[var(--fib-hit)]",
+    key,
+  ) {
     return html`<button
       type="button"
       aria-label=${label}
@@ -362,7 +368,7 @@ export class FibbersRemote extends LitElement {
     return html`<button
       type="button"
       aria-label=${label}
-      class="flex h-12 w-12 flex-none items-center justify-center rounded-full bg-card2
+      class="flex h-[var(--fib-hit)] w-[var(--fib-hit)] flex-none items-center justify-center rounded-full bg-card2
              text-ink transition-transform active:scale-90 ${this._flashCls(key)}"
       @pointerdown=${() => this._hold(key)}
       @pointerup=${() => this._release()}
@@ -523,13 +529,19 @@ export class FibbersRemote extends LitElement {
         label,
         icon,
         mp ? () => this._mpService(mpService) : () => this._send(key),
-        "h-12 w-12",
+        "h-[var(--fib-hit)] w-[var(--fib-hit)]",
         key,
       );
     };
     const nav = (label, icon, key) =>
       this._cmd(key)
-        ? this._round(label, icon, () => this._send(key), "h-12 w-12", key)
+        ? this._round(
+            label,
+            icon,
+            () => this._send(key),
+            "h-[var(--fib-hit)] w-[var(--fib-hit)]",
+            key,
+          )
         : "";
     const transport = [
       tp(
@@ -658,7 +670,7 @@ export class FibbersRemote extends LitElement {
                     "Mute",
                     "solar:volume-cross-bold-duotone",
                     () => this._send("volume_mute"),
-                    "h-12 w-12",
+                    "h-[var(--fib-hit)] w-[var(--fib-hit)]",
                     "volume_mute",
                   )
                 : ""
@@ -725,7 +737,7 @@ export class FibbersRemote extends LitElement {
           "Power",
           "solar:power-bold-duotone",
           () => this._power(),
-          "h-11 w-11",
+          "h-[var(--fib-hit)] w-[var(--fib-hit)]",
           "power",
         )}
       </div>

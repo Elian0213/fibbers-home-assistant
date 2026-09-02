@@ -162,7 +162,7 @@ export class FibbersSelect extends LitElement {
 
     const body =
       mode === "chips"
-        ? html`<div class="flex flex-wrap gap-2">
+        ? html`<div class="flex flex-wrap gap-x-2 gap-y-[18px]">
             ${options.map((o) => {
               const active = o === current;
               return html`<button

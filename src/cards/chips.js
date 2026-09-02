@@ -54,7 +54,7 @@ export class FibbersChips extends LitElement {
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
-    return html`<div class="flex flex-wrap gap-2">
+    return html`<div class="flex flex-wrap gap-x-2 gap-y-[18px]">
       ${cfg.chips.map((chip) => {
         const active = this._active(chip);
         return html`<button

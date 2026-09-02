@@ -16,10 +16,14 @@ const supportsAdopt =
 // dark and light palettes) so nothing that gains focus is left without one, plus
 // a prefers-reduced-motion reset so no card animates for a user who asked not to
 // see motion (the nav bar and sheet honour it in their own stylesheets already).
-const BASE_CSS = `:focus-visible{outline:2px solid var(--color-accent,#74B98A);outline-offset:2px}
+// --fib-hit is the WCAG touch minimum in absolute px (rem would shrink it — HA's
+// root font-size is 14px on some setups, making h-11/`2.75rem` only 38.5px). One
+// knob: the .fib-hit expander and every slider/button min-size read from it.
+const BASE_CSS = `:host{--fib-hit:44px}
+:focus-visible{outline:2px solid var(--color-accent,#74B98A);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*,::before,::after{transition-duration:.01ms !important;animation-duration:.01ms !important}}
 .fib-hit{position:relative}
-.fib-hit::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:44px;min-height:44px;width:100%;height:100%}`;
+.fib-hit::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:var(--fib-hit);min-height:var(--fib-hit);width:100%;height:100%}`;
 
 /** The shared utility sheet, ready to drop into a Lit card's `static styles`. */
 export let twSheet;

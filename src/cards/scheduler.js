@@ -126,7 +126,7 @@ export class FibbersScheduler extends LitElement {
 
       ${
         Array.isArray(cfg.days) && cfg.days.length
-          ? html`<div class="mt-3 flex flex-wrap gap-2">
+          ? html`<div class="mt-3 flex flex-wrap gap-x-2 gap-y-[18px]">
               ${cfg.days.map((d) => {
                 const obj = typeof d === "object";
                 const st = obj ? this._state(d.entity) : null;

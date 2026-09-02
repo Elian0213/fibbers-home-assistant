@@ -328,7 +328,7 @@ export class FibbersLightGroup extends LitElement {
       </div>
 
       <div
-        class="relative mt-2 flex h-11 cursor-pointer touch-none items-center
+        class="relative mt-2 flex h-[var(--fib-hit)] cursor-pointer touch-none items-center
                ${s.allOff ? "pointer-events-none opacity-50" : ""}"
         role="slider"
         tabindex=${s.allOff ? -1 : 0}

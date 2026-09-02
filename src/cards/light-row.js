@@ -220,7 +220,7 @@ export class FibbersLightRow extends LitElement {
           role="button"
           tabindex="0"
           aria-label=${`${name} — ${t(hl, "common.more_info")}`}
-          class="flex min-h-11 cursor-pointer items-center justify-between gap-2"
+          class="flex min-h-[var(--fib-hit)] cursor-pointer items-center justify-between gap-2"
           @click=${() => this._moreInfo()}
           @keydown=${activateOnKey(() => this._moreInfo())}
         >
@@ -247,7 +247,7 @@ export class FibbersLightRow extends LitElement {
                   this._dragging = false;
                 },
               })
-            : html`<div class="flex min-h-11 items-center">
+            : html`<div class="flex min-h-[var(--fib-hit)] items-center">
                 ${pillSwitch({
                   on,
                   label: name,

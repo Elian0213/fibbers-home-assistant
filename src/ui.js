@@ -163,7 +163,7 @@ export function sliderTrack({
   // child. pctFromX still measures e.currentTarget (the wrapper) — same width, so
   // the maths is unchanged.
   return html`<div
-    class="relative flex h-11 cursor-pointer touch-none items-center
+    class="relative flex h-[var(--fib-hit)] cursor-pointer touch-none items-center
            ${cls} ${disabled ? "pointer-events-none" : ""}"
     role="slider"
     tabindex=${disabled ? -1 : 0}
@@ -265,7 +265,7 @@ export function overflowChips({
     </button>`;
   };
   return html`<div
-    class="flex flex-wrap gap-1.5"
+    class="flex flex-wrap gap-x-1.5 gap-y-[18px]"
     @keydown=${(e) => chipKeyNav(e, open ? onToggle : null)}
   >
     ${shown.map(chip)}
