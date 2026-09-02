@@ -3,6 +3,39 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.7.2] — 2026-09-02
+
+Two real bugs, sliders and the remote.
+
+### Fixed
+
+- **Sliders no longer snap back on release.** Releasing a slider showed the
+  entity's *old* value for one round trip (drag a lamp to 70% → 70 → 5 → 70;
+  worst on a media seek bar). A shared `SliderHold` controller now holds the
+  committed value on screen until the entity catches up (within a tolerance) or a
+  timeout, clearing if it goes unavailable. Fixed once for `fibbers-light-row`,
+  `fibbers-light-group`, `fibbers-number`, `fibbers-media` (volume **and** seek)
+  and the remote volume.
+- **`fibbers-remote` now sends the right commands.** It shipped Android-TV command
+  names (`DPAD_UP`, `HOME`, …) for every device, so the Apple TV remote was
+  entirely non-functional (pyatv rejects them) and Philips silently no-op'd.
+  Commands are now per-platform and **derived from the entity's integration**
+  (`apple_tv` → pyatv lowercase, `philips_js` → `Cursor*`/`Standby`, Android TV →
+  `DPAD_*`); `device:`/`commands:` override. Unsupported buttons aren't rendered,
+  a rejected command is logged (once, with the platform) and flashes the button.
+- **`sliderTrack` no longer commits on a cancelled gesture.** `pointercancel` fell
+  through to `onUp`; it now aborts, and `lostpointercapture` (real on mobile) is
+  handled the same.
+
+### Changed
+
+- **The remote is usable now.** Responsive d-pad (`min(72vw, 260px)`), every
+  control ≥44px (power was 36px), a bigger OK, an optional swipe surface for the
+  Siri remote (`dpad: swipe | buttons | both`), and bounded long-press repeat
+  (~3/s, capped, stops on cancel/lost-capture/tab-hide) instead of ~7/s unbounded.
+- `docs/remote-commands.md` documents the per-device command families and how to
+  self-diagnose a new platform.
+
 ## [0.7.1] — 2026-09-01
 
 Small follow-up to 0.7.0.
