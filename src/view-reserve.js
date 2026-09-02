@@ -44,6 +44,26 @@ function removeStyle() {
   if (style) style.remove();
 }
 
+// Lock HA's real scroll container (#view inside hui-root) while a modal sheet is
+// open — locking <body> instead would set position:fixed and stop HA's own
+// dialogs (children of <home-assistant> inside that body) from laying out. A
+// separate style so it's independent of the nav reserve above.
+const LOCK_ID = "fibbers-view-lock";
+export function lockView(on) {
+  const root = findHuiRoot();
+  if (!root || !root.shadowRoot) return;
+  const existing = root.shadowRoot.getElementById(LOCK_ID);
+  if (on) {
+    if (existing) return;
+    const style = document.createElement("style");
+    style.id = LOCK_ID;
+    style.textContent = "#view{overflow:hidden !important}";
+    root.shadowRoot.appendChild(style);
+  } else if (existing) {
+    existing.remove();
+  }
+}
+
 // HA re-renders the view on navigation; debounce like hide-tabs does.
 function schedulePaint() {
   if (state.scheduled) return;

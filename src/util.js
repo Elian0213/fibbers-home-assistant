@@ -39,10 +39,15 @@ export function deepFind(localName) {
  * Shared card helpers (kept dependency-free so any card can import).
  * ------------------------------------------------------------------ */
 
-// Open HA's more-info dialog for an entity from a card/host element.
+// Open HA's more-info dialog for an entity from a card/host element. The sheet and
+// nav layers render into document.body — a sibling of <home-assistant>, not an
+// ancestor — so a bubbling event from there reaches <body> and stops, never
+// reaching HA's listener. Target <home-assistant> directly (falling back to the
+// host for the normal in-view case).
 export function moreInfo(host, entityId) {
   if (!host || !entityId) return;
-  host.dispatchEvent(
+  const target = document.querySelector("home-assistant") || host;
+  target.dispatchEvent(
     new CustomEvent("hass-more-info", {
       detail: { entityId },
       bubbles: true,

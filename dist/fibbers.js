@@ -6880,7 +6880,8 @@
   function moreInfo(host, entityId) {
     if (!host || !entityId)
       return;
-    host.dispatchEvent(new CustomEvent("hass-more-info", {
+    const target = document.querySelector("home-assistant") || host;
+    target.dispatchEvent(new CustomEvent("hass-more-info", {
       detail: { entityId },
       bubbles: true,
       composed: true
@@ -7439,6 +7440,23 @@ ${BASE_CSS}`);
     const style = root && root.shadowRoot && root.shadowRoot.getElementById(STYLE_ID4);
     if (style)
       style.remove();
+  }
+  var LOCK_ID = "fibbers-view-lock";
+  function lockView(on) {
+    const root = findHuiRoot3();
+    if (!root || !root.shadowRoot)
+      return;
+    const existing = root.shadowRoot.getElementById(LOCK_ID);
+    if (on) {
+      if (existing)
+        return;
+      const style = document.createElement("style");
+      style.id = LOCK_ID;
+      style.textContent = "#view{overflow:hidden !important}";
+      root.shadowRoot.appendChild(style);
+    } else if (existing) {
+      existing.remove();
+    }
   }
   function schedulePaint3() {
     if (state3.scheduled)
@@ -12079,7 +12097,7 @@ ${BASE_CSS}`);
     bodyEl: null,
     sheets: new Map,
     openId: null,
-    savedScrollY: 0,
+    closeTimer: null,
     drag: null,
     built: false
   };
@@ -12093,10 +12111,17 @@ ${BASE_CSS}`);
   function onFocusIn(e) {
     if (layer.openId == null || !layer.host || !layer.panel)
       return;
-    if (e.composedPath().includes(layer.host))
+    const path = e.composedPath();
+    if (path.includes(layer.host))
+      return;
+    if (path.some((n) => n.localName === "ha-dialog" || n.getAttribute && n.getAttribute("role") === "dialog"))
       return;
     layer.panel.focus();
   }
+  var onKeydown = (e) => {
+    if (e.key === "Escape")
+      closeSheet();
+  };
   var SHEET_CSS = `
   :host {
     position: fixed; inset: 0; z-index: 9; display: none;
@@ -12221,24 +12246,6 @@ ${BASE_CSS}`);
     handle.addEventListener("pointerup", end);
     handle.addEventListener("pointercancel", end);
   }
-  function lockScroll() {
-    layer.savedScrollY = window.scrollY || window.pageYOffset || 0;
-    const b = document.body;
-    b.style.position = "fixed";
-    b.style.top = `-${layer.savedScrollY}px`;
-    b.style.left = "0";
-    b.style.right = "0";
-    b.style.width = "100%";
-  }
-  function unlockScroll() {
-    const b = document.body;
-    b.style.position = "";
-    b.style.top = "";
-    b.style.left = "";
-    b.style.right = "";
-    b.style.width = "";
-    window.scrollTo(0, layer.savedScrollY);
-  }
   async function renderContent(card) {
     const cfg = card._config;
     if (layer.panel)
@@ -12296,7 +12303,7 @@ ${BASE_CSS}`);
     build();
     layer.openId = id;
     layer.host.setAttribute("data-open", "true");
-    lockScroll();
+    lockView(true);
     renderContent(card);
     requestAnimationFrame(() => requestAnimationFrame(() => {
       layer.host.setAttribute("data-shown", "true");
@@ -12309,6 +12316,7 @@ ${BASE_CSS}`);
       return;
     const id = layer.openId;
     layer.openId = null;
+    clearTimeout(layer.closeTimer);
     if (layer.host)
       layer.host.removeAttribute("data-shown");
     if (window.location.hash === `#${id}`) {
@@ -12321,7 +12329,7 @@ ${BASE_CSS}`);
         layer.host.removeAttribute("data-open");
       if (layer.bodyEl)
         layer.bodyEl.textContent = "";
-      unlockScroll();
+      lockView(false);
       const opener = layer.opener;
       layer.opener = null;
       if (opener && opener.focus)
@@ -12330,7 +12338,7 @@ ${BASE_CSS}`);
     if (reduceMotion())
       finish();
     else
-      setTimeout(finish, 300);
+      layer.closeTimer = setTimeout(finish, 300);
   }
   function syncFromHash() {
     const hash = window.location.hash.replace(/^#/, "");
@@ -12340,6 +12348,7 @@ ${BASE_CSS}`);
       closeSheet();
   }
   function registerSheet(id, card) {
+    ensureListeners();
     build();
     layer.sheets.set(id, card);
     if (window.location.hash === `#${id}`)
@@ -12351,9 +12360,12 @@ ${BASE_CSS}`);
     if (layer.openId === id)
       closeSheet();
     if (layer.sheets.size === 0 && layer.host) {
+      clearTimeout(layer.closeTimer);
+      lockView(false);
       layer.host.remove();
       layer.built = false;
       layer.host = null;
+      removeSheetListeners();
     }
   }
   function updateSheetHass(id, hass) {
@@ -12365,12 +12377,23 @@ ${BASE_CSS}`);
         el.hass = hass;
       });
   }
-  window.addEventListener("hashchange", syncFromHash);
-  window.addEventListener("focusin", onFocusIn);
-  window.addEventListener("keydown", (e) => {
-    if (e.key === "Escape")
-      closeSheet();
-  });
+  var listenersOn = false;
+  function ensureListeners() {
+    if (listenersOn)
+      return;
+    listenersOn = true;
+    window.addEventListener("hashchange", syncFromHash);
+    window.addEventListener("focusin", onFocusIn);
+    window.addEventListener("keydown", onKeydown);
+  }
+  function removeSheetListeners() {
+    if (!listenersOn)
+      return;
+    listenersOn = false;
+    window.removeEventListener("hashchange", syncFromHash);
+    window.removeEventListener("focusin", onFocusIn);
+    window.removeEventListener("keydown", onKeydown);
+  }
 
   // src/cards/sheet.js
   class FibbersSheet extends LitElement {

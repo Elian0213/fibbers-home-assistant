@@ -8,6 +8,7 @@ import { render, html } from "lit";
 import { t } from "./i18n.js";
 import { T } from "./tokens.js";
 import { twSheet } from "./tw.js";
+import { lockView } from "./view-reserve.js";
 import "./icon.js";
 
 const layer = {
@@ -19,7 +20,7 @@ const layer = {
   bodyEl: null,
   sheets: new Map(),
   openId: null,
-  savedScrollY: 0,
+  closeTimer: null,
   drag: null,
   built: false,
 };
@@ -39,12 +40,26 @@ function deepActiveElement() {
 
 // Focus trap: while the sheet is open, if focus escapes it (Tab past the last
 // control), pull it back onto the dialog. composedPath() lets this work across
-// the nested shadow roots of the child cards.
+// the nested shadow roots of the child cards — but must not fight HA's own
+// dialogs (more-info etc.), which render outside the sheet layer.
 function onFocusIn(e) {
   if (layer.openId == null || !layer.host || !layer.panel) return;
-  if (e.composedPath().includes(layer.host)) return;
+  const path = e.composedPath();
+  if (path.includes(layer.host)) return;
+  if (
+    path.some(
+      (n) =>
+        n.localName === "ha-dialog" ||
+        (n.getAttribute && n.getAttribute("role") === "dialog"),
+    )
+  )
+    return;
   layer.panel.focus();
 }
+
+const onKeydown = (e) => {
+  if (e.key === "Escape") closeSheet();
+};
 
 /* container CSS — load-bearing (self-contained font; crisp margin-auto centring
    with no will-change so it never rasterises blurry on fractional DPR). */
@@ -173,25 +188,6 @@ function bindDrag(handle, sheet) {
   handle.addEventListener("pointercancel", end);
 }
 
-function lockScroll() {
-  layer.savedScrollY = window.scrollY || window.pageYOffset || 0;
-  const b = document.body;
-  b.style.position = "fixed";
-  b.style.top = `-${layer.savedScrollY}px`;
-  b.style.left = "0";
-  b.style.right = "0";
-  b.style.width = "100%";
-}
-function unlockScroll() {
-  const b = document.body;
-  b.style.position = "";
-  b.style.top = "";
-  b.style.left = "";
-  b.style.right = "";
-  b.style.width = "";
-  window.scrollTo(0, layer.savedScrollY);
-}
-
 async function renderContent(card) {
   const cfg = card._config;
   if (layer.panel)
@@ -259,7 +255,7 @@ export function openSheet(id) {
   build();
   layer.openId = id;
   layer.host.setAttribute("data-open", "true");
-  lockScroll();
+  lockView(true);
   renderContent(card);
   requestAnimationFrame(() =>
     requestAnimationFrame(() => {
@@ -273,6 +269,7 @@ export function closeSheet() {
   if (layer.openId == null) return;
   const id = layer.openId;
   layer.openId = null;
+  clearTimeout(layer.closeTimer);
   if (layer.host) layer.host.removeAttribute("data-shown");
   if (window.location.hash === `#${id}`) {
     history.replaceState(
@@ -285,13 +282,15 @@ export function closeSheet() {
     if (layer.openId != null) return;
     if (layer.host) layer.host.removeAttribute("data-open");
     if (layer.bodyEl) layer.bodyEl.textContent = "";
-    unlockScroll();
+    lockView(false);
     const opener = layer.opener;
     layer.opener = null;
     if (opener && opener.focus) opener.focus(); // return focus to the trigger
   };
+  // A cancellation token so a deferred close can't run after the card is gone
+  // (unregisterSheet clears it) — see §3.
   if (reduceMotion()) finish();
-  else setTimeout(finish, 300);
+  else layer.closeTimer = setTimeout(finish, 300);
 }
 
 function syncFromHash() {
@@ -301,6 +300,7 @@ function syncFromHash() {
 }
 
 export function registerSheet(id, card) {
+  ensureListeners();
   build();
   layer.sheets.set(id, card);
   if (window.location.hash === `#${id}`) openSheet(id);
@@ -310,9 +310,12 @@ export function unregisterSheet(id, card) {
   if (layer.sheets.get(id) === card) layer.sheets.delete(id);
   if (layer.openId === id) closeSheet();
   if (layer.sheets.size === 0 && layer.host) {
+    clearTimeout(layer.closeTimer); // a queued close must not fire on the next page
+    lockView(false);
     layer.host.remove();
     layer.built = false;
     layer.host = null;
+    removeSheetListeners();
   }
 }
 
@@ -325,8 +328,20 @@ export function updateSheetHass(id, hass) {
     });
 }
 
-window.addEventListener("hashchange", syncFromHash);
-window.addEventListener("focusin", onFocusIn);
-window.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closeSheet();
-});
+// Registered from the first registerSheet and removed after the last, so they
+// don't run on every HA page (Settings, Developer Tools) when no sheet exists.
+let listenersOn = false;
+function ensureListeners() {
+  if (listenersOn) return;
+  listenersOn = true;
+  window.addEventListener("hashchange", syncFromHash);
+  window.addEventListener("focusin", onFocusIn);
+  window.addEventListener("keydown", onKeydown);
+}
+function removeSheetListeners() {
+  if (!listenersOn) return;
+  listenersOn = false;
+  window.removeEventListener("hashchange", syncFromHash);
+  window.removeEventListener("focusin", onFocusIn);
+  window.removeEventListener("keydown", onKeydown);
+}
