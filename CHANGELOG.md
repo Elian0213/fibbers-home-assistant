@@ -3,6 +3,37 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.8.1] — 2026-09-04
+
+A touch/a11y patch for 0.8.0's remote and the shared sliders, plus a full
+Storybook documentation pass.
+
+### Fixed
+
+- **The volume scrub's keyboard path was unthrottled** — a held arrow key fired one
+  relative `volume_up` per OS auto-repeat (~30/s), and with relative steps there's no
+  last-write-wins to save you. The scrub's two ends are now real Volume−/Volume+
+  buttons (the middle groove is an aria-hidden drag surface): keyboard is native
+  button activation, throttled 120ms, and a screen reader announces the buttons
+  instead of an inert "volume, group".
+- **Sliders no longer eat a vertical page swipe.** The brightness/number/volume
+  slider surfaces were `touch-action: none`, so a touch starting on a full-width 44px
+  band couldn't scroll the page — up to ~27% of a view's height on a phone. They're
+  now `pan-y`: a vertical swipe scrolls, a horizontal drag still works the control.
+- **The SVG d-pad wheel flashed a rectangular tap-highlight** on press. The touch
+  polish that was nav-bar-only (`-webkit-tap-highlight-color`, `user-select`,
+  `touch-action: manipulation`) now applies to every card control.
+- **The select dropdown scroll-chained** into the page/sheet behind it once the
+  option list hit its end — now `overscroll-behavior: contain`.
+
+### Docs
+
+- Storybook brought up to date: the remote gains full 0.8.x coverage (scrub, controls
+  panel, multi-device, speaker, grid, generic), and every card story now covers its
+  meaningful states (65 → 150 variants across 26 cards). The remote's full option list
+  and the `controls:` panel are documented in the README, Usage, and
+  `docs/remote-commands.md`, and the card gallery screenshots are refreshed.
+
 ## [0.8.0] — 2026-09-03
 
 `fibbers-remote` gets its below-the-wheel half rebuilt. Everything under the d-pad

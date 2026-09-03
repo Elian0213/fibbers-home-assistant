@@ -49,7 +49,7 @@ export const ActiveVsInactive = story({
     },
     {
       name: "Radio uit",
-      icon: "solar:radio-line-duotone",
+      icon: "solar:radio-bold-duotone",
       action: { action: "toggle", entity: "input_boolean.wake_radio_enabled" },
       active_when: { entity: "input_boolean.wake_radio_enabled", state: "off" },
     },
@@ -122,7 +122,7 @@ export const Wrapping = story({
     },
     {
       name: "Feest",
-      icon: "solar:disco-ball-bold-duotone",
+      icon: "solar:star-fall-bold-duotone",
       action: { action: "toggle", entity: "scene.feest" },
     },
     {

@@ -19,7 +19,7 @@ export const Lit = story({
 export const AllOn = story({
   type: "custom:fibbers-room",
   name: "Keuken",
-  icon: "solar:cooking-pot-bold-duotone",
+  icon: "solar:chef-hat-minimalistic-bold-duotone",
   entities: ["light.kitchen", "light.kitchen_lsc_led_strip"],
   sheet: "keuken",
 });
