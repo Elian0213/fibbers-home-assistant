@@ -3,6 +3,41 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.7.6] — 2026-09-03
+
+A small patch: the last two undebounced sliders, two timing defects in 0.7.5's
+shared style injector, and one shared drag gesture instead of four copies.
+
+### Fixed
+
+- **The light-row and remote-volume sliders were still undebounced on the keyboard
+  path** — holding an arrow key fired ~30 `light.turn_on` / `volume_set` calls a
+  second (this is what made the lights feel laggy). Both now match the other
+  sliders: the display advances immediately, the write is debounced 150ms, and a
+  pending write is dropped on unmount — and, on the remote, on a device switch, so
+  a volume meant for device A can't land on device B.
+- **Drag behaviour unified**: all four value sliders now live-track during a drag
+  (~4px slop, then debounced writes as you move, final value wins on release) —
+  previously the group master dimmed the room mid-drag while an individual light
+  row did nothing until you lifted.
+- **The shared style injector could latch onto `document.body` permanently** when a
+  dashboard loaded before HA's panel resolver mounted — a whole-document subtree
+  observer, exactly the cost the 0.7.5 refactor removed. It now re-targets onto the
+  panel as soon as it exists.
+- **The sheet scroll lock is retried.** It used to be a one-shot: if `hui-root`
+  wasn't resolvable the instant a sheet opened, the background kept scrolling
+  behind it for the life of that sheet. It now routes through the shared injector
+  and gets the retry/re-render resilience for free.
+- The d-pad hub no longer announces "OK" twice to screen readers.
+
+### Internal
+
+- The drag-gesture bookkeeping shared by light-row, light-group, number and the
+  remote volume is one `sliderDrag()` helper in `shared/ui.js` (next to
+  `SliderHold`) instead of four copies; an implicit `lostpointercapture` after
+  `pointerup` is a no-op by construction. `hui-inject`'s unused `repaint` export
+  is gone.
+
 ## [0.7.5] — 2026-09-03
 
 A redesigned remote, and a long list of functional fixes across the media/remote,
