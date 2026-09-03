@@ -3,6 +3,61 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.7.5] — 2026-09-03
+
+A redesigned remote, and a long list of functional fixes across the media/remote,
+sheets, sliders and the global side-effects.
+
+### Changed
+
+- **The remote is redesigned — flat and Fibbers-native.** The d-pad is one SVG donut
+  with four true annular sectors (real arc paths, so the outer edge is the circle and
+  the gaps are true radial channels — no clip-path corner-clipping), each sector a
+  ≥44px button; a 3×3 grid remains as `dpad: grid`. Everything sits below the wheel in
+  use order — switcher, header (with a 44×44 power key), one segmented transport strip
+  (no floating circles, no dangling divider), a single volume row that swaps slider ⇄
+  −/VOL/+ stepper without changing height, channel, sources. The body is capped at
+  320px and centred; on a wide card a 600px container query moves the sources into a
+  second column — but only when there are sources, so a speaker stays one column with
+  no dead space.
+
+### Fixed
+
+- **Remote volume no longer snaps back on release** — the drag's `onCancel` was
+  clearing the value it had just set (an implicit `lostpointercapture` fires right
+  after `pointerup`).
+- **Transport routes to whatever can actually run it.** Each button gates on the
+  media_player feature bit (`PLAY`/`PAUSE`/`PREVIOUS_TRACK`/`NEXT_TRACK`) and prefers
+  that path, else the remote command — so an Android TV whose player lacks the track
+  bits uses `remote.send_command MEDIA_NEXT` instead of a call HA rejects.
+- **D-pad keyboard works in `dpad: both`** — Enter on a focused arrow no longer sends
+  OK. Source chips (remote + media) gate on `SELECT_SOURCE`, the media group row on
+  `GROUPING`, and every fire-and-forget service call now handles its promise.
+- **`fibbers-media`'s volume slider** gates on a reported `volume_level`, not just the
+  `VOLUME_SET` bit, so a CEC/volume-only player no longer shows a slider parked at 0%.
+- **Sheets:** Escape and the focus-trap yield to an HA dialog opened on top (more-info,
+  Material dialogs, native `<dialog>`); switching `#a`→`#b` closes `#a` first and keeps
+  the real opener; a hash change mid-load can't append `#a`'s cards into `#b`; and focus
+  returns to the trigger even when the last sheet unregisters while open.
+- **Keyboard slider steps** on `number`/`light-group` are debounced (they fired ~30
+  service calls a second on auto-repeat) while still accumulating on screen; a disabled
+  slider no longer announces a value to screen readers.
+- **Icons survive a failed fetch** — a dropped `icons.full.json` request now retries and
+  reports that the set couldn't be *loaded* (not that your icon name is wrong), instead
+  of turning every non-core icon into a permanent question mark. The fetch URL is
+  overridable via `window.FIBBERS_ICONS_URL`.
+- **Globals & teardown:** the nav-stack route listeners run only while a nav bar or
+  back card is mounted (loading the resource can no longer push Settings onto the back
+  stack); the nav bar disconnects its ResizeObserver and resets its scroll state on
+  detach; external `url` actions open with `noopener,noreferrer`.
+
+### Internal
+
+- The three hui-root style injectors (hide-tabs, view-reserve, theme) now share one
+  observer + debounce via `core/hui-inject.js` instead of running three each. Tab
+  hiding covers older HA tab strips (`ha-tabs`/`paper-tabs`/`sl-tab-group`) with a
+  diagnostic when nothing matched.
+
 ## [0.7.4] — 2026-09-02
 
 One remote for every device, honest touch targets, and a bundle a fraction of the
