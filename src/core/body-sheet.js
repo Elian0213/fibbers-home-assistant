@@ -39,27 +39,37 @@ function deepActiveElement() {
   return el;
 }
 
+// HA's own overlays (more-info on ha-dialog, newer ones on ha-md-dialog/md-dialog
+// bottoming out in a native <dialog>, whose dialog role is implicit) render outside
+// the sheet layer; the focus trap and Escape-to-close must not fight them.
+function isDialogNode(n) {
+  const name = n.localName;
+  return (
+    name === "ha-dialog" ||
+    name === "ha-md-dialog" ||
+    name === "md-dialog" ||
+    name === "dialog" ||
+    (n.getAttribute && n.getAttribute("role") === "dialog")
+  );
+}
+
 // Focus trap: while the sheet is open, if focus escapes it (Tab past the last
-// control), pull it back onto the dialog. composedPath() lets this work across
-// the nested shadow roots of the child cards — but must not fight HA's own
-// dialogs (more-info etc.), which render outside the sheet layer.
+// control), pull it back onto the dialog. composedPath() lets this work across the
+// nested shadow roots of the child cards — but yields to an HA overlay on top.
 function onFocusIn(e) {
   if (layer.openId == null || !layer.host || !layer.panel) return;
   const path = e.composedPath();
   if (path.includes(layer.host)) return;
-  if (
-    path.some(
-      (n) =>
-        n.localName === "ha-dialog" ||
-        (n.getAttribute && n.getAttribute("role") === "dialog"),
-    )
-  )
-    return;
+  if (path.some(isDialogNode)) return;
   layer.panel.focus();
 }
 
+// Escape closes the sheet — unless an HA dialog is open on top of it (that dialog
+// owns the Escape) or another handler already consumed the event.
 const onKeydown = (e) => {
-  if (e.key === "Escape") closeSheet();
+  if (e.key !== "Escape" || e.defaultPrevented) return;
+  if (e.composedPath().some(isDialogNode)) return;
+  closeSheet();
 };
 
 /* container CSS — load-bearing (self-contained font; crisp margin-auto centring
@@ -234,7 +244,12 @@ async function renderContent(card) {
   const configs = Array.isArray(cfg.cards) ? cfg.cards : [];
   if (!configs.length) return;
   try {
+    // The hash can change to another sheet while loadCardHelpers() is in flight;
+    // `layer.bodyEl` is shared, so bail if this open was superseded rather than
+    // appending #a's cards into #b's body (and leaking detached #a children).
+    const gen = layer.openId;
     const helpers = await window.loadCardHelpers();
+    if (layer.openId !== gen) return;
     for (const c of configs) {
       const el = helpers.createCardElement(c);
       if (card._hass) el.hass = card._hass;
@@ -258,7 +273,13 @@ async function renderContent(card) {
 export function openSheet(id) {
   const card = layer.sheets.get(id);
   if (!card || layer.openId === id) return;
-  layer.opener = deepActiveElement(); // to restore focus on close
+  // Switching from another sheet: close it first rather than stacking #b over #a.
+  if (layer.openId != null) closeSheet();
+  // Capture the trigger so focus can return on close — but not the sheet's own
+  // panel when switching (focus is already inside the layer then), which would
+  // leave a later close focusing a display:none element.
+  const active = deepActiveElement();
+  if (!layer.shadow || !layer.shadow.contains(active)) layer.opener = active;
   build();
   layer.openId = id;
   layer.host.setAttribute("data-open", "true");
@@ -272,11 +293,24 @@ export function openSheet(id) {
   );
 }
 
+// The tail of a close, run after the exit transition (or synchronously on
+// reduced-motion / last-unregister). Bails while a sheet is open, so a switch or a
+// queued timer can't tear down the sheet that's now on screen.
+function finishClose() {
+  if (layer.openId != null) return;
+  if (layer.host) layer.host.removeAttribute("data-open");
+  if (layer.bodyEl) layer.bodyEl.textContent = "";
+  lockView(false);
+  const opener = layer.opener;
+  layer.opener = null;
+  if (opener && opener.focus) opener.focus(); // return focus to the trigger
+}
+
 /**
  * Close the open sheet — plays the exit, clears the hash, then (after the
- * transition, unless reduced-motion) unlocks the view and returns focus to the
- * opener. The deferred finish is guarded by a cancellation token so it can't run
- * against a sheet that was unregistered mid-animation.
+ * transition, unless reduced-motion) runs finishClose to unlock the view and return
+ * focus to the opener. finishClose is guarded so a switch/unregister can't run it
+ * against the wrong sheet.
  */
 export function closeSheet() {
   if (layer.openId == null) return;
@@ -291,19 +325,8 @@ export function closeSheet() {
       window.location.pathname + window.location.search,
     );
   }
-  const finish = () => {
-    if (layer.openId != null) return;
-    if (layer.host) layer.host.removeAttribute("data-open");
-    if (layer.bodyEl) layer.bodyEl.textContent = "";
-    lockView(false);
-    const opener = layer.opener;
-    layer.opener = null;
-    if (opener && opener.focus) opener.focus(); // return focus to the trigger
-  };
-  // A cancellation token so a deferred close can't run after the card is gone
-  // (unregisterSheet clears it).
-  if (reduceMotion()) finish();
-  else layer.closeTimer = setTimeout(finish, 300);
+  if (reduceMotion()) finishClose();
+  else layer.closeTimer = setTimeout(finishClose, 300);
 }
 
 function syncFromHash() {
@@ -336,11 +359,18 @@ export function unregisterSheet(id, card) {
   if (layer.sheets.get(id) === card) layer.sheets.delete(id);
   if (layer.openId === id) closeSheet();
   if (layer.sheets.size === 0 && layer.host) {
-    clearTimeout(layer.closeTimer); // a queued close must not fire on the next page
-    lockView(false);
+    // The queued close (if any) is cancelled — run its tail now so focus still
+    // returns to the opener before the host goes away — then null every ref.
+    clearTimeout(layer.closeTimer);
+    finishClose();
     layer.host.remove();
     layer.built = false;
     layer.host = null;
+    layer.shadow = null;
+    layer.backdrop = null;
+    layer.panel = null;
+    layer.headEl = null;
+    layer.bodyEl = null;
     removeSheetListeners();
   }
 }

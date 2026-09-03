@@ -4273,19 +4273,26 @@ ${decls}
       el = el.shadowRoot.activeElement;
     return el;
   }
+  function isDialogNode(n4) {
+    const name = n4.localName;
+    return name === "ha-dialog" || name === "ha-md-dialog" || name === "md-dialog" || name === "dialog" || n4.getAttribute && n4.getAttribute("role") === "dialog";
+  }
   function onFocusIn(e4) {
     if (layer.openId == null || !layer.host || !layer.panel)
       return;
     const path = e4.composedPath();
     if (path.includes(layer.host))
       return;
-    if (path.some((n4) => n4.localName === "ha-dialog" || n4.getAttribute && n4.getAttribute("role") === "dialog"))
+    if (path.some(isDialogNode))
       return;
     layer.panel.focus();
   }
   var onKeydown = (e4) => {
-    if (e4.key === "Escape")
-      closeSheet();
+    if (e4.key !== "Escape" || e4.defaultPrevented)
+      return;
+    if (e4.composedPath().some(isDialogNode))
+      return;
+    closeSheet();
   };
   var SHEET_CSS = `
   :host {
@@ -4445,7 +4452,10 @@ ${decls}
     if (!configs.length)
       return;
     try {
+      const gen = layer.openId;
       const helpers = await window.loadCardHelpers();
+      if (layer.openId !== gen)
+        return;
       for (const c4 of configs) {
         const el = helpers.createCardElement(c4);
         if (card._hass)
@@ -4464,7 +4474,11 @@ ${decls}
     const card = layer.sheets.get(id);
     if (!card || layer.openId === id)
       return;
-    layer.opener = deepActiveElement();
+    if (layer.openId != null)
+      closeSheet();
+    const active = deepActiveElement();
+    if (!layer.shadow || !layer.shadow.contains(active))
+      layer.opener = active;
     build();
     layer.openId = id;
     layer.host.setAttribute("data-open", "true");
@@ -4475,6 +4489,19 @@ ${decls}
       if (layer.panel)
         layer.panel.focus();
     }));
+  }
+  function finishClose() {
+    if (layer.openId != null)
+      return;
+    if (layer.host)
+      layer.host.removeAttribute("data-open");
+    if (layer.bodyEl)
+      layer.bodyEl.textContent = "";
+    lockView(false);
+    const opener = layer.opener;
+    layer.opener = null;
+    if (opener && opener.focus)
+      opener.focus();
   }
   function closeSheet() {
     if (layer.openId == null)
@@ -4487,23 +4514,10 @@ ${decls}
     if (window.location.hash === `#${id}`) {
       history.replaceState(null, "", window.location.pathname + window.location.search);
     }
-    const finish = () => {
-      if (layer.openId != null)
-        return;
-      if (layer.host)
-        layer.host.removeAttribute("data-open");
-      if (layer.bodyEl)
-        layer.bodyEl.textContent = "";
-      lockView(false);
-      const opener = layer.opener;
-      layer.opener = null;
-      if (opener && opener.focus)
-        opener.focus();
-    };
     if (reduceMotion())
-      finish();
+      finishClose();
     else
-      layer.closeTimer = setTimeout(finish, 300);
+      layer.closeTimer = setTimeout(finishClose, 300);
   }
   function syncFromHash() {
     const hash = window.location.hash.replace(/^#/, "");
@@ -4526,10 +4540,15 @@ ${decls}
       closeSheet();
     if (layer.sheets.size === 0 && layer.host) {
       clearTimeout(layer.closeTimer);
-      lockView(false);
+      finishClose();
       layer.host.remove();
       layer.built = false;
       layer.host = null;
+      layer.shadow = null;
+      layer.backdrop = null;
+      layer.panel = null;
+      layer.headEl = null;
+      layer.bodyEl = null;
       removeSheetListeners();
     }
   }
