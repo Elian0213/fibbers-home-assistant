@@ -7,7 +7,7 @@
  * through the shared hui-inject machine, so it clears every column at once. Removed
  * when the last nav card detaches.
  * ================================================================== */
-import { injectStyle, removeStyle, findHuiRoot } from "./hui-inject.js";
+import { injectStyle, removeStyle } from "./hui-inject.js";
 
 const STYLE_ID = "fibbers-view-reserve";
 
@@ -23,22 +23,14 @@ const LOCK_ID = "fibbers-view-lock";
 /**
  * Freeze/unfreeze HA's real scroll container (#view) while a modal sheet is open.
  * Locks #view — not <body> — so HA's own dialogs (children of <home-assistant>)
- * still lay out. A one-shot (not a subscribed style) since it toggles with the sheet.
+ * still lay out. Routed through the shared injector so a lock requested before
+ * hui-root resolves still lands (and survives HA re-renders) instead of silently
+ * never applying for the life of the sheet.
  * @param {boolean} on — true to lock, false to release
  */
 export function lockView(on) {
-  const root = findHuiRoot();
-  if (!root || !root.shadowRoot) return;
-  const existing = root.shadowRoot.getElementById(LOCK_ID);
-  if (on) {
-    if (existing) return;
-    const style = document.createElement("style");
-    style.id = LOCK_ID;
-    style.textContent = "#view{overflow:hidden !important}";
-    root.shadowRoot.appendChild(style);
-  } else if (existing) {
-    existing.remove();
-  }
+  if (on) injectStyle(LOCK_ID, () => "#view{overflow:hidden !important}");
+  else removeStyle(LOCK_ID);
 }
 
 /**

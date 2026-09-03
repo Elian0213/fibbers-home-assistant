@@ -22,7 +22,13 @@ import {
   activateOnKey,
   SliderHold,
 } from "../../shared/ui.js";
-import { pickEntity, pctFromX, isUnavail, store } from "../../shared/util.js";
+import {
+  pickEntity,
+  pctFromX,
+  isUnavail,
+  store,
+  debounce,
+} from "../../shared/util.js";
 import "../../shared/icon.js";
 
 // Per-platform command names. A key absent here (and from `commands:`) means the
@@ -604,6 +610,7 @@ export class FibbersRemote extends LitElement {
     // calls it per editor keystroke) would stack controllers on the element.
     if (!this._volHold) this._volHold = new SliderHold(this, { tolerance: 2 });
     else this._volHold.clear();
+    this._volInput = debounce((v) => this._setVol(v), 150);
   }
 
   _resetTransient() {
@@ -612,6 +619,9 @@ export class FibbersRemote extends LitElement {
     this._srcOpen = false;
     this._flash = null;
     this._sw = null; // an in-flight swipe must not carry across a device switch
+    // A pending debounced volume write resolves _mp() at fire time — cancel it so a
+    // write meant for device A can't land on device B after a switch.
+    if (this._volInput) this._volInput.cancel();
   }
 
   _persistKey() {
@@ -627,11 +637,12 @@ export class FibbersRemote extends LitElement {
     };
     document.addEventListener("visibilitychange", this._onHidden);
   }
-  /** Tear down the repeat timer, flash timer and visibility listener on unmount. */
+  /** Tear down the repeat timer, flash timer, pending volume write and visibility listener. */
   disconnectedCallback() {
     super.disconnectedCallback();
     this._release(); // a held button must not keep firing after unmount
     clearTimeout(this._flashTimer);
+    if (this._volInput) this._volInput.cancel();
     document.removeEventListener("visibilitychange", this._onHidden);
   }
 
@@ -854,19 +865,28 @@ export class FibbersRemote extends LitElement {
   }
   _volDown(e) {
     this._dragging = true;
+    this._downX = e.clientX;
+    this._moved = false;
     e.currentTarget.setPointerCapture &&
       e.currentTarget.setPointerCapture(e.pointerId);
+    // Leading commit suppressed: a tap commits once on pointerup; a drag streams
+    // through the debounce only after it clears the ~4px slop threshold — same
+    // live-tracking feel as the other Fibbers sliders.
     this._dragVol = Math.round(pctFromX(e.clientX, e.currentTarget));
   }
   _volMove(e) {
-    if (this._dragging)
-      this._dragVol = Math.round(pctFromX(e.clientX, e.currentTarget));
+    if (!this._dragging) return;
+    this._dragVol = Math.round(pctFromX(e.clientX, e.currentTarget));
+    if (!this._moved && Math.abs(e.clientX - this._downX) < 4) return;
+    this._moved = true;
+    this._volInput(this._dragVol);
   }
   _volUp(e) {
     if (!this._dragging) return;
     const v = Math.round(pctFromX(e.clientX, e.currentTarget));
     this._dragging = false;
-    this._setVol(v);
+    this._volInput.cancel();
+    this._setVol(v); // final value wins immediately
   }
 
   // Keyboard for the swipe surface (which has no arrow buttons to Tab to). Only
@@ -1064,7 +1084,7 @@ export class FibbersRemote extends LitElement {
               @keydown=${activateOnKey(() => this._send("ok"))}
               @pointerdown=${stop}
             ></circle>
-            <text class="hubtx" x="0" y="1">OK</text>`
+            <text class="hubtx" x="0" y="1" aria-hidden="true">OK</text>`
           : nothing
       }
     </svg>`;
@@ -1233,12 +1253,19 @@ export class FibbersRemote extends LitElement {
           max: 100,
           step: 5,
           valueText: `${vol}%`,
-          onInput: (v) => this._setVol(v),
+          // Keyboard: arm the hold now (display advances, held keys keep stepping)
+          // but debounce the write — auto-repeat fired ~30 volume_set calls a
+          // second straight at the committer.
+          onInput: (v) => {
+            this._volHold.hold(v);
+            this._volInput(v);
+          },
           onDown: this._volDown,
           onMove: this._volMove,
           onUp: this._volUp,
           onCancel: () => {
             this._dragging = false;
+            this._volInput.cancel();
           },
         })}<span class="pct">${vol}%</span>`;
     }

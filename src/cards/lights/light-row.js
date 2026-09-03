@@ -18,6 +18,7 @@ import {
   isUnavail,
   pctFromX,
   pickEntity,
+  debounce,
 } from "../../shared/util.js";
 import "../../shared/icon.js";
 
@@ -80,12 +81,19 @@ export class FibbersLightRow extends LitElement {
     this._config = config;
     this._dragging = false;
     this._dragPct = 0;
+    this._debouncedCommit = debounce((v) => this._commit(v), 150);
     // Construct the hold once — SliderHold.addController has no counterpart, so a
     // fresh one per setConfig (HA calls it per keystroke in the editor) would
     // orphan controllers on the element.
     if (!this._hold)
       this._hold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
     else this._hold.clear();
+  }
+
+  /** Drop any trailing debounced write so a torn-down row can't fire late. */
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this._debouncedCommit) this._debouncedCommit.cancel();
   }
 
   // An on/off-only light (supported_color_modes === ["onoff"]) has no brightness,
@@ -139,18 +147,27 @@ export class FibbersLightRow extends LitElement {
     if (this._unavail()) return;
     const track = e.currentTarget;
     this._dragging = true;
+    this._downX = e.clientX;
+    this._moved = false;
     track.setPointerCapture && track.setPointerCapture(e.pointerId);
+    // Leading commit suppressed: a tap commits once on pointerup; a drag streams
+    // through the debounce only after it clears the ~4px slop threshold — same
+    // live-tracking feel as the group master slider.
     this._dragPct = Math.round(pctFromX(e.clientX, track));
   }
   _move(e) {
     if (!this._dragging) return;
     this._dragPct = Math.round(pctFromX(e.clientX, e.currentTarget));
+    if (!this._moved && Math.abs(e.clientX - this._downX) < 4) return;
+    this._moved = true;
+    this._debouncedCommit(this._dragPct);
   }
   _up(e) {
     if (!this._dragging) return;
     const pct = Math.round(pctFromX(e.clientX, e.currentTarget));
     this._dragging = false;
-    this._commit(pct);
+    this._debouncedCommit.cancel();
+    this._commit(pct); // final value wins immediately
   }
   _commit(pct) {
     if (!this.hass) return;
@@ -262,12 +279,20 @@ export class FibbersLightRow extends LitElement {
                 max: 100,
                 step: 5,
                 valueText: `${pct}%`,
-                onInput: (v) => this._commit(Math.round(v)),
+                // Keyboard: arm the hold now (display advances, held keys keep
+                // stepping) but debounce the write — auto-repeat fired ~30
+                // light.turn_on calls a second straight at the committer.
+                onInput: (v) => {
+                  const p = Math.round(v);
+                  this._hold.hold(p);
+                  this._debouncedCommit(p);
+                },
                 onDown: this._down,
                 onMove: this._move,
                 onUp: this._up,
                 onCancel: () => {
                   this._dragging = false;
+                  this._debouncedCommit.cancel();
                 },
               })
             : html`<div class="flex min-h-[var(--fib-hit)] items-center">

@@ -3226,7 +3226,8 @@ ${BASE_CSS}`);
     observer: null,
     scheduled: false,
     navBound: false,
-    warned: false
+    warned: false,
+    fallback: false
   };
   function paintOne(root, id, css) {
     const existing = root.shadowRoot.getElementById(id);
@@ -3258,20 +3259,33 @@ ${BASE_CSS}`);
     for (const [id, compute] of subs)
       paintOne(root, id, compute());
   }
+  function retargetIfFallback() {
+    if (!state.fallback || !state.observer)
+      return;
+    const panel = findPanel();
+    if (!panel)
+      return;
+    state.observer.disconnect();
+    state.observer.observe(panel, { childList: true, subtree: true });
+    state.fallback = false;
+  }
   function schedule() {
     if (state.scheduled)
       return;
     state.scheduled = true;
     setTimeout(() => {
       state.scheduled = false;
+      retargetIfFallback();
       paintAll();
     }, 60);
   }
   function startShared() {
     if (!state.observer && window.MutationObserver) {
       try {
+        const panel = findPanel();
+        state.fallback = !panel;
         state.observer = new MutationObserver(schedule);
-        state.observer.observe(findPanel() || document.body, {
+        state.observer.observe(panel || document.body, {
           childList: true,
           subtree: true
         });
@@ -3289,6 +3303,7 @@ ${BASE_CSS}`);
     if (state.observer) {
       state.observer.disconnect();
       state.observer = null;
+      state.fallback = false;
     }
     if (state.navBound) {
       state.navBound = false;
@@ -3542,20 +3557,10 @@ ${decls}
   }
   var LOCK_ID = "fibbers-view-lock";
   function lockView(on) {
-    const root = findHuiRoot();
-    if (!root || !root.shadowRoot)
-      return;
-    const existing = root.shadowRoot.getElementById(LOCK_ID);
-    if (on) {
-      if (existing)
-        return;
-      const style = document.createElement("style");
-      style.id = LOCK_ID;
-      style.textContent = "#view{overflow:hidden !important}";
-      root.shadowRoot.appendChild(style);
-    } else if (existing) {
-      existing.remove();
-    }
+    if (on)
+      injectStyle(LOCK_ID, () => "#view{overflow:hidden !important}");
+    else
+      removeStyle(LOCK_ID);
   }
   function setViewReserve(px) {
     state4.px = Math.max(0, Math.round(px || 0));
@@ -4999,10 +5004,16 @@ ${decls}
       this._config = config;
       this._dragging = false;
       this._dragPct = 0;
+      this._debouncedCommit = debounce((v2) => this._commit(v2), 150);
       if (!this._hold)
         this._hold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
       else
         this._hold.clear();
+    }
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      if (this._debouncedCommit)
+        this._debouncedCommit.cancel();
     }
     _dimmable() {
       const st = this._st();
@@ -5051,6 +5062,8 @@ ${decls}
         return;
       const track = e4.currentTarget;
       this._dragging = true;
+      this._downX = e4.clientX;
+      this._moved = false;
       track.setPointerCapture && track.setPointerCapture(e4.pointerId);
       this._dragPct = Math.round(pctFromX(e4.clientX, track));
     }
@@ -5058,12 +5071,17 @@ ${decls}
       if (!this._dragging)
         return;
       this._dragPct = Math.round(pctFromX(e4.clientX, e4.currentTarget));
+      if (!this._moved && Math.abs(e4.clientX - this._downX) < 4)
+        return;
+      this._moved = true;
+      this._debouncedCommit(this._dragPct);
     }
     _up(e4) {
       if (!this._dragging)
         return;
       const pct = Math.round(pctFromX(e4.clientX, e4.currentTarget));
       this._dragging = false;
+      this._debouncedCommit.cancel();
       this._commit(pct);
     }
     _commit(pct) {
@@ -5153,12 +5171,17 @@ ${decls}
         max: 100,
         step: 5,
         valueText: `${pct}%`,
-        onInput: (v2) => this._commit(Math.round(v2)),
+        onInput: (v2) => {
+          const p3 = Math.round(v2);
+          this._hold.hold(p3);
+          this._debouncedCommit(p3);
+        },
         onDown: this._down,
         onMove: this._move,
         onUp: this._up,
         onCancel: () => {
           this._dragging = false;
+          this._debouncedCommit.cancel();
         }
       }) : b2`<div class="flex min-h-[var(--fib-hit)] items-center">
                 ${pillSwitch({
@@ -6196,6 +6219,7 @@ ${decls}
         this._volHold = new SliderHold(this, { tolerance: 2 });
       else
         this._volHold.clear();
+      this._volInput = debounce((v2) => this._setVol(v2), 150);
     }
     _resetTransient() {
       this._dragging = false;
@@ -6203,6 +6227,8 @@ ${decls}
       this._srcOpen = false;
       this._flash = null;
       this._sw = null;
+      if (this._volInput)
+        this._volInput.cancel();
     }
     _persistKey() {
       const ids = this._devices.map((d3) => d3.entity || d3.media_player || d3.name);
@@ -6220,6 +6246,8 @@ ${decls}
       super.disconnectedCallback();
       this._release();
       clearTimeout(this._flashTimer);
+      if (this._volInput)
+        this._volInput.cancel();
       document.removeEventListener("visibilitychange", this._onHidden);
     }
     updated(changed) {
@@ -6395,18 +6423,26 @@ ${decls}
     }
     _volDown(e4) {
       this._dragging = true;
+      this._downX = e4.clientX;
+      this._moved = false;
       e4.currentTarget.setPointerCapture && e4.currentTarget.setPointerCapture(e4.pointerId);
       this._dragVol = Math.round(pctFromX(e4.clientX, e4.currentTarget));
     }
     _volMove(e4) {
-      if (this._dragging)
-        this._dragVol = Math.round(pctFromX(e4.clientX, e4.currentTarget));
+      if (!this._dragging)
+        return;
+      this._dragVol = Math.round(pctFromX(e4.clientX, e4.currentTarget));
+      if (!this._moved && Math.abs(e4.clientX - this._downX) < 4)
+        return;
+      this._moved = true;
+      this._volInput(this._dragVol);
     }
     _volUp(e4) {
       if (!this._dragging)
         return;
       const v2 = Math.round(pctFromX(e4.clientX, e4.currentTarget));
       this._dragging = false;
+      this._volInput.cancel();
       this._setVol(v2);
     }
     _dpadKey(e4) {
@@ -6566,7 +6602,7 @@ ${decls}
               @keydown=${activateOnKey(() => this._send("ok"))}
               @pointerdown=${stop}
             ></circle>
-            <text class="hubtx" x="0" y="1">OK</text>` : A}
+            <text class="hubtx" x="0" y="1" aria-hidden="true">OK</text>` : A}
     </svg>`;
     }
     _pad(has) {
@@ -6675,12 +6711,16 @@ ${decls}
           max: 100,
           step: 5,
           valueText: `${vol}%`,
-          onInput: (v2) => this._setVol(v2),
+          onInput: (v2) => {
+            this._volHold.hold(v2);
+            this._volInput(v2);
+          },
           onDown: this._volDown,
           onMove: this._volMove,
           onUp: this._volUp,
           onCancel: () => {
             this._dragging = false;
+            this._volInput.cancel();
           }
         })}<span class="pct">${vol}%</span>`;
       }

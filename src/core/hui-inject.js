@@ -24,6 +24,9 @@ const state = {
   scheduled: false,
   navBound: false,
   warned: false,
+  // true while the observer sits on document.body because partial-panel-resolver
+  // hadn't mounted yet — schedule() upgrades it as soon as the panel exists.
+  fallback: false,
 };
 
 function paintOne(root, id, css) {
@@ -57,11 +60,24 @@ function paintAll() {
   for (const [id, compute] of subs) paintOne(root, id, compute());
 }
 
+// A cold load can subscribe before HA mounts partial-panel-resolver, forcing the
+// observer onto document.body (whole-document subtree — exactly the cost this
+// module exists to avoid). Re-target it onto the panel as soon as it appears.
+function retargetIfFallback() {
+  if (!state.fallback || !state.observer) return;
+  const panel = findPanel();
+  if (!panel) return;
+  state.observer.disconnect();
+  state.observer.observe(panel, { childList: true, subtree: true });
+  state.fallback = false;
+}
+
 function schedule() {
   if (state.scheduled) return;
   state.scheduled = true;
   setTimeout(() => {
     state.scheduled = false;
+    retargetIfFallback();
     paintAll();
   }, 60);
 }
@@ -69,8 +85,10 @@ function schedule() {
 function startShared() {
   if (!state.observer && window.MutationObserver) {
     try {
+      const panel = findPanel();
+      state.fallback = !panel;
       state.observer = new MutationObserver(schedule);
-      state.observer.observe(findPanel() || document.body, {
+      state.observer.observe(panel || document.body, {
         childList: true,
         subtree: true,
       });
@@ -90,6 +108,7 @@ function stopShared() {
   if (state.observer) {
     state.observer.disconnect();
     state.observer = null;
+    state.fallback = false;
   }
   if (state.navBound) {
     state.navBound = false;
