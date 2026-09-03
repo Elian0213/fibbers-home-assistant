@@ -1067,6 +1067,8 @@
     remote: {
       default_name: "Remote",
       devices: "Devices",
+      volume: "Volume",
+      mute: "Mute",
       on: "On",
       off: "Off"
     },
@@ -1210,6 +1212,8 @@
     remote: {
       default_name: "Afstandsbediening",
       devices: "Apparaten",
+      volume: "Volume",
+      mute: "Dempen",
       on: "Aan",
       off: "Uit"
     },
@@ -1289,7 +1293,7 @@
 
   // src/generated/tailwind.gen.js
   var TW_CSS = `/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */
-@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-translate-x:0;--tw-translate-y:0;--tw-translate-z:0;--tw-rotate-x:initial;--tw-rotate-y:initial;--tw-rotate-z:initial;--tw-skew-x:initial;--tw-skew-y:initial;--tw-border-style:solid;--tw-leading:initial;--tw-font-weight:initial;--tw-tracking:initial;--tw-ordinal:initial;--tw-slashed-zero:initial;--tw-numeric-figure:initial;--tw-numeric-spacing:initial;--tw-numeric-fraction:initial;--tw-shadow:0 0 #0000;--tw-shadow-color:initial;--tw-shadow-alpha:100%;--tw-inset-shadow:0 0 #0000;--tw-inset-shadow-color:initial;--tw-inset-shadow-alpha:100%;--tw-ring-color:initial;--tw-ring-shadow:0 0 #0000;--tw-inset-ring-color:initial;--tw-inset-ring-shadow:0 0 #0000;--tw-ring-inset:initial;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-offset-shadow:0 0 #0000;--tw-outline-style:solid;--tw-blur:initial;--tw-brightness:initial;--tw-contrast:initial;--tw-grayscale:initial;--tw-hue-rotate:initial;--tw-invert:initial;--tw-opacity:initial;--tw-saturate:initial;--tw-sepia:initial;--tw-drop-shadow:initial;--tw-drop-shadow-color:initial;--tw-drop-shadow-alpha:100%;--tw-drop-shadow-size:initial;--tw-backdrop-blur:initial;--tw-backdrop-brightness:initial;--tw-backdrop-contrast:initial;--tw-backdrop-grayscale:initial;--tw-backdrop-hue-rotate:initial;--tw-backdrop-invert:initial;--tw-backdrop-opacity:initial;--tw-backdrop-saturate:initial;--tw-backdrop-sepia:initial;--tw-scale-x:1;--tw-scale-y:1;--tw-scale-z:1}}}@layer theme{:root,:host{--font-sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";--font-mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;--color-white:#fff;--spacing:.25rem;--font-weight-medium:500;--font-weight-semibold:600;--tracking-tight:-.025em;--leading-tight:1.25;--radius-lg:.5rem;--radius-xl:.75rem;--animate-pulse:pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;--default-transition-duration:.15s;--default-transition-timing-function:cubic-bezier(.4, 0, .2, 1);--default-font-family:var(--font-sans);--default-mono-font-family:var(--font-mono);--color-card:#1d2426;--color-card2:#262f31;--color-line:#333e41;--color-ink:#edf1f1;--color-ink2:#a9b6b9;--color-muted:#7d8b8e;--color-accent:#74b98a;--color-accentbg:#17281c;--color-accentline:#2b4a34;--color-accenttx:#cfe6d5;--color-amber:#e8a33d;--color-amberbg:#3a2b12;--color-amberline:#4e3a18;--color-ambertx:#ebd9bc;--color-blue:#5aafd6;--color-bluebg:#152b36;--color-blueline:#2c5a70;--color-blueink:#9bd2ea;--color-green:#63c295;--color-red:#ec8377}}@layer base{*,:after,:before,::backdrop{box-sizing:border-box;border:0 solid;margin:0;padding:0}::file-selector-button{box-sizing:border-box;border:0 solid;margin:0;padding:0}html,:host{-webkit-text-size-adjust:100%;tab-size:4;line-height:1.5;font-family:var(--default-font-family,-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");font-feature-settings:var(--default-font-feature-settings,normal);font-variation-settings:var(--default-font-variation-settings,normal);-webkit-tap-highlight-color:transparent}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,samp,pre{font-family:var(--default-mono-font-family,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);font-feature-settings:var(--default-mono-font-feature-settings,normal);font-variation-settings:var(--default-mono-font-variation-settings,normal);font-size:1em}small{font-size:80%}sub,sup{vertical-align:baseline;font-size:75%;line-height:0;position:relative}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}:-moz-focusring:where(:not(iframe)){outline:auto}progress{vertical-align:baseline}summary{display:list-item}ol,ul,menu{list-style:none}img,svg,video,canvas,audio,iframe,embed,object{vertical-align:middle;display:block}img,video{max-width:100%;height:auto}button,input,select,optgroup,textarea{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}::file-selector-button{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}:where(select:is([multiple],[size])) optgroup{font-weight:bolder}:where(select:is([multiple],[size])) optgroup option{padding-inline-start:20px}::file-selector-button{margin-inline-end:4px}::placeholder{opacity:1}@supports (not ((-webkit-appearance:-apple-pay-button))) or (contain-intrinsic-size:1px){::placeholder{color:currentColor}@supports (color:color-mix(in lab, red, red)){::placeholder{color:color-mix(in oklab, currentcolor 50%, transparent)}}}textarea{resize:vertical}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-date-and-time-value{min-height:1lh;text-align:inherit}::-webkit-datetime-edit{display:inline-flex}::-webkit-datetime-edit-fields-wrapper{padding:0}::-webkit-datetime-edit{padding-block:0}::-webkit-datetime-edit-year-field{padding-block:0}::-webkit-datetime-edit-month-field{padding-block:0}::-webkit-datetime-edit-day-field{padding-block:0}::-webkit-datetime-edit-hour-field{padding-block:0}::-webkit-datetime-edit-minute-field{padding-block:0}::-webkit-datetime-edit-second-field{padding-block:0}::-webkit-datetime-edit-millisecond-field{padding-block:0}::-webkit-datetime-edit-meridiem-field{padding-block:0}::-webkit-calendar-picker-indicator{line-height:1}:-moz-ui-invalid{box-shadow:none}button,input:where([type=button],[type=reset],[type=submit]){appearance:button}::file-selector-button{appearance:button}::-webkit-inner-spin-button{height:auto}::-webkit-outer-spin-button{height:auto}[hidden]:where(:not([hidden=until-found])){display:none!important}}@layer components;@layer utilities{.\\@container{container-type:inline-size}.pointer-events-none{pointer-events:none}.collapse{visibility:collapse}.invisible{visibility:hidden}.visible{visibility:visible}.absolute{position:absolute}.fixed{position:fixed}.relative{position:relative}.static{position:static}.top-0{top:0}.top-0\\.5{top:calc(var(--spacing) * .5)}.top-1{top:var(--spacing)}.top-1\\/2{top:50%}.top-2{top:calc(var(--spacing) * 2)}.top-\\[calc\\(100\\%\\+4px\\)\\]{top:calc(100% + 4px)}.right-0{right:0}.right-1{right:var(--spacing)}.right-2{right:calc(var(--spacing) * 2)}.bottom-0{bottom:0}.bottom-1{bottom:var(--spacing)}.bottom-2{bottom:calc(var(--spacing) * 2)}.left-0{left:0}.left-0\\.5{left:calc(var(--spacing) * .5)}.left-1{left:var(--spacing)}.left-1\\/2{left:50%}.left-2{left:calc(var(--spacing) * 2)}.left-\\[18px\\]{left:18px}.z-10{z-index:10}.col-start-2{grid-column-start:2}.row-span-2{grid-row:span 2/span 2}.container{width:100%}@media (min-width:40rem){.container{max-width:40rem}}@media (min-width:48rem){.container{max-width:48rem}}@media (min-width:64rem){.container{max-width:64rem}}@media (min-width:80rem){.container{max-width:80rem}}@media (min-width:96rem){.container{max-width:96rem}}.mx-0{margin-inline:0}.mx-auto{margin-inline:auto}.mt-0{margin-top:0}.mt-0\\.5{margin-top:calc(var(--spacing) * .5)}.mt-1{margin-top:var(--spacing)}.mt-1\\.5{margin-top:calc(var(--spacing) * 1.5)}.mt-2{margin-top:calc(var(--spacing) * 2)}.mt-2\\.5{margin-top:calc(var(--spacing) * 2.5)}.mt-3{margin-top:calc(var(--spacing) * 3)}.mb-1{margin-bottom:var(--spacing)}.mb-1\\.5{margin-bottom:calc(var(--spacing) * 1.5)}.mb-2{margin-bottom:calc(var(--spacing) * 2)}.mb-2\\.5{margin-bottom:calc(var(--spacing) * 2.5)}.mb-3{margin-bottom:calc(var(--spacing) * 3)}.ml-0{margin-left:0}.ml-0\\.5{margin-left:calc(var(--spacing) * .5)}.ml-2{margin-left:calc(var(--spacing) * 2)}.ml-\\[7px\\]{margin-left:7px}.ml-\\[18px\\]{margin-left:18px}.ml-auto{margin-left:auto}.block{display:block}.contents{display:contents}.flex{display:flex}.grid{display:grid}.hidden{display:none}.inline{display:inline}.inline-flex{display:inline-flex}.table{display:table}.aspect-square{aspect-ratio:1}.h-1{height:var(--spacing)}.h-1\\.5{height:calc(var(--spacing) * 1.5)}.h-2{height:calc(var(--spacing) * 2)}.h-2\\.5{height:calc(var(--spacing) * 2.5)}.h-3{height:calc(var(--spacing) * 3)}.h-3\\.5{height:calc(var(--spacing) * 3.5)}.h-4{height:calc(var(--spacing) * 4)}.h-5{height:calc(var(--spacing) * 5)}.h-6{height:calc(var(--spacing) * 6)}.h-7{height:calc(var(--spacing) * 7)}.h-8{height:calc(var(--spacing) * 8)}.h-9{height:calc(var(--spacing) * 9)}.h-10{height:calc(var(--spacing) * 10)}.h-11{height:calc(var(--spacing) * 11)}.h-12{height:calc(var(--spacing) * 12)}.h-14{height:calc(var(--spacing) * 14)}.h-20{height:calc(var(--spacing) * 20)}.h-\\[5px\\]{height:5px}.h-\\[13px\\]{height:13px}.h-\\[15px\\]{height:15px}.h-\\[17px\\]{height:17px}.h-\\[18px\\]{height:18px}.h-\\[19px\\]{height:19px}.h-\\[20px\\]{height:20px}.h-\\[22px\\]{height:22px}.h-\\[24px\\]{height:24px}.h-\\[26px\\]{height:26px}.h-\\[30px\\]{height:30px}.h-\\[34px\\]{height:34px}.h-\\[42px\\]{height:42px}.h-\\[var\\(--fib-hit\\)\\]{height:var(--fib-hit)}.h-full{height:100%}.max-h-\\[220px\\]{max-height:220px}.min-h-11{min-height:calc(var(--spacing) * 11)}.min-h-\\[var\\(--fib-hit\\)\\]{min-height:var(--fib-hit)}.w-1{width:var(--spacing)}.w-1\\.5{width:calc(var(--spacing) * 1.5)}.w-3{width:calc(var(--spacing) * 3)}.w-3\\.5{width:calc(var(--spacing) * 3.5)}.w-4{width:calc(var(--spacing) * 4)}.w-5{width:calc(var(--spacing) * 5)}.w-6{width:calc(var(--spacing) * 6)}.w-7{width:calc(var(--spacing) * 7)}.w-8{width:calc(var(--spacing) * 8)}.w-9{width:calc(var(--spacing) * 9)}.w-10{width:calc(var(--spacing) * 10)}.w-11{width:calc(var(--spacing) * 11)}.w-12{width:calc(var(--spacing) * 12)}.w-14{width:calc(var(--spacing) * 14)}.w-20{width:calc(var(--spacing) * 20)}.w-\\[5px\\]{width:5px}.w-\\[13px\\]{width:13px}.w-\\[15px\\]{width:15px}.w-\\[17px\\]{width:17px}.w-\\[18px\\]{width:18px}.w-\\[19px\\]{width:19px}.w-\\[20px\\]{width:20px}.w-\\[22px\\]{width:22px}.w-\\[24px\\]{width:24px}.w-\\[26px\\]{width:26px}.w-\\[30px\\]{width:30px}.w-\\[34px\\]{width:34px}.w-\\[42px\\]{width:42px}.w-\\[var\\(--fib-hit\\)\\]{width:var(--fib-hit)}.w-full{width:100%}.w-px{width:1px}.max-w-\\[10ch\\]{max-width:10ch}.max-w-\\[96px\\]{max-width:96px}.max-w-\\[240px\\]{max-width:240px}.max-w-\\[260px\\]{max-width:260px}.min-w-0{min-width:0}.min-w-\\[52px\\]{min-width:52px}.min-w-\\[68px\\]{min-width:68px}.flex-1{flex:1}.flex-none{flex:none}.shrink{flex-shrink:1}.-translate-x-1{--tw-translate-x:calc(var(--spacing) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-x-1\\/2{--tw-translate-x:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1{--tw-translate-y:calc(var(--spacing) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1\\/2{--tw-translate-y:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.rotate-180{rotate:180deg}.transform{transform:var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,)}.animate-pulse{animation:var(--animate-pulse)}.cursor-pointer{cursor:pointer}.touch-none{touch-action:none}.resize{resize:both}.auto-cols-fr{grid-auto-columns:minmax(0,1fr)}.grid-flow-col{grid-auto-flow:column}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.grid-cols-\\[28px_1fr\\]{grid-template-columns:28px 1fr}.grid-cols-\\[28px_1fr_auto\\]{grid-template-columns:28px 1fr auto}.grid-cols-\\[34px_1fr\\]{grid-template-columns:34px 1fr}.grid-cols-\\[repeat\\(auto-fit\\,minmax\\(84px\\,1fr\\)\\)\\]{grid-template-columns:repeat(auto-fit,minmax(84px,1fr))}.grid-rows-\\[auto_auto\\]{grid-template-rows:auto auto}.flex-col{flex-direction:column}.flex-nowrap{flex-wrap:nowrap}.flex-wrap{flex-wrap:wrap}.items-baseline{align-items:baseline}.items-center{align-items:center}.justify-between{justify-content:space-between}.justify-center{justify-content:center}.gap-1{gap:var(--spacing)}.gap-1\\.5{gap:calc(var(--spacing) * 1.5)}.gap-2{gap:calc(var(--spacing) * 2)}.gap-2\\.5{gap:calc(var(--spacing) * 2.5)}.gap-3{gap:calc(var(--spacing) * 3)}.gap-4{gap:calc(var(--spacing) * 4)}.gap-\\[3px\\]{gap:3px}.gap-\\[5px\\]{gap:5px}.gap-\\[7px\\]{gap:7px}.gap-x-1{column-gap:var(--spacing)}.gap-x-1\\.5{column-gap:calc(var(--spacing) * 1.5)}.gap-x-2{column-gap:calc(var(--spacing) * 2)}.gap-x-2\\.5{column-gap:calc(var(--spacing) * 2.5)}.gap-x-3{column-gap:calc(var(--spacing) * 3)}.gap-x-4{column-gap:calc(var(--spacing) * 4)}.gap-x-\\[11px\\]{column-gap:11px}.gap-y-0{row-gap:0}.gap-y-0\\.5{row-gap:calc(var(--spacing) * .5)}.gap-y-2{row-gap:calc(var(--spacing) * 2)}.gap-y-\\[10px\\]{row-gap:10px}.gap-y-\\[18px\\]{row-gap:18px}.truncate{text-overflow:ellipsis;white-space:nowrap;overflow:hidden}.overflow-auto{overflow:auto}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.rounded{border-radius:.25rem}.rounded-\\[3px\\]{border-radius:3px}.rounded-\\[6px\\]{border-radius:6px}.rounded-\\[7px\\]{border-radius:7px}.rounded-\\[9px\\]{border-radius:9px}.rounded-\\[10px\\]{border-radius:10px}.rounded-\\[11px\\]{border-radius:11px}.rounded-\\[14px\\]{border-radius:14px}.rounded-\\[15px\\]{border-radius:15px}.rounded-full{border-radius:3.40282e38px}.rounded-lg{border-radius:var(--radius-lg)}.rounded-xl{border-radius:var(--radius-xl)}.border{border-style:var(--tw-border-style);border-width:1px}.border-0{border-style:var(--tw-border-style);border-width:0}.border-l{border-left-style:var(--tw-border-style);border-left-width:1px}.border-\\[\\#2E5238\\]{border-color:#2e5238}.border-accentline{border-color:var(--color-accentline)}.border-amberline{border-color:var(--color-amberline)}.border-blueline{border-color:var(--color-blueline)}.border-card2{border-color:var(--color-card2)}.border-line{border-color:var(--color-line)}.bg-\\[\\#2C3639\\]{background-color:#2c3639}.bg-\\[rgba\\(116\\,185\\,138\\,0\\.10\\)\\]{background-color:#74b98a1a}.bg-accent{background-color:var(--color-accent)}.bg-accentbg{background-color:var(--color-accentbg)}.bg-amberbg{background-color:var(--color-amberbg)}.bg-bluebg{background-color:var(--color-bluebg)}.bg-card{background-color:var(--color-card)}.bg-card2{background-color:var(--color-card2)}.bg-line{background-color:var(--color-line)}.bg-transparent{background-color:#0000}.bg-white{background-color:var(--color-white)}.bg-\\[linear-gradient\\(145deg\\,\\#1E3427\\,\\#132016\\)\\]{background-image:linear-gradient(145deg,#1e3427,#132016)}.bg-cover{background-size:cover}.bg-center{background-position:50%}.p-1{padding:var(--spacing)}.p-3{padding:calc(var(--spacing) * 3)}.p-3\\.5{padding:calc(var(--spacing) * 3.5)}.p-\\[13px\\]{padding:13px}.px-0{padding-inline:0}.px-0\\.5{padding-inline:calc(var(--spacing) * .5)}.px-1{padding-inline:var(--spacing)}.px-2{padding-inline:calc(var(--spacing) * 2)}.px-2\\.5{padding-inline:calc(var(--spacing) * 2.5)}.px-3{padding-inline:calc(var(--spacing) * 3)}.px-3\\.5{padding-inline:calc(var(--spacing) * 3.5)}.px-\\[13px\\]{padding-inline:13px}.py-1{padding-block:var(--spacing)}.py-1\\.5{padding-block:calc(var(--spacing) * 1.5)}.py-2{padding-block:calc(var(--spacing) * 2)}.py-3{padding-block:calc(var(--spacing) * 3)}.py-\\[5px\\]{padding-block:5px}.py-\\[7px\\]{padding-block:7px}.py-\\[9px\\]{padding-block:9px}.pt-0{padding-top:0}.pt-0\\.5{padding-top:calc(var(--spacing) * .5)}.pt-\\[5px\\]{padding-top:5px}.pt-\\[7px\\]{padding-top:7px}.pt-\\[13px\\]{padding-top:13px}.pr-\\[11px\\]{padding-right:11px}.pb-1{padding-bottom:var(--spacing)}.pb-1\\.5{padding-bottom:calc(var(--spacing) * 1.5)}.pb-3{padding-bottom:calc(var(--spacing) * 3)}.pb-\\[3px\\]{padding-bottom:3px}.pl-3{padding-left:calc(var(--spacing) * 3)}.pl-\\[7px\\]{padding-left:7px}.text-center{text-align:center}.text-left{text-align:left}.text-right{text-align:right}.font-mono{font-family:var(--font-mono)}.text-\\[9\\.5px\\]{font-size:9.5px}.text-\\[10\\.5px\\]{font-size:10.5px}.text-\\[10px\\]{font-size:10px}.text-\\[11\\.5px\\]{font-size:11.5px}.text-\\[11px\\]{font-size:11px}.text-\\[12\\.5px\\]{font-size:12.5px}.text-\\[12px\\]{font-size:12px}.text-\\[13px\\]{font-size:13px}.text-\\[14px\\]{font-size:14px}.text-\\[15px\\]{font-size:15px}.text-\\[16px\\]{font-size:16px}.text-\\[17px\\]{font-size:17px}.text-\\[20px\\]{font-size:20px}.text-\\[22px\\]{font-size:22px}.text-\\[24px\\]{font-size:24px}.text-\\[26px\\]{font-size:26px}.text-\\[30px\\]{font-size:30px}.leading-\\[1\\.1\\]{--tw-leading:1.1;line-height:1.1}.leading-\\[1\\.15\\]{--tw-leading:1.15;line-height:1.15}.leading-\\[1\\.25\\]{--tw-leading:1.25;line-height:1.25}.leading-\\[1\\.42\\]{--tw-leading:1.42;line-height:1.42}.leading-none{--tw-leading:1;line-height:1}.leading-tight{--tw-leading:var(--leading-tight);line-height:var(--leading-tight)}.font-medium{--tw-font-weight:var(--font-weight-medium);font-weight:var(--font-weight-medium)}.font-semibold{--tw-font-weight:var(--font-weight-semibold);font-weight:var(--font-weight-semibold)}.tracking-\\[-0\\.015em\\]{--tw-tracking:-.015em;letter-spacing:-.015em}.tracking-\\[0\\.01em\\]{--tw-tracking:.01em;letter-spacing:.01em}.tracking-\\[0\\.06em\\]{--tw-tracking:.06em;letter-spacing:.06em}.tracking-\\[0\\.08em\\]{--tw-tracking:.08em;letter-spacing:.08em}.tracking-\\[0\\.11em\\]{--tw-tracking:.11em;letter-spacing:.11em}.tracking-tight{--tw-tracking:var(--tracking-tight);letter-spacing:var(--tracking-tight)}.text-ellipsis{text-overflow:ellipsis}.whitespace-nowrap{white-space:nowrap}.text-accent{color:var(--color-accent)}.text-accenttx{color:var(--color-accenttx)}.text-amber{color:var(--color-amber)}.text-ambertx{color:var(--color-ambertx)}.text-blue{color:var(--color-blue)}.text-blueink{color:var(--color-blueink)}.text-green{color:var(--color-green)}.text-ink{color:var(--color-ink)}.text-ink2{color:var(--color-ink2)}.text-muted{color:var(--color-muted)}.text-red{color:var(--color-red)}.capitalize{text-transform:capitalize}.lowercase{text-transform:lowercase}.uppercase{text-transform:uppercase}.tabular-nums{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,)}.opacity-40{opacity:.4}.opacity-50{opacity:.5}.opacity-\\[\\.66\\]{opacity:.66}.shadow{--tw-shadow:0 1px 3px 0 var(--tw-shadow-color,#0000001a), 0 1px 2px -1px var(--tw-shadow-color,#0000001a);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_3px_rgba\\(0\\,0\\,0\\,\\.4\\)\\]{--tw-shadow:0 1px 3px var(--tw-shadow-color,#0006);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_3px_rgba\\(0\\,0\\,0\\,\\.35\\)\\]{--tw-shadow:0 1px 3px var(--tw-shadow-color,#00000059);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_10px_30px_rgba\\(0\\,0\\,0\\,\\.5\\)\\]{--tw-shadow:0 10px 30px var(--tw-shadow-color,#00000080);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.ring{--tw-ring-shadow:var(--tw-ring-inset,) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color,currentcolor);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.outline{outline-style:var(--tw-outline-style);outline-width:1px}.filter{filter:var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)}.backdrop-filter{-webkit-backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,)}.transition{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to,opacity,box-shadow,transform,translate,scale,rotate,filter,-webkit-backdrop-filter,backdrop-filter,display,content-visibility,overlay,pointer-events;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-all{transition-property:all;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-colors{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-transform{transition-property:transform,translate,scale,rotate;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.\\[--mdc-icon-size\\:13px\\]{--mdc-icon-size:13px}.\\[--mdc-icon-size\\:14px\\]{--mdc-icon-size:14px}.\\[--mdc-icon-size\\:15px\\]{--mdc-icon-size:15px}.\\[--mdc-icon-size\\:16px\\]{--mdc-icon-size:16px}.\\[--mdc-icon-size\\:17px\\]{--mdc-icon-size:17px}.\\[--mdc-icon-size\\:18px\\]{--mdc-icon-size:18px}.\\[--mdc-icon-size\\:19px\\]{--mdc-icon-size:19px}.\\[--mdc-icon-size\\:20px\\]{--mdc-icon-size:20px}.\\[--mdc-icon-size\\:22px\\]{--mdc-icon-size:22px}.\\[--mdc-icon-size\\:24px\\]{--mdc-icon-size:24px}.\\[--mdc-icon-size\\:28px\\]{--mdc-icon-size:28px}.\\[--mdc-icon-size\\:34px\\]{--mdc-icon-size:34px}.group-data-\\[pressed\\=true\\]\\:bg-\\[rgba\\(255\\,255\\,255\\,0\\.06\\)\\]:is(:where(.group)[data-pressed=true] *){background-color:#ffffff0f}@media (hover:hover){.hover\\:bg-card:hover{background-color:var(--color-card)}.hover\\:bg-card2:hover{background-color:var(--color-card2)}}.focus-visible\\:outline:focus-visible{outline-style:var(--tw-outline-style);outline-width:1px}.focus-visible\\:outline-2:focus-visible{outline-style:var(--tw-outline-style);outline-width:2px}.focus-visible\\:\\[outline-offset\\:-2px\\]:focus-visible{outline-offset:-2px}.focus-visible\\:outline-accent:focus-visible{outline-color:var(--color-accent)}.active\\:translate-y-\\[0\\.5px\\]:active{--tw-translate-y:.5px;translate:var(--tw-translate-x) var(--tw-translate-y)}.active\\:scale-90:active{--tw-scale-x:90%;--tw-scale-y:90%;--tw-scale-z:90%;scale:var(--tw-scale-x) var(--tw-scale-y)}.active\\:scale-\\[\\.96\\]:active{scale:.96}.active\\:bg-card2:active{background-color:var(--color-card2)}}@property --tw-translate-x{syntax:"*";inherits:false;initial-value:0}@property --tw-translate-y{syntax:"*";inherits:false;initial-value:0}@property --tw-translate-z{syntax:"*";inherits:false;initial-value:0}@property --tw-rotate-x{syntax:"*";inherits:false}@property --tw-rotate-y{syntax:"*";inherits:false}@property --tw-rotate-z{syntax:"*";inherits:false}@property --tw-skew-x{syntax:"*";inherits:false}@property --tw-skew-y{syntax:"*";inherits:false}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-leading{syntax:"*";inherits:false}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-tracking{syntax:"*";inherits:false}@property --tw-ordinal{syntax:"*";inherits:false}@property --tw-slashed-zero{syntax:"*";inherits:false}@property --tw-numeric-figure{syntax:"*";inherits:false}@property --tw-numeric-spacing{syntax:"*";inherits:false}@property --tw-numeric-fraction{syntax:"*";inherits:false}@property --tw-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-shadow-color{syntax:"*";inherits:false}@property --tw-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-inset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-shadow-color{syntax:"*";inherits:false}@property --tw-inset-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-ring-color{syntax:"*";inherits:false}@property --tw-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-ring-color{syntax:"*";inherits:false}@property --tw-inset-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-ring-inset{syntax:"*";inherits:false}@property --tw-ring-offset-width{syntax:"<length>";inherits:false;initial-value:0}@property --tw-ring-offset-color{syntax:"*";inherits:false;initial-value:#fff}@property --tw-ring-offset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-outline-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-blur{syntax:"*";inherits:false}@property --tw-brightness{syntax:"*";inherits:false}@property --tw-contrast{syntax:"*";inherits:false}@property --tw-grayscale{syntax:"*";inherits:false}@property --tw-hue-rotate{syntax:"*";inherits:false}@property --tw-invert{syntax:"*";inherits:false}@property --tw-opacity{syntax:"*";inherits:false}@property --tw-saturate{syntax:"*";inherits:false}@property --tw-sepia{syntax:"*";inherits:false}@property --tw-drop-shadow{syntax:"*";inherits:false}@property --tw-drop-shadow-color{syntax:"*";inherits:false}@property --tw-drop-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-drop-shadow-size{syntax:"*";inherits:false}@property --tw-backdrop-blur{syntax:"*";inherits:false}@property --tw-backdrop-brightness{syntax:"*";inherits:false}@property --tw-backdrop-contrast{syntax:"*";inherits:false}@property --tw-backdrop-grayscale{syntax:"*";inherits:false}@property --tw-backdrop-hue-rotate{syntax:"*";inherits:false}@property --tw-backdrop-invert{syntax:"*";inherits:false}@property --tw-backdrop-opacity{syntax:"*";inherits:false}@property --tw-backdrop-saturate{syntax:"*";inherits:false}@property --tw-backdrop-sepia{syntax:"*";inherits:false}@property --tw-scale-x{syntax:"*";inherits:false;initial-value:1}@property --tw-scale-y{syntax:"*";inherits:false;initial-value:1}@property --tw-scale-z{syntax:"*";inherits:false;initial-value:1}@keyframes pulse{50%{opacity:.5}}`;
+@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-translate-x:0;--tw-translate-y:0;--tw-translate-z:0;--tw-rotate-x:initial;--tw-rotate-y:initial;--tw-rotate-z:initial;--tw-skew-x:initial;--tw-skew-y:initial;--tw-border-style:solid;--tw-leading:initial;--tw-font-weight:initial;--tw-tracking:initial;--tw-ordinal:initial;--tw-slashed-zero:initial;--tw-numeric-figure:initial;--tw-numeric-spacing:initial;--tw-numeric-fraction:initial;--tw-shadow:0 0 #0000;--tw-shadow-color:initial;--tw-shadow-alpha:100%;--tw-inset-shadow:0 0 #0000;--tw-inset-shadow-color:initial;--tw-inset-shadow-alpha:100%;--tw-ring-color:initial;--tw-ring-shadow:0 0 #0000;--tw-inset-ring-color:initial;--tw-inset-ring-shadow:0 0 #0000;--tw-ring-inset:initial;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-offset-shadow:0 0 #0000;--tw-outline-style:solid;--tw-blur:initial;--tw-brightness:initial;--tw-contrast:initial;--tw-grayscale:initial;--tw-hue-rotate:initial;--tw-invert:initial;--tw-opacity:initial;--tw-saturate:initial;--tw-sepia:initial;--tw-drop-shadow:initial;--tw-drop-shadow-color:initial;--tw-drop-shadow-alpha:100%;--tw-drop-shadow-size:initial;--tw-backdrop-blur:initial;--tw-backdrop-brightness:initial;--tw-backdrop-contrast:initial;--tw-backdrop-grayscale:initial;--tw-backdrop-hue-rotate:initial;--tw-backdrop-invert:initial;--tw-backdrop-opacity:initial;--tw-backdrop-saturate:initial;--tw-backdrop-sepia:initial;--tw-scale-x:1;--tw-scale-y:1;--tw-scale-z:1}}}@layer theme{:root,:host{--font-sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";--font-mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;--color-white:#fff;--spacing:.25rem;--font-weight-medium:500;--font-weight-semibold:600;--tracking-tight:-.025em;--leading-tight:1.25;--radius-lg:.5rem;--radius-xl:.75rem;--animate-pulse:pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;--default-transition-duration:.15s;--default-transition-timing-function:cubic-bezier(.4, 0, .2, 1);--default-font-family:var(--font-sans);--default-mono-font-family:var(--font-mono);--color-card:#1d2426;--color-card2:#262f31;--color-line:#333e41;--color-ink:#edf1f1;--color-ink2:#a9b6b9;--color-muted:#7d8b8e;--color-accent:#74b98a;--color-accentbg:#17281c;--color-accentline:#2b4a34;--color-accenttx:#cfe6d5;--color-amber:#e8a33d;--color-amberbg:#3a2b12;--color-amberline:#4e3a18;--color-ambertx:#ebd9bc;--color-blue:#5aafd6;--color-bluebg:#152b36;--color-blueline:#2c5a70;--color-blueink:#9bd2ea;--color-green:#63c295;--color-red:#ec8377}}@layer base{*,:after,:before,::backdrop{box-sizing:border-box;border:0 solid;margin:0;padding:0}::file-selector-button{box-sizing:border-box;border:0 solid;margin:0;padding:0}html,:host{-webkit-text-size-adjust:100%;tab-size:4;line-height:1.5;font-family:var(--default-font-family,-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");font-feature-settings:var(--default-font-feature-settings,normal);font-variation-settings:var(--default-font-variation-settings,normal);-webkit-tap-highlight-color:transparent}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,samp,pre{font-family:var(--default-mono-font-family,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);font-feature-settings:var(--default-mono-font-feature-settings,normal);font-variation-settings:var(--default-mono-font-variation-settings,normal);font-size:1em}small{font-size:80%}sub,sup{vertical-align:baseline;font-size:75%;line-height:0;position:relative}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}:-moz-focusring:where(:not(iframe)){outline:auto}progress{vertical-align:baseline}summary{display:list-item}ol,ul,menu{list-style:none}img,svg,video,canvas,audio,iframe,embed,object{vertical-align:middle;display:block}img,video{max-width:100%;height:auto}button,input,select,optgroup,textarea{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}::file-selector-button{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}:where(select:is([multiple],[size])) optgroup{font-weight:bolder}:where(select:is([multiple],[size])) optgroup option{padding-inline-start:20px}::file-selector-button{margin-inline-end:4px}::placeholder{opacity:1}@supports (not ((-webkit-appearance:-apple-pay-button))) or (contain-intrinsic-size:1px){::placeholder{color:currentColor}@supports (color:color-mix(in lab, red, red)){::placeholder{color:color-mix(in oklab, currentcolor 50%, transparent)}}}textarea{resize:vertical}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-date-and-time-value{min-height:1lh;text-align:inherit}::-webkit-datetime-edit{display:inline-flex}::-webkit-datetime-edit-fields-wrapper{padding:0}::-webkit-datetime-edit{padding-block:0}::-webkit-datetime-edit-year-field{padding-block:0}::-webkit-datetime-edit-month-field{padding-block:0}::-webkit-datetime-edit-day-field{padding-block:0}::-webkit-datetime-edit-hour-field{padding-block:0}::-webkit-datetime-edit-minute-field{padding-block:0}::-webkit-datetime-edit-second-field{padding-block:0}::-webkit-datetime-edit-millisecond-field{padding-block:0}::-webkit-datetime-edit-meridiem-field{padding-block:0}::-webkit-calendar-picker-indicator{line-height:1}:-moz-ui-invalid{box-shadow:none}button,input:where([type=button],[type=reset],[type=submit]){appearance:button}::file-selector-button{appearance:button}::-webkit-inner-spin-button{height:auto}::-webkit-outer-spin-button{height:auto}[hidden]:where(:not([hidden=until-found])){display:none!important}}@layer components;@layer utilities{.\\@container{container-type:inline-size}.pointer-events-none{pointer-events:none}.collapse{visibility:collapse}.invisible{visibility:hidden}.visible{visibility:visible}.absolute{position:absolute}.fixed{position:fixed}.relative{position:relative}.static{position:static}.top-0{top:0}.top-0\\.5{top:calc(var(--spacing) * .5)}.top-1{top:var(--spacing)}.top-1\\/2{top:50%}.top-2{top:calc(var(--spacing) * 2)}.top-\\[calc\\(100\\%\\+4px\\)\\]{top:calc(100% + 4px)}.right-0{right:0}.right-1{right:var(--spacing)}.right-2{right:calc(var(--spacing) * 2)}.bottom-0{bottom:0}.bottom-1{bottom:var(--spacing)}.bottom-2{bottom:calc(var(--spacing) * 2)}.left-0{left:0}.left-0\\.5{left:calc(var(--spacing) * .5)}.left-1{left:var(--spacing)}.left-1\\/2{left:50%}.left-2{left:calc(var(--spacing) * 2)}.left-\\[18px\\]{left:18px}.z-10{z-index:10}.col-start-2{grid-column-start:2}.row-span-2{grid-row:span 2/span 2}.container{width:100%}@media (min-width:40rem){.container{max-width:40rem}}@media (min-width:48rem){.container{max-width:48rem}}@media (min-width:64rem){.container{max-width:64rem}}@media (min-width:80rem){.container{max-width:80rem}}@media (min-width:96rem){.container{max-width:96rem}}.mx-0{margin-inline:0}.mx-auto{margin-inline:auto}.mt-0{margin-top:0}.mt-0\\.5{margin-top:calc(var(--spacing) * .5)}.mt-1{margin-top:var(--spacing)}.mt-1\\.5{margin-top:calc(var(--spacing) * 1.5)}.mt-2{margin-top:calc(var(--spacing) * 2)}.mt-2\\.5{margin-top:calc(var(--spacing) * 2.5)}.mt-3{margin-top:calc(var(--spacing) * 3)}.mb-1{margin-bottom:var(--spacing)}.mb-1\\.5{margin-bottom:calc(var(--spacing) * 1.5)}.mb-2{margin-bottom:calc(var(--spacing) * 2)}.mb-2\\.5{margin-bottom:calc(var(--spacing) * 2.5)}.mb-3{margin-bottom:calc(var(--spacing) * 3)}.ml-0{margin-left:0}.ml-0\\.5{margin-left:calc(var(--spacing) * .5)}.ml-2{margin-left:calc(var(--spacing) * 2)}.ml-\\[7px\\]{margin-left:7px}.ml-\\[18px\\]{margin-left:18px}.ml-auto{margin-left:auto}.block{display:block}.contents{display:contents}.flex{display:flex}.grid{display:grid}.hidden{display:none}.inline{display:inline}.inline-flex{display:inline-flex}.table{display:table}.aspect-square{aspect-ratio:1}.h-1{height:var(--spacing)}.h-1\\.5{height:calc(var(--spacing) * 1.5)}.h-2{height:calc(var(--spacing) * 2)}.h-2\\.5{height:calc(var(--spacing) * 2.5)}.h-3{height:calc(var(--spacing) * 3)}.h-3\\.5{height:calc(var(--spacing) * 3.5)}.h-4{height:calc(var(--spacing) * 4)}.h-5{height:calc(var(--spacing) * 5)}.h-6{height:calc(var(--spacing) * 6)}.h-7{height:calc(var(--spacing) * 7)}.h-8{height:calc(var(--spacing) * 8)}.h-9{height:calc(var(--spacing) * 9)}.h-10{height:calc(var(--spacing) * 10)}.h-11{height:calc(var(--spacing) * 11)}.h-12{height:calc(var(--spacing) * 12)}.h-14{height:calc(var(--spacing) * 14)}.h-20{height:calc(var(--spacing) * 20)}.h-\\[5px\\]{height:5px}.h-\\[13px\\]{height:13px}.h-\\[15px\\]{height:15px}.h-\\[17px\\]{height:17px}.h-\\[18px\\]{height:18px}.h-\\[19px\\]{height:19px}.h-\\[20px\\]{height:20px}.h-\\[22px\\]{height:22px}.h-\\[24px\\]{height:24px}.h-\\[26px\\]{height:26px}.h-\\[30px\\]{height:30px}.h-\\[34px\\]{height:34px}.h-\\[42px\\]{height:42px}.h-\\[var\\(--fib-hit\\)\\]{height:var(--fib-hit)}.h-full{height:100%}.max-h-\\[220px\\]{max-height:220px}.min-h-11{min-height:calc(var(--spacing) * 11)}.min-h-\\[var\\(--fib-hit\\)\\]{min-height:var(--fib-hit)}.w-1{width:var(--spacing)}.w-1\\.5{width:calc(var(--spacing) * 1.5)}.w-3{width:calc(var(--spacing) * 3)}.w-3\\.5{width:calc(var(--spacing) * 3.5)}.w-4{width:calc(var(--spacing) * 4)}.w-5{width:calc(var(--spacing) * 5)}.w-6{width:calc(var(--spacing) * 6)}.w-7{width:calc(var(--spacing) * 7)}.w-8{width:calc(var(--spacing) * 8)}.w-9{width:calc(var(--spacing) * 9)}.w-10{width:calc(var(--spacing) * 10)}.w-11{width:calc(var(--spacing) * 11)}.w-12{width:calc(var(--spacing) * 12)}.w-14{width:calc(var(--spacing) * 14)}.w-20{width:calc(var(--spacing) * 20)}.w-\\[5px\\]{width:5px}.w-\\[13px\\]{width:13px}.w-\\[15px\\]{width:15px}.w-\\[17px\\]{width:17px}.w-\\[18px\\]{width:18px}.w-\\[19px\\]{width:19px}.w-\\[20px\\]{width:20px}.w-\\[22px\\]{width:22px}.w-\\[24px\\]{width:24px}.w-\\[26px\\]{width:26px}.w-\\[30px\\]{width:30px}.w-\\[34px\\]{width:34px}.w-\\[42px\\]{width:42px}.w-\\[var\\(--fib-hit\\)\\]{width:var(--fib-hit)}.w-full{width:100%}.w-px{width:1px}.max-w-\\[10ch\\]{max-width:10ch}.max-w-\\[96px\\]{max-width:96px}.max-w-\\[240px\\]{max-width:240px}.max-w-\\[260px\\]{max-width:260px}.min-w-0{min-width:0}.min-w-\\[52px\\]{min-width:52px}.min-w-\\[68px\\]{min-width:68px}.flex-1{flex:1}.flex-none{flex:none}.shrink{flex-shrink:1}.-translate-x-1{--tw-translate-x:calc(var(--spacing) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-x-1\\/2{--tw-translate-x:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1{--tw-translate-y:calc(var(--spacing) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1\\/2{--tw-translate-y:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.rotate-180{rotate:180deg}.transform{transform:var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,)}.animate-pulse{animation:var(--animate-pulse)}.cursor-pointer{cursor:pointer}.touch-none{touch-action:none}.resize{resize:both}.auto-cols-fr{grid-auto-columns:minmax(0,1fr)}.grid-flow-col{grid-auto-flow:column}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.grid-cols-\\[28px_1fr\\]{grid-template-columns:28px 1fr}.grid-cols-\\[28px_1fr_auto\\]{grid-template-columns:28px 1fr auto}.grid-cols-\\[34px_1fr\\]{grid-template-columns:34px 1fr}.grid-cols-\\[repeat\\(auto-fit\\,minmax\\(84px\\,1fr\\)\\)\\]{grid-template-columns:repeat(auto-fit,minmax(84px,1fr))}.grid-rows-\\[auto_auto\\]{grid-template-rows:auto auto}.flex-col{flex-direction:column}.flex-nowrap{flex-wrap:nowrap}.flex-wrap{flex-wrap:wrap}.items-baseline{align-items:baseline}.items-center{align-items:center}.justify-between{justify-content:space-between}.justify-center{justify-content:center}.gap-1{gap:var(--spacing)}.gap-1\\.5{gap:calc(var(--spacing) * 1.5)}.gap-2{gap:calc(var(--spacing) * 2)}.gap-2\\.5{gap:calc(var(--spacing) * 2.5)}.gap-3{gap:calc(var(--spacing) * 3)}.gap-4{gap:calc(var(--spacing) * 4)}.gap-\\[3px\\]{gap:3px}.gap-\\[5px\\]{gap:5px}.gap-\\[7px\\]{gap:7px}.gap-x-1{column-gap:var(--spacing)}.gap-x-1\\.5{column-gap:calc(var(--spacing) * 1.5)}.gap-x-2{column-gap:calc(var(--spacing) * 2)}.gap-x-2\\.5{column-gap:calc(var(--spacing) * 2.5)}.gap-x-3{column-gap:calc(var(--spacing) * 3)}.gap-x-4{column-gap:calc(var(--spacing) * 4)}.gap-x-\\[11px\\]{column-gap:11px}.gap-y-0{row-gap:0}.gap-y-0\\.5{row-gap:calc(var(--spacing) * .5)}.gap-y-2{row-gap:calc(var(--spacing) * 2)}.gap-y-\\[10px\\]{row-gap:10px}.gap-y-\\[18px\\]{row-gap:18px}.truncate{text-overflow:ellipsis;white-space:nowrap;overflow:hidden}.overflow-auto{overflow:auto}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.rounded{border-radius:.25rem}.rounded-\\[3px\\]{border-radius:3px}.rounded-\\[6px\\]{border-radius:6px}.rounded-\\[7px\\]{border-radius:7px}.rounded-\\[9px\\]{border-radius:9px}.rounded-\\[10px\\]{border-radius:10px}.rounded-\\[11px\\]{border-radius:11px}.rounded-\\[14px\\]{border-radius:14px}.rounded-\\[15px\\]{border-radius:15px}.rounded-full{border-radius:3.40282e38px}.rounded-lg{border-radius:var(--radius-lg)}.rounded-xl{border-radius:var(--radius-xl)}.border{border-style:var(--tw-border-style);border-width:1px}.border-0{border-style:var(--tw-border-style);border-width:0}.border-l{border-left-style:var(--tw-border-style);border-left-width:1px}.border-\\[\\#2E5238\\]{border-color:#2e5238}.border-accentline{border-color:var(--color-accentline)}.border-amberline{border-color:var(--color-amberline)}.border-blueline{border-color:var(--color-blueline)}.border-card2{border-color:var(--color-card2)}.border-line{border-color:var(--color-line)}.bg-\\[\\#2C3639\\]{background-color:#2c3639}.bg-\\[rgba\\(116\\,185\\,138\\,0\\.10\\)\\]{background-color:#74b98a1a}.bg-accent{background-color:var(--color-accent)}.bg-accentbg{background-color:var(--color-accentbg)}.bg-amberbg{background-color:var(--color-amberbg)}.bg-bluebg{background-color:var(--color-bluebg)}.bg-card{background-color:var(--color-card)}.bg-card2{background-color:var(--color-card2)}.bg-line{background-color:var(--color-line)}.bg-transparent{background-color:#0000}.bg-white{background-color:var(--color-white)}.bg-\\[linear-gradient\\(145deg\\,\\#1E3427\\,\\#132016\\)\\]{background-image:linear-gradient(145deg,#1e3427,#132016)}.bg-cover{background-size:cover}.bg-center{background-position:50%}.p-1{padding:var(--spacing)}.p-3{padding:calc(var(--spacing) * 3)}.p-3\\.5{padding:calc(var(--spacing) * 3.5)}.p-\\[13px\\]{padding:13px}.px-0{padding-inline:0}.px-0\\.5{padding-inline:calc(var(--spacing) * .5)}.px-1{padding-inline:var(--spacing)}.px-2{padding-inline:calc(var(--spacing) * 2)}.px-2\\.5{padding-inline:calc(var(--spacing) * 2.5)}.px-3{padding-inline:calc(var(--spacing) * 3)}.px-3\\.5{padding-inline:calc(var(--spacing) * 3.5)}.px-\\[13px\\]{padding-inline:13px}.py-1{padding-block:var(--spacing)}.py-1\\.5{padding-block:calc(var(--spacing) * 1.5)}.py-2{padding-block:calc(var(--spacing) * 2)}.py-3{padding-block:calc(var(--spacing) * 3)}.py-\\[5px\\]{padding-block:5px}.py-\\[7px\\]{padding-block:7px}.py-\\[9px\\]{padding-block:9px}.pt-0{padding-top:0}.pt-0\\.5{padding-top:calc(var(--spacing) * .5)}.pt-\\[5px\\]{padding-top:5px}.pt-\\[7px\\]{padding-top:7px}.pt-\\[13px\\]{padding-top:13px}.pr-\\[11px\\]{padding-right:11px}.pb-1{padding-bottom:var(--spacing)}.pb-1\\.5{padding-bottom:calc(var(--spacing) * 1.5)}.pb-3{padding-bottom:calc(var(--spacing) * 3)}.pb-\\[3px\\]{padding-bottom:3px}.pl-3{padding-left:calc(var(--spacing) * 3)}.pl-\\[7px\\]{padding-left:7px}.text-center{text-align:center}.text-left{text-align:left}.text-right{text-align:right}.font-mono{font-family:var(--font-mono)}.text-\\[9\\.5px\\]{font-size:9.5px}.text-\\[10\\.5px\\]{font-size:10.5px}.text-\\[10px\\]{font-size:10px}.text-\\[11\\.5px\\]{font-size:11.5px}.text-\\[11px\\]{font-size:11px}.text-\\[12\\.5px\\]{font-size:12.5px}.text-\\[12px\\]{font-size:12px}.text-\\[13px\\]{font-size:13px}.text-\\[14px\\]{font-size:14px}.text-\\[15px\\]{font-size:15px}.text-\\[16px\\]{font-size:16px}.text-\\[17px\\]{font-size:17px}.text-\\[20px\\]{font-size:20px}.text-\\[22px\\]{font-size:22px}.text-\\[24px\\]{font-size:24px}.text-\\[26px\\]{font-size:26px}.text-\\[30px\\]{font-size:30px}.leading-\\[1\\.1\\]{--tw-leading:1.1;line-height:1.1}.leading-\\[1\\.15\\]{--tw-leading:1.15;line-height:1.15}.leading-\\[1\\.25\\]{--tw-leading:1.25;line-height:1.25}.leading-\\[1\\.42\\]{--tw-leading:1.42;line-height:1.42}.leading-none{--tw-leading:1;line-height:1}.leading-tight{--tw-leading:var(--leading-tight);line-height:var(--leading-tight)}.font-medium{--tw-font-weight:var(--font-weight-medium);font-weight:var(--font-weight-medium)}.font-semibold{--tw-font-weight:var(--font-weight-semibold);font-weight:var(--font-weight-semibold)}.tracking-\\[-0\\.015em\\]{--tw-tracking:-.015em;letter-spacing:-.015em}.tracking-\\[0\\.01em\\]{--tw-tracking:.01em;letter-spacing:.01em}.tracking-\\[0\\.06em\\]{--tw-tracking:.06em;letter-spacing:.06em}.tracking-\\[0\\.08em\\]{--tw-tracking:.08em;letter-spacing:.08em}.tracking-\\[0\\.11em\\]{--tw-tracking:.11em;letter-spacing:.11em}.tracking-tight{--tw-tracking:var(--tracking-tight);letter-spacing:var(--tracking-tight)}.text-ellipsis{text-overflow:ellipsis}.whitespace-nowrap{white-space:nowrap}.text-accent{color:var(--color-accent)}.text-accenttx{color:var(--color-accenttx)}.text-amber{color:var(--color-amber)}.text-ambertx{color:var(--color-ambertx)}.text-blue{color:var(--color-blue)}.text-blueink{color:var(--color-blueink)}.text-green{color:var(--color-green)}.text-ink{color:var(--color-ink)}.text-ink2{color:var(--color-ink2)}.text-muted{color:var(--color-muted)}.text-red{color:var(--color-red)}.capitalize{text-transform:capitalize}.lowercase{text-transform:lowercase}.uppercase{text-transform:uppercase}.tabular-nums{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,)}.opacity-40{opacity:.4}.opacity-50{opacity:.5}.opacity-\\[\\.66\\]{opacity:.66}.shadow{--tw-shadow:0 1px 3px 0 var(--tw-shadow-color,#0000001a), 0 1px 2px -1px var(--tw-shadow-color,#0000001a);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_3px_rgba\\(0\\,0\\,0\\,\\.4\\)\\]{--tw-shadow:0 1px 3px var(--tw-shadow-color,#0006);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_3px_rgba\\(0\\,0\\,0\\,\\.35\\)\\]{--tw-shadow:0 1px 3px var(--tw-shadow-color,#00000059);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_10px_30px_rgba\\(0\\,0\\,0\\,\\.5\\)\\]{--tw-shadow:0 10px 30px var(--tw-shadow-color,#00000080);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.ring{--tw-ring-shadow:var(--tw-ring-inset,) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color,currentcolor);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.outline{outline-style:var(--tw-outline-style);outline-width:1px}.invert{--tw-invert:invert(100%);filter:var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)}.filter{filter:var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)}.backdrop-filter{-webkit-backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,)}.transition{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to,opacity,box-shadow,transform,translate,scale,rotate,filter,-webkit-backdrop-filter,backdrop-filter,display,content-visibility,overlay,pointer-events;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-all{transition-property:all;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-colors{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-transform{transition-property:transform,translate,scale,rotate;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.\\[--mdc-icon-size\\:13px\\]{--mdc-icon-size:13px}.\\[--mdc-icon-size\\:14px\\]{--mdc-icon-size:14px}.\\[--mdc-icon-size\\:15px\\]{--mdc-icon-size:15px}.\\[--mdc-icon-size\\:16px\\]{--mdc-icon-size:16px}.\\[--mdc-icon-size\\:17px\\]{--mdc-icon-size:17px}.\\[--mdc-icon-size\\:18px\\]{--mdc-icon-size:18px}.\\[--mdc-icon-size\\:19px\\]{--mdc-icon-size:19px}.\\[--mdc-icon-size\\:20px\\]{--mdc-icon-size:20px}.\\[--mdc-icon-size\\:22px\\]{--mdc-icon-size:22px}.\\[--mdc-icon-size\\:24px\\]{--mdc-icon-size:24px}.\\[--mdc-icon-size\\:28px\\]{--mdc-icon-size:28px}.\\[--mdc-icon-size\\:34px\\]{--mdc-icon-size:34px}.group-data-\\[pressed\\=true\\]\\:bg-\\[rgba\\(255\\,255\\,255\\,0\\.06\\)\\]:is(:where(.group)[data-pressed=true] *){background-color:#ffffff0f}@media (hover:hover){.hover\\:bg-card:hover{background-color:var(--color-card)}.hover\\:bg-card2:hover{background-color:var(--color-card2)}}.focus-visible\\:outline:focus-visible{outline-style:var(--tw-outline-style);outline-width:1px}.focus-visible\\:outline-2:focus-visible{outline-style:var(--tw-outline-style);outline-width:2px}.focus-visible\\:\\[outline-offset\\:-2px\\]:focus-visible{outline-offset:-2px}.focus-visible\\:outline-accent:focus-visible{outline-color:var(--color-accent)}.active\\:translate-y-\\[0\\.5px\\]:active{--tw-translate-y:.5px;translate:var(--tw-translate-x) var(--tw-translate-y)}.active\\:scale-90:active{--tw-scale-x:90%;--tw-scale-y:90%;--tw-scale-z:90%;scale:var(--tw-scale-x) var(--tw-scale-y)}.active\\:scale-\\[\\.96\\]:active{scale:.96}.active\\:bg-card2:active{background-color:var(--color-card2)}}@property --tw-translate-x{syntax:"*";inherits:false;initial-value:0}@property --tw-translate-y{syntax:"*";inherits:false;initial-value:0}@property --tw-translate-z{syntax:"*";inherits:false;initial-value:0}@property --tw-rotate-x{syntax:"*";inherits:false}@property --tw-rotate-y{syntax:"*";inherits:false}@property --tw-rotate-z{syntax:"*";inherits:false}@property --tw-skew-x{syntax:"*";inherits:false}@property --tw-skew-y{syntax:"*";inherits:false}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-leading{syntax:"*";inherits:false}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-tracking{syntax:"*";inherits:false}@property --tw-ordinal{syntax:"*";inherits:false}@property --tw-slashed-zero{syntax:"*";inherits:false}@property --tw-numeric-figure{syntax:"*";inherits:false}@property --tw-numeric-spacing{syntax:"*";inherits:false}@property --tw-numeric-fraction{syntax:"*";inherits:false}@property --tw-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-shadow-color{syntax:"*";inherits:false}@property --tw-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-inset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-shadow-color{syntax:"*";inherits:false}@property --tw-inset-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-ring-color{syntax:"*";inherits:false}@property --tw-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-ring-color{syntax:"*";inherits:false}@property --tw-inset-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-ring-inset{syntax:"*";inherits:false}@property --tw-ring-offset-width{syntax:"<length>";inherits:false;initial-value:0}@property --tw-ring-offset-color{syntax:"*";inherits:false;initial-value:#fff}@property --tw-ring-offset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-outline-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-blur{syntax:"*";inherits:false}@property --tw-brightness{syntax:"*";inherits:false}@property --tw-contrast{syntax:"*";inherits:false}@property --tw-grayscale{syntax:"*";inherits:false}@property --tw-hue-rotate{syntax:"*";inherits:false}@property --tw-invert{syntax:"*";inherits:false}@property --tw-opacity{syntax:"*";inherits:false}@property --tw-saturate{syntax:"*";inherits:false}@property --tw-sepia{syntax:"*";inherits:false}@property --tw-drop-shadow{syntax:"*";inherits:false}@property --tw-drop-shadow-color{syntax:"*";inherits:false}@property --tw-drop-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-drop-shadow-size{syntax:"*";inherits:false}@property --tw-backdrop-blur{syntax:"*";inherits:false}@property --tw-backdrop-brightness{syntax:"*";inherits:false}@property --tw-backdrop-contrast{syntax:"*";inherits:false}@property --tw-backdrop-grayscale{syntax:"*";inherits:false}@property --tw-backdrop-hue-rotate{syntax:"*";inherits:false}@property --tw-backdrop-invert{syntax:"*";inherits:false}@property --tw-backdrop-opacity{syntax:"*";inherits:false}@property --tw-backdrop-saturate{syntax:"*";inherits:false}@property --tw-backdrop-sepia{syntax:"*";inherits:false}@property --tw-scale-x{syntax:"*";inherits:false;initial-value:1}@property --tw-scale-y{syntax:"*";inherits:false;initial-value:1}@property --tw-scale-z{syntax:"*";inherits:false;initial-value:1}@keyframes pulse{50%{opacity:.5}}`;
 
   // src/shared/tw.js
   var supportsAdopt = "adoptedStyleSheets" in Document.prototype && "replaceSync" in CSSStyleSheet.prototype;
@@ -5754,10 +5758,48 @@ ${decls}
   var SPEAKER_ICON = "solar:smart-speaker-bold-duotone";
   var OFF_STATES = ["off", "standby", "unavailable", "unknown"];
   var GONE_STATES = ["unavailable", "unknown", "off"];
+  var MF_PAUSE = 1;
   var MF_VOLUME_MUTE = 8;
+  var MF_PREV = 16;
+  var MF_NEXT = 32;
   var MF_VOLUME_STEP = 1024;
+  var MF_SELECT_SOURCE = 2048;
+  var MF_PLAY = 16384;
   var DPAD_MODES = ["swipe", "buttons", "both", "grid"];
-  var BTN = "h-[var(--fib-hit)] w-[var(--fib-hit)]";
+  var SEG = {
+    up: {
+      d: "M -61.57 -78.80 A 100 100 0 0 1 61.57 -78.80 L 24.63 -31.52 A 40 40 0 0 0 -24.63 -31.52 Z",
+      ix: 0,
+      iy: -72
+    },
+    right: {
+      d: "M 78.80 -61.57 A 100 100 0 0 1 78.80 61.57 L 31.52 24.63 A 40 40 0 0 0 31.52 -24.63 Z",
+      ix: 72,
+      iy: 0
+    },
+    down: {
+      d: "M 61.57 78.80 A 100 100 0 0 1 -61.57 78.80 L -24.63 31.52 A 40 40 0 0 0 24.63 31.52 Z",
+      ix: 0,
+      iy: 72
+    },
+    left: {
+      d: "M -78.80 61.57 A 100 100 0 0 1 -78.80 -61.57 L -31.52 -24.63 A 40 40 0 0 0 -31.52 24.63 Z",
+      ix: -72,
+      iy: 0
+    }
+  };
+  var CHEV = {
+    up: "M -7 3.5 L 0 -3.5 L 7 3.5",
+    down: "M -7 -3.5 L 0 3.5 L 7 -3.5",
+    left: "M 3.5 -7 L -3.5 0 L 3.5 7",
+    right: "M -3.5 -7 L 3.5 0 L -3.5 7"
+  };
+  var ARROW = {
+    up: "solar:alt-arrow-up-bold-duotone",
+    down: "solar:alt-arrow-down-bold-duotone",
+    left: "solar:alt-arrow-left-bold-duotone",
+    right: "solar:alt-arrow-right-bold-duotone"
+  };
 
   class FibbersRemote extends i4 {
     static properties = {
@@ -5775,23 +5817,348 @@ ${decls}
       :host {
         display: block;
       }
-      /* container queries respond to the CARD's own width, not the viewport — the
-         whole point (min(72vw,…) used the viewport and overflowed a narrow cell). */
+      /* Container queries respond to the CARD's own width, not the viewport, and the
+         body is capped — a remote is a handheld object, not a 1000px slab. */
       .card {
         container-type: inline-size;
       }
-      .body {
+      .layout {
         display: grid;
-        gap: 12px;
+        gap: 13px;
       }
-      @container (min-width: 380px) {
-        .body {
-          grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+      .body {
+        max-width: 320px;
+        width: 100%;
+        margin-inline: auto;
+        display: grid;
+        gap: 11px;
+        min-width: 0;
+      }
+      /* Two columns only when there's a panel (sources) to fill the second track;
+         a speaker with no sources stays one centred column, no dead space. */
+      @container (min-width: 600px) {
+        .layout.two {
+          grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
           align-items: start;
         }
-        .body > .dpad {
-          grid-row: span 2;
-        }
+      }
+
+      /* device switcher rail */
+      .rail {
+        display: flex;
+        gap: 5px;
+        padding: 4px;
+        border-radius: 14px;
+        background: var(--color-card2);
+        border: 1px solid var(--color-line);
+      }
+      .rail button {
+        flex: 1;
+        min-width: 0;
+        min-height: 36px;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        background: transparent;
+        color: var(--color-muted);
+        font: inherit;
+        font-size: 11.5px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        padding: 0 8px;
+      }
+      .rail button .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--color-accent);
+        flex: none;
+        opacity: 0;
+      }
+      .rail button.live .dot {
+        opacity: 1;
+      }
+      .rail button[aria-selected="true"] {
+        background: var(--color-accentbg);
+        border-color: var(--color-accentline);
+        color: var(--color-accenttx);
+      }
+      .rail .nm {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* header */
+      .head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .badge {
+        width: 36px;
+        height: 36px;
+        flex: none;
+        border-radius: 11px;
+        display: grid;
+        place-items: center;
+        background: var(--color-accentbg);
+        color: var(--color-accent);
+        border: 1px solid var(--color-accentline);
+      }
+      .badge.off {
+        background: var(--color-card2);
+        color: var(--color-muted);
+        border-color: var(--color-line);
+      }
+      .who {
+        min-width: 0;
+        flex: 1;
+      }
+      .who b {
+        display: block;
+        font-size: 12.5px;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .who span {
+        display: block;
+        font-size: 10.5px;
+        color: var(--color-muted);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .power {
+        width: var(--fib-hit);
+        height: var(--fib-hit);
+        flex: none;
+        border-radius: 12px;
+        cursor: pointer;
+        border: 1px solid var(--color-line);
+        background: var(--color-card2);
+        color: var(--color-muted);
+        display: grid;
+        place-items: center;
+      }
+      .power.on {
+        border-color: #3f3335;
+        background: #252021;
+        color: #c98679;
+      }
+
+      /* the wheel: one SVG donut, four true sectors + a hub */
+      .wheel {
+        width: 100%;
+        max-width: 238px;
+        margin-inline: auto;
+        display: block;
+      }
+      .wheel .seg {
+        fill: var(--color-card2);
+        stroke: var(--color-line);
+        stroke-width: 1.5;
+        cursor: pointer;
+        transition: fill 0.1s;
+      }
+      .wheel .seg:hover {
+        fill: #2e393b;
+      }
+      .wheel .seg:active,
+      .wheel .seg.flash {
+        fill: var(--color-accentbg);
+        stroke: var(--color-accentline);
+      }
+      .wheel .seg:focus-visible,
+      .wheel .hub:focus-visible {
+        outline: none;
+        stroke: var(--color-accent);
+        stroke-width: 2.5;
+      }
+      .wheel .glyph {
+        fill: none;
+        stroke: var(--color-ink2);
+        stroke-width: 5.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        pointer-events: none;
+      }
+      .wheel .hub {
+        fill: var(--color-accentbg);
+        stroke: var(--color-accentline);
+        stroke-width: 1.5;
+        cursor: pointer;
+      }
+      .wheel .hub:active {
+        fill: #1e3627;
+      }
+      .wheel .hubtx {
+        fill: var(--color-accenttx);
+        font:
+          600 15px/1 ui-sans-serif,
+          system-ui,
+          sans-serif;
+        letter-spacing: 0.06em;
+        text-anchor: middle;
+        dominant-baseline: central;
+        pointer-events: none;
+      }
+
+      /* 3×3 grid alternative (dpad: grid) */
+      .pad {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 7px;
+        width: 100%;
+        max-width: 238px;
+        margin-inline: auto;
+      }
+      .pad button {
+        aspect-ratio: 1;
+        min-height: var(--fib-hit);
+        border: 1px solid var(--color-line);
+        border-radius: 13px;
+        background: var(--color-card2);
+        color: var(--color-ink2);
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+      }
+      .pad button:active {
+        background: var(--color-accentbg);
+        border-color: var(--color-accentline);
+        color: var(--color-accent);
+      }
+      .pad .blank {
+        visibility: hidden;
+      }
+      .pad .ok {
+        background: var(--color-accentbg);
+        border-color: var(--color-accentline);
+        color: var(--color-accenttx);
+        font: 600 12.5px/1 inherit;
+      }
+
+      /* rows below the wheel, in use order */
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      /* transport: one segmented strip, equal cells, hairline dividers */
+      .strip {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: 1fr;
+        border: 1px solid var(--color-line);
+        border-radius: 14px;
+        overflow: hidden;
+        background: var(--color-card2);
+      }
+      .strip button {
+        border: 0;
+        border-left: 1px solid var(--color-line);
+        background: transparent;
+        color: var(--color-ink2);
+        cursor: pointer;
+        min-height: var(--fib-hit);
+        display: grid;
+        place-items: center;
+      }
+      .strip button:first-child {
+        border-left: 0;
+      }
+      .strip button:active {
+        background: var(--color-accentbg);
+        color: var(--color-accent);
+      }
+      .strip button.pp {
+        color: var(--color-accent);
+      }
+      .strip button.flash {
+        opacity: 0.4;
+      }
+
+      /* icon key (mute) */
+      .key {
+        width: var(--fib-hit);
+        height: var(--fib-hit);
+        flex: none;
+        border: 1px solid var(--color-line);
+        border-radius: 12px;
+        background: var(--color-card2);
+        color: var(--color-ink2);
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+      }
+      .key:active,
+      .key.on {
+        background: var(--color-accentbg);
+        border-color: var(--color-accentline);
+        color: var(--color-accent);
+      }
+      .pct {
+        width: 38px;
+        flex: none;
+        text-align: right;
+        font-size: 11.5px;
+        color: var(--color-muted);
+        font-variant-numeric: tabular-nums;
+      }
+      /* stepper: same row shape as the slider when the device reports no level */
+      .steps {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        border: 1px solid var(--color-line);
+        border-radius: 14px;
+        overflow: hidden;
+        background: var(--color-card2);
+      }
+      .steps button {
+        border: 0;
+        background: transparent;
+        color: var(--color-ink2);
+        cursor: pointer;
+        min-height: var(--fib-hit);
+        display: grid;
+        place-items: center;
+      }
+      .steps button:active {
+        background: var(--color-accentbg);
+        color: var(--color-accent);
+      }
+      .steps .lab {
+        font: 600 9.5px/1 inherit;
+        letter-spacing: 0.14em;
+        color: var(--color-muted);
+        padding: 0 12px;
+        border-inline: 1px solid var(--color-line);
+        align-self: stretch;
+        display: grid;
+        place-items: center;
+      }
+      .key fib-icon,
+      .strip fib-icon,
+      .steps fib-icon {
+        --mdc-icon-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+
+      /* companion panel (sources) — fills the second column on a wide card */
+      .panel {
+        display: grid;
+        gap: 11px;
+        align-content: start;
+        min-width: 0;
       }
     `
     ];
@@ -5830,13 +6197,15 @@ ${decls}
       this._platform = this._platform || new Map;
       this._tried = this._tried || new Set;
       this._warned = this._warned || new Set;
-      this._autoDone = false;
       this._resetTransient();
       this._sel = 0;
+      this._restored = false;
       if (config.remember !== false) {
-        const saved = store.get(this._persistKey(), 0);
-        if (Number.isInteger(saved) && saved >= 0 && saved < devices.length)
+        const saved = store.get(this._persistKey(), null);
+        if (Number.isInteger(saved) && saved >= 0 && saved < devices.length) {
           this._sel = saved;
+          this._restored = true;
+        }
       }
       if (!this._volHold)
         this._volHold = new SliderHold(this, { tolerance: 2 });
@@ -5848,6 +6217,7 @@ ${decls}
       this._dragVol = 0;
       this._srcOpen = false;
       this._flash = null;
+      this._sw = null;
     }
     _persistKey() {
       const ids = this._devices.map((d3) => d3.entity || d3.media_player || d3.name);
@@ -5870,14 +6240,14 @@ ${decls}
     updated(changed) {
       if (changed.has("hass") || changed.has("_sel"))
         this._resolvePlatform();
-      if (!this._autoDone && this.hass && this._config.auto_select === "playing") {
+      if (!this._autoDone && this.hass && !this._restored && this._config.auto_select === "playing") {
         this._autoDone = true;
         const i5 = this._devices.findIndex((d3) => {
           const mp = d3.media_player && this.hass.states[d3.media_player];
           return mp && mp.state === "playing";
         });
-        if (i5 >= 0 && i5 !== this._sel)
-          this._sel = i5;
+        if (i5 >= 0)
+          this._select(i5);
       }
     }
     async _resolvePlatform() {
@@ -5961,16 +6331,17 @@ ${decls}
           command: cmd
         });
       } catch (e4) {
-        this._flashFail(key, e4, cmd);
+        this._flashFail(id, key, e4, cmd);
       }
     }
-    _flashFail(key, e4, cmd) {
-      const id = this._dev().entity;
+    _flashFail(id, key, e4, cmd) {
       const warnKey = `${id}:${key}`;
       if (!this._warned.has(warnKey)) {
         this._warned.add(warnKey);
         console.warn(`[fibbers-remote] command "${cmd || key}" was rejected by ${id} ` + `(platform: ${this._platform.get(id) || "unknown"}). ${e4 && e4.message ? e4.message : e4}`);
       }
+      if (id !== this._dev().entity)
+        return;
       this._flash = key;
       clearTimeout(this._flashTimer);
       this._flashTimer = setTimeout(() => {
@@ -5986,15 +6357,19 @@ ${decls}
       const st = this._st();
       const on = st ? !OFF_STATES.includes(st.state) : null;
       const svc = on === null ? "toggle" : on ? "turn_off" : "turn_on";
-      this.hass.callService("remote", svc, { entity_id: id }).catch((e4) => this._flashFail("power", e4, `remote.${svc}`));
+      return this.hass.callService("remote", svc, { entity_id: id }).catch((e4) => this._flashFail(id, "power", e4, `remote.${svc}`));
     }
     _mpService(service, data) {
       const mp = this._mp();
-      if (mp && this.hass)
-        this.hass.callService("media_player", service, {
-          entity_id: mp.entity_id,
-          ...data
-        });
+      if (!mp || !this.hass)
+        return Promise.resolve();
+      return Promise.resolve(this.hass.callService("media_player", service, {
+        entity_id: mp.entity_id,
+        ...data
+      }));
+    }
+    _mpDo(service, data) {
+      this._mpService(service, data).catch(() => {});
     }
     _hold(fn) {
       if (this._unavail())
@@ -6031,7 +6406,7 @@ ${decls}
     }
     _setVol(pct) {
       this._volHold.hold(pct);
-      this._mpService("volume_set", { volume_level: pct / 100 });
+      this._mpService("volume_set", { volume_level: pct / 100 }).catch(() => this._volHold.clear());
     }
     _volDown(e4) {
       this._dragging = true;
@@ -6049,61 +6424,9 @@ ${decls}
       this._dragging = false;
       this._setVol(v2);
     }
-    _flashCls(key) {
-      return this._flash === key ? "opacity-40" : "";
-    }
-    _round(label, icon, onClick, size = BTN, key) {
-      return b2`<button
-      type="button"
-      aria-label=${label}
-      class="flex ${size} flex-none items-center justify-center rounded-full bg-card2
-             text-ink transition-transform active:scale-90 ${this._flashCls(key)}"
-      @click=${onClick}
-    >
-      <fib-icon
-        class="h-[20px] w-[20px] [--mdc-icon-size:20px]"
-        icon=${icon}
-      ></fib-icon>
-    </button>`;
-    }
-    _holdBtn(label, icon, fn, key) {
-      return b2`<button
-      type="button"
-      aria-label=${label}
-      class="flex ${BTN} flex-none items-center justify-center rounded-full bg-card2
-             text-ink transition-transform active:scale-90 ${this._flashCls(key)}"
-      @pointerdown=${() => this._hold(fn)}
-      @pointerup=${() => this._release()}
-      @pointercancel=${() => this._release()}
-      @pointerleave=${() => this._release()}
-      @lostpointercapture=${() => this._release()}
-      @click=${(e4) => {
-        if (e4.detail === 0)
-          fn();
-      }}
-    >
-      <fib-icon
-        class="h-[20px] w-[20px] [--mdc-icon-size:20px]"
-        icon=${icon}
-      ></fib-icon>
-    </button>`;
-    }
-    _muteBtn(muted, onClick) {
-      return b2`<button
-      type="button"
-      aria-label="Mute"
-      aria-pressed=${muted ? "true" : "false"}
-      class="fib-hit flex h-9 w-9 flex-none items-center justify-center rounded-full
-             ${muted ? "bg-accentbg text-accent" : "bg-card2 text-muted"}"
-      @click=${onClick}
-    >
-      <fib-icon
-        class="h-4 w-4 [--mdc-icon-size:16px]"
-        icon=${muted ? "solar:volume-cross-bold-duotone" : "solar:volume-small-bold-duotone"}
-      ></fib-icon>
-    </button>`;
-    }
     _dpadKey(e4) {
+      if (e4.target !== e4.currentTarget)
+        return;
       const map = {
         ArrowUp: "up",
         ArrowDown: "down",
@@ -6136,35 +6459,26 @@ ${decls}
     _switcher(hl) {
       if (this._devices.length <= 1)
         return "";
-      const many = this._devices.length > 4;
       return b2`<div
+      class="rail"
       role="tablist"
       aria-label=${t3(hl, "remote.devices")}
-      class="flex ${many ? "flex-nowrap overflow-x-auto" : "flex-wrap"} gap-x-1.5 gap-y-[10px]"
       @keydown=${this._switcherKey}
     >
       ${this._devices.map((d3, i5) => {
         const sel = i5 === this._sel;
-        const on = this._onState(d3);
         return b2`<button
           type="button"
           role="tab"
           id="fibtab-${i5}"
+          class=${this._onState(d3) ? "live" : A}
           aria-selected=${sel ? "true" : "false"}
           aria-controls="fibpanel"
           tabindex=${sel ? 0 : -1}
-          class="fib-hit inline-flex min-h-[var(--fib-hit)] flex-none items-center gap-1.5
-                 rounded-full border px-3 text-[11px] font-medium ${sel ? "border-accentline bg-accentbg text-accent" : "border-line bg-card2 text-ink2"}"
           @click=${() => this._select(i5)}
         >
-          <fib-icon
-            class="h-[15px] w-[15px] [--mdc-icon-size:15px]"
-            icon=${this._iconOf(d3)}
-          ></fib-icon>
-          <span class="max-w-[10ch] truncate">${d3.name || `#${i5 + 1}`}</span>
-          ${on ? b2`<span
-                  class="h-1.5 w-1.5 flex-none rounded-full bg-accent"
-                ></span>` : ""}
+          <span class="dot"></span>
+          <span class="nm">${d3.name || `#${i5 + 1}`}</span>
         </button>`;
       })}
     </div>`;
@@ -6189,211 +6503,264 @@ ${decls}
       tabs[next].focus();
       this._select(next);
     }
-    _dpad() {
-      const has = (k2) => !!this._cmd(k2);
-      if (!["up", "down", "left", "right", "ok"].some(has))
-        return "";
-      const mode = this._dev().dpad || (this._device() === "appletv" ? "both" : "buttons");
-      if (mode === "grid")
-        return this._dpadGrid(has);
-      return this._dpadCircle(has, mode);
-    }
-    _arrowBtn(key, icon, label, extra = "", onDown) {
-      return b2`<button
-      type="button"
-      aria-label=${label}
-      class="flex items-center justify-center rounded-full text-ink transition-transform
-             hover:bg-card active:scale-90 ${extra} ${this._flashCls(key)}"
-      @pointerdown=${onDown}
-      @click=${() => this._send(key)}
-    >
-      <fib-icon
-        class="h-[24px] w-[24px] [--mdc-icon-size:24px]"
-        icon=${icon}
-      ></fib-icon>
-    </button>`;
-    }
-    _okBtn(size, onDown) {
-      return b2`<button
-      type="button"
-      aria-label="OK"
-      class="flex ${size} items-center justify-center rounded-full bg-accentbg text-accent
-             shadow-[0_1px_3px_rgba(0,0,0,.4)] transition-transform active:scale-90
-             ${this._flashCls("ok")}"
-      @pointerdown=${onDown}
-      @click=${() => this._send("ok")}
-    >
-      <span class="text-[15px] font-semibold">OK</span>
-    </button>`;
-    }
-    _dpadCircle(has, mode) {
-      const swipe = mode !== "buttons";
-      const buttons = mode !== "swipe";
-      const stop = swipe ? (e4) => e4.stopPropagation() : undefined;
-      const arrow = (key, icon, label2, pos) => has(key) ? this._arrowBtn(key, icon, label2, `absolute ${pos} h-14 w-14`, stop) : "";
-      const label = !swipe ? "D-pad" : buttons ? "D-pad — swipe, tap an arrow, or use the arrow keys" : "D-pad — swipe or use the arrow keys";
-      return b2`<div
-      class="dpad relative mx-auto aspect-square w-full max-w-[260px] touch-none rounded-full
-             bg-card2 ${swipe ? "cursor-pointer" : ""}"
-      role="group"
-      aria-label=${label}
-      tabindex=${swipe ? 0 : A}
-      @keydown=${swipe ? this._dpadKey : undefined}
-      @pointerdown=${swipe ? this._swipeStart : undefined}
-      @pointerup=${swipe ? this._swipeEnd : undefined}
-      @pointercancel=${swipe ? () => this._sw = null : undefined}
-    >
-      ${buttons ? b2`${arrow("up", "solar:alt-arrow-up-bold-duotone", "Up", "left-1/2 top-2 -translate-x-1/2")}
-            ${arrow("down", "solar:alt-arrow-down-bold-duotone", "Down", "bottom-2 left-1/2 -translate-x-1/2")}
-            ${arrow("left", "solar:alt-arrow-left-bold-duotone", "Left", "left-2 top-1/2 -translate-y-1/2")}
-            ${arrow("right", "solar:alt-arrow-right-bold-duotone", "Right", "right-2 top-1/2 -translate-y-1/2")}` : ""}
-      ${has("ok") ? this._okBtn("absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2", stop) : ""}
-    </div>`;
-    }
-    _dpadGrid(has) {
-      const cell = (key, icon, label) => has(key) ? this._arrowBtn(key, icon, label, "aspect-square w-full min-h-[var(--fib-hit)] bg-card2") : b2`<div></div>`;
-      return b2`<div
-      class="dpad mx-auto grid w-full max-w-[240px] grid-cols-3 gap-1.5"
-      role="group"
-      aria-label="D-pad"
-    >
-      <div></div>
-      ${cell("up", "solar:alt-arrow-up-bold-duotone", "Up")}
-      <div></div>
-      ${cell("left", "solar:alt-arrow-left-bold-duotone", "Left")}
-      ${has("ok") ? this._okBtn("aspect-square w-full min-h-[var(--fib-hit)]") : b2`<div></div>`}
-      ${cell("right", "solar:alt-arrow-right-bold-duotone", "Right")}
-      <div></div>
-      ${cell("down", "solar:alt-arrow-down-bold-duotone", "Down")}
-      <div></div>
-    </div>`;
-    }
-    _transport() {
-      const mp = this._mp();
-      const playIcon = mp && mp.state === "playing" ? "solar:pause-bold-duotone" : "solar:play-bold-duotone";
-      const tp = (label, icon, key, mpService) => {
-        if (!this._cmd(key) && !mp)
-          return "";
-        return this._round(label, icon, mp ? () => this._mpService(mpService) : () => this._send(key), BTN, key);
-      };
-      const navBtn = (label, icon, key) => this._cmd(key) ? this._round(label, icon, () => this._send(key), BTN, key) : "";
-      const transport = [
-        tp("Previous", "solar:skip-previous-bold-duotone", "previous", "media_previous_track"),
-        tp("Play / pause", playIcon, "play", "media_play_pause"),
-        tp("Next", "solar:skip-next-bold-duotone", "next", "media_next_track")
-      ].filter((x2) => x2 !== "");
-      const showMenu = this._cmd("menu") && this._cmd("menu") !== this._cmd("back");
-      const navs = [
-        navBtn("Back", "solar:arrow-left-bold-duotone", "back"),
-        navBtn("Home", "solar:home-2-bold-duotone", "home"),
-        showMenu ? navBtn("Menu", "solar:menu-dots-bold-duotone", "menu") : ""
-      ].filter((x2) => x2 !== "");
-      if (!transport.length && !navs.length)
-        return "";
-      return b2`<div
-      class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2"
-    >
-      ${transport.length ? b2`<div class="flex items-center gap-2.5">${transport}</div>` : ""}
-      ${navs.length ? b2`<div class="flex items-center gap-2.5">${navs}</div>` : ""}
-    </div>`;
-    }
-    _channelRow() {
-      if (!this._cmd("channel_up"))
-        return "";
-      return b2`<div class="flex items-center justify-center gap-2.5">
-      ${this._holdBtn("Channel down", "solar:alt-arrow-down-bold-duotone", () => this._send("channel_down"), "channel_down")}
-      <span
-        class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-        >CH</span
-      >
-      ${this._holdBtn("Channel up", "solar:alt-arrow-up-bold-duotone", () => this._send("channel_up"), "channel_up")}
-    </div>`;
-    }
-    _volume() {
-      const mp = this._mp();
-      const hasSlider = mp && mp.attributes.volume_level != null;
-      const remoteVol = !!this._cmd("volume_up");
-      const mpStep = this._mpSupports(mp, MF_VOLUME_STEP);
-      const hasStep = !hasSlider && (remoteVol || mpStep);
-      const hasChannel = !!this._cmd("channel_up");
-      if (!hasSlider && !hasStep && !hasChannel)
-        return "";
-      const rows = [];
-      if (hasSlider)
-        rows.push(this._volSlider(mp));
-      else if (hasStep)
-        rows.push(this._volSteps(mp, remoteVol));
-      if (hasChannel)
-        rows.push(this._channelRow());
-      return b2`<div class="flex flex-col gap-3">${rows}</div>`;
-    }
-    _volSlider(mp) {
-      const gone = !mp || GONE_STATES.includes(mp.state);
-      const vol = this._volHold.value(Math.round(mp.attributes.volume_level * 100), { dragging: this._dragging, dragValue: this._dragVol, gone });
-      const muted = mp.attributes.is_volume_muted;
-      return b2`<div class="flex items-center gap-2.5">
-      ${this._mpSupports(mp, MF_VOLUME_MUTE) ? this._muteBtn(muted, () => this._mpService("volume_mute", { is_volume_muted: !muted })) : ""}
-      ${sliderTrack({
-        pct: vol,
-        disabled: gone,
-        cls: "flex-1",
-        label: "Volume",
-        value: vol,
-        min: 0,
-        max: 100,
-        step: 5,
-        valueText: `${vol}%`,
-        onInput: (v2) => this._setVol(v2),
-        onDown: this._volDown,
-        onMove: this._volMove,
-        onUp: this._volUp,
-        onCancel: () => {
-          this._dragging = false;
-          this._volHold.clear();
-        }
-      })}
-      <span
-        class="w-10 flex-none text-right text-[11px] tabular-nums text-muted"
-        >${vol}%</span
-      >
-    </div>`;
-    }
-    _volSteps(mp, remoteVol) {
-      const down = remoteVol ? this._holdBtn("Volume down", "solar:volume-small-bold-duotone", () => this._send("volume_down"), "volume_down") : this._holdBtn("Volume down", "solar:volume-small-bold-duotone", () => this._mpService("volume_down"));
-      const up = remoteVol ? this._holdBtn("Volume up", "solar:volume-loud-bold-duotone", () => this._send("volume_up"), "volume_up") : this._holdBtn("Volume up", "solar:volume-loud-bold-duotone", () => this._mpService("volume_up"));
-      const muted = mp && mp.attributes.is_volume_muted;
-      const canMute = remoteVol ? !!this._cmd("volume_mute") : this._mpSupports(mp, MF_VOLUME_MUTE);
-      const muteClick = remoteVol ? () => this._send("volume_mute") : () => this._mpService("volume_mute", { is_volume_muted: !muted });
-      return b2`<div class="flex items-center gap-2.5">
-      ${canMute ? this._muteBtn(muted, muteClick) : ""} ${down}
-      <div class="h-1.5 flex-1 rounded-[3px] bg-[#2C3639]"></div>
-      ${up}
-      <span class="w-10 flex-none"></span>
-    </div>`;
-    }
     _header(hl) {
       const d3 = this._dev();
       const mp = this._mp();
       const on = this._onState(d3);
       const nowLine = mp ? mp.attributes.media_title || mp.attributes.app_name || mp.attributes.source || t3(hl, on ? "remote.on" : "remote.off") : d3.entity ? t3(hl, on ? "remote.on" : "remote.off") : "";
-      return b2`<div class="flex items-center gap-2.5">
-      <div
-        class="flex h-9 w-9 flex-none items-center justify-center rounded-[10px]
-               ${on ? "bg-accentbg text-accent" : "bg-card2 text-muted"}"
-      >
+      return b2`<div class="head">
+      <div class="badge ${on ? "" : "off"}">
         <fib-icon
           class="h-[19px] w-[19px] [--mdc-icon-size:19px]"
           icon=${this._iconOf(d3)}
         ></fib-icon>
       </div>
-      <div class="min-w-0 flex-1">
-        <div class="truncate text-[12px] font-semibold text-ink">
-          ${d3.name || t3(hl, "remote.default_name")}
-        </div>
-        <div class="truncate text-[10.5px] text-muted">${nowLine}</div>
+      <div class="who">
+        <b>${d3.name || t3(hl, "remote.default_name")}</b>
+        <span>${nowLine}</span>
       </div>
-      ${d3.entity ? this._round("Power", "solar:power-bold-duotone", () => this._power(), BTN, "power") : ""}
+      ${d3.entity ? b2`<button
+              type="button"
+              class="power ${on ? "on" : ""}"
+              aria-label="Power"
+              @click=${() => this._power()}
+            >
+              <fib-icon
+                class="h-5 w-5 [--mdc-icon-size:20px]"
+                icon="solar:power-bold-duotone"
+              ></fib-icon>
+            </button>` : ""}
     </div>`;
+    }
+    _dpad() {
+      const has = (k2) => !!this._cmd(k2);
+      if (!["up", "down", "left", "right", "ok"].some(has))
+        return "";
+      const mode = this._dev().dpad || (this._device() === "appletv" ? "both" : "buttons");
+      return mode === "grid" ? this._pad(has) : this._wheel(has, mode);
+    }
+    _wheel(has, mode) {
+      const swipe = mode === "swipe" || mode === "both";
+      const stop = swipe ? (e4) => e4.stopPropagation() : undefined;
+      const sector = (k2, label) => has(k2) ? w`<path
+            class="seg ${this._flash === k2 ? "flash" : ""}"
+            d=${SEG[k2].d}
+            role="button"
+            tabindex="0"
+            aria-label=${label}
+            @click=${() => this._send(k2)}
+            @keydown=${activateOnKey(() => this._send(k2))}
+            @pointerdown=${stop}
+          ></path>
+          <path
+            class="glyph"
+            d=${CHEV[k2]}
+            transform="translate(${SEG[k2].ix},${SEG[k2].iy})"
+          ></path>` : A;
+      return b2`<svg
+      class="wheel"
+      viewBox="-104 -104 208 208"
+      role="group"
+      aria-label=${swipe ? "Direction pad — tap a sector, swipe, or use the arrow keys" : "Direction pad"}
+      tabindex=${swipe ? 0 : A}
+      @keydown=${swipe ? this._dpadKey : A}
+      @pointerdown=${swipe ? this._swipeStart : A}
+      @pointerup=${swipe ? this._swipeEnd : A}
+      @pointercancel=${swipe ? () => this._sw = null : A}
+    >
+      ${sector("up", "Up")}${sector("right", "Right")}${sector("down", "Down")}${sector("left", "Left")}
+      ${has("ok") ? w`<circle
+              class="hub"
+              cx="0"
+              cy="0"
+              r="35"
+              role="button"
+              tabindex="0"
+              aria-label="OK"
+              @click=${() => this._send("ok")}
+              @keydown=${activateOnKey(() => this._send("ok"))}
+              @pointerdown=${stop}
+            ></circle>
+            <text class="hubtx" x="0" y="1">OK</text>` : A}
+    </svg>`;
+    }
+    _pad(has) {
+      const cell = (k2, label) => has(k2) ? b2`<button
+            type="button"
+            aria-label=${label}
+            class=${this._flash === k2 ? "flash" : ""}
+            @click=${() => this._send(k2)}
+          >
+            <fib-icon
+              class="h-5 w-5 [--mdc-icon-size:20px]"
+              icon=${ARROW[k2]}
+            ></fib-icon>
+          </button>` : b2`<span class="blank"></span>`;
+      return b2`<div class="pad" role="group" aria-label="D-pad">
+      <span class="blank"></span>${cell("up", "Up")}<span class="blank"></span>
+      ${cell("left", "Left")}
+      ${has("ok") ? b2`<button
+              type="button"
+              class="ok"
+              aria-label="OK"
+              @click=${() => this._send("ok")}
+            >
+              OK
+            </button>` : b2`<span class="blank"></span>`}
+      ${cell("right", "Right")}
+      <span class="blank"></span>${cell("down", "Down")}<span
+        class="blank"
+      ></span>
+    </div>`;
+    }
+    _transport() {
+      const mp = this._mp();
+      const playIcon = mp && mp.state === "playing" ? "solar:pause-bold-duotone" : "solar:play-bold-duotone";
+      const canPlayMp = mp && (this._mpSupports(mp, MF_PLAY) || this._mpSupports(mp, MF_PAUSE));
+      const tp = (label, icon, key, mpService, viaMp, cls = "") => {
+        if (!viaMp && !this._cmd(key))
+          return A;
+        const onClick = viaMp ? () => this._mpDo(mpService) : () => this._send(key);
+        return b2`<button
+        type="button"
+        class="${cls} ${this._flash === key ? "flash" : ""}"
+        aria-label=${label}
+        @click=${onClick}
+      >
+        <fib-icon icon=${icon}></fib-icon>
+      </button>`;
+      };
+      const navBtn = (label, icon, key) => this._cmd(key) ? b2`<button
+            type="button"
+            class=${this._flash === key ? "flash" : ""}
+            aria-label=${label}
+            @click=${() => this._send(key)}
+          >
+            <fib-icon icon=${icon}></fib-icon>
+          </button>` : A;
+      const showMenu = this._cmd("menu") && this._cmd("menu") !== this._cmd("back");
+      const cells = [
+        tp("Previous", "solar:skip-previous-bold-duotone", "previous", "media_previous_track", mp && this._mpSupports(mp, MF_PREV)),
+        tp("Play / pause", playIcon, "play", "media_play_pause", canPlayMp, "pp"),
+        tp("Next", "solar:skip-next-bold-duotone", "next", "media_next_track", mp && this._mpSupports(mp, MF_NEXT)),
+        navBtn("Back", "solar:arrow-left-bold-duotone", "back"),
+        navBtn("Home", "solar:home-2-bold-duotone", "home"),
+        showMenu ? navBtn("Menu", "solar:menu-dots-bold-duotone", "menu") : A
+      ].filter((c4) => c4 !== A);
+      if (!cells.length)
+        return "";
+      return b2`<div class="strip">${cells}</div>`;
+    }
+    _volRow(hl) {
+      const mp = this._mp();
+      const hasSlider = mp && mp.attributes.volume_level != null;
+      const remoteVol = !!this._cmd("volume_up");
+      const mpStep = this._mpSupports(mp, MF_VOLUME_STEP);
+      if (!hasSlider && !remoteVol && !mpStep)
+        return "";
+      const muted = mp && mp.attributes.is_volume_muted;
+      const canMute = hasSlider ? this._mpSupports(mp, MF_VOLUME_MUTE) : remoteVol ? !!this._cmd("volume_mute") : this._mpSupports(mp, MF_VOLUME_MUTE);
+      const muteClick = remoteVol ? () => this._send("volume_mute") : () => this._mpDo("volume_mute", { is_volume_muted: !muted });
+      const mute = canMute ? b2`<button
+          type="button"
+          class="key ${muted ? "on" : ""}"
+          aria-label=${t3(hl, "remote.mute")}
+          aria-pressed=${muted ? "true" : "false"}
+          @click=${muteClick}
+        >
+          <fib-icon
+            icon=${muted ? "solar:volume-cross-bold-duotone" : "solar:volume-small-bold-duotone"}
+          ></fib-icon>
+        </button>` : "";
+      return b2`<div class="row">
+      ${mute}${this._volMid(mp, hasSlider, remoteVol, hl)}
+    </div>`;
+    }
+    _volMid(mp, hasSlider, remoteVol, hl) {
+      if (hasSlider) {
+        const gone = !mp || GONE_STATES.includes(mp.state);
+        const vol = this._volHold.value(Math.round(mp.attributes.volume_level * 100), { dragging: this._dragging, dragValue: this._dragVol, gone });
+        return b2`${sliderTrack({
+          pct: vol,
+          disabled: gone,
+          cls: "flex-1",
+          label: t3(hl, "remote.volume"),
+          value: vol,
+          min: 0,
+          max: 100,
+          step: 5,
+          valueText: `${vol}%`,
+          onInput: (v2) => this._setVol(v2),
+          onDown: this._volDown,
+          onMove: this._volMove,
+          onUp: this._volUp,
+          onCancel: () => {
+            this._dragging = false;
+          }
+        })}<span class="pct">${vol}%</span>`;
+      }
+      const down = remoteVol ? () => this._send("volume_down") : () => this._mpDo("volume_down");
+      const up = remoteVol ? () => this._send("volume_up") : () => this._mpDo("volume_up");
+      return b2`<div class="steps">
+        <button type="button" aria-label="Volume down" @click=${down}>
+          <fib-icon icon="solar:minus-circle-bold-duotone"></fib-icon>
+        </button>
+        <span class="lab">VOL</span>
+        <button type="button" aria-label="Volume up" @click=${up}>
+          <fib-icon icon="solar:add-circle-bold-duotone"></fib-icon>
+        </button>
+      </div>
+      <span class="pct"></span>`;
+    }
+    _channelRow() {
+      if (!this._cmd("channel_up"))
+        return "";
+      return b2`<div class="steps">
+      <button
+        type="button"
+        aria-label="Channel down"
+        @pointerdown=${() => this._hold(() => this._send("channel_down"))}
+        @pointerup=${() => this._release()}
+        @pointercancel=${() => this._release()}
+        @pointerleave=${() => this._release()}
+        @lostpointercapture=${() => this._release()}
+        @click=${(e4) => e4.detail === 0 && this._send("channel_down")}
+      >
+        <fib-icon icon="solar:minus-circle-bold-duotone"></fib-icon>
+      </button>
+      <span class="lab">CH</span>
+      <button
+        type="button"
+        aria-label="Channel up"
+        @pointerdown=${() => this._hold(() => this._send("channel_up"))}
+        @pointerup=${() => this._release()}
+        @pointercancel=${() => this._release()}
+        @pointerleave=${() => this._release()}
+        @lostpointercapture=${() => this._release()}
+        @click=${(e4) => e4.detail === 0 && this._send("channel_up")}
+      >
+        <fib-icon icon="solar:add-circle-bold-duotone"></fib-icon>
+      </button>
+    </div>`;
+    }
+    _sources(hl) {
+      const mp = this._mp();
+      if (!mp || !this._mpSupports(mp, MF_SELECT_SOURCE))
+        return "";
+      const all = this._allSources();
+      if (!all.length)
+        return "";
+      return overflowChips({
+        hl,
+        all,
+        collapsed: this._favSources(all),
+        activeValue: mp.attributes.source,
+        open: this._srcOpen,
+        onToggle: () => {
+          this._srcOpen = !this._srcOpen;
+        },
+        onSelect: (s4) => this._mpDo("select_source", { source: s4.source || s4.name })
+      });
     }
     render() {
       const cfg = this._config;
@@ -6401,37 +6768,23 @@ ${decls}
         return b2``;
       const hl = cfg.language || this.hass;
       const multi = this._devices.length > 1;
-      const all = this._allSources();
-      const collapsed = this._favSources(all);
-      const activeSource = this._mp() && this._mp().attributes.source;
+      const sources = this._sources(hl);
+      const two = !!sources;
       return b2`<div
-      class="card flex flex-col gap-3 rounded-[14px] border border-line bg-card p-[13px]
+      class="card rounded-[14px] border border-line bg-card p-[13px]
              ${this._unavail() ? "opacity-50" : ""}"
     >
-      ${this._switcher(hl)} ${this._header(hl)}
-      <div
-        class="body"
-        role=${multi ? "tabpanel" : A}
-        id=${multi ? "fibpanel" : A}
-        aria-labelledby=${multi ? `fibtab-${this._sel}` : A}
-      >
-        ${this._dpad()}
-        <div class="flex min-w-0 flex-col gap-3">
-          ${this._transport()} ${this._volume()}
-          ${all.length ? overflowChips({
-        hl,
-        all,
-        collapsed,
-        activeValue: activeSource,
-        open: this._srcOpen,
-        onToggle: () => {
-          this._srcOpen = !this._srcOpen;
-        },
-        onSelect: (s4) => this._mpService("select_source", {
-          source: s4.source || s4.name
-        })
-      }) : ""}
+      <div class="layout ${two ? "two" : ""}">
+        <div
+          class="body"
+          role=${multi ? "tabpanel" : A}
+          id=${multi ? "fibpanel" : A}
+          aria-labelledby=${multi ? `fibtab-${this._sel}` : A}
+        >
+          ${this._switcher(hl)} ${this._header(hl)} ${this._dpad()}
+          ${this._transport()} ${this._volRow(hl)} ${this._channelRow()}
         </div>
+        ${two ? b2`<div class="panel">${sources}</div>` : ""}
       </div>
     </div>`;
     }
@@ -6442,10 +6795,7 @@ ${decls}
       return 4;
     }
     getLayoutOptions() {
-      return {
-        grid_columns: this._needsDpad() ? "full" : 6,
-        grid_rows: "auto"
-      };
+      return { grid_columns: this._needsDpad() ? "full" : 6, grid_rows: "auto" };
     }
     getGridOptions() {
       return this._needsDpad() ? { columns: 12, rows: "auto", min_columns: 6 } : { columns: 6, rows: "auto", min_columns: 4 };

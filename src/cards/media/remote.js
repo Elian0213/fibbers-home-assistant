@@ -1,25 +1,32 @@
 /* ================================================================== *
- * fibbers-remote — a real TV remote over `remote.send_command`, with the correct
- * command names per platform. The command family is derived from the entity's
- * integration (apple_tv → pyatv lowercase, philips_js → Cursor…/Standby, Android
- * TV → DPAD_…); `device:` overrides the guess and `commands:` overrides per key.
- * Point `media_player:` at the player for now-playing, a select_source grid and a
- * volume slider. Buttons a platform doesn't support aren't rendered.
+ * fibbers-remote — a real TV/speaker remote over `remote.send_command`, with the
+ * correct command names per platform (derived from the entity's integration:
+ * apple_tv → pyatv lowercase, philips_js → Cursor…/Standby, Android TV → DPAD_…);
+ * `device:` overrides the guess, `commands:` overrides per key. Point `media_player:`
+ * at the player for now-playing, source chips and a volume slider.
  *
- * One card can hold several `devices:` and switch between them with a segmented
- * tablist. A top-level `entity:`/`media_player:` (no `devices:`) is normalised to a
- * single-device list and renders no switcher — 0.7.x configs are unchanged.
+ * Flat, Fibbers-native design: card2 surfaces, 1px lines, 14px radii, accent green
+ * only where something is live. The d-pad is one SVG donut with four true annular
+ * sectors (no clip-path corner-clipping); everything else sits below it in use
+ * order. One card holds several `devices:` behind a segmented tablist; a legacy
+ * top-level `entity:`/`media_player:` normalises to a single-device, switcher-less
+ * card — 0.7.x configs render unchanged apart from the restyle.
  * ================================================================== */
-import { LitElement, html, css, nothing } from "lit";
+import { LitElement, html, svg, css, nothing } from "lit";
 
 import { t } from "../../shared/i18n.js";
 import { twSheet } from "../../shared/tw.js";
-import { sliderTrack, overflowChips, SliderHold } from "../../shared/ui.js";
+import {
+  sliderTrack,
+  overflowChips,
+  activateOnKey,
+  SliderHold,
+} from "../../shared/ui.js";
 import { pickEntity, pctFromX, isUnavail, store } from "../../shared/util.js";
 import "../../shared/icon.js";
 
 // Per-platform command names. A key absent here (and from `commands:`) means the
-// device can't do it, so that button doesn't render.
+// device can't do it, so that control doesn't render.
 const COMMANDS = {
   appletv: {
     up: "up",
@@ -95,13 +102,55 @@ const SPEAKER_ICON = "solar:smart-speaker-bold-duotone";
 const OFF_STATES = ["off", "standby", "unavailable", "unknown"];
 const GONE_STATES = ["unavailable", "unknown", "off"];
 
-// media_player supported_features bits used here.
+// media_player supported_features bits (HA core) — route a control down the path
+// the player actually advertises, not just "a media_player exists".
+const MF_PAUSE = 1;
 const MF_VOLUME_MUTE = 8;
+const MF_PREV = 16;
+const MF_NEXT = 32;
 const MF_VOLUME_STEP = 1024;
+const MF_SELECT_SOURCE = 2048;
+const MF_PLAY = 16384;
 
 const DPAD_MODES = ["swipe", "buttons", "both", "grid"];
-// Every button/target is at least the shared --fib-hit (44px) square.
-const BTN = "h-[var(--fib-hit)] w-[var(--fib-hit)]";
+
+// SVG donut geometry (viewBox -104..104): outer radius 100, hub hole 40, four 76°
+// sectors on ±90/0/180° with a 7° gap either side; `ix/iy` is the chevron anchor.
+const SEG = {
+  up: {
+    d: "M -61.57 -78.80 A 100 100 0 0 1 61.57 -78.80 L 24.63 -31.52 A 40 40 0 0 0 -24.63 -31.52 Z",
+    ix: 0,
+    iy: -72,
+  },
+  right: {
+    d: "M 78.80 -61.57 A 100 100 0 0 1 78.80 61.57 L 31.52 24.63 A 40 40 0 0 0 31.52 -24.63 Z",
+    ix: 72,
+    iy: 0,
+  },
+  down: {
+    d: "M 61.57 78.80 A 100 100 0 0 1 -61.57 78.80 L -24.63 31.52 A 40 40 0 0 0 24.63 31.52 Z",
+    ix: 0,
+    iy: 72,
+  },
+  left: {
+    d: "M -78.80 61.57 A 100 100 0 0 1 -78.80 -61.57 L -31.52 -24.63 A 40 40 0 0 0 -31.52 24.63 Z",
+    ix: -72,
+    iy: 0,
+  },
+};
+// Outward-pointing chevron glyphs, drawn in wheel units at each sector's anchor.
+const CHEV = {
+  up: "M -7 3.5 L 0 -3.5 L 7 3.5",
+  down: "M -7 -3.5 L 0 3.5 L 7 -3.5",
+  left: "M 3.5 -7 L -3.5 0 L 3.5 7",
+  right: "M -3.5 -7 L 3.5 0 L -3.5 7",
+};
+const ARROW = {
+  up: "solar:alt-arrow-up-bold-duotone",
+  down: "solar:alt-arrow-down-bold-duotone",
+  left: "solar:alt-arrow-left-bold-duotone",
+  right: "solar:alt-arrow-right-bold-duotone",
+};
 
 /**
  * fibbers-remote — a TV/speaker remote over `remote.send_command` with per-platform
@@ -124,23 +173,348 @@ export class FibbersRemote extends LitElement {
       :host {
         display: block;
       }
-      /* container queries respond to the CARD's own width, not the viewport — the
-         whole point (min(72vw,…) used the viewport and overflowed a narrow cell). */
+      /* Container queries respond to the CARD's own width, not the viewport, and the
+         body is capped — a remote is a handheld object, not a 1000px slab. */
       .card {
         container-type: inline-size;
       }
-      .body {
+      .layout {
         display: grid;
-        gap: 12px;
+        gap: 13px;
       }
-      @container (min-width: 380px) {
-        .body {
-          grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+      .body {
+        max-width: 320px;
+        width: 100%;
+        margin-inline: auto;
+        display: grid;
+        gap: 11px;
+        min-width: 0;
+      }
+      /* Two columns only when there's a panel (sources) to fill the second track;
+         a speaker with no sources stays one centred column, no dead space. */
+      @container (min-width: 600px) {
+        .layout.two {
+          grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
           align-items: start;
         }
-        .body > .dpad {
-          grid-row: span 2;
-        }
+      }
+
+      /* device switcher rail */
+      .rail {
+        display: flex;
+        gap: 5px;
+        padding: 4px;
+        border-radius: 14px;
+        background: var(--color-card2);
+        border: 1px solid var(--color-line);
+      }
+      .rail button {
+        flex: 1;
+        min-width: 0;
+        min-height: 36px;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        background: transparent;
+        color: var(--color-muted);
+        font: inherit;
+        font-size: 11.5px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        padding: 0 8px;
+      }
+      .rail button .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--color-accent);
+        flex: none;
+        opacity: 0;
+      }
+      .rail button.live .dot {
+        opacity: 1;
+      }
+      .rail button[aria-selected="true"] {
+        background: var(--color-accentbg);
+        border-color: var(--color-accentline);
+        color: var(--color-accenttx);
+      }
+      .rail .nm {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* header */
+      .head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .badge {
+        width: 36px;
+        height: 36px;
+        flex: none;
+        border-radius: 11px;
+        display: grid;
+        place-items: center;
+        background: var(--color-accentbg);
+        color: var(--color-accent);
+        border: 1px solid var(--color-accentline);
+      }
+      .badge.off {
+        background: var(--color-card2);
+        color: var(--color-muted);
+        border-color: var(--color-line);
+      }
+      .who {
+        min-width: 0;
+        flex: 1;
+      }
+      .who b {
+        display: block;
+        font-size: 12.5px;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .who span {
+        display: block;
+        font-size: 10.5px;
+        color: var(--color-muted);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .power {
+        width: var(--fib-hit);
+        height: var(--fib-hit);
+        flex: none;
+        border-radius: 12px;
+        cursor: pointer;
+        border: 1px solid var(--color-line);
+        background: var(--color-card2);
+        color: var(--color-muted);
+        display: grid;
+        place-items: center;
+      }
+      .power.on {
+        border-color: #3f3335;
+        background: #252021;
+        color: #c98679;
+      }
+
+      /* the wheel: one SVG donut, four true sectors + a hub */
+      .wheel {
+        width: 100%;
+        max-width: 238px;
+        margin-inline: auto;
+        display: block;
+      }
+      .wheel .seg {
+        fill: var(--color-card2);
+        stroke: var(--color-line);
+        stroke-width: 1.5;
+        cursor: pointer;
+        transition: fill 0.1s;
+      }
+      .wheel .seg:hover {
+        fill: #2e393b;
+      }
+      .wheel .seg:active,
+      .wheel .seg.flash {
+        fill: var(--color-accentbg);
+        stroke: var(--color-accentline);
+      }
+      .wheel .seg:focus-visible,
+      .wheel .hub:focus-visible {
+        outline: none;
+        stroke: var(--color-accent);
+        stroke-width: 2.5;
+      }
+      .wheel .glyph {
+        fill: none;
+        stroke: var(--color-ink2);
+        stroke-width: 5.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        pointer-events: none;
+      }
+      .wheel .hub {
+        fill: var(--color-accentbg);
+        stroke: var(--color-accentline);
+        stroke-width: 1.5;
+        cursor: pointer;
+      }
+      .wheel .hub:active {
+        fill: #1e3627;
+      }
+      .wheel .hubtx {
+        fill: var(--color-accenttx);
+        font:
+          600 15px/1 ui-sans-serif,
+          system-ui,
+          sans-serif;
+        letter-spacing: 0.06em;
+        text-anchor: middle;
+        dominant-baseline: central;
+        pointer-events: none;
+      }
+
+      /* 3×3 grid alternative (dpad: grid) */
+      .pad {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 7px;
+        width: 100%;
+        max-width: 238px;
+        margin-inline: auto;
+      }
+      .pad button {
+        aspect-ratio: 1;
+        min-height: var(--fib-hit);
+        border: 1px solid var(--color-line);
+        border-radius: 13px;
+        background: var(--color-card2);
+        color: var(--color-ink2);
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+      }
+      .pad button:active {
+        background: var(--color-accentbg);
+        border-color: var(--color-accentline);
+        color: var(--color-accent);
+      }
+      .pad .blank {
+        visibility: hidden;
+      }
+      .pad .ok {
+        background: var(--color-accentbg);
+        border-color: var(--color-accentline);
+        color: var(--color-accenttx);
+        font: 600 12.5px/1 inherit;
+      }
+
+      /* rows below the wheel, in use order */
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      /* transport: one segmented strip, equal cells, hairline dividers */
+      .strip {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: 1fr;
+        border: 1px solid var(--color-line);
+        border-radius: 14px;
+        overflow: hidden;
+        background: var(--color-card2);
+      }
+      .strip button {
+        border: 0;
+        border-left: 1px solid var(--color-line);
+        background: transparent;
+        color: var(--color-ink2);
+        cursor: pointer;
+        min-height: var(--fib-hit);
+        display: grid;
+        place-items: center;
+      }
+      .strip button:first-child {
+        border-left: 0;
+      }
+      .strip button:active {
+        background: var(--color-accentbg);
+        color: var(--color-accent);
+      }
+      .strip button.pp {
+        color: var(--color-accent);
+      }
+      .strip button.flash {
+        opacity: 0.4;
+      }
+
+      /* icon key (mute) */
+      .key {
+        width: var(--fib-hit);
+        height: var(--fib-hit);
+        flex: none;
+        border: 1px solid var(--color-line);
+        border-radius: 12px;
+        background: var(--color-card2);
+        color: var(--color-ink2);
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+      }
+      .key:active,
+      .key.on {
+        background: var(--color-accentbg);
+        border-color: var(--color-accentline);
+        color: var(--color-accent);
+      }
+      .pct {
+        width: 38px;
+        flex: none;
+        text-align: right;
+        font-size: 11.5px;
+        color: var(--color-muted);
+        font-variant-numeric: tabular-nums;
+      }
+      /* stepper: same row shape as the slider when the device reports no level */
+      .steps {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        border: 1px solid var(--color-line);
+        border-radius: 14px;
+        overflow: hidden;
+        background: var(--color-card2);
+      }
+      .steps button {
+        border: 0;
+        background: transparent;
+        color: var(--color-ink2);
+        cursor: pointer;
+        min-height: var(--fib-hit);
+        display: grid;
+        place-items: center;
+      }
+      .steps button:active {
+        background: var(--color-accentbg);
+        color: var(--color-accent);
+      }
+      .steps .lab {
+        font: 600 9.5px/1 inherit;
+        letter-spacing: 0.14em;
+        color: var(--color-muted);
+        padding: 0 12px;
+        border-inline: 1px solid var(--color-line);
+        align-self: stretch;
+        display: grid;
+        place-items: center;
+      }
+      .key fib-icon,
+      .strip fib-icon,
+      .steps fib-icon {
+        --mdc-icon-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+
+      /* companion panel (sources) — fills the second column on a wide card */
+      .panel {
+        display: grid;
+        gap: 11px;
+        align-content: start;
+        min-width: 0;
       }
     `,
   ];
@@ -160,7 +534,7 @@ export class FibbersRemote extends LitElement {
 
   /**
    * Validate + normalise the config into a device list; throws on a bad device so
-   * the editor surfaces it. Also restores the remembered device selection.
+   * the editor surfaces it. Restores the remembered device selection.
    */
   setConfig(config) {
     if (!config) throw new Error("fibbers-remote: config is required");
@@ -212,20 +586,22 @@ export class FibbersRemote extends LitElement {
     this._platform = this._platform || new Map();
     this._tried = this._tried || new Set();
     this._warned = this._warned || new Set();
-    this._autoDone = false;
     this._resetTransient();
 
     // Restore the remembered device (keyed on the list, so adding a device doesn't
-    // restore a stale index).
+    // restore a stale index). A restore suppresses auto_select.
     this._sel = 0;
+    this._restored = false;
     if (config.remember !== false) {
-      const saved = store.get(this._persistKey(), 0);
-      if (Number.isInteger(saved) && saved >= 0 && saved < devices.length)
+      const saved = store.get(this._persistKey(), null);
+      if (Number.isInteger(saved) && saved >= 0 && saved < devices.length) {
         this._sel = saved;
+        this._restored = true;
+      }
     }
 
-    // Construct the hold once — SliderHold.addController has no removeController,
-    // so a new one per setConfig would orphan controllers in the editor.
+    // Construct the hold once and reuse it — a fresh controller per setConfig (HA
+    // calls it per editor keystroke) would stack controllers on the element.
     if (!this._volHold) this._volHold = new SliderHold(this, { tolerance: 2 });
     else this._volHold.clear();
   }
@@ -235,6 +611,7 @@ export class FibbersRemote extends LitElement {
     this._dragVol = 0;
     this._srcOpen = false;
     this._flash = null;
+    this._sw = null; // an in-flight swipe must not carry across a device switch
   }
 
   _persistKey() {
@@ -261,11 +638,13 @@ export class FibbersRemote extends LitElement {
   /** Re-resolve the platform when hass/device changes, and apply one-shot `auto_select: playing`. */
   updated(changed) {
     if (changed.has("hass") || changed.has("_sel")) this._resolvePlatform();
-    // `auto_select: playing` applies once on mount — never mid-session, which would
-    // yank the card out from under a thumb when a speaker starts playing.
+    // `auto_select: playing` applies once, on mount only — never mid-session (which
+    // would yank the card out from under a thumb when a speaker starts playing) and
+    // never over a remembered selection or an editor keystroke.
     if (
       !this._autoDone &&
       this.hass &&
+      !this._restored &&
       this._config.auto_select === "playing"
     ) {
       this._autoDone = true;
@@ -273,7 +652,7 @@ export class FibbersRemote extends LitElement {
         const mp = d.media_player && this.hass.states[d.media_player];
         return mp && mp.state === "playing";
       });
-      if (i >= 0 && i !== this._sel) this._sel = i;
+      if (i >= 0) this._select(i);
     }
   }
 
@@ -361,8 +740,10 @@ export class FibbersRemote extends LitElement {
   // --- commands & services -------------------------------------------
 
   // A rejected send_command dies silently in a fire-and-forget call; catch it,
-  // warn once per key with the command + platform, and flash the button — a dead
-  // remote shouldn't look identical to a working one.
+  // warn once per key, and flash the button — a dead remote shouldn't look
+  // identical to a working one. `id` is captured before the await so a rejection
+  // that resolves after a device switch flashes/warns the right device, not the
+  // one now on screen.
   async _send(key) {
     const cmd = this._cmd(key);
     const id = this._dev().entity;
@@ -373,12 +754,11 @@ export class FibbersRemote extends LitElement {
         command: cmd,
       });
     } catch (e) {
-      this._flashFail(key, e, cmd);
+      this._flashFail(id, key, e, cmd);
     }
   }
 
-  _flashFail(key, e, cmd) {
-    const id = this._dev().entity;
+  _flashFail(id, key, e, cmd) {
     const warnKey = `${id}:${key}`;
     if (!this._warned.has(warnKey)) {
       this._warned.add(warnKey);
@@ -387,6 +767,8 @@ export class FibbersRemote extends LitElement {
           `(platform: ${this._platform.get(id) || "unknown"}). ${e && e.message ? e.message : e}`,
       );
     }
+    // Don't flash a device we've since switched away from.
+    if (id !== this._dev().entity) return;
     this._flash = key;
     clearTimeout(this._flashTimer);
     this._flashTimer = setTimeout(() => {
@@ -403,18 +785,26 @@ export class FibbersRemote extends LitElement {
     const st = this._st();
     const on = st ? !OFF_STATES.includes(st.state) : null;
     const svc = on === null ? "toggle" : on ? "turn_off" : "turn_on";
-    this.hass
+    return this.hass
       .callService("remote", svc, { entity_id: id })
-      .catch((e) => this._flashFail("power", e, `remote.${svc}`));
+      .catch((e) => this._flashFail(id, "power", e, `remote.${svc}`));
   }
 
+  // Returns the call promise so callers can react to a rejection (a stuck optimistic
+  // value on volume_set, mostly). Fire-and-forget callers use `_mpDo`.
   _mpService(service, data) {
     const mp = this._mp();
-    if (mp && this.hass)
+    if (!mp || !this.hass) return Promise.resolve();
+    return Promise.resolve(
       this.hass.callService("media_player", service, {
         entity_id: mp.entity_id,
         ...data,
-      });
+      }),
+    );
+  }
+  // Fire-and-forget media_player call; swallow the rejection so it isn't unhandled.
+  _mpDo(service, data) {
+    this._mpService(service, data).catch(() => {});
   }
 
   // Long-press repeat, bounded: ~3/s (not 7/s), capped, and stopped on release /
@@ -456,7 +846,11 @@ export class FibbersRemote extends LitElement {
 
   _setVol(pct) {
     this._volHold.hold(pct);
-    this._mpService("volume_set", { volume_level: pct / 100 });
+    // A rejected volume_set would otherwise leave the optimistic value on screen for
+    // the full hold timeout — release it instead.
+    this._mpService("volume_set", { volume_level: pct / 100 }).catch(() =>
+      this._volHold.clear(),
+    );
   }
   _volDown(e) {
     this._dragging = true;
@@ -475,74 +869,11 @@ export class FibbersRemote extends LitElement {
     this._setVol(v);
   }
 
-  // --- render helpers ------------------------------------------------
-
-  _flashCls(key) {
-    return this._flash === key ? "opacity-40" : "";
-  }
-
-  // A round button; ≥44px. `key` (optional) drives the rejected-command flash.
-  _round(label, icon, onClick, size = BTN, key) {
-    return html`<button
-      type="button"
-      aria-label=${label}
-      class="flex ${size} flex-none items-center justify-center rounded-full bg-card2
-             text-ink transition-transform active:scale-90 ${this._flashCls(key)}"
-      @click=${onClick}
-    >
-      <fib-icon
-        class="h-[20px] w-[20px] [--mdc-icon-size:20px]"
-        icon=${icon}
-      ></fib-icon>
-    </button>`;
-  }
-
-  // A press-and-hold button (auto-repeats). `fn` is the action; `key` (for a remote
-  // command) drives the flash and lets the click fall back on keyboard activation.
-  _holdBtn(label, icon, fn, key) {
-    return html`<button
-      type="button"
-      aria-label=${label}
-      class="flex ${BTN} flex-none items-center justify-center rounded-full bg-card2
-             text-ink transition-transform active:scale-90 ${this._flashCls(key)}"
-      @pointerdown=${() => this._hold(fn)}
-      @pointerup=${() => this._release()}
-      @pointercancel=${() => this._release()}
-      @pointerleave=${() => this._release()}
-      @lostpointercapture=${() => this._release()}
-      @click=${(e) => {
-        if (e.detail === 0) fn(); // keyboard activation (no repeat)
-      }}
-    >
-      <fib-icon
-        class="h-[20px] w-[20px] [--mdc-icon-size:20px]"
-        icon=${icon}
-      ></fib-icon>
-    </button>`;
-  }
-
-  _muteBtn(muted, onClick) {
-    return html`<button
-      type="button"
-      aria-label="Mute"
-      aria-pressed=${muted ? "true" : "false"}
-      class="fib-hit flex h-9 w-9 flex-none items-center justify-center rounded-full
-             ${muted ? "bg-accentbg text-accent" : "bg-card2 text-muted"}"
-      @click=${onClick}
-    >
-      <fib-icon
-        class="h-4 w-4 [--mdc-icon-size:16px]"
-        icon=${
-          muted
-            ? "solar:volume-cross-bold-duotone"
-            : "solar:volume-small-bold-duotone"
-        }
-      ></fib-icon>
-    </button>`;
-  }
-
-  // Keyboard for the swipe d-pad (which has no arrow buttons to Tab to).
+  // Keyboard for the swipe surface (which has no arrow buttons to Tab to). Only
+  // acts on the container's own key events — a keydown bubbling up from a focused
+  // sector is handled by that sector, not stolen here.
   _dpadKey(e) {
+    if (e.target !== e.currentTarget) return;
     const map = {
       ArrowUp: "up",
       ArrowDown: "down",
@@ -580,49 +911,30 @@ export class FibbersRemote extends LitElement {
     );
   }
 
+  // --- render helpers ------------------------------------------------
+
   _switcher(hl) {
     if (this._devices.length <= 1) return "";
-    // ≤4 fit on one wrapping row; more scroll horizontally so segments stay ≥44px
-    // rather than shrinking below the touch minimum.
-    const many = this._devices.length > 4;
     return html`<div
+      class="rail"
       role="tablist"
       aria-label=${t(hl, "remote.devices")}
-      class="flex ${
-        many ? "flex-nowrap overflow-x-auto" : "flex-wrap"
-      } gap-x-1.5 gap-y-[10px]"
       @keydown=${this._switcherKey}
     >
       ${this._devices.map((d, i) => {
         const sel = i === this._sel;
-        const on = this._onState(d);
         return html`<button
           type="button"
           role="tab"
           id="fibtab-${i}"
+          class=${this._onState(d) ? "live" : nothing}
           aria-selected=${sel ? "true" : "false"}
           aria-controls="fibpanel"
           tabindex=${sel ? 0 : -1}
-          class="fib-hit inline-flex min-h-[var(--fib-hit)] flex-none items-center gap-1.5
-                 rounded-full border px-3 text-[11px] font-medium ${
-                   sel
-                     ? "border-accentline bg-accentbg text-accent"
-                     : "border-line bg-card2 text-ink2"
-                 }"
           @click=${() => this._select(i)}
         >
-          <fib-icon
-            class="h-[15px] w-[15px] [--mdc-icon-size:15px]"
-            icon=${this._iconOf(d)}
-          ></fib-icon>
-          <span class="max-w-[10ch] truncate">${d.name || `#${i + 1}`}</span>
-          ${
-            on
-              ? html`<span
-                  class="h-1.5 w-1.5 flex-none rounded-full bg-accent"
-                ></span>`
-              : ""
-          }
+          <span class="dot"></span>
+          <span class="nm">${d.name || `#${i + 1}`}</span>
         </button>`;
       })}
     </div>`;
@@ -645,321 +957,6 @@ export class FibbersRemote extends LitElement {
     this._select(next);
   }
 
-  _dpad() {
-    const has = (k) => !!this._cmd(k);
-    // No directional commands (e.g. a speaker, or generic with none) → no d-pad.
-    if (!["up", "down", "left", "right", "ok"].some(has)) return "";
-    const mode =
-      this._dev().dpad || (this._device() === "appletv" ? "both" : "buttons");
-    if (mode === "grid") return this._dpadGrid(has);
-    return this._dpadCircle(has, mode);
-  }
-
-  _arrowBtn(key, icon, label, extra = "", onDown) {
-    return html`<button
-      type="button"
-      aria-label=${label}
-      class="flex items-center justify-center rounded-full text-ink transition-transform
-             hover:bg-card active:scale-90 ${extra} ${this._flashCls(key)}"
-      @pointerdown=${onDown}
-      @click=${() => this._send(key)}
-    >
-      <fib-icon
-        class="h-[24px] w-[24px] [--mdc-icon-size:24px]"
-        icon=${icon}
-      ></fib-icon>
-    </button>`;
-  }
-
-  _okBtn(size, onDown) {
-    return html`<button
-      type="button"
-      aria-label="OK"
-      class="flex ${size} items-center justify-center rounded-full bg-accentbg text-accent
-             shadow-[0_1px_3px_rgba(0,0,0,.4)] transition-transform active:scale-90
-             ${this._flashCls("ok")}"
-      @pointerdown=${onDown}
-      @click=${() => this._send("ok")}
-    >
-      <span class="text-[15px] font-semibold">OK</span>
-    </button>`;
-  }
-
-  _dpadCircle(has, mode) {
-    const swipe = mode !== "buttons";
-    const buttons = mode !== "swipe";
-    // Buttons win over the swipe surface: stop the container from also seeing it.
-    const stop = swipe ? (e) => e.stopPropagation() : undefined;
-    const arrow = (key, icon, label, pos) =>
-      has(key)
-        ? this._arrowBtn(key, icon, label, `absolute ${pos} h-14 w-14`, stop)
-        : "";
-    const label = !swipe
-      ? "D-pad"
-      : buttons
-        ? "D-pad — swipe, tap an arrow, or use the arrow keys"
-        : "D-pad — swipe or use the arrow keys";
-    return html`<div
-      class="dpad relative mx-auto aspect-square w-full max-w-[260px] touch-none rounded-full
-             bg-card2 ${swipe ? "cursor-pointer" : ""}"
-      role="group"
-      aria-label=${label}
-      tabindex=${swipe ? 0 : nothing}
-      @keydown=${swipe ? this._dpadKey : undefined}
-      @pointerdown=${swipe ? this._swipeStart : undefined}
-      @pointerup=${swipe ? this._swipeEnd : undefined}
-      @pointercancel=${swipe ? () => (this._sw = null) : undefined}
-    >
-      ${
-        buttons
-          ? html`${arrow(
-              "up",
-              "solar:alt-arrow-up-bold-duotone",
-              "Up",
-              "left-1/2 top-2 -translate-x-1/2",
-            )}
-            ${arrow(
-              "down",
-              "solar:alt-arrow-down-bold-duotone",
-              "Down",
-              "bottom-2 left-1/2 -translate-x-1/2",
-            )}
-            ${arrow(
-              "left",
-              "solar:alt-arrow-left-bold-duotone",
-              "Left",
-              "left-2 top-1/2 -translate-y-1/2",
-            )}
-            ${arrow(
-              "right",
-              "solar:alt-arrow-right-bold-duotone",
-              "Right",
-              "right-2 top-1/2 -translate-y-1/2",
-            )}`
-          : ""
-      }
-      ${
-        has("ok")
-          ? this._okBtn(
-              "absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2",
-              stop,
-            )
-          : ""
-      }
-    </div>`;
-  }
-
-  // A 3×3 grid d-pad: up/left/OK/right/down, empty corners. Denser and unmistakable
-  // on a phone; every cell is a full ≥44px target.
-  _dpadGrid(has) {
-    const cell = (key, icon, label) =>
-      has(key)
-        ? this._arrowBtn(
-            key,
-            icon,
-            label,
-            "aspect-square w-full min-h-[var(--fib-hit)] bg-card2",
-          )
-        : html`<div></div>`;
-    return html`<div
-      class="dpad mx-auto grid w-full max-w-[240px] grid-cols-3 gap-1.5"
-      role="group"
-      aria-label="D-pad"
-    >
-      <div></div>
-      ${cell("up", "solar:alt-arrow-up-bold-duotone", "Up")}
-      <div></div>
-      ${cell("left", "solar:alt-arrow-left-bold-duotone", "Left")}
-      ${
-        has("ok")
-          ? this._okBtn("aspect-square w-full min-h-[var(--fib-hit)]")
-          : html`<div></div>`
-      }
-      ${cell("right", "solar:alt-arrow-right-bold-duotone", "Right")}
-      <div></div>
-      ${cell("down", "solar:alt-arrow-down-bold-duotone", "Down")}
-      <div></div>
-    </div>`;
-  }
-
-  _transport() {
-    const mp = this._mp();
-    const playIcon =
-      mp && mp.state === "playing"
-        ? "solar:pause-bold-duotone"
-        : "solar:play-bold-duotone";
-    const tp = (label, icon, key, mpService) => {
-      if (!this._cmd(key) && !mp) return "";
-      return this._round(
-        label,
-        icon,
-        mp ? () => this._mpService(mpService) : () => this._send(key),
-        BTN,
-        key,
-      );
-    };
-    const navBtn = (label, icon, key) =>
-      this._cmd(key)
-        ? this._round(label, icon, () => this._send(key), BTN, key)
-        : "";
-    const transport = [
-      tp(
-        "Previous",
-        "solar:skip-previous-bold-duotone",
-        "previous",
-        "media_previous_track",
-      ),
-      tp("Play / pause", playIcon, "play", "media_play_pause"),
-      tp("Next", "solar:skip-next-bold-duotone", "next", "media_next_track"),
-    ].filter((x) => x !== "");
-    // Apple TV aliases Back → menu; render Menu only when it's a distinct command.
-    const showMenu =
-      this._cmd("menu") && this._cmd("menu") !== this._cmd("back");
-    const navs = [
-      navBtn("Back", "solar:arrow-left-bold-duotone", "back"),
-      navBtn("Home", "solar:home-2-bold-duotone", "home"),
-      showMenu ? navBtn("Menu", "solar:menu-dots-bold-duotone", "menu") : "",
-    ].filter((x) => x !== "");
-    if (!transport.length && !navs.length) return "";
-    // Two non-wrapping groups that stack as units — no separator to dangle at the
-    // end of a wrapped row (the old flex-wrap + <span> divider hazard).
-    return html`<div
-      class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2"
-    >
-      ${
-        transport.length
-          ? html`<div class="flex items-center gap-2.5">${transport}</div>`
-          : ""
-      }
-      ${
-        navs.length
-          ? html`<div class="flex items-center gap-2.5">${navs}</div>`
-          : ""
-      }
-    </div>`;
-  }
-
-  _channelRow() {
-    if (!this._cmd("channel_up")) return "";
-    return html`<div class="flex items-center justify-center gap-2.5">
-      ${this._holdBtn(
-        "Channel down",
-        "solar:alt-arrow-down-bold-duotone",
-        () => this._send("channel_down"),
-        "channel_down",
-      )}
-      <span
-        class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-        >CH</span
-      >
-      ${this._holdBtn(
-        "Channel up",
-        "solar:alt-arrow-up-bold-duotone",
-        () => this._send("channel_up"),
-        "channel_up",
-      )}
-    </div>`;
-  }
-
-  // One row shape across all three cases so the card doesn't jump on switch:
-  // slider (volume_level reported) · − / + (VOLUME_STEP or a volume command) · none.
-  _volume() {
-    const mp = this._mp();
-    const hasSlider = mp && mp.attributes.volume_level != null;
-    const remoteVol = !!this._cmd("volume_up");
-    const mpStep = this._mpSupports(mp, MF_VOLUME_STEP);
-    const hasStep = !hasSlider && (remoteVol || mpStep);
-    const hasChannel = !!this._cmd("channel_up");
-    if (!hasSlider && !hasStep && !hasChannel) return "";
-
-    const rows = [];
-    if (hasSlider) rows.push(this._volSlider(mp));
-    else if (hasStep) rows.push(this._volSteps(mp, remoteVol));
-    if (hasChannel) rows.push(this._channelRow());
-    return html`<div class="flex flex-col gap-3">${rows}</div>`;
-  }
-
-  _volSlider(mp) {
-    // If the player drops out mid-hold, release the optimistic value rather than
-    // freezing the knob on it until the timeout.
-    const gone = !mp || GONE_STATES.includes(mp.state);
-    const vol = this._volHold.value(
-      Math.round(mp.attributes.volume_level * 100),
-      { dragging: this._dragging, dragValue: this._dragVol, gone },
-    );
-    const muted = mp.attributes.is_volume_muted;
-    return html`<div class="flex items-center gap-2.5">
-      ${
-        this._mpSupports(mp, MF_VOLUME_MUTE)
-          ? this._muteBtn(muted, () =>
-              this._mpService("volume_mute", { is_volume_muted: !muted }),
-            )
-          : ""
-      }
-      ${sliderTrack({
-        pct: vol,
-        disabled: gone,
-        cls: "flex-1",
-        label: "Volume",
-        value: vol,
-        min: 0,
-        max: 100,
-        step: 5,
-        valueText: `${vol}%`,
-        onInput: (v) => this._setVol(v),
-        onDown: this._volDown,
-        onMove: this._volMove,
-        onUp: this._volUp,
-        onCancel: () => {
-          this._dragging = false;
-          this._volHold.clear();
-        },
-      })}
-      <span
-        class="w-10 flex-none text-right text-[11px] tabular-nums text-muted"
-        >${vol}%</span
-      >
-    </div>`;
-  }
-
-  // No reported level → − / + with a non-draggable placeholder bar, so the row keeps
-  // the slider's shape/height and the card doesn't jump when switching devices.
-  _volSteps(mp, remoteVol) {
-    const down = remoteVol
-      ? this._holdBtn(
-          "Volume down",
-          "solar:volume-small-bold-duotone",
-          () => this._send("volume_down"),
-          "volume_down",
-        )
-      : this._holdBtn("Volume down", "solar:volume-small-bold-duotone", () =>
-          this._mpService("volume_down"),
-        );
-    const up = remoteVol
-      ? this._holdBtn(
-          "Volume up",
-          "solar:volume-loud-bold-duotone",
-          () => this._send("volume_up"),
-          "volume_up",
-        )
-      : this._holdBtn("Volume up", "solar:volume-loud-bold-duotone", () =>
-          this._mpService("volume_up"),
-        );
-    const muted = mp && mp.attributes.is_volume_muted;
-    const canMute = remoteVol
-      ? !!this._cmd("volume_mute")
-      : this._mpSupports(mp, MF_VOLUME_MUTE);
-    const muteClick = remoteVol
-      ? () => this._send("volume_mute")
-      : () => this._mpService("volume_mute", { is_volume_muted: !muted });
-    return html`<div class="flex items-center gap-2.5">
-      ${canMute ? this._muteBtn(muted, muteClick) : ""} ${down}
-      <div class="h-1.5 flex-1 rounded-[3px] bg-[#2C3639]"></div>
-      ${up}
-      <span class="w-10 flex-none"></span>
-    </div>`;
-  }
-
   _header(hl) {
     const d = this._dev();
     const mp = this._mp();
@@ -972,79 +969,374 @@ export class FibbersRemote extends LitElement {
       : d.entity
         ? t(hl, on ? "remote.on" : "remote.off")
         : "";
-    return html`<div class="flex items-center gap-2.5">
-      <div
-        class="flex h-9 w-9 flex-none items-center justify-center rounded-[10px]
-               ${on ? "bg-accentbg text-accent" : "bg-card2 text-muted"}"
-      >
+    return html`<div class="head">
+      <div class="badge ${on ? "" : "off"}">
         <fib-icon
           class="h-[19px] w-[19px] [--mdc-icon-size:19px]"
           icon=${this._iconOf(d)}
         ></fib-icon>
       </div>
-      <div class="min-w-0 flex-1">
-        <div class="truncate text-[12px] font-semibold text-ink">
-          ${d.name || t(hl, "remote.default_name")}
-        </div>
-        <div class="truncate text-[10.5px] text-muted">${nowLine}</div>
+      <div class="who">
+        <b>${d.name || t(hl, "remote.default_name")}</b>
+        <span>${nowLine}</span>
       </div>
       ${
         d.entity
-          ? this._round(
-              "Power",
-              "solar:power-bold-duotone",
-              () => this._power(),
-              BTN,
-              "power",
-            )
+          ? html`<button
+              type="button"
+              class="power ${on ? "on" : ""}"
+              aria-label="Power"
+              @click=${() => this._power()}
+            >
+              <fib-icon
+                class="h-5 w-5 [--mdc-icon-size:20px]"
+                icon="solar:power-bold-duotone"
+              ></fib-icon>
+            </button>`
           : ""
       }
     </div>`;
   }
 
-  /** Draw the card: optional device switcher, header, d-pad, transport, volume and source chips. */
+  _dpad() {
+    const has = (k) => !!this._cmd(k);
+    // No directional commands (a speaker, or generic with none) → no d-pad.
+    if (!["up", "down", "left", "right", "ok"].some(has)) return "";
+    const mode =
+      this._dev().dpad || (this._device() === "appletv" ? "both" : "buttons");
+    return mode === "grid" ? this._pad(has) : this._wheel(has, mode);
+  }
+
+  // The SVG donut. Sectors are individually focusable buttons (native Enter/Space);
+  // `swipe`/`both` add a swipe surface (from the gaps and hub) + arrow-key handling.
+  _wheel(has, mode) {
+    const swipe = mode === "swipe" || mode === "both";
+    // On a swipe surface a tap on a sector must not also trigger the container swipe.
+    const stop = swipe ? (e) => e.stopPropagation() : undefined;
+    const sector = (k, label) =>
+      has(k)
+        ? svg`<path
+            class="seg ${this._flash === k ? "flash" : ""}"
+            d=${SEG[k].d}
+            role="button"
+            tabindex="0"
+            aria-label=${label}
+            @click=${() => this._send(k)}
+            @keydown=${activateOnKey(() => this._send(k))}
+            @pointerdown=${stop}
+          ></path>
+          <path
+            class="glyph"
+            d=${CHEV[k]}
+            transform="translate(${SEG[k].ix},${SEG[k].iy})"
+          ></path>`
+        : nothing;
+    return html`<svg
+      class="wheel"
+      viewBox="-104 -104 208 208"
+      role="group"
+      aria-label=${
+        swipe
+          ? "Direction pad — tap a sector, swipe, or use the arrow keys"
+          : "Direction pad"
+      }
+      tabindex=${swipe ? 0 : nothing}
+      @keydown=${swipe ? this._dpadKey : nothing}
+      @pointerdown=${swipe ? this._swipeStart : nothing}
+      @pointerup=${swipe ? this._swipeEnd : nothing}
+      @pointercancel=${swipe ? () => (this._sw = null) : nothing}
+    >
+      ${sector("up", "Up")}${sector("right", "Right")}${sector("down", "Down")}${sector(
+        "left",
+        "Left",
+      )}
+      ${
+        has("ok")
+          ? svg`<circle
+              class="hub"
+              cx="0"
+              cy="0"
+              r="35"
+              role="button"
+              tabindex="0"
+              aria-label="OK"
+              @click=${() => this._send("ok")}
+              @keydown=${activateOnKey(() => this._send("ok"))}
+              @pointerdown=${stop}
+            ></circle>
+            <text class="hubtx" x="0" y="1">OK</text>`
+          : nothing
+      }
+    </svg>`;
+  }
+
+  // 3×3 grid alternative: up/left/OK/right/down, empty corners; every cell ≥44px.
+  _pad(has) {
+    const cell = (k, label) =>
+      has(k)
+        ? html`<button
+            type="button"
+            aria-label=${label}
+            class=${this._flash === k ? "flash" : ""}
+            @click=${() => this._send(k)}
+          >
+            <fib-icon
+              class="h-5 w-5 [--mdc-icon-size:20px]"
+              icon=${ARROW[k]}
+            ></fib-icon>
+          </button>`
+        : html`<span class="blank"></span>`;
+    return html`<div class="pad" role="group" aria-label="D-pad">
+      <span class="blank"></span>${cell("up", "Up")}<span class="blank"></span>
+      ${cell("left", "Left")}
+      ${
+        has("ok")
+          ? html`<button
+              type="button"
+              class="ok"
+              aria-label="OK"
+              @click=${() => this._send("ok")}
+            >
+              OK
+            </button>`
+          : html`<span class="blank"></span>`
+      }
+      ${cell("right", "Right")}
+      <span class="blank"></span>${cell("down", "Down")}<span
+        class="blank"
+      ></span>
+    </div>`;
+  }
+
+  // One segmented strip for transport + navigation. Each cell is gated on the
+  // capability that would actually run it: the media_player feature bit if the call
+  // will route there, else the remote command. Play/pause takes PLAY or PAUSE.
+  _transport() {
+    const mp = this._mp();
+    const playIcon =
+      mp && mp.state === "playing"
+        ? "solar:pause-bold-duotone"
+        : "solar:play-bold-duotone";
+    const canPlayMp =
+      mp && (this._mpSupports(mp, MF_PLAY) || this._mpSupports(mp, MF_PAUSE));
+    // Prefer the media_player path only when it advertises the bit; else the remote
+    // command; else the cell doesn't render.
+    const tp = (label, icon, key, mpService, viaMp, cls = "") => {
+      if (!viaMp && !this._cmd(key)) return nothing;
+      const onClick = viaMp
+        ? () => this._mpDo(mpService)
+        : () => this._send(key);
+      return html`<button
+        type="button"
+        class="${cls} ${this._flash === key ? "flash" : ""}"
+        aria-label=${label}
+        @click=${onClick}
+      >
+        <fib-icon icon=${icon}></fib-icon>
+      </button>`;
+    };
+    const navBtn = (label, icon, key) =>
+      this._cmd(key)
+        ? html`<button
+            type="button"
+            class=${this._flash === key ? "flash" : ""}
+            aria-label=${label}
+            @click=${() => this._send(key)}
+          >
+            <fib-icon icon=${icon}></fib-icon>
+          </button>`
+        : nothing;
+    // Apple TV aliases Back → menu; render Menu only when it's a distinct command.
+    const showMenu =
+      this._cmd("menu") && this._cmd("menu") !== this._cmd("back");
+    const cells = [
+      tp(
+        "Previous",
+        "solar:skip-previous-bold-duotone",
+        "previous",
+        "media_previous_track",
+        mp && this._mpSupports(mp, MF_PREV),
+      ),
+      tp("Play / pause", playIcon, "play", "media_play_pause", canPlayMp, "pp"),
+      tp(
+        "Next",
+        "solar:skip-next-bold-duotone",
+        "next",
+        "media_next_track",
+        mp && this._mpSupports(mp, MF_NEXT),
+      ),
+      navBtn("Back", "solar:arrow-left-bold-duotone", "back"),
+      navBtn("Home", "solar:home-2-bold-duotone", "home"),
+      showMenu
+        ? navBtn("Menu", "solar:menu-dots-bold-duotone", "menu")
+        : nothing,
+    ].filter((c) => c !== nothing);
+    if (!cells.length) return "";
+    return html`<div class="strip">${cells}</div>`;
+  }
+
+  // One row shape whether or not the device reports a level, so nothing jumps when a
+  // TV sleeps: mute key · slider-or-stepper · percentage. Gated on `volume_level`
+  // (not the VOLUME_SET bit — a player can advertise it and never report a level).
+  _volRow(hl) {
+    const mp = this._mp();
+    const hasSlider = mp && mp.attributes.volume_level != null;
+    const remoteVol = !!this._cmd("volume_up");
+    const mpStep = this._mpSupports(mp, MF_VOLUME_STEP);
+    if (!hasSlider && !remoteVol && !mpStep) return "";
+    const muted = mp && mp.attributes.is_volume_muted;
+    const canMute = hasSlider
+      ? this._mpSupports(mp, MF_VOLUME_MUTE)
+      : remoteVol
+        ? !!this._cmd("volume_mute")
+        : this._mpSupports(mp, MF_VOLUME_MUTE);
+    const muteClick = remoteVol
+      ? () => this._send("volume_mute")
+      : () => this._mpDo("volume_mute", { is_volume_muted: !muted });
+    const mute = canMute
+      ? html`<button
+          type="button"
+          class="key ${muted ? "on" : ""}"
+          aria-label=${t(hl, "remote.mute")}
+          aria-pressed=${muted ? "true" : "false"}
+          @click=${muteClick}
+        >
+          <fib-icon
+            icon=${
+              muted
+                ? "solar:volume-cross-bold-duotone"
+                : "solar:volume-small-bold-duotone"
+            }
+          ></fib-icon>
+        </button>`
+      : "";
+    return html`<div class="row">
+      ${mute}${this._volMid(mp, hasSlider, remoteVol, hl)}
+    </div>`;
+  }
+
+  _volMid(mp, hasSlider, remoteVol, hl) {
+    if (hasSlider) {
+      // If the player drops out mid-hold, release the optimistic value.
+      const gone = !mp || GONE_STATES.includes(mp.state);
+      const vol = this._volHold.value(
+        Math.round(mp.attributes.volume_level * 100),
+        { dragging: this._dragging, dragValue: this._dragVol, gone },
+      );
+      return html`${sliderTrack({
+          pct: vol,
+          disabled: gone,
+          cls: "flex-1",
+          label: t(hl, "remote.volume"),
+          value: vol,
+          min: 0,
+          max: 100,
+          step: 5,
+          valueText: `${vol}%`,
+          onInput: (v) => this._setVol(v),
+          onDown: this._volDown,
+          onMove: this._volMove,
+          onUp: this._volUp,
+          onCancel: () => {
+            this._dragging = false;
+          },
+        })}<span class="pct">${vol}%</span>`;
+    }
+    // No level: a − VOL + stepper that keeps the row's height and anatomy.
+    const down = remoteVol
+      ? () => this._send("volume_down")
+      : () => this._mpDo("volume_down");
+    const up = remoteVol
+      ? () => this._send("volume_up")
+      : () => this._mpDo("volume_up");
+    return html`<div class="steps">
+        <button type="button" aria-label="Volume down" @click=${down}>
+          <fib-icon icon="solar:minus-circle-bold-duotone"></fib-icon>
+        </button>
+        <span class="lab">VOL</span>
+        <button type="button" aria-label="Volume up" @click=${up}>
+          <fib-icon icon="solar:add-circle-bold-duotone"></fib-icon>
+        </button>
+      </div>
+      <span class="pct"></span>`;
+  }
+
+  _channelRow() {
+    if (!this._cmd("channel_up")) return "";
+    return html`<div class="steps">
+      <button
+        type="button"
+        aria-label="Channel down"
+        @pointerdown=${() => this._hold(() => this._send("channel_down"))}
+        @pointerup=${() => this._release()}
+        @pointercancel=${() => this._release()}
+        @pointerleave=${() => this._release()}
+        @lostpointercapture=${() => this._release()}
+        @click=${(e) => e.detail === 0 && this._send("channel_down")}
+      >
+        <fib-icon icon="solar:minus-circle-bold-duotone"></fib-icon>
+      </button>
+      <span class="lab">CH</span>
+      <button
+        type="button"
+        aria-label="Channel up"
+        @pointerdown=${() => this._hold(() => this._send("channel_up"))}
+        @pointerup=${() => this._release()}
+        @pointercancel=${() => this._release()}
+        @pointerleave=${() => this._release()}
+        @lostpointercapture=${() => this._release()}
+        @click=${(e) => e.detail === 0 && this._send("channel_up")}
+      >
+        <fib-icon icon="solar:add-circle-bold-duotone"></fib-icon>
+      </button>
+    </div>`;
+  }
+
+  // Source chips — gated on SELECT_SOURCE so a player that lists sources it can't
+  // actually switch doesn't render dead controls.
+  _sources(hl) {
+    const mp = this._mp();
+    if (!mp || !this._mpSupports(mp, MF_SELECT_SOURCE)) return "";
+    const all = this._allSources();
+    if (!all.length) return "";
+    return overflowChips({
+      hl,
+      all,
+      collapsed: this._favSources(all),
+      activeValue: mp.attributes.source,
+      open: this._srcOpen,
+      onToggle: () => {
+        this._srcOpen = !this._srcOpen;
+      },
+      onSelect: (s) =>
+        this._mpDo("select_source", { source: s.source || s.name }),
+    });
+  }
+
+  /** Draw the card: optional switcher, header, d-pad, transport, volume, channel and sources. */
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
     const hl = cfg.language || this.hass;
     const multi = this._devices.length > 1;
-    const all = this._allSources();
-    const collapsed = this._favSources(all);
-    const activeSource = this._mp() && this._mp().attributes.source;
+    const sources = this._sources(hl);
+    const two = !!sources;
 
     return html`<div
-      class="card flex flex-col gap-3 rounded-[14px] border border-line bg-card p-[13px]
+      class="card rounded-[14px] border border-line bg-card p-[13px]
              ${this._unavail() ? "opacity-50" : ""}"
     >
-      ${this._switcher(hl)} ${this._header(hl)}
-      <div
-        class="body"
-        role=${multi ? "tabpanel" : nothing}
-        id=${multi ? "fibpanel" : nothing}
-        aria-labelledby=${multi ? `fibtab-${this._sel}` : nothing}
-      >
-        ${this._dpad()}
-        <div class="flex min-w-0 flex-col gap-3">
-          ${this._transport()} ${this._volume()}
-          ${
-            all.length
-              ? overflowChips({
-                  hl,
-                  all,
-                  collapsed,
-                  activeValue: activeSource,
-                  open: this._srcOpen,
-                  onToggle: () => {
-                    this._srcOpen = !this._srcOpen;
-                  },
-                  onSelect: (s) =>
-                    this._mpService("select_source", {
-                      source: s.source || s.name,
-                    }),
-                })
-              : ""
-          }
+      <div class="layout ${two ? "two" : ""}">
+        <div
+          class="body"
+          role=${multi ? "tabpanel" : nothing}
+          id=${multi ? "fibpanel" : nothing}
+          aria-labelledby=${multi ? `fibtab-${this._sel}` : nothing}
+        >
+          ${this._switcher(hl)} ${this._header(hl)} ${this._dpad()}
+          ${this._transport()} ${this._volRow(hl)} ${this._channelRow()}
         </div>
+        ${two ? html`<div class="panel">${sources}</div>` : ""}
       </div>
     </div>`;
   }
@@ -1053,16 +1345,13 @@ export class FibbersRemote extends LitElement {
     // A device with a remote entity gets a d-pad; speaker-only devices don't.
     return !!(this._devices && this._devices.some((d) => d.entity));
   }
-  /** Masonry height hint — d-pad + transport + volume ≈ 4 rows. */
+  /** Masonry height hint — wheel + transport + volume ≈ 4 rows. */
   getCardSize() {
     return 4;
   }
   /** Sections-view layout: full-width when there's a d-pad, else a narrow speaker column. */
   getLayoutOptions() {
-    return {
-      grid_columns: this._needsDpad() ? "full" : 6,
-      grid_rows: "auto",
-    };
+    return { grid_columns: this._needsDpad() ? "full" : 6, grid_rows: "auto" };
   }
   /** Grid-view sizing: wide for a d-pad, narrower for a speaker-only remote. */
   getGridOptions() {

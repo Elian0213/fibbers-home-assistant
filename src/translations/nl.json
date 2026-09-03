@@ -96,6 +96,8 @@
   "remote": {
     "default_name": "Afstandsbediening",
     "devices": "Apparaten",
+    "volume": "Volume",
+    "mute": "Dempen",
     "on": "Aan",
     "off": "Uit"
   },

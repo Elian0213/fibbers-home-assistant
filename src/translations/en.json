@@ -96,6 +96,8 @@
   "remote": {
     "default_name": "Remote",
     "devices": "Devices",
+    "volume": "Volume",
+    "mute": "Mute",
     "on": "On",
     "off": "Off"
   },
