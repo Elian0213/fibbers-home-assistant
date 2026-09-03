@@ -30,6 +30,7 @@ export class FibbersFormEditor extends LitElement {
     _config: { state: true },
   };
 
+  /** Store the config ha-form edits and round-trips. */
   setConfig(config) {
     this._config = config;
   }
@@ -53,6 +54,7 @@ export class FibbersFormEditor extends LitElement {
     );
   }
 
+  /** Render HA's <ha-form> from the schema; empty until hass, config and schema are set. */
   render() {
     if (!this.hass || !this._config || !this.schema) return html``;
     return html`<ha-form

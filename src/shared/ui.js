@@ -34,7 +34,11 @@ export function activateOnKey(fn) {
  *   this._hold.value(hassPct, { dragging, dragValue, gone }) // when computing the display
  */
 export class SliderHold {
-  /** @param {object} host — the Lit host to attach the controller to. @param {object} [opts] — `{ tolerance, timeout }`. */
+  /**
+   * Attach the hold to `host` as a reactive controller.
+   * @param {object} host — the Lit host to attach the controller to.
+   * @param {object} [opts] — `{ tolerance, timeout }`.
+   */
   constructor(host, { tolerance = 2, timeout = 2000 } = {}) {
     this.host = host;
     host.addController(this);

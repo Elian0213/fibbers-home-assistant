@@ -72,6 +72,7 @@ export function iconSvg(name) {
  * inherits colour/size from the light DOM.
  */
 class FibIcon extends HTMLElement {
+  /** Re-render whenever the `icon` attribute changes. */
   static get observedAttributes() {
     return ["icon"];
   }

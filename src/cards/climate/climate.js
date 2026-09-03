@@ -27,6 +27,10 @@ const ACTION_KEY = {
   off: "action_off",
 };
 
+/**
+ * fibbers-climate — thermostat tile: current temp + hvac action, a setpoint −/+
+ * stepper and hvac-mode chips (climate.set_temperature / set_hvac_mode).
+ */
 export class FibbersClimate extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -41,6 +45,7 @@ export class FibbersClimate extends LitElement {
     `,
   ];
 
+  /** Card-picker stub: pick a real climate.* entity for the live preview. */
   static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-climate",
@@ -53,6 +58,7 @@ export class FibbersClimate extends LitElement {
     };
   }
 
+  /** Validate + store the config; throws when `entity` isn't given (a climate.*). */
   setConfig(config) {
     if (!config || !config.entity) {
       throw new Error("fibbers-climate: `entity` (a climate.*) is required");
@@ -82,6 +88,7 @@ export class FibbersClimate extends LitElement {
     });
   }
 
+  /** Current temp + action, the setpoint stepper (inert in range/unavailable) and the mode chips. */
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
@@ -209,12 +216,17 @@ export class FibbersClimate extends LitElement {
     </div>`;
   }
 
+  /** Masonry card-size (row) estimate. */
   getCardSize() {
     return 3;
   }
+
+  /** Masonry layout hint — full width, 3 rows. */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 3 };
   }
+
+  /** Sections-view grid hint — full width, auto rows. */
   getGridOptions() {
     return { columns: "full", rows: "auto" };
   }

@@ -4,6 +4,7 @@ import importPlugin from "eslint-plugin-import";
 import checkFile from "eslint-plugin-check-file";
 import lit from "eslint-plugin-lit";
 import wc from "eslint-plugin-wc";
+import jsdoc from "eslint-plugin-jsdoc";
 import prettier from "eslint-config-prettier";
 import { defineConfig, globalIgnores } from "eslint/config";
 
@@ -54,13 +55,39 @@ export default defineConfig([
       sourceType: "module",
       globals: { ...globals.browser },
     },
-    plugins: { import: importPlugin, "check-file": checkFile },
+    plugins: { import: importPlugin, "check-file": checkFile, jsdoc },
     // No jsconfig/tsconfig here — the node resolver resolves the bare `lit`
     // dependency and the explicit-`.js` relative imports the browser ESM needs.
     settings: { "import/resolver": { node: { extensions: [".js", ".json"] } } },
     rules: {
       ...airbnb,
       "no-empty": ["error", { allowEmptyCatch: true }],
+      // Require a JSDoc block on the public surface — exported functions/classes and
+      // public (non-`_`) methods incl. the HA card-contract statics. Private `_`
+      // helpers and inline arrows stay documented by their `//` WHY-comments.
+      "jsdoc/require-jsdoc": [
+        "error",
+        {
+          // Disable the built-in defaults (which would demand JSDoc on every
+          // FunctionDeclaration, including non-exported module helpers) and require
+          // it only on the explicit public surface below.
+          require: {
+            FunctionDeclaration: false,
+            ArrowFunctionExpression: false,
+            FunctionExpression: false,
+            ClassDeclaration: false,
+            MethodDefinition: false,
+          },
+          contexts: [
+            "ExportNamedDeclaration > FunctionDeclaration",
+            "ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression",
+            "ExportNamedDeclaration > ClassDeclaration",
+            "MethodDefinition[key.name!=/^_/]",
+          ],
+          checkConstructors: false,
+        },
+      ],
+      "jsdoc/require-description": "error",
       "import/no-unresolved": "error",
       "import/order": [
         "warn",
