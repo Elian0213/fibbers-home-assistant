@@ -96,6 +96,10 @@
   "remote": {
     "default_name": "Afstandsbediening",
     "devices": "Apparaten",
+    "navigation": "Navigatie",
+    "back": "Terug",
+    "home": "Home",
+    "menu": "Menu",
     "volume": "Volume",
     "mute": "Dempen",
     "on": "Aan",

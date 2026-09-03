@@ -1,4 +1,4 @@
-/*! Fibbers v0.7.6 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */
+/*! Fibbers v0.8.0 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */
 (() => {
 
   // src/generated/icons.core.gen.js
@@ -1079,6 +1079,10 @@
     remote: {
       default_name: "Remote",
       devices: "Devices",
+      navigation: "Navigation",
+      back: "Back",
+      home: "Home",
+      menu: "Menu",
       volume: "Volume",
       mute: "Mute",
       on: "On",
@@ -1226,6 +1230,10 @@
     remote: {
       default_name: "Afstandsbediening",
       devices: "Apparaten",
+      navigation: "Navigatie",
+      back: "Terug",
+      home: "Home",
+      menu: "Menu",
       volume: "Volume",
       mute: "Dempen",
       on: "Aan",
@@ -5771,6 +5779,26 @@ ${decls}
   var MF_SELECT_SOURCE = 2048;
   var MF_PLAY = 16384;
   var DPAD_MODES = ["swipe", "buttons", "both", "grid"];
+  var CONTROL_TYPE = {
+    select: "select",
+    input_select: "select",
+    light: "light",
+    number: "number",
+    input_number: "number",
+    switch: "toggle",
+    input_boolean: "toggle",
+    button: "button",
+    scene: "scene"
+  };
+  var CONTROL_TYPES = [
+    "select",
+    "light",
+    "number",
+    "toggle",
+    "button",
+    "scene"
+  ];
+  var SLIDER_CONTROLS = ["light", "number"];
   var SEG = {
     up: {
       d: "M -61.57 -78.80 A 100 100 0 0 1 61.57 -78.80 L 24.63 -31.52 A 40 40 0 0 0 -24.63 -31.52 Z",
@@ -6089,6 +6117,44 @@ ${decls}
         opacity: 0.4;
       }
 
+      /* navigation: back/home/menu as their own labelled buttons — deliberately NOT
+         a seamless strip, so nav reads as a different group from transport. */
+      .navrow {
+        display: flex;
+        gap: 8px;
+      }
+      .navrow button {
+        flex: 1;
+        min-width: 0;
+        min-height: var(--fib-hit);
+        border: 1px solid var(--color-line);
+        border-radius: 12px;
+        background: var(--color-card2);
+        color: var(--color-ink2);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 0 8px;
+        font: inherit;
+        font-size: 11.5px;
+        font-weight: 600;
+      }
+      .navrow button:active {
+        background: var(--color-accentbg);
+        border-color: var(--color-accentline);
+        color: var(--color-accent);
+      }
+      .navrow button.flash {
+        opacity: 0.4;
+      }
+      .navrow fib-icon {
+        --mdc-icon-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+
       /* icon key (mute) */
       .key {
         width: var(--fib-hit);
@@ -6158,12 +6224,102 @@ ${decls}
         height: 20px;
       }
 
+      /* volume scrub: a slider-shaped surface with no thumb position (the device
+         reports no level) — drag to change, tap a side to step, hold to repeat. */
+      .scrub {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: var(--fib-hit);
+        cursor: ew-resize;
+        touch-action: none;
+        user-select: none;
+      }
+      .scrub .edge {
+        --mdc-icon-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: var(--color-muted);
+        flex: none;
+      }
+      .scrub .groove {
+        position: relative;
+        flex: 1;
+        height: 6px;
+        border-radius: 3px;
+        background: #2c3639;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .scrub .grip {
+        width: 32px;
+        height: 6px;
+        border-radius: 3px;
+        background: var(--color-accent);
+        opacity: 0.8;
+        transition: opacity 0.1s;
+      }
+      .scrub:focus-visible {
+        outline: none;
+      }
+      .scrub:focus-visible .groove {
+        box-shadow: 0 0 0 2px var(--color-accent);
+      }
+      .scrub:active .grip,
+      .scrub.dragging .grip {
+        opacity: 1;
+      }
+
       /* companion panel (sources) — fills the second column on a wide card */
       .panel {
         display: grid;
         gap: 11px;
         align-content: start;
         min-width: 0;
+      }
+
+      /* generic controls (select→chips, light/number→slider, switch→toggle) */
+      .controls {
+        display: grid;
+        gap: 13px;
+        min-width: 0;
+      }
+      .ctl {
+        display: grid;
+        gap: 7px;
+        min-width: 0;
+      }
+      .ctl-lab {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font: 600 9.5px/1 inherit;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--color-muted);
+        min-width: 0;
+      }
+      .ctl-lab > span:first-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .ctl-val {
+        flex: none;
+        letter-spacing: normal;
+        font-variant-numeric: tabular-nums;
+      }
+      .ctl-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .ctl-row .key {
+        --mdc-icon-size: 20px;
       }
     `
     ];
@@ -6195,6 +6351,19 @@ ${decls}
         }
         if ((d3.sources || d3.favourites) && !d3.media_player) {
           throw new Error("fibbers-remote: `sources`/`favourites` need a `media_player:` — they call media_player.select_source");
+        }
+        if (d3.controls != null) {
+          if (!Array.isArray(d3.controls)) {
+            throw new Error(`fibbers-remote: device[${i5}] \`controls\` must be a list`);
+          }
+          d3.controls.forEach((c4, j) => {
+            if (!c4 || typeof c4.entity !== "string") {
+              throw new Error(`fibbers-remote: device[${i5}].controls[${j}] needs an \`entity\``);
+            }
+            if (c4.type != null && !CONTROL_TYPES.includes(c4.type)) {
+              throw new Error(`fibbers-remote: \`controls[].type\` must be one of ${CONTROL_TYPES.join(", ")}`);
+            }
+          });
         }
       });
       this._config = config;
@@ -6231,6 +6400,50 @@ ${decls}
             this._setVol(v2);
         }
       });
+      this._ctlOpen = this._ctlOpen || new Map;
+      this._ctlSliders = this._ctlSliders || new Map;
+      const wanted = new Set;
+      for (const d3 of devices) {
+        for (const c4 of d3.controls || []) {
+          const kind = c4.type || CONTROL_TYPE[String(c4.entity).split(".")[0]];
+          if (SLIDER_CONTROLS.includes(kind)) {
+            wanted.add(c4.entity);
+            if (!this._ctlSliders.has(c4.entity)) {
+              this._ctlSliders.set(c4.entity, this._makeCtlSlider(c4.entity));
+            }
+          }
+        }
+      }
+      for (const [entity, s4] of this._ctlSliders) {
+        if (wanted.has(entity))
+          continue;
+        s4.debounced.cancel();
+        if (this.removeController)
+          this.removeController(s4.hold);
+        this._ctlSliders.delete(entity);
+      }
+    }
+    _makeCtlSlider(entity) {
+      const hold = new SliderHold(this, { tolerance: 1, timeout: 2000 });
+      const s4 = { hold, dragging: false, dragVal: 0 };
+      s4.debounced = debounce((v2) => this._ctlSet(entity, v2), 150);
+      s4.drag = sliderDrag({
+        guard: () => isUnavail(this.hass && this.hass.states[entity]),
+        read: (e4) => this._ctlValFromX(entity, e4.clientX, e4.currentTarget),
+        frame: (v2, dragging) => {
+          s4.dragging = dragging;
+          if (v2 != null)
+            s4.dragVal = v2;
+          this.requestUpdate();
+        },
+        live: (v2) => s4.debounced(v2),
+        end: (v2) => {
+          s4.debounced.cancel();
+          if (v2 != null)
+            this._ctlSet(entity, v2);
+        }
+      });
+      return s4;
     }
     _resetTransient() {
       this._dragging = false;
@@ -6242,6 +6455,11 @@ ${decls}
         this._volDrag.abort();
       if (this._volInput)
         this._volInput.cancel();
+      this._scrub = null;
+      this._scrubLock = false;
+      clearTimeout(this._scrubHoldT);
+      clearTimeout(this._scrubLockT);
+      this._release();
     }
     _persistKey() {
       const ids = this._devices.map((d3) => d3.entity || d3.media_player || d3.name);
@@ -6259,8 +6477,13 @@ ${decls}
       super.disconnectedCallback();
       this._release();
       clearTimeout(this._flashTimer);
+      clearTimeout(this._scrubHoldT);
+      clearTimeout(this._scrubLockT);
       if (this._volInput)
         this._volInput.cancel();
+      if (this._ctlSliders)
+        for (const s4 of this._ctlSliders.values())
+          s4.debounced.cancel();
       document.removeEventListener("visibilitychange", this._onHidden);
     }
     updated(changed) {
@@ -6429,6 +6652,76 @@ ${decls}
         return null;
       const byValue = new Map(all.map((s4) => [s4.source || s4.name, s4]));
       return favs.map((f3) => byValue.get(f3) || { name: f3, source: f3 });
+    }
+    _ctlBounds(entity) {
+      if (entity.split(".")[0] === "light")
+        return { min: 0, max: 100, step: 1 };
+      const st = this.hass && this.hass.states[entity];
+      const a3 = st && st.attributes || {};
+      const min = Number(a3.min != null ? a3.min : 0);
+      const max = Number(a3.max != null ? a3.max : 100);
+      const raw = Number(a3.step);
+      const step = Number.isFinite(raw) && raw > 0 ? raw : 1;
+      return { min, max: max > min ? max : min + 1, step };
+    }
+    _ctlRawValue(entity) {
+      const st = this.hass && this.hass.states[entity];
+      if (entity.split(".")[0] === "light") {
+        if (!st || st.state !== "on")
+          return 0;
+        const b3 = st.attributes.brightness;
+        return b3 != null ? Math.round(b3 / 255 * 100) : 100;
+      }
+      const n4 = Number(st && st.state);
+      return Number.isFinite(n4) ? n4 : this._ctlBounds(entity).min;
+    }
+    _ctlSnap(entity, v2) {
+      const { min, max, step } = this._ctlBounds(entity);
+      const snapped = Math.round((v2 - min) / step) * step + min;
+      return clamp(Number(snapped.toFixed(4)), min, max);
+    }
+    _ctlPct(entity, v2) {
+      const { min, max } = this._ctlBounds(entity);
+      return clamp((v2 - min) / (max - min) * 100, 0, 100);
+    }
+    _ctlValFromX(entity, clientX, track) {
+      const { min, max } = this._ctlBounds(entity);
+      return this._ctlSnap(entity, min + pctFromX(clientX, track) / 100 * (max - min));
+    }
+    _ctlValue(entity, s4) {
+      const { min, max, step } = this._ctlBounds(entity);
+      s4.hold.tolerance = Math.max(step / 2, (max - min) / 1000);
+      return s4.hold.value(this._ctlRawValue(entity), {
+        dragging: s4.dragging,
+        dragValue: s4.dragVal,
+        gone: isUnavail(this.hass && this.hass.states[entity])
+      });
+    }
+    _ctlSet(entity, v2) {
+      if (!this.hass)
+        return;
+      const s4 = this._ctlSliders.get(entity);
+      if (s4)
+        s4.hold.hold(v2);
+      const dom = entity.split(".")[0];
+      let p3;
+      if (dom === "light") {
+        p3 = v2 <= 0 ? this.hass.callService("light", "turn_off", { entity_id: entity }) : this.hass.callService("light", "turn_on", {
+          entity_id: entity,
+          brightness_pct: v2
+        });
+      } else {
+        p3 = this.hass.callService(dom, "set_value", {
+          entity_id: entity,
+          value: v2
+        });
+      }
+      Promise.resolve(p3).catch(() => s4 && s4.hold.clear());
+    }
+    _ctlDo(domain, service, data) {
+      if (!this.hass)
+        return;
+      Promise.resolve(this.hass.callService(domain, service, data)).catch(() => {});
     }
     _setVol(pct) {
       this._volHold.hold(pct);
@@ -6623,6 +6916,31 @@ ${decls}
       ></span>
     </div>`;
     }
+    _nav(hl) {
+      const navBtn = (label, icon, key) => this._cmd(key) ? b2`<button
+            type="button"
+            class=${this._flash === key ? "flash" : ""}
+            aria-label=${label}
+            @click=${() => this._send(key)}
+          >
+            <fib-icon icon=${icon}></fib-icon>${label}
+          </button>` : A;
+      const showMenu = this._cmd("menu") && this._cmd("menu") !== this._cmd("back");
+      const cells = [
+        navBtn(t3(hl, "remote.back"), "solar:arrow-left-bold-duotone", "back"),
+        navBtn(t3(hl, "remote.home"), "solar:home-2-bold-duotone", "home"),
+        showMenu ? navBtn(t3(hl, "remote.menu"), "solar:menu-dots-bold-duotone", "menu") : A
+      ].filter((c4) => c4 !== A);
+      if (!cells.length)
+        return "";
+      return b2`<div
+      class="navrow"
+      role="group"
+      aria-label=${t3(hl, "remote.navigation")}
+    >
+      ${cells}
+    </div>`;
+    }
     _transport() {
       const mp = this._mp();
       const playIcon = mp && mp.state === "playing" ? "solar:pause-bold-duotone" : "solar:play-bold-duotone";
@@ -6640,22 +6958,10 @@ ${decls}
         <fib-icon icon=${icon}></fib-icon>
       </button>`;
       };
-      const navBtn = (label, icon, key) => this._cmd(key) ? b2`<button
-            type="button"
-            class=${this._flash === key ? "flash" : ""}
-            aria-label=${label}
-            @click=${() => this._send(key)}
-          >
-            <fib-icon icon=${icon}></fib-icon>
-          </button>` : A;
-      const showMenu = this._cmd("menu") && this._cmd("menu") !== this._cmd("back");
       const cells = [
         tp("Previous", "solar:skip-previous-bold-duotone", "previous", "media_previous_track", mp && this._mpSupports(mp, MF_PREV)),
         tp("Play / pause", playIcon, "play", "media_play_pause", canPlayMp, "pp"),
-        tp("Next", "solar:skip-next-bold-duotone", "next", "media_next_track", mp && this._mpSupports(mp, MF_NEXT)),
-        navBtn("Back", "solar:arrow-left-bold-duotone", "back"),
-        navBtn("Home", "solar:home-2-bold-duotone", "home"),
-        showMenu ? navBtn("Menu", "solar:menu-dots-bold-duotone", "menu") : A
+        tp("Next", "solar:skip-next-bold-duotone", "next", "media_next_track", mp && this._mpSupports(mp, MF_NEXT))
       ].filter((c4) => c4 !== A);
       if (!cells.length)
         return "";
@@ -6710,18 +7016,95 @@ ${decls}
           onCancel: this._volDrag.cancel
         })}<span class="pct">${vol}%</span>`;
       }
-      const down = remoteVol ? () => this._send("volume_down") : () => this._mpDo("volume_down");
-      const up = remoteVol ? () => this._send("volume_up") : () => this._mpDo("volume_up");
-      return b2`<div class="steps">
-        <button type="button" aria-label="Volume down" @click=${down}>
-          <fib-icon icon="solar:minus-circle-bold-duotone"></fib-icon>
-        </button>
-        <span class="lab">VOL</span>
-        <button type="button" aria-label="Volume up" @click=${up}>
-          <fib-icon icon="solar:add-circle-bold-duotone"></fib-icon>
-        </button>
-      </div>
-      <span class="pct"></span>`;
+      return this._volScrub(hl, remoteVol);
+    }
+    _volScrub(hl, remoteVol) {
+      const SLOP = 4;
+      const STEP_PX = 22;
+      const HOLD_MS = 450;
+      const step = (dir) => {
+        if (this._unavail())
+          return;
+        const key2 = dir > 0 ? "volume_up" : "volume_down";
+        if (remoteVol)
+          this._send(key2);
+        else
+          this._mpDo(key2);
+      };
+      const down = (e4) => {
+        if (this._unavail())
+          return;
+        const el = e4.currentTarget;
+        el.setPointerCapture && el.setPointerCapture(e4.pointerId);
+        const r4 = el.getBoundingClientRect();
+        this._scrub = {
+          lastX: e4.clientX,
+          moved: false,
+          held: false,
+          dir: e4.clientX >= r4.left + r4.width / 2 ? 1 : -1
+        };
+        this.requestUpdate();
+        clearTimeout(this._scrubHoldT);
+        this._scrubHoldT = setTimeout(() => {
+          if (this._scrub && !this._scrub.moved) {
+            this._scrub.held = true;
+            this._hold(() => step(this._scrub.dir));
+          }
+        }, HOLD_MS);
+      };
+      const move = (e4) => {
+        const s4 = this._scrub;
+        if (!s4)
+          return;
+        if (!s4.moved && Math.abs(e4.clientX - s4.lastX) < SLOP)
+          return;
+        if (!s4.moved) {
+          s4.moved = true;
+          clearTimeout(this._scrubHoldT);
+          this._release();
+        }
+        if (Math.abs(e4.clientX - s4.lastX) >= STEP_PX && !this._scrubLock) {
+          step(e4.clientX > s4.lastX ? 1 : -1);
+          s4.lastX = e4.clientX;
+          this._scrubLock = true;
+          clearTimeout(this._scrubLockT);
+          this._scrubLockT = setTimeout(() => {
+            this._scrubLock = false;
+          }, 120);
+        }
+      };
+      const end = () => {
+        const s4 = this._scrub;
+        this._scrub = null;
+        clearTimeout(this._scrubHoldT);
+        this._release();
+        if (s4 && !s4.moved && !s4.held)
+          step(s4.dir);
+        this.requestUpdate();
+      };
+      const key = (e4) => {
+        const dir = e4.key === "ArrowRight" || e4.key === "ArrowUp" ? 1 : e4.key === "ArrowLeft" || e4.key === "ArrowDown" ? -1 : 0;
+        if (!dir)
+          return;
+        e4.preventDefault();
+        step(dir);
+      };
+      return b2`<div
+      class="scrub ${this._scrub ? "dragging" : ""}"
+      role="group"
+      aria-label=${t3(hl, "remote.volume")}
+      tabindex="0"
+      @pointerdown=${down}
+      @pointermove=${move}
+      @pointerup=${end}
+      @pointercancel=${end}
+      @lostpointercapture=${end}
+      @keydown=${key}
+    >
+      <fib-icon class="edge" icon="solar:volume-small-bold-duotone"></fib-icon>
+      <div class="groove"><span class="grip"></span></div>
+      <fib-icon class="edge" icon="solar:volume-loud-bold-duotone"></fib-icon>
+    </div>`;
     }
     _channelRow() {
       if (!this._cmd("channel_up"))
@@ -6773,6 +7156,123 @@ ${decls}
         onSelect: (s4) => this._mpDo("select_source", { source: s4.source || s4.name })
       });
     }
+    _controls(hl) {
+      const list = this._dev().controls;
+      if (!Array.isArray(list) || !list.length)
+        return "";
+      const rows = list.map((item) => this._control(hl, item)).filter((r4) => r4 !== A);
+      if (!rows.length)
+        return "";
+      return b2`<div class="controls">${rows}</div>`;
+    }
+    _control(hl, item) {
+      const st = this.hass && this.hass.states[item.entity];
+      if (!st)
+        return A;
+      const type = item.type || CONTROL_TYPE[item.entity.split(".")[0]];
+      const name = item.name || st.attributes && st.attributes.friendly_name || item.entity;
+      switch (type) {
+        case "select":
+          return this._ctlSelect(hl, item, st, name);
+        case "light":
+        case "number":
+          return this._ctlSlider(item, st, name);
+        case "toggle":
+          return this._ctlToggle(item, st, name);
+        case "button":
+        case "scene":
+          return this._ctlButton(type, item, name);
+        default:
+          return A;
+      }
+    }
+    _ctlSelect(hl, item, st, name) {
+      const options = st.attributes && st.attributes.options || [];
+      if (!options.length)
+        return A;
+      const all = options.map((o5) => ({ name: o5, source: o5 }));
+      const open = !!this._ctlOpen.get(item.entity);
+      const dom = item.entity.split(".")[0];
+      return b2`<div class="ctl">
+      <div class="ctl-lab"><span>${name}</span></div>
+      ${overflowChips({
+        hl,
+        all,
+        collapsed: all.length > 8 ? all.slice(0, 6) : null,
+        activeValue: st.state,
+        open,
+        onToggle: () => {
+          this._ctlOpen.set(item.entity, !open);
+          this.requestUpdate();
+        },
+        onSelect: (s4) => this._ctlDo(dom, "select_option", {
+          entity_id: item.entity,
+          option: s4.source || s4.name
+        })
+      })}
+    </div>`;
+    }
+    _ctlSlider(item, st, name) {
+      const entity = item.entity;
+      const s4 = this._ctlSliders.get(entity);
+      if (!s4)
+        return A;
+      const b3 = this._ctlBounds(entity);
+      const gone = isUnavail(st);
+      const v2 = this._ctlValue(entity, s4);
+      const valueText = entity.split(".")[0] === "light" ? `${Math.round(v2)}%` : `${fmtNum(this.hass, v2, Number.isInteger(b3.step) ? 0 : 1)}`;
+      return b2`<div class="ctl">
+      <div class="ctl-lab">
+        <span>${name}</span
+        ><span class="ctl-val">${gone ? "" : valueText}</span>
+      </div>
+      ${sliderTrack({
+        pct: this._ctlPct(entity, v2),
+        disabled: gone,
+        label: name,
+        value: v2,
+        min: b3.min,
+        max: b3.max,
+        step: b3.step,
+        valueText,
+        onInput: (nv) => {
+          const sn = this._ctlSnap(entity, nv);
+          s4.hold.hold(sn);
+          s4.debounced(sn);
+        },
+        onDown: s4.drag.down,
+        onMove: s4.drag.move,
+        onUp: s4.drag.up,
+        onCancel: s4.drag.cancel
+      })}
+    </div>`;
+    }
+    _ctlToggle(item, st, name) {
+      const dom = item.entity.split(".")[0];
+      return b2`<div class="ctl ctl-row">
+      <div class="ctl-lab"><span>${name}</span></div>
+      ${pillSwitch({
+        on: st.state === "on",
+        label: name,
+        onClick: () => this._ctlDo(dom, "toggle", { entity_id: item.entity })
+      })}
+    </div>`;
+    }
+    _ctlButton(type, item, name) {
+      const dom = item.entity.split(".")[0];
+      const service = type === "scene" ? "turn_on" : "press";
+      return b2`<div class="ctl ctl-row">
+      <div class="ctl-lab"><span>${name}</span></div>
+      <button
+        type="button"
+        class="key"
+        aria-label=${name}
+        @click=${() => this._ctlDo(dom, service, { entity_id: item.entity })}
+      >
+        <fib-icon icon=${item.icon || "solar:play-bold-duotone"}></fib-icon>
+      </button>
+    </div>`;
+    }
     render() {
       const cfg = this._config;
       if (!cfg)
@@ -6780,7 +7280,8 @@ ${decls}
       const hl = cfg.language || this.hass;
       const multi = this._devices.length > 1;
       const sources = this._sources(hl);
-      const two = !!sources;
+      const controls = this._controls(hl);
+      const two = !!(sources || controls);
       return b2`<div
       class="card rounded-[14px] border border-line bg-card p-[13px]
              ${this._unavail() ? "opacity-50" : ""}"
@@ -6793,9 +7294,10 @@ ${decls}
           aria-labelledby=${multi ? `fibtab-${this._sel}` : A}
         >
           ${this._switcher(hl)} ${this._header(hl)} ${this._dpad()}
-          ${this._transport()} ${this._volRow(hl)} ${this._channelRow()}
+          ${this._nav(hl)} ${this._transport()} ${this._volRow(hl)}
+          ${this._channelRow()}
         </div>
-        ${two ? b2`<div class="panel">${sources}</div>` : ""}
+        ${two ? b2`<div class="panel">${sources}${controls}</div>` : ""}
       </div>
     </div>`;
     }
@@ -8108,7 +8610,7 @@ ${decls}
    * custom element and registers it with HA's card picker (window.customCards).
    * The `/*!` banner is kept verbatim by the minifier. Edit src/, run `bun run build`.
    */
-  var VERSION = "0.7.6";
+  var VERSION = "0.8.0";
   var CARDS = [
     [
       "fibbers-nav",

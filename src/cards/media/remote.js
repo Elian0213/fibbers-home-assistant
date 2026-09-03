@@ -7,10 +7,14 @@
  *
  * Flat, Fibbers-native design: card2 surfaces, 1px lines, 14px radii, accent green
  * only where something is live. The d-pad is one SVG donut with four true annular
- * sectors (no clip-path corner-clipping); everything else sits below it in use
- * order. One card holds several `devices:` behind a segmented tablist; a legacy
- * top-level `entity:`/`media_player:` normalises to a single-device, switcher-less
- * card — 0.7.x configs render unchanged apart from the restyle.
+ * sectors (no clip-path corner-clipping); below it the controls sit in separate,
+ * well-spaced groups — navigation (back/home/menu), media transport (prev/play/next),
+ * then volume — so nav never reads as "part of" transport. Volume is a real slider
+ * when the player reports a level, else a slider-shaped scrub strip (drag to change).
+ * An optional per-device `controls:` list surfaces extra entities the remote can't
+ * infer — a picture-style select → chips, a light/number → slider, a switch → toggle.
+ * One card holds several `devices:` behind a segmented tablist; a legacy top-level
+ * `entity:`/`media_player:` normalises to a single-device, switcher-less card.
  * ================================================================== */
 import { LitElement, html, svg, css, nothing } from "lit";
 
@@ -21,6 +25,7 @@ import {
   sliderDrag,
   overflowChips,
   activateOnKey,
+  pillSwitch,
   SliderHold,
 } from "../../shared/ui.js";
 import {
@@ -29,6 +34,8 @@ import {
   isUnavail,
   store,
   debounce,
+  clamp,
+  fmtNum,
 } from "../../shared/util.js";
 import "../../shared/icon.js";
 
@@ -120,6 +127,31 @@ const MF_SELECT_SOURCE = 2048;
 const MF_PLAY = 16384;
 
 const DPAD_MODES = ["swipe", "buttons", "both", "grid"];
+
+// Optional `controls:` panel — surface extra entities the remote can't infer (a
+// picture-style select, a brightness slider, a screen-off switch). Entity domain →
+// render kind; `type:` on the control overrides. Slider kinds (light/number) get a
+// per-entity SliderHold + drag gesture built in setConfig.
+const CONTROL_TYPE = {
+  select: "select",
+  input_select: "select",
+  light: "light",
+  number: "number",
+  input_number: "number",
+  switch: "toggle",
+  input_boolean: "toggle",
+  button: "button",
+  scene: "scene",
+};
+const CONTROL_TYPES = [
+  "select",
+  "light",
+  "number",
+  "toggle",
+  "button",
+  "scene",
+];
+const SLIDER_CONTROLS = ["light", "number"];
 
 // SVG donut geometry (viewBox -104..104): outer radius 100, hub hole 40, four 76°
 // sectors on ±90/0/180° with a 7° gap either side; `ix/iy` is the chevron anchor.
@@ -447,6 +479,44 @@ export class FibbersRemote extends LitElement {
         opacity: 0.4;
       }
 
+      /* navigation: back/home/menu as their own labelled buttons — deliberately NOT
+         a seamless strip, so nav reads as a different group from transport. */
+      .navrow {
+        display: flex;
+        gap: 8px;
+      }
+      .navrow button {
+        flex: 1;
+        min-width: 0;
+        min-height: var(--fib-hit);
+        border: 1px solid var(--color-line);
+        border-radius: 12px;
+        background: var(--color-card2);
+        color: var(--color-ink2);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 0 8px;
+        font: inherit;
+        font-size: 11.5px;
+        font-weight: 600;
+      }
+      .navrow button:active {
+        background: var(--color-accentbg);
+        border-color: var(--color-accentline);
+        color: var(--color-accent);
+      }
+      .navrow button.flash {
+        opacity: 0.4;
+      }
+      .navrow fib-icon {
+        --mdc-icon-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+
       /* icon key (mute) */
       .key {
         width: var(--fib-hit);
@@ -516,12 +586,102 @@ export class FibbersRemote extends LitElement {
         height: 20px;
       }
 
+      /* volume scrub: a slider-shaped surface with no thumb position (the device
+         reports no level) — drag to change, tap a side to step, hold to repeat. */
+      .scrub {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: var(--fib-hit);
+        cursor: ew-resize;
+        touch-action: none;
+        user-select: none;
+      }
+      .scrub .edge {
+        --mdc-icon-size: 18px;
+        width: 18px;
+        height: 18px;
+        color: var(--color-muted);
+        flex: none;
+      }
+      .scrub .groove {
+        position: relative;
+        flex: 1;
+        height: 6px;
+        border-radius: 3px;
+        background: #2c3639;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .scrub .grip {
+        width: 32px;
+        height: 6px;
+        border-radius: 3px;
+        background: var(--color-accent);
+        opacity: 0.8;
+        transition: opacity 0.1s;
+      }
+      .scrub:focus-visible {
+        outline: none;
+      }
+      .scrub:focus-visible .groove {
+        box-shadow: 0 0 0 2px var(--color-accent);
+      }
+      .scrub:active .grip,
+      .scrub.dragging .grip {
+        opacity: 1;
+      }
+
       /* companion panel (sources) — fills the second column on a wide card */
       .panel {
         display: grid;
         gap: 11px;
         align-content: start;
         min-width: 0;
+      }
+
+      /* generic controls (select→chips, light/number→slider, switch→toggle) */
+      .controls {
+        display: grid;
+        gap: 13px;
+        min-width: 0;
+      }
+      .ctl {
+        display: grid;
+        gap: 7px;
+        min-width: 0;
+      }
+      .ctl-lab {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font: 600 9.5px/1 inherit;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--color-muted);
+        min-width: 0;
+      }
+      .ctl-lab > span:first-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .ctl-val {
+        flex: none;
+        letter-spacing: normal;
+        font-variant-numeric: tabular-nums;
+      }
+      .ctl-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .ctl-row .key {
+        --mdc-icon-size: 20px;
       }
     `,
   ];
@@ -584,6 +744,25 @@ export class FibbersRemote extends LitElement {
           "fibbers-remote: `sources`/`favourites` need a `media_player:` — they call media_player.select_source",
         );
       }
+      if (d.controls != null) {
+        if (!Array.isArray(d.controls)) {
+          throw new Error(
+            `fibbers-remote: device[${i}] \`controls\` must be a list`,
+          );
+        }
+        d.controls.forEach((c, j) => {
+          if (!c || typeof c.entity !== "string") {
+            throw new Error(
+              `fibbers-remote: device[${i}].controls[${j}] needs an \`entity\``,
+            );
+          }
+          if (c.type != null && !CONTROL_TYPES.includes(c.type)) {
+            throw new Error(
+              `fibbers-remote: \`controls[].type\` must be one of ${CONTROL_TYPES.join(", ")}`,
+            );
+          }
+        });
+      }
     });
 
     this._config = config;
@@ -625,6 +804,54 @@ export class FibbersRemote extends LitElement {
         if (v != null) this._setVol(v);
       },
     });
+
+    // Controls panel: per-select drawer state + per-slider (light/number) hold + drag
+    // gesture. Reuse existing controllers by entity so HA's per-keystroke setConfig
+    // can't stack a fresh SliderHold on the host; drop controllers for entities that
+    // are no longer configured.
+    this._ctlOpen = this._ctlOpen || new Map();
+    this._ctlSliders = this._ctlSliders || new Map();
+    const wanted = new Set();
+    for (const d of devices) {
+      for (const c of d.controls || []) {
+        const kind = c.type || CONTROL_TYPE[String(c.entity).split(".")[0]];
+        if (SLIDER_CONTROLS.includes(kind)) {
+          wanted.add(c.entity);
+          if (!this._ctlSliders.has(c.entity)) {
+            this._ctlSliders.set(c.entity, this._makeCtlSlider(c.entity));
+          }
+        }
+      }
+    }
+    for (const [entity, s] of this._ctlSliders) {
+      if (wanted.has(entity)) continue;
+      s.debounced.cancel();
+      if (this.removeController) this.removeController(s.hold);
+      this._ctlSliders.delete(entity);
+    }
+  }
+
+  // A per-entity slider controller (hold + drag gesture + debounced write) for a
+  // light/number control. Kept in _ctlSliders, keyed by entity.
+  _makeCtlSlider(entity) {
+    const hold = new SliderHold(this, { tolerance: 1, timeout: 2000 });
+    const s = { hold, dragging: false, dragVal: 0 };
+    s.debounced = debounce((v) => this._ctlSet(entity, v), 150);
+    s.drag = sliderDrag({
+      guard: () => isUnavail(this.hass && this.hass.states[entity]),
+      read: (e) => this._ctlValFromX(entity, e.clientX, e.currentTarget),
+      frame: (v, dragging) => {
+        s.dragging = dragging;
+        if (v != null) s.dragVal = v;
+        this.requestUpdate();
+      },
+      live: (v) => s.debounced(v),
+      end: (v) => {
+        s.debounced.cancel();
+        if (v != null) this._ctlSet(entity, v);
+      },
+    });
+    return s;
   }
 
   _resetTransient() {
@@ -637,6 +864,12 @@ export class FibbersRemote extends LitElement {
     // abort any in-flight drag, so a value meant for device A can't land on B.
     if (this._volDrag) this._volDrag.abort();
     if (this._volInput) this._volInput.cancel();
+    // Drop any in-flight scrub gesture + its press-repeat / throttle timers.
+    this._scrub = null;
+    this._scrubLock = false;
+    clearTimeout(this._scrubHoldT);
+    clearTimeout(this._scrubLockT);
+    this._release();
   }
 
   _persistKey() {
@@ -657,7 +890,11 @@ export class FibbersRemote extends LitElement {
     super.disconnectedCallback();
     this._release(); // a held button must not keep firing after unmount
     clearTimeout(this._flashTimer);
+    clearTimeout(this._scrubHoldT);
+    clearTimeout(this._scrubLockT);
     if (this._volInput) this._volInput.cancel();
+    if (this._ctlSliders)
+      for (const s of this._ctlSliders.values()) s.debounced.cancel();
     document.removeEventListener("visibilitychange", this._onHidden);
   }
 
@@ -868,6 +1105,92 @@ export class FibbersRemote extends LitElement {
     if (!Array.isArray(favs) || !favs.length) return null;
     const byValue = new Map(all.map((s) => [s.source || s.name, s]));
     return favs.map((f) => byValue.get(f) || { name: f, source: f });
+  }
+
+  // --- controls panel (value mapping) --------------------------------
+
+  // Slider value-space for a control: lights are always 0-100 (brightness_pct);
+  // numbers use the entity's own min/max/step.
+  _ctlBounds(entity) {
+    if (entity.split(".")[0] === "light") return { min: 0, max: 100, step: 1 };
+    const st = this.hass && this.hass.states[entity];
+    const a = (st && st.attributes) || {};
+    const min = Number(a.min != null ? a.min : 0);
+    const max = Number(a.max != null ? a.max : 100);
+    const raw = Number(a.step);
+    const step = Number.isFinite(raw) && raw > 0 ? raw : 1;
+    return { min, max: max > min ? max : min + 1, step };
+  }
+  // The entity's real value in slider-space: a light's brightness_pct (0 when off),
+  // else the number's state.
+  _ctlRawValue(entity) {
+    const st = this.hass && this.hass.states[entity];
+    if (entity.split(".")[0] === "light") {
+      if (!st || st.state !== "on") return 0;
+      const b = st.attributes.brightness;
+      return b != null ? Math.round((b / 255) * 100) : 100;
+    }
+    const n = Number(st && st.state);
+    return Number.isFinite(n) ? n : this._ctlBounds(entity).min;
+  }
+  _ctlSnap(entity, v) {
+    const { min, max, step } = this._ctlBounds(entity);
+    const snapped = Math.round((v - min) / step) * step + min;
+    return clamp(Number(snapped.toFixed(4)), min, max);
+  }
+  _ctlPct(entity, v) {
+    const { min, max } = this._ctlBounds(entity);
+    return clamp(((v - min) / (max - min)) * 100, 0, 100);
+  }
+  _ctlValFromX(entity, clientX, track) {
+    const { min, max } = this._ctlBounds(entity);
+    return this._ctlSnap(
+      entity,
+      min + (pctFromX(clientX, track) / 100) * (max - min),
+    );
+  }
+  // Display value with the snap-back hold applied (same treatment as the volume/
+  // number sliders).
+  _ctlValue(entity, s) {
+    const { min, max, step } = this._ctlBounds(entity);
+    s.hold.tolerance = Math.max(step / 2, (max - min) / 1000);
+    return s.hold.value(this._ctlRawValue(entity), {
+      dragging: s.dragging,
+      dragValue: s.dragVal,
+      gone: isUnavail(this.hass && this.hass.states[entity]),
+    });
+  }
+  // Commit a control slider value: light → turn_on brightness_pct (turn_off at 0),
+  // number → set_value. Release the hold on rejection.
+  _ctlSet(entity, v) {
+    if (!this.hass) return;
+    const s = this._ctlSliders.get(entity);
+    if (s) s.hold.hold(v);
+    const dom = entity.split(".")[0];
+    let p;
+    if (dom === "light") {
+      p =
+        v <= 0
+          ? this.hass.callService("light", "turn_off", { entity_id: entity })
+          : this.hass.callService("light", "turn_on", {
+              entity_id: entity,
+              brightness_pct: v,
+            });
+    } else {
+      p = this.hass.callService(dom, "set_value", {
+        entity_id: entity,
+        value: v,
+      });
+    }
+    Promise.resolve(p).catch(() => s && s.hold.clear());
+  }
+  // Fire-and-forget service for the non-slider controls (select/toggle/button);
+  // swallow the rejection so it isn't unhandled.
+  _ctlDo(domain, service, data) {
+    if (!this.hass) return;
+    Promise.resolve(this.hass.callService(domain, service, data)).catch(
+      () => {},
+    );
   }
 
   _setVol(pct) {
@@ -1117,9 +1440,46 @@ export class FibbersRemote extends LitElement {
     </div>`;
   }
 
-  // One segmented strip for transport + navigation. Each cell is gated on the
-  // capability that would actually run it: the media_player feature bit if the call
-  // will route there, else the remote command. Play/pause takes PLAY or PAUSE.
+  // Navigation keys (Back / Home / Menu) as their own labelled row, sitting right
+  // under the wheel — nav belongs with the d-pad, not lumped into the transport
+  // strip (where Back/Home read as "missing"). Each cell renders only when the
+  // device advertises the command; Menu only when it's distinct from Back (Apple TV
+  // aliases Back → menu).
+  _nav(hl) {
+    const navBtn = (label, icon, key) =>
+      this._cmd(key)
+        ? html`<button
+            type="button"
+            class=${this._flash === key ? "flash" : ""}
+            aria-label=${label}
+            @click=${() => this._send(key)}
+          >
+            <fib-icon icon=${icon}></fib-icon>${label}
+          </button>`
+        : nothing;
+    const showMenu =
+      this._cmd("menu") && this._cmd("menu") !== this._cmd("back");
+    const cells = [
+      navBtn(t(hl, "remote.back"), "solar:arrow-left-bold-duotone", "back"),
+      navBtn(t(hl, "remote.home"), "solar:home-2-bold-duotone", "home"),
+      showMenu
+        ? navBtn(t(hl, "remote.menu"), "solar:menu-dots-bold-duotone", "menu")
+        : nothing,
+    ].filter((c) => c !== nothing);
+    if (!cells.length) return "";
+    return html`<div
+      class="navrow"
+      role="group"
+      aria-label=${t(hl, "remote.navigation")}
+    >
+      ${cells}
+    </div>`;
+  }
+
+  // One segmented strip for media transport only (previous · play/pause · next).
+  // Each cell is gated on the capability that would actually run it: the media_player
+  // feature bit if the call will route there, else the remote command. Play/pause
+  // takes PLAY or PAUSE. Navigation (back/home/menu) lives in _nav, not here.
   _transport() {
     const mp = this._mp();
     const playIcon =
@@ -1144,20 +1504,6 @@ export class FibbersRemote extends LitElement {
         <fib-icon icon=${icon}></fib-icon>
       </button>`;
     };
-    const navBtn = (label, icon, key) =>
-      this._cmd(key)
-        ? html`<button
-            type="button"
-            class=${this._flash === key ? "flash" : ""}
-            aria-label=${label}
-            @click=${() => this._send(key)}
-          >
-            <fib-icon icon=${icon}></fib-icon>
-          </button>`
-        : nothing;
-    // Apple TV aliases Back → menu; render Menu only when it's a distinct command.
-    const showMenu =
-      this._cmd("menu") && this._cmd("menu") !== this._cmd("back");
     const cells = [
       tp(
         "Previous",
@@ -1174,11 +1520,6 @@ export class FibbersRemote extends LitElement {
         "media_next_track",
         mp && this._mpSupports(mp, MF_NEXT),
       ),
-      navBtn("Back", "solar:arrow-left-bold-duotone", "back"),
-      navBtn("Home", "solar:home-2-bold-duotone", "home"),
-      showMenu
-        ? navBtn("Menu", "solar:menu-dots-bold-duotone", "menu")
-        : nothing,
     ].filter((c) => c !== nothing);
     if (!cells.length) return "";
     return html`<div class="strip">${cells}</div>`;
@@ -1255,23 +1596,103 @@ export class FibbersRemote extends LitElement {
           onCancel: this._volDrag.cancel,
         })}<span class="pct">${vol}%</span>`;
     }
-    // No level: a − VOL + stepper that keeps the row's height and anatomy.
-    const down = remoteVol
-      ? () => this._send("volume_down")
-      : () => this._mpDo("volume_down");
-    const up = remoteVol
-      ? () => this._send("volume_up")
-      : () => this._mpDo("volume_up");
-    return html`<div class="steps">
-        <button type="button" aria-label="Volume down" @click=${down}>
-          <fib-icon icon="solar:minus-circle-bold-duotone"></fib-icon>
-        </button>
-        <span class="lab">VOL</span>
-        <button type="button" aria-label="Volume up" @click=${up}>
-          <fib-icon icon="solar:add-circle-bold-duotone"></fib-icon>
-        </button>
-      </div>
-      <span class="pct"></span>`;
+    // No level to position a thumb at → a slider-shaped scrub strip instead of a
+    // cramped stepper: drag to change, tap a side to step, hold to repeat. Full
+    // width (no % cell), so nothing jumps if a TV that *did* report a level sleeps.
+    return this._volScrub(hl, remoteVol);
+  }
+
+  // The scrub strip for a device with no `volume_level`. One `volume_up`/`down` per
+  // ~STEP_PX of drag past the slop (throttled), a side-tap steps once, and a still
+  // press repeats via the shared `_hold`. Routes through the remote command when the
+  // device has one, else the media_player VOLUME_STEP service — same gating as the
+  // old stepper. No absolute position is ever shown: the device reports none.
+  _volScrub(hl, remoteVol) {
+    const SLOP = 4;
+    const STEP_PX = 22;
+    const HOLD_MS = 450;
+    const step = (dir) => {
+      if (this._unavail()) return;
+      const key = dir > 0 ? "volume_up" : "volume_down";
+      if (remoteVol) this._send(key);
+      else this._mpDo(key);
+    };
+    const down = (e) => {
+      if (this._unavail()) return;
+      const el = e.currentTarget;
+      el.setPointerCapture && el.setPointerCapture(e.pointerId);
+      const r = el.getBoundingClientRect();
+      this._scrub = {
+        lastX: e.clientX,
+        moved: false,
+        held: false,
+        dir: e.clientX >= r.left + r.width / 2 ? 1 : -1,
+      };
+      this.requestUpdate(); // reflect the .dragging grip state
+      // A still press (no drag) repeats in the pressed side's direction.
+      clearTimeout(this._scrubHoldT);
+      this._scrubHoldT = setTimeout(() => {
+        if (this._scrub && !this._scrub.moved) {
+          this._scrub.held = true;
+          this._hold(() => step(this._scrub.dir));
+        }
+      }, HOLD_MS);
+    };
+    const move = (e) => {
+      const s = this._scrub;
+      if (!s) return;
+      if (!s.moved && Math.abs(e.clientX - s.lastX) < SLOP) return;
+      if (!s.moved) {
+        // A drag started — this isn't a press-repeat; drop the pending/active one.
+        s.moved = true;
+        clearTimeout(this._scrubHoldT);
+        this._release();
+      }
+      if (Math.abs(e.clientX - s.lastX) >= STEP_PX && !this._scrubLock) {
+        step(e.clientX > s.lastX ? 1 : -1);
+        s.lastX = e.clientX;
+        this._scrubLock = true;
+        clearTimeout(this._scrubLockT);
+        this._scrubLockT = setTimeout(() => {
+          this._scrubLock = false;
+        }, 120);
+      }
+    };
+    const end = () => {
+      const s = this._scrub;
+      this._scrub = null;
+      clearTimeout(this._scrubHoldT);
+      this._release();
+      if (s && !s.moved && !s.held) step(s.dir); // a plain side-tap steps once
+      this.requestUpdate(); // clear the .dragging grip state
+    };
+    const key = (e) => {
+      const dir =
+        e.key === "ArrowRight" || e.key === "ArrowUp"
+          ? 1
+          : e.key === "ArrowLeft" || e.key === "ArrowDown"
+            ? -1
+            : 0;
+      if (!dir) return;
+      e.preventDefault();
+      step(dir); // browser key-repeat drives a held arrow
+    };
+    return html`<div
+      class="scrub ${this._scrub ? "dragging" : ""}"
+      role="group"
+      aria-label=${t(hl, "remote.volume")}
+      tabindex="0"
+      @pointerdown=${down}
+      @pointermove=${move}
+      @pointerup=${end}
+      @pointercancel=${end}
+      @lostpointercapture=${end}
+      @keydown=${key}
+    >
+      <fib-icon class="edge" icon="solar:volume-small-bold-duotone"></fib-icon>
+      <div class="groove"><span class="grip"></span></div>
+      <fib-icon class="edge" icon="solar:volume-loud-bold-duotone"></fib-icon>
+    </div>`;
   }
 
   _channelRow() {
@@ -1326,6 +1747,141 @@ export class FibbersRemote extends LitElement {
     });
   }
 
+  // The generic controls panel: render each configured control by kind. Skips
+  // controls whose entity isn't loaded, so a stale entity id leaves no dead row.
+  _controls(hl) {
+    const list = this._dev().controls;
+    if (!Array.isArray(list) || !list.length) return "";
+    const rows = list
+      .map((item) => this._control(hl, item))
+      .filter((r) => r !== nothing);
+    if (!rows.length) return "";
+    return html`<div class="controls">${rows}</div>`;
+  }
+
+  _control(hl, item) {
+    const st = this.hass && this.hass.states[item.entity];
+    if (!st) return nothing;
+    const type = item.type || CONTROL_TYPE[item.entity.split(".")[0]];
+    const name =
+      item.name ||
+      (st.attributes && st.attributes.friendly_name) ||
+      item.entity;
+    switch (type) {
+      case "select":
+        return this._ctlSelect(hl, item, st, name);
+      case "light":
+      case "number":
+        return this._ctlSlider(item, st, name);
+      case "toggle":
+        return this._ctlToggle(item, st, name);
+      case "button":
+      case "scene":
+        return this._ctlButton(type, item, name);
+      default:
+        return nothing;
+    }
+  }
+
+  // A select/input_select as a chip row (picture-style presets etc.), collapsing to
+  // the first few when there are many.
+  _ctlSelect(hl, item, st, name) {
+    const options = (st.attributes && st.attributes.options) || [];
+    if (!options.length) return nothing;
+    const all = options.map((o) => ({ name: o, source: o }));
+    const open = !!this._ctlOpen.get(item.entity);
+    const dom = item.entity.split(".")[0];
+    return html`<div class="ctl">
+      <div class="ctl-lab"><span>${name}</span></div>
+      ${overflowChips({
+        hl,
+        all,
+        collapsed: all.length > 8 ? all.slice(0, 6) : null,
+        activeValue: st.state,
+        open,
+        onToggle: () => {
+          this._ctlOpen.set(item.entity, !open);
+          this.requestUpdate();
+        },
+        onSelect: (s) =>
+          this._ctlDo(dom, "select_option", {
+            entity_id: item.entity,
+            option: s.source || s.name,
+          }),
+      })}
+    </div>`;
+  }
+
+  // A light (brightness) or number as a drag slider, reusing the shared track +
+  // per-entity hold/drag built in setConfig.
+  _ctlSlider(item, st, name) {
+    const entity = item.entity;
+    const s = this._ctlSliders.get(entity);
+    if (!s) return nothing;
+    const b = this._ctlBounds(entity);
+    const gone = isUnavail(st);
+    const v = this._ctlValue(entity, s);
+    const valueText =
+      entity.split(".")[0] === "light"
+        ? `${Math.round(v)}%`
+        : `${fmtNum(this.hass, v, Number.isInteger(b.step) ? 0 : 1)}`;
+    return html`<div class="ctl">
+      <div class="ctl-lab">
+        <span>${name}</span
+        ><span class="ctl-val">${gone ? "" : valueText}</span>
+      </div>
+      ${sliderTrack({
+        pct: this._ctlPct(entity, v),
+        disabled: gone,
+        label: name,
+        value: v,
+        min: b.min,
+        max: b.max,
+        step: b.step,
+        valueText,
+        onInput: (nv) => {
+          const sn = this._ctlSnap(entity, nv);
+          s.hold.hold(sn);
+          s.debounced(sn);
+        },
+        onDown: s.drag.down,
+        onMove: s.drag.move,
+        onUp: s.drag.up,
+        onCancel: s.drag.cancel,
+      })}
+    </div>`;
+  }
+
+  // A switch/input_boolean as a labelled pill toggle (screen-off etc.).
+  _ctlToggle(item, st, name) {
+    const dom = item.entity.split(".")[0];
+    return html`<div class="ctl ctl-row">
+      <div class="ctl-lab"><span>${name}</span></div>
+      ${pillSwitch({
+        on: st.state === "on",
+        label: name,
+        onClick: () => this._ctlDo(dom, "toggle", { entity_id: item.entity }),
+      })}
+    </div>`;
+  }
+
+  // A button/scene as a single press key.
+  _ctlButton(type, item, name) {
+    const dom = item.entity.split(".")[0];
+    const service = type === "scene" ? "turn_on" : "press";
+    return html`<div class="ctl ctl-row">
+      <div class="ctl-lab"><span>${name}</span></div>
+      <button
+        type="button"
+        class="key"
+        aria-label=${name}
+        @click=${() => this._ctlDo(dom, service, { entity_id: item.entity })}
+      >
+        <fib-icon icon=${item.icon || "solar:play-bold-duotone"}></fib-icon>
+      </button>
+    </div>`;
+  }
+
   /** Draw the card: optional switcher, header, d-pad, transport, volume, channel and sources. */
   render() {
     const cfg = this._config;
@@ -1333,7 +1889,8 @@ export class FibbersRemote extends LitElement {
     const hl = cfg.language || this.hass;
     const multi = this._devices.length > 1;
     const sources = this._sources(hl);
-    const two = !!sources;
+    const controls = this._controls(hl);
+    const two = !!(sources || controls);
 
     return html`<div
       class="card rounded-[14px] border border-line bg-card p-[13px]
@@ -1347,9 +1904,10 @@ export class FibbersRemote extends LitElement {
           aria-labelledby=${multi ? `fibtab-${this._sel}` : nothing}
         >
           ${this._switcher(hl)} ${this._header(hl)} ${this._dpad()}
-          ${this._transport()} ${this._volRow(hl)} ${this._channelRow()}
+          ${this._nav(hl)} ${this._transport()} ${this._volRow(hl)}
+          ${this._channelRow()}
         </div>
-        ${two ? html`<div class="panel">${sources}</div>` : ""}
+        ${two ? html`<div class="panel">${sources}${controls}</div>` : ""}
       </div>
     </div>`;
   }

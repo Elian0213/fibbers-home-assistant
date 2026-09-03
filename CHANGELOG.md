@@ -3,6 +3,37 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.8.0] — 2026-09-03
+
+`fibbers-remote` gets its below-the-wheel half rebuilt. Everything under the d-pad
+was one undifferentiated zone — Back and Home were jammed into the media-transport
+strip (so they read as "missing"), and a device that reports no volume level fell
+back to a cramped `− VOL +` stepper. The wheel and header are untouched.
+
+### Changed
+
+- **Navigation and transport are now separate groups.** Back / Home / Menu sit in
+  their own labelled row directly under the wheel; the transport strip below it holds
+  only Previous · Play/Pause · Next. Nav belongs with the d-pad, not with playback —
+  and Back/Home are finally unmistakable. Speakers (no d-pad) drop the nav row
+  cleanly; Menu still shows only when it's a command distinct from Back.
+
+### Added
+
+- **A slider-shaped volume scrub strip** for devices that don't report a
+  `volume_level` (e.g. an Apple TV whose player exposes `volume_up`/`down` but no
+  level). Full-width, same height as the real slider: drag to change, tap a side to
+  step, hold to repeat, arrow keys to nudge. Honest — it never invents a thumb
+  position the device can't give. Fixes the old stepper's missing long-press repeat
+  and its dead 38px of empty space. Players that _do_ report a level keep the real
+  positional slider.
+- **An optional per-device `controls:` panel** in the companion column, for the
+  extras a remote can't infer. Each entry is `{ entity, name?, icon?, type? }`,
+  rendered by domain: `select`/`input_select` → preset chips (e.g. a TV picture-style
+  select), `light`/`number` → a drag slider, `switch`/`input_boolean` → a toggle,
+  `button`/`scene` → a press. Reuses the existing slider/chip/hold primitives; unknown
+  entities are skipped so a stale id leaves no dead row.
+
 ## [0.7.6] — 2026-09-03
 
 A small patch: the last two undebounced sliders, two timing defects in 0.7.5's

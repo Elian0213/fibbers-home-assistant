@@ -96,6 +96,10 @@
   "remote": {
     "default_name": "Remote",
     "devices": "Devices",
+    "navigation": "Navigation",
+    "back": "Back",
+    "home": "Home",
+    "menu": "Menu",
     "volume": "Volume",
     "mute": "Mute",
     "on": "On",
