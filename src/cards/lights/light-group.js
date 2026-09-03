@@ -251,7 +251,12 @@ export class FibbersLightGroup extends LitElement {
     const next = stepFromKey(e.key, { value: cur, min: 0, max: 100, step: 5 });
     if (next == null) return;
     e.preventDefault();
-    if (next !== cur) this._commit(next);
+    // Arm the hold now so held-key repeats keep climbing, but debounce the write —
+    // the raw committer fired a light.turn_on per keydown (~30/s on auto-repeat).
+    if (next !== cur) {
+      this._hold.hold(next);
+      this._debouncedCommit(next);
+    }
   }
 
   _toggle() {

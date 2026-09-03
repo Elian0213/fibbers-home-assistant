@@ -277,7 +277,14 @@ export class FibbersNumber extends LitElement {
           max: b.max,
           step: b.step,
           valueText: val,
-          onInput: (nv) => this._setValue(this._snap(nv)),
+          // Keyboard: arm the hold now (so the display advances and holding a key
+          // keeps stepping) but debounce the write — the raw committer fired ~30
+          // set_value calls a second on auto-repeat.
+          onInput: (nv) => {
+            const s = this._snap(nv);
+            this._hold.hold(s);
+            this._debouncedSet(s);
+          },
           onDown: this._down,
           onMove: this._move,
           onUp: this._up,

@@ -96,11 +96,16 @@ export class SliderHold {
     this.host.requestUpdate();
   }
 
-  /** ReactiveController teardown — cancel the timer so a detached host never re-renders. */
+  /** ReactiveController teardown — cancel the timer and deregister from the host. */
   hostDisconnected() {
     this._pending = null;
     clearTimeout(this._timer);
     this._timer = null;
+    // Lit does have removeController — deregister so the host doesn't retain the
+    // controller after unmount. (Cards still reuse one hold across setConfig; that
+    // guard prevents stacking a fresh controller per editor keystroke, which
+    // hostDisconnected can't help with since it only fires on unmount.)
+    if (this.host.removeController) this.host.removeController(this);
   }
 }
 
@@ -192,8 +197,10 @@ export function sliderTrack({
     aria-label=${label || "slider"}
     aria-valuemin=${min}
     aria-valuemax=${max}
-    aria-valuenow=${value != null ? value : Math.round(pct)}
-    aria-valuetext=${valueText != null ? valueText : nothing}
+    aria-valuenow=${
+      disabled ? nothing : value != null ? value : Math.round(pct)
+    }
+    aria-valuetext=${disabled || valueText == null ? nothing : valueText}
     aria-disabled=${disabled ? "true" : "false"}
     @pointerdown=${onDown}
     @pointermove=${onMove}

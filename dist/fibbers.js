@@ -1883,6 +1883,8 @@ ${BASE_CSS}`);
       this._pending = null;
       clearTimeout(this._timer);
       this._timer = null;
+      if (this.host.removeController)
+        this.host.removeController(this);
     }
   }
   function stepFromKey(key, { value, min, max, step }) {
@@ -1946,8 +1948,8 @@ ${BASE_CSS}`);
     aria-label=${label || "slider"}
     aria-valuemin=${min}
     aria-valuemax=${max}
-    aria-valuenow=${value != null ? value : Math.round(pct)}
-    aria-valuetext=${valueText != null ? valueText : A}
+    aria-valuenow=${disabled ? A : value != null ? value : Math.round(pct)}
+    aria-valuetext=${disabled || valueText == null ? A : valueText}
     aria-disabled=${disabled ? "true" : "false"}
     @pointerdown=${onDown}
     @pointermove=${onMove}
@@ -2282,7 +2284,11 @@ ${BASE_CSS}`);
           max: b3.max,
           step: b3.step,
           valueText: val,
-          onInput: (nv) => this._setValue(this._snap(nv)),
+          onInput: (nv) => {
+            const s4 = this._snap(nv);
+            this._hold.hold(s4);
+            this._debouncedSet(s4);
+          },
           onDown: this._down,
           onMove: this._move,
           onUp: this._up,
@@ -4842,8 +4848,10 @@ ${decls}
       if (next == null)
         return;
       e4.preventDefault();
-      if (next !== cur)
-        this._commit(next);
+      if (next !== cur) {
+        this._hold.hold(next);
+        this._debouncedCommit(next);
+      }
     }
     _toggle() {
       this._open = !this._open;
