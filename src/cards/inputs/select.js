@@ -207,7 +207,7 @@ export class FibbersSelect extends LitElement {
             ${
               this._open
                 ? html`<div
-                    class="absolute left-0 right-0 top-[calc(100%+4px)] z-10 max-h-[220px] overflow-auto
+                    class="absolute left-0 right-0 top-[calc(100%+4px)] z-10 max-h-[220px] overflow-auto overscroll-contain
                          rounded-[10px] border border-line bg-card p-1 shadow-[0_10px_30px_rgba(0,0,0,.5)]"
                     role="listbox"
                   >

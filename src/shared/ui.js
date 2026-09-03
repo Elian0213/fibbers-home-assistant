@@ -252,7 +252,7 @@ export function sliderTrack({
   // child. pctFromX still measures e.currentTarget (the wrapper) — same width, so
   // the maths is unchanged.
   return html`<div
-    class="relative flex h-[var(--fib-hit)] cursor-pointer touch-none items-center
+    class="relative flex h-[var(--fib-hit)] cursor-pointer touch-pan-y items-center
            ${cls} ${disabled ? "pointer-events-none" : ""}"
     role="slider"
     tabindex=${disabled ? -1 : 0}

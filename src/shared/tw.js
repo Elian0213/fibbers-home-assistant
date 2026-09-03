@@ -19,9 +19,20 @@ const supportsAdopt =
 // --fib-hit is the WCAG touch minimum in absolute px (rem would shrink it — HA's
 // root font-size is 14px on some setups, making h-11/`2.75rem` only 38.5px). One
 // knob: the .fib-hit expander and every slider/button min-size read from it.
-const BASE_CSS = `:host{--fib-hit:44px}
+//
+// Touch polish for every control (previously nav-bar-only, in core/body-layer.js):
+// kill the browser's tap-highlight overlay (inherited onto the SVG wheel, where it
+// was drawing a rectangle around each sector's bounding box), suppress text
+// selection / the iOS long-press callout on press-and-hold repeat controls, and
+// opt buttons out of double-tap-zoom. `manipulation` deliberately EXCLUDES
+// [role="slider"]: the slider wrappers set `touch-action:pan-y` (a class utility of
+// equal specificity, and BASE_CSS is concatenated after the utilities — so listing
+// slider here would win and re-break vertical page scrolling on the sliders).
+const BASE_CSS = `:host{--fib-hit:44px;-webkit-tap-highlight-color:transparent}
 :focus-visible{outline:2px solid var(--color-accent,#74B98A);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*,::before,::after{transition-duration:.01ms !important;animation-duration:.01ms !important}}
+button,[role="button"],[role="tab"],[role="switch"],[role="slider"]{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+button,[role="button"],[role="tab"],[role="switch"]{touch-action:manipulation}
 .fib-hit{position:relative}
 .fib-hit::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:var(--fib-hit);min-height:var(--fib-hit);width:100%;height:100%}`;
 

@@ -587,35 +587,60 @@ export class FibbersRemote extends LitElement {
       }
 
       /* volume scrub: a slider-shaped surface with no thumb position (the device
-         reports no level) — drag to change, tap a side to step, hold to repeat. */
+         reports no level). The ends are real buttons; the middle groove is a
+         decorative horizontal drag surface (pan-y so a vertical swipe still
+         scrolls the page). */
       .scrub {
         flex: 1;
         display: flex;
         align-items: center;
-        gap: 10px;
-        min-height: var(--fib-hit);
-        cursor: ew-resize;
-        touch-action: none;
-        user-select: none;
+        gap: 6px;
       }
       .scrub .edge {
+        flex: none;
+        width: 40px;
+        min-height: var(--fib-hit);
+        display: grid;
+        place-items: center;
+        border: 0;
+        border-radius: 11px;
+        background: transparent;
+        color: var(--color-muted);
+        cursor: pointer;
+      }
+      .scrub .edge fib-icon {
         --mdc-icon-size: 18px;
         width: 18px;
         height: 18px;
-        color: var(--color-muted);
-        flex: none;
+      }
+      .scrub .edge:active {
+        color: var(--color-accent);
+      }
+      .scrub .edge:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 2px var(--color-accent);
       }
       .scrub .groove {
         position: relative;
         flex: 1;
-        height: 6px;
-        border-radius: 3px;
-        background: #2c3639;
+        height: var(--fib-hit);
         display: flex;
         align-items: center;
         justify-content: center;
+        cursor: ew-resize;
+        touch-action: pan-y;
+      }
+      .scrub .groove::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 6px;
+        border-radius: 3px;
+        background: #2c3639;
       }
       .scrub .grip {
+        position: relative;
         width: 32px;
         height: 6px;
         border-radius: 3px;
@@ -623,13 +648,7 @@ export class FibbersRemote extends LitElement {
         opacity: 0.8;
         transition: opacity 0.1s;
       }
-      .scrub:focus-visible {
-        outline: none;
-      }
-      .scrub:focus-visible .groove {
-        box-shadow: 0 0 0 2px var(--color-accent);
-      }
-      .scrub:active .grip,
+      .scrub .groove:active .grip,
       .scrub.dragging .grip {
         opacity: 1;
       }
@@ -864,10 +883,9 @@ export class FibbersRemote extends LitElement {
     // abort any in-flight drag, so a value meant for device A can't land on B.
     if (this._volDrag) this._volDrag.abort();
     if (this._volInput) this._volInput.cancel();
-    // Drop any in-flight scrub gesture + its press-repeat / throttle timers.
+    // Drop any in-flight scrub gesture + its throttle timer / hold-repeat.
     this._scrub = null;
     this._scrubLock = false;
-    clearTimeout(this._scrubHoldT);
     clearTimeout(this._scrubLockT);
     this._release();
   }
@@ -890,7 +908,6 @@ export class FibbersRemote extends LitElement {
     super.disconnectedCallback();
     this._release(); // a held button must not keep firing after unmount
     clearTimeout(this._flashTimer);
-    clearTimeout(this._scrubHoldT);
     clearTimeout(this._scrubLockT);
     if (this._volInput) this._volInput.cancel();
     if (this._ctlSliders)
@@ -1602,52 +1619,46 @@ export class FibbersRemote extends LitElement {
     return this._volScrub(hl, remoteVol);
   }
 
-  // The scrub strip for a device with no `volume_level`. One `volume_up`/`down` per
-  // ~STEP_PX of drag past the slop (throttled), a side-tap steps once, and a still
-  // press repeats via the shared `_hold`. Routes through the remote command when the
-  // device has one, else the media_player VOLUME_STEP service — same gating as the
-  // old stepper. No absolute position is ever shown: the device reports none.
+  // The scrub strip for a device with no `volume_level`. The two ends are real
+  // buttons (Volume down / up): tap steps once, press-and-hold repeats via the shared
+  // `_hold`, and keyboard activation (Enter/Space) is native — so a held key can't
+  // outrun the throttle. The middle groove is a decorative, aria-hidden drag surface:
+  // one step per ~STEP_PX of horizontal drag past the slop, throttled by `_scrubLock`.
+  // Routes through the remote command when present, else the media_player VOLUME_STEP
+  // service. No absolute position is ever shown: the device reports none.
   _volScrub(hl, remoteVol) {
     const SLOP = 4;
     const STEP_PX = 22;
-    const HOLD_MS = 450;
     const step = (dir) => {
       if (this._unavail()) return;
       const key = dir > 0 ? "volume_up" : "volume_down";
       if (remoteVol) this._send(key);
       else this._mpDo(key);
     };
+    // Throttled single step for the keyboard path — a held Enter delivers repeated
+    // click events, so gate them the same 120ms as the drag.
+    const stepThrottled = (dir) => {
+      if (this._scrubLock) return;
+      step(dir);
+      this._scrubLock = true;
+      clearTimeout(this._scrubLockT);
+      this._scrubLockT = setTimeout(() => {
+        this._scrubLock = false;
+      }, 120);
+    };
+    // Groove drag: horizontal only; vertical gestures are left to the page (pan-y).
     const down = (e) => {
       if (this._unavail()) return;
-      const el = e.currentTarget;
-      el.setPointerCapture && el.setPointerCapture(e.pointerId);
-      const r = el.getBoundingClientRect();
-      this._scrub = {
-        lastX: e.clientX,
-        moved: false,
-        held: false,
-        dir: e.clientX >= r.left + r.width / 2 ? 1 : -1,
-      };
+      e.currentTarget.setPointerCapture &&
+        e.currentTarget.setPointerCapture(e.pointerId);
+      this._scrub = { lastX: e.clientX, moved: false };
       this.requestUpdate(); // reflect the .dragging grip state
-      // A still press (no drag) repeats in the pressed side's direction.
-      clearTimeout(this._scrubHoldT);
-      this._scrubHoldT = setTimeout(() => {
-        if (this._scrub && !this._scrub.moved) {
-          this._scrub.held = true;
-          this._hold(() => step(this._scrub.dir));
-        }
-      }, HOLD_MS);
     };
     const move = (e) => {
       const s = this._scrub;
       if (!s) return;
       if (!s.moved && Math.abs(e.clientX - s.lastX) < SLOP) return;
-      if (!s.moved) {
-        // A drag started — this isn't a press-repeat; drop the pending/active one.
-        s.moved = true;
-        clearTimeout(this._scrubHoldT);
-        this._release();
-      }
+      s.moved = true;
       if (Math.abs(e.clientX - s.lastX) >= STEP_PX && !this._scrubLock) {
         step(e.clientX > s.lastX ? 1 : -1);
         s.lastX = e.clientX;
@@ -1659,39 +1670,43 @@ export class FibbersRemote extends LitElement {
       }
     };
     const end = () => {
-      const s = this._scrub;
       this._scrub = null;
-      clearTimeout(this._scrubHoldT);
-      this._release();
-      if (s && !s.moved && !s.held) step(s.dir); // a plain side-tap steps once
       this.requestUpdate(); // clear the .dragging grip state
     };
-    const key = (e) => {
-      const dir =
-        e.key === "ArrowRight" || e.key === "ArrowUp"
-          ? 1
-          : e.key === "ArrowLeft" || e.key === "ArrowDown"
-            ? -1
-            : 0;
-      if (!dir) return;
-      e.preventDefault();
-      step(dir); // browser key-repeat drives a held arrow
-    };
+    // Each end button: pointer press repeats via `_hold`; a keyboard Enter/Space
+    // arrives as a detail-0 click and steps once (throttled).
+    const edge = (dir, label, icon) =>
+      html`<button
+        type="button"
+        class="edge"
+        aria-label=${label}
+        @pointerdown=${() => this._hold(() => step(dir))}
+        @pointerup=${() => this._release()}
+        @pointercancel=${() => this._release()}
+        @pointerleave=${() => this._release()}
+        @lostpointercapture=${() => this._release()}
+        @click=${(e) => e.detail === 0 && stepThrottled(dir)}
+      >
+        <fib-icon icon=${icon}></fib-icon>
+      </button>`;
     return html`<div
       class="scrub ${this._scrub ? "dragging" : ""}"
       role="group"
       aria-label=${t(hl, "remote.volume")}
-      tabindex="0"
-      @pointerdown=${down}
-      @pointermove=${move}
-      @pointerup=${end}
-      @pointercancel=${end}
-      @lostpointercapture=${end}
-      @keydown=${key}
     >
-      <fib-icon class="edge" icon="solar:volume-small-bold-duotone"></fib-icon>
-      <div class="groove"><span class="grip"></span></div>
-      <fib-icon class="edge" icon="solar:volume-loud-bold-duotone"></fib-icon>
+      ${edge(-1, "Volume down", "solar:volume-small-bold-duotone")}
+      <div
+        class="groove"
+        aria-hidden="true"
+        @pointerdown=${down}
+        @pointermove=${move}
+        @pointerup=${end}
+        @pointercancel=${end}
+        @lostpointercapture=${end}
+      >
+        <span class="grip"></span>
+      </div>
+      ${edge(1, "Volume up", "solar:volume-loud-bold-duotone")}
     </div>`;
   }
 
