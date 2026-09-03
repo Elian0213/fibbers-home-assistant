@@ -10,7 +10,7 @@ import { twSheet } from "../shared/tw.js";
 import { norm, here, navigate, deepFind } from "../shared/util.js";
 
 import { setTabHiding, removeTabHiding } from "./hide-tabs.js";
-import { nav, registerTabs } from "./nav-stack.js";
+import { nav, registerTabs, startNav, stopNav } from "./nav-stack.js";
 import { applyTheme, removeTheme } from "./theme.js";
 import { setViewReserve, removeViewReserve } from "./view-reserve.js";
 import "../shared/icon.js";
@@ -97,6 +97,7 @@ const onResizeInset = () => scheduleInset();
  * ------------------------------------------------------------------ */
 let sidebarRO = null;
 let drawerMO = null;
+let barRO = null;
 let insetScheduled = false;
 
 function computeInset() {
@@ -158,11 +159,20 @@ function buildBar() {
   shadow.append(div);
   document.body.appendChild(host);
 
-  if (window.ResizeObserver)
-    new ResizeObserver(() => measureBar()).observe(div);
+  // Stored so detach() can disconnect it — an anonymous observer leaked one per
+  // attach/detach cycle.
+  if (window.ResizeObserver) {
+    barRO = new ResizeObserver(() => measureBar());
+    barRO.observe(div);
+  }
   window.addEventListener("orientationchange", onOrientationChange);
   window.addEventListener("resize", measureBar);
   window.addEventListener("resize", onResizeInset);
+  // Re-render on nav-stack changes and hash routing — bound with the host, torn
+  // down in detach, so nothing fires against a removed bar.
+  nav.listeners.add(renderBar);
+  window.addEventListener("hashchange", renderBar);
+  startNav();
 
   return host;
 }
@@ -320,10 +330,18 @@ export function detach(owner) {
     window.removeEventListener("orientationchange", onOrientationChange);
     window.removeEventListener("resize", measureBar);
     window.removeEventListener("resize", onResizeInset);
+    window.removeEventListener("hashchange", renderBar);
+    nav.listeners.delete(renderBar);
+    stopNav();
     disableAutoHide();
     bar.host.remove();
     bar.host = null;
     bar.height = 0;
+    // Reset the scroll bookkeeping and config too, so a re-attach doesn't inherit
+    // a stale hidden/scroll state (the first hide-on-scroll would be swallowed).
+    bar.hidden = false;
+    bar.lastScroll = 0;
+    bar.config = null;
     if (sidebarRO) {
       sidebarRO.disconnect();
       sidebarRO = null;
@@ -332,11 +350,12 @@ export function detach(owner) {
       drawerMO.disconnect();
       drawerMO = null;
     }
+    if (barRO) {
+      barRO.disconnect();
+      barRO = null;
+    }
     removeTabHiding();
     removeTheme();
     removeViewReserve();
   }
 }
-
-nav.listeners.add(renderBar);
-window.addEventListener("hashchange", renderBar);

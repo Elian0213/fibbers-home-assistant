@@ -3,7 +3,13 @@
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
-import { nav, previous, goBack } from "../../core/nav-stack.js";
+import {
+  nav,
+  previous,
+  goBack,
+  startNav,
+  stopNav,
+} from "../../core/nav-stack.js";
 import { t } from "../../shared/i18n.js";
 import { twSheet } from "../../shared/tw.js";
 import { norm } from "../../shared/util.js";
@@ -41,17 +47,19 @@ export class FibbersBack extends LitElement {
   /** No-op — the label comes from the nav stack, not hass. */
   set hass(_hass) {}
 
-  /** Subscribe to nav-stack changes so the label tracks the current previous page. */
+  /** Start route tracking + subscribe so the label follows the current previous page. */
   connectedCallback() {
     super.connectedCallback();
+    startNav(); // a back card needs the stack maintained even without a nav bar
     this._onRoute = () => this._compute();
     nav.listeners.add(this._onRoute);
     this._compute();
   }
-  /** Drop the nav-stack subscription. */
+  /** Drop the subscription and release the route-tracking ref-count. */
   disconnectedCallback() {
     super.disconnectedCallback();
     if (this._onRoute) nav.listeners.delete(this._onRoute);
+    stopNav();
   }
 
   _compute() {

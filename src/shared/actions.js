@@ -20,11 +20,16 @@ export function runAction(action, hass, host, fallbackEntity) {
       if (a.navigation_path) navigate(a.navigation_path);
       break;
     case "url":
-      if (a.url_path)
+      if (a.url_path) {
+        const external = a.url_path.startsWith("http");
+        // noopener,noreferrer: an external tab must not get a live window.opener
+        // handle back onto the HA frontend (reverse tabnabbing).
         window.open(
           a.url_path,
-          a.url_path.startsWith("http") ? "_blank" : "_self",
+          external ? "_blank" : "_self",
+          external ? "noopener,noreferrer" : "",
         );
+      }
       break;
     case "toggle": {
       const entity = a.entity || fallbackEntity;

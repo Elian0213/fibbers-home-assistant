@@ -291,16 +291,25 @@ leave, so it never leaks into unrelated views. `auto` follows `prefers-color-sch
 
 ## Icons
 
-Fibbers bundles the **entire Solar Bold Duotone style** (~1,325 icons) at build time — inlined,
-no network, no icon font — so any `solar:<name>-bold-duotone` you put in a card works out of the
-box, even on a HACS install where you can't rebuild. It adds ~½ MB gzipped to the one file HACS
-serves (a one-time, per-version cached download). Any HA icon still works too: give a card
-`icon: mdi:…` (or `hass:…`, a custom set) and it falls back to HA’s own `ha-icon` renderer.
+Fibbers ships the **Solar Bold Duotone style** (~1,325 icons) in two parts, so any
+`solar:<name>-bold-duotone` works without you rebuilding: the icons the code itself uses are
+inlined in the bundle (a small core), and the first time a card names one that isn't in the core
+`<fib-icon>` fetches the full set **once** from `icons.full.json` (shipped next to `fibbers.js`)
+and caches it — no icon font, one small request per dashboard.
 
-Reference a name that _isn't_ bundled — a non-duotone Solar style (`-linear`, `-outline`, …) or a
-typo — and it can't render (HA has no `solar` iconset), so `<fib-icon>` warns once in the console
-and draws a placeholder glyph instead of a silent blank. `bun run check` fails if anything in
-`src/` or the stories references an unshipped `solar:` name.
+- **`mdi:` names always work.** HA's frontend ships MDI, so `icon: mdi:…` (or `hass:…`, a custom
+  set) falls back to HA's own `ha-icon` renderer — the permanent escape hatch if the Solar set
+  can't be reached.
+- **Non-standard installs:** the full set is fetched from
+  `/hacsfiles/fibbers-home-assistant/icons.full.json` by default. For a manual `/local/` copy or a
+  differently-named HACS directory, set `window.FIBBERS_ICONS_URL = "/local/icons.full.json"` (e.g.
+  from a small resource loaded before Fibbers).
+- Reference a name that isn't in the Solar set — a non-duotone style (`-linear`, `-outline`, …) or
+  a typo — and it can't render (HA has no `solar` iconset), so `<fib-icon>` warns once and draws a
+  placeholder. If the full set fails to load (offline), it says so distinctly and retries.
+
+`bun run check` fails if anything in `src/` or the stories references a `solar:` name that isn't in
+the inlined core, so a code-path icon never depends on the fetch.
 
 ## Development
 

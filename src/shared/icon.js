@@ -13,43 +13,51 @@ import { ICONS } from "../generated/icons.core.gen.js";
 const MISSING = "solar:question-circle-bold-duotone";
 const warned = new Set(); // one console.warn per unmapped name, not per render
 
-// The lazily-fetched full map (null until loaded; {} if the fetch failed).
+// The lazily-fetched full map: null until it loads. A failed fetch leaves it null
+// (so a later miss retries) and sets `fullFailed` for an honest message; the fetch
+// is paced so a genuinely-missing file isn't hammered on every re-render.
 let FULL = null;
 let fullPromise = null;
+let fullFailed = false;
+let fullFailAt = 0;
+const RETRY_MS = 1500;
 
-// The bundle's own URL, captured while the IIFE runs synchronously (classic
-// script). Null when HA loaded the resource as a module — the fallbacks cover it.
-const SCRIPT_SRC =
-  (typeof document !== "undefined" &&
-    document.currentScript &&
-    document.currentScript.src) ||
-  "";
-
-// Resolve icons.full.json next to fibbers.js. Prefer the captured script URL; else
-// find the loaded bundle in the DOM; else the conventional HACS path.
+// HA loads a HACS plugin resource as a module (`import(url)`) — there is no
+// document.currentScript and no <script> element to derive a base from, so the two
+// dynamic branches this used to try were always dead. Use the conventional HACS
+// path, overridable for a manual /local/ copy or a differently-named HACS dir.
 function iconsUrl() {
-  if (SCRIPT_SRC) return new URL("icons.full.json", SCRIPT_SRC).href;
-  try {
-    const el = [...document.querySelectorAll("script[src],link[href]")]
-      .map((e) => e.src || e.href)
-      .find((u) => /fibbers\.js(\?|$)/.test(u || ""));
-    if (el) return new URL("icons.full.json", el).href;
-  } catch (_) {
-    /* fall through to the conventional path */
-  }
-  return "/hacsfiles/fibbers-home-assistant/icons.full.json";
+  return (
+    window.FIBBERS_ICONS_URL ||
+    "/hacsfiles/fibbers-home-assistant/icons.full.json"
+  );
 }
 
+// Fetch the full Solar set once and cache it. On failure (404, dropped connection,
+// HA restarting mid-fetch) resolve to null and leave FULL null so the next miss can
+// retry — never resolve to `{}`, which used to be indistinguishable from a real
+// empty load and poisoned every non-core icon into a permanent question mark.
 function loadFull() {
-  if (!fullPromise) {
-    fullPromise = fetch(iconsUrl())
-      .then((r) => (r.ok ? r.json() : {}))
-      .catch(() => ({}))
-      .then((map) => {
-        FULL = map || {};
-        return FULL;
-      });
-  }
+  if (FULL) return Promise.resolve(FULL);
+  if (fullPromise) return fullPromise;
+  if (Date.now() - fullFailAt < RETRY_MS) return Promise.resolve(null);
+  fullPromise = fetch(iconsUrl())
+    .then((r) => {
+      if (!r.ok) throw new Error(String(r.status));
+      return r.json();
+    })
+    .then((map) => {
+      FULL = map || {};
+      fullFailed = false;
+      fullPromise = null;
+      return FULL;
+    })
+    .catch(() => {
+      fullFailed = true;
+      fullFailAt = Date.now();
+      fullPromise = null;
+      return null;
+    });
   return fullPromise;
 }
 
@@ -60,7 +68,7 @@ function loadFull() {
  * @param {string} name
  * @returns {string|null} svg markup, or null
  */
-export function iconSvg(name) {
+function iconSvg(name) {
   const ic = name && (ICONS[name] || (FULL && FULL[name]));
   if (!ic) return null;
   return `<svg viewBox="${ic.vb}" fill="currentColor" style="width:100%;height:100%;display:block" aria-hidden="true">${ic.body}</svg>`;
@@ -96,24 +104,32 @@ class FibIcon extends HTMLElement {
       return;
     }
     if (name.startsWith("solar:")) {
-      // Not in the core set. If the full set hasn't loaded yet, fetch it once and
-      // re-render this glyph when it arrives (blank meanwhile — the box keeps its
-      // reserved size, so nothing reflows).
+      // Not in the core set — kick the (retry-paced) full-set load and re-render
+      // this glyph if it actually arrives.
       if (FULL === null) {
-        this.innerHTML = "";
-        loadFull().then(() => {
-          if (this.isConnected) this._render();
+        loadFull().then((map) => {
+          if (map && this.isConnected) this._render();
         });
-        return;
+        // First attempt still pending, no prior failure → blank while loading; the
+        // box keeps its reserved size, so nothing reflows.
+        if (!fullFailed) {
+          this.innerHTML = "";
+          return;
+        }
       }
-      // Full set is loaded and it's still missing — a genuine miss. A `solar:` name
-      // can never render via <ha-icon> (HA ships only MDI), so warn once and show a
-      // visible placeholder instead of a silent blank.
+      // Loaded-but-missing (a typo / non-duotone style), or the set failed to load.
+      // Either way a `solar:` name can't render via <ha-icon> (HA ships only MDI),
+      // so warn once — distinctly, so a valid name on a flaky network isn't blamed —
+      // and show a visible placeholder instead of a silent blank.
       if (!warned.has(name)) {
         warned.add(name);
         console.warn(
-          `[fibbers] icon "${name}" is not in the Solar set, so it renders blank in ` +
-            "Home Assistant. Use a `solar:<name>-bold-duotone` name, or an mdi: name.",
+          fullFailed
+            ? `[fibbers] couldn't load the Solar icon set from ${iconsUrl()}; "${name}" ` +
+                "and other non-core icons show a placeholder. Set window.FIBBERS_ICONS_URL " +
+                "if the file is elsewhere — mdi: names always work."
+            : `[fibbers] icon "${name}" is not in the Solar set — use a ` +
+                "`solar:<name>-bold-duotone` name, or an mdi: name.",
         );
       }
       this.innerHTML = iconSvg(MISSING) || "";

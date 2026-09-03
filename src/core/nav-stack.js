@@ -86,6 +86,23 @@ export function goBack(fallback) {
   if (history.length > 1) history.back();
 }
 
-window.addEventListener("location-changed", onRouteChange);
-window.addEventListener("popstate", onRouteChange);
-onRouteChange();
+// Route tracking runs only while a nav bar or back control is mounted (ref-counted),
+// not merely because the HACS resource is loaded — otherwise every HA page (Settings,
+// Developer Tools) would fold its path onto the back stack, and a `fibbers-back` card
+// could then send the user into Settings.
+let navOn = 0;
+
+/** Begin folding route changes into the back stack (ref-counted; idempotent). */
+export function startNav() {
+  if (navOn++ > 0) return;
+  window.addEventListener("location-changed", onRouteChange);
+  window.addEventListener("popstate", onRouteChange);
+  onRouteChange();
+}
+
+/** Stop route tracking when the last consumer unmounts. */
+export function stopNav() {
+  if (navOn === 0 || --navOn > 0) return;
+  window.removeEventListener("location-changed", onRouteChange);
+  window.removeEventListener("popstate", onRouteChange);
+}

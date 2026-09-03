@@ -236,7 +236,7 @@ export function sliderTrack({
  * @param {KeyboardEvent} e
  * @param {Function} [onClose]
  */
-export function chipKeyNav(e, onClose) {
+function chipKeyNav(e, onClose) {
   if (e.key === "Escape") {
     if (onClose) onClose();
     return;

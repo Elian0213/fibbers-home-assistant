@@ -266,24 +266,34 @@
   var warned = new Set;
   var FULL = null;
   var fullPromise = null;
-  var SCRIPT_SRC = typeof document !== "undefined" && document.currentScript && document.currentScript.src || "";
+  var fullFailed = false;
+  var fullFailAt = 0;
+  var RETRY_MS = 1500;
   function iconsUrl() {
-    if (SCRIPT_SRC)
-      return new URL("icons.full.json", SCRIPT_SRC).href;
-    try {
-      const el = [...document.querySelectorAll("script[src],link[href]")].map((e) => e.src || e.href).find((u) => /fibbers\.js(\?|$)/.test(u || ""));
-      if (el)
-        return new URL("icons.full.json", el).href;
-    } catch (_) {}
-    return "/hacsfiles/fibbers-home-assistant/icons.full.json";
+    return window.FIBBERS_ICONS_URL || "/hacsfiles/fibbers-home-assistant/icons.full.json";
   }
   function loadFull() {
-    if (!fullPromise) {
-      fullPromise = fetch(iconsUrl()).then((r) => r.ok ? r.json() : {}).catch(() => ({})).then((map) => {
-        FULL = map || {};
-        return FULL;
-      });
-    }
+    if (FULL)
+      return Promise.resolve(FULL);
+    if (fullPromise)
+      return fullPromise;
+    if (Date.now() - fullFailAt < RETRY_MS)
+      return Promise.resolve(null);
+    fullPromise = fetch(iconsUrl()).then((r) => {
+      if (!r.ok)
+        throw new Error(String(r.status));
+      return r.json();
+    }).then((map) => {
+      FULL = map || {};
+      fullFailed = false;
+      fullPromise = null;
+      return FULL;
+    }).catch(() => {
+      fullFailed = true;
+      fullFailAt = Date.now();
+      fullPromise = null;
+      return null;
+    });
     return fullPromise;
   }
   function iconSvg(name) {
@@ -317,16 +327,18 @@
       }
       if (name.startsWith("solar:")) {
         if (FULL === null) {
-          this.innerHTML = "";
-          loadFull().then(() => {
-            if (this.isConnected)
+          loadFull().then((map) => {
+            if (map && this.isConnected)
               this._render();
           });
-          return;
+          if (!fullFailed) {
+            this.innerHTML = "";
+            return;
+          }
         }
         if (!warned.has(name)) {
           warned.add(name);
-          console.warn(`[fibbers] icon "${name}" is not in the Solar set, so it renders blank in ` + "Home Assistant. Use a `solar:<name>-bold-duotone` name, or an mdi: name.");
+          console.warn(fullFailed ? `[fibbers] couldn't load the Solar icon set from ${iconsUrl()}; "${name}" ` + "and other non-core icons show a placeholder. Set window.FIBBERS_ICONS_URL " + "if the file is elsewhere — mdi: names always work." : `[fibbers] icon "${name}" is not in the Solar set — use a ` + "`solar:<name>-bold-duotone` name, or an mdi: name.");
         }
         this.innerHTML = iconSvg(MISSING) || "";
         return;
@@ -1628,8 +1640,10 @@ ${BASE_CSS}`);
           navigate(a3.navigation_path);
         break;
       case "url":
-        if (a3.url_path)
-          window.open(a3.url_path, a3.url_path.startsWith("http") ? "_blank" : "_self");
+        if (a3.url_path) {
+          const external = a3.url_path.startsWith("http");
+          window.open(a3.url_path, external ? "_blank" : "_self", external ? "noopener,noreferrer" : "");
+        }
         break;
       case "toggle": {
         const entity = a3.entity || fallbackEntity;
@@ -2917,9 +2931,20 @@ ${BASE_CSS}`);
     if (history.length > 1)
       history.back();
   }
-  window.addEventListener("location-changed", onRouteChange);
-  window.addEventListener("popstate", onRouteChange);
-  onRouteChange();
+  var navOn = 0;
+  function startNav() {
+    if (navOn++ > 0)
+      return;
+    window.addEventListener("location-changed", onRouteChange);
+    window.addEventListener("popstate", onRouteChange);
+    onRouteChange();
+  }
+  function stopNav() {
+    if (navOn === 0 || --navOn > 0)
+      return;
+    window.removeEventListener("location-changed", onRouteChange);
+    window.removeEventListener("popstate", onRouteChange);
+  }
 
   // src/cards/layout/back.js
   class FibbersBack extends i4 {
@@ -2945,6 +2970,7 @@ ${BASE_CSS}`);
     set hass(_hass) {}
     connectedCallback() {
       super.connectedCallback();
+      startNav();
       this._onRoute = () => this._compute();
       nav.listeners.add(this._onRoute);
       this._compute();
@@ -2953,6 +2979,7 @@ ${BASE_CSS}`);
       super.disconnectedCallback();
       if (this._onRoute)
         nav.listeners.delete(this._onRoute);
+      stopNav();
     }
     _compute() {
       const c4 = this._config || {};
@@ -3700,6 +3727,7 @@ ${decls}
   var onResizeInset = () => scheduleInset();
   var sidebarRO = null;
   var drawerMO = null;
+  var barRO = null;
   var insetScheduled = false;
   function computeInset() {
     if (!bar.config || bar.config.respect_sidebar === false)
@@ -3760,11 +3788,16 @@ ${decls}
     div.className = "bar";
     shadow.append(div);
     document.body.appendChild(host);
-    if (window.ResizeObserver)
-      new ResizeObserver(() => measureBar()).observe(div);
+    if (window.ResizeObserver) {
+      barRO = new ResizeObserver(() => measureBar());
+      barRO.observe(div);
+    }
     window.addEventListener("orientationchange", onOrientationChange);
     window.addEventListener("resize", measureBar);
     window.addEventListener("resize", onResizeInset);
+    nav.listeners.add(renderBar);
+    window.addEventListener("hashchange", renderBar);
+    startNav();
     return host;
   }
   function tabMatches(tab, path) {
@@ -3887,10 +3920,16 @@ ${decls}
       window.removeEventListener("orientationchange", onOrientationChange);
       window.removeEventListener("resize", measureBar);
       window.removeEventListener("resize", onResizeInset);
+      window.removeEventListener("hashchange", renderBar);
+      nav.listeners.delete(renderBar);
+      stopNav();
       disableAutoHide();
       bar.host.remove();
       bar.host = null;
       bar.height = 0;
+      bar.hidden = false;
+      bar.lastScroll = 0;
+      bar.config = null;
       if (sidebarRO) {
         sidebarRO.disconnect();
         sidebarRO = null;
@@ -3899,13 +3938,15 @@ ${decls}
         drawerMO.disconnect();
         drawerMO = null;
       }
+      if (barRO) {
+        barRO.disconnect();
+        barRO = null;
+      }
       removeTabHiding();
       removeTheme();
       removeViewReserve();
     }
   }
-  nav.listeners.add(renderBar);
-  window.addEventListener("hashchange", renderBar);
 
   // src/cards/layout/nav.js
   var EDITOR_SCHEMA5 = [
