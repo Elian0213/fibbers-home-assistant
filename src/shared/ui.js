@@ -110,6 +110,68 @@ export class SliderHold {
 }
 
 /**
+ * The shared pointer-drag gesture for the value sliders (brightness / number /
+ * remote volume): capture on down, live-track through the caller's debounce once
+ * the pointer clears a ~4px slop (leading-suppressed — a stationary tap commits
+ * exactly once, on release), final value wins on release. One implementation of
+ * the bookkeeping that was previously copy-pasted per card.
+ *
+ *   this._drag = sliderDrag({
+ *     guard: () => this._unavail(),                             // optional
+ *     read: (e) => Math.round(pctFromX(e.clientX, e.currentTarget)),
+ *     frame: (v, dragging) => { this._dragging = dragging; if (v != null) this._dragPct = v; },
+ *     live: (v) => this._debouncedCommit(v),                    // streamed mid-drag
+ *     end: (v) => { this._debouncedCommit.cancel(); if (v != null) this._commit(v); },
+ *   });
+ *   // wire: onDown: drag.down, onMove: drag.move, onUp: drag.up, onCancel: drag.cancel
+ *
+ * `end(null)` signals a cancelled gesture (pointercancel / external abort): drop
+ * the pending debounced write, commit nothing. `abort()` is for host-side resets
+ * (e.g. the remote switching devices mid-drag).
+ * @param {object} opts — `{ read, frame, live, end, guard? }`
+ * @returns {object} `{ down, move, up, cancel, abort }` pointer handlers
+ */
+export function sliderDrag({ read, frame, live, end, guard }) {
+  let active = false;
+  let downX = 0;
+  let moved = false;
+  const cancel = () => {
+    if (!active) return;
+    active = false;
+    frame(null, false);
+    end(null);
+  };
+  return {
+    down(e) {
+      if (guard && guard()) return;
+      active = true;
+      downX = e.clientX;
+      moved = false;
+      e.currentTarget.setPointerCapture &&
+        e.currentTarget.setPointerCapture(e.pointerId);
+      frame(read(e), true);
+    },
+    move(e) {
+      if (!active) return;
+      const v = read(e);
+      frame(v, true);
+      if (!moved && Math.abs(e.clientX - downX) < 4) return;
+      moved = true;
+      live(v);
+    },
+    up(e) {
+      if (!active) return;
+      active = false;
+      const v = read(e);
+      frame(v, false);
+      end(v);
+    },
+    cancel,
+    abort: cancel,
+  };
+}
+
+/**
  * Arrow/Home/End/PageUp-Down → a new value, clamped to [min,max]. Shared by every
  * slider so keyboard behaviour is identical. PageUp/Down jump by a tenth of the
  * range (or one step, whichever is larger). Returns null for keys we don't handle,

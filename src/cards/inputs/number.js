@@ -6,7 +6,7 @@ import { LitElement, html, css } from "lit";
 
 import { t } from "../../shared/i18n.js";
 import { twSheet } from "../../shared/tw.js";
-import { sliderTrack, SliderHold } from "../../shared/ui.js";
+import { sliderTrack, sliderDrag, SliderHold } from "../../shared/ui.js";
 import {
   fmtNum,
   clamp,
@@ -94,6 +94,20 @@ export class FibbersNumber extends LitElement {
     this._dragging = false;
     this._dragVal = 0;
     this._debouncedSet = debounce((v) => this._setValue(v), 150);
+    // Shared drag gesture, reading a snapped entity-range value instead of a %.
+    this._drag = sliderDrag({
+      guard: () => this._unavail(),
+      read: (e) => this._valFromX(e.clientX, e.currentTarget),
+      frame: (v, dragging) => {
+        this._dragging = dragging;
+        if (v != null) this._dragVal = v;
+      },
+      live: (v) => this._debouncedSet(v),
+      end: (v) => {
+        this._debouncedSet.cancel();
+        if (v != null) this._setValue(v);
+      },
+    });
     // Construct once (addController has no counterpart); tolerance is set per-read
     // in _value() from the entity's own range/step.
     if (!this._hold)
@@ -165,35 +179,6 @@ export class FibbersNumber extends LitElement {
     Promise.resolve(p).catch(() => this._hold.clear());
   }
 
-  _down(e) {
-    if (this._unavail()) return;
-    const el = e.currentTarget;
-    this._dragging = true;
-    this._downX = e.clientX;
-    this._moved = false;
-    el.setPointerCapture && el.setPointerCapture(e.pointerId);
-    // Leading commit suppressed: a tap writes once on pointerup; a drag streams
-    // through the debounce only after clearing the ~4px slop threshold.
-    this._dragVal = this._valFromX(e.clientX, el);
-  }
-  _move(e) {
-    if (!this._dragging) return;
-    this._dragVal = this._valFromX(e.clientX, e.currentTarget);
-    if (!this._moved && Math.abs(e.clientX - this._downX) < 4) return;
-    this._moved = true;
-    this._debouncedSet(this._dragVal);
-  }
-  _up(e) {
-    if (!this._dragging) return;
-    const v = this._valFromX(e.clientX, e.currentTarget);
-    this._dragging = false;
-    this._debouncedSet.cancel();
-    this._setValue(v); // final value wins immediately
-  }
-  _cancel() {
-    this._dragging = false;
-    this._debouncedSet.cancel();
-  }
   _bump(dir) {
     if (this._unavail()) return;
     this._setValue(this._snap(this._value() + dir * this._bounds().step));
@@ -285,10 +270,10 @@ export class FibbersNumber extends LitElement {
             this._hold.hold(s);
             this._debouncedSet(s);
           },
-          onDown: this._down,
-          onMove: this._move,
-          onUp: this._up,
-          onCancel: () => this._cancel(),
+          onDown: this._drag.down,
+          onMove: this._drag.move,
+          onUp: this._drag.up,
+          onCancel: this._drag.cancel,
         });
       })()}
     </div>`;

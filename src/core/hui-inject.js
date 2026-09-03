@@ -144,8 +144,3 @@ export function removeStyle(id) {
   if (existing) existing.remove();
   stopShared();
 }
-
-/** Re-apply every subscribed style now (e.g. after a colour-scheme change). */
-export function repaint() {
-  paintAll();
-}

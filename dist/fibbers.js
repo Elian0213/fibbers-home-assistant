@@ -1901,6 +1901,49 @@ ${BASE_CSS}`);
         this.host.removeController(this);
     }
   }
+  function sliderDrag({ read, frame, live, end, guard }) {
+    let active = false;
+    let downX = 0;
+    let moved = false;
+    const cancel = () => {
+      if (!active)
+        return;
+      active = false;
+      frame(null, false);
+      end(null);
+    };
+    return {
+      down(e4) {
+        if (guard && guard())
+          return;
+        active = true;
+        downX = e4.clientX;
+        moved = false;
+        e4.currentTarget.setPointerCapture && e4.currentTarget.setPointerCapture(e4.pointerId);
+        frame(read(e4), true);
+      },
+      move(e4) {
+        if (!active)
+          return;
+        const v2 = read(e4);
+        frame(v2, true);
+        if (!moved && Math.abs(e4.clientX - downX) < 4)
+          return;
+        moved = true;
+        live(v2);
+      },
+      up(e4) {
+        if (!active)
+          return;
+        active = false;
+        const v2 = read(e4);
+        frame(v2, false);
+        end(v2);
+      },
+      cancel,
+      abort: cancel
+    };
+  }
   function stepFromKey(key, { value, min, max, step }) {
     const big = Math.max(step, (max - min) / 10);
     let next;
@@ -2130,6 +2173,21 @@ ${BASE_CSS}`);
       this._dragging = false;
       this._dragVal = 0;
       this._debouncedSet = debounce((v2) => this._setValue(v2), 150);
+      this._drag = sliderDrag({
+        guard: () => this._unavail(),
+        read: (e4) => this._valFromX(e4.clientX, e4.currentTarget),
+        frame: (v2, dragging) => {
+          this._dragging = dragging;
+          if (v2 != null)
+            this._dragVal = v2;
+        },
+        live: (v2) => this._debouncedSet(v2),
+        end: (v2) => {
+          this._debouncedSet.cancel();
+          if (v2 != null)
+            this._setValue(v2);
+        }
+      });
       if (!this._hold)
         this._hold = new SliderHold(this, { tolerance: 0.5, timeout: 5000 });
       else
@@ -2194,37 +2252,6 @@ ${BASE_CSS}`);
         value
       });
       Promise.resolve(p3).catch(() => this._hold.clear());
-    }
-    _down(e4) {
-      if (this._unavail())
-        return;
-      const el = e4.currentTarget;
-      this._dragging = true;
-      this._downX = e4.clientX;
-      this._moved = false;
-      el.setPointerCapture && el.setPointerCapture(e4.pointerId);
-      this._dragVal = this._valFromX(e4.clientX, el);
-    }
-    _move(e4) {
-      if (!this._dragging)
-        return;
-      this._dragVal = this._valFromX(e4.clientX, e4.currentTarget);
-      if (!this._moved && Math.abs(e4.clientX - this._downX) < 4)
-        return;
-      this._moved = true;
-      this._debouncedSet(this._dragVal);
-    }
-    _up(e4) {
-      if (!this._dragging)
-        return;
-      const v2 = this._valFromX(e4.clientX, e4.currentTarget);
-      this._dragging = false;
-      this._debouncedSet.cancel();
-      this._setValue(v2);
-    }
-    _cancel() {
-      this._dragging = false;
-      this._debouncedSet.cancel();
     }
     _bump(dir) {
       if (this._unavail())
@@ -2303,10 +2330,10 @@ ${BASE_CSS}`);
             this._hold.hold(s4);
             this._debouncedSet(s4);
           },
-          onDown: this._down,
-          onMove: this._move,
-          onUp: this._up,
-          onCancel: () => this._cancel()
+          onDown: this._drag.down,
+          onMove: this._drag.move,
+          onUp: this._drag.up,
+          onCancel: this._drag.cancel
         });
       })()}
     </div>`;
@@ -4680,6 +4707,20 @@ ${decls}
       else
         this._hold.clear();
       this._debouncedCommit = debounce((p3) => this._commit(p3), 150);
+      this._drag = sliderDrag({
+        read: (e4) => Math.round(pctFromX(e4.clientX, e4.currentTarget)),
+        frame: (v2, dragging) => {
+          this._dragging = dragging;
+          if (v2 != null)
+            this._dragPct = v2;
+        },
+        live: (v2) => this._debouncedCommit(v2),
+        end: (v2) => {
+          this._debouncedCommit.cancel();
+          if (v2 != null)
+            this._commit(v2);
+        }
+      });
       this._rowCache = new Map;
       this._loggedGhosts = false;
       this._open = config.expanded === true ? true : config.expanded === "remember" ? !!store.get(this._key(), false) : false;
@@ -4766,35 +4807,6 @@ ${decls}
         brightness_pct: pct
       });
       Promise.resolve(p3).catch(() => this._hold.clear());
-    }
-    _down(e4) {
-      const el = e4.currentTarget;
-      this._dragging = true;
-      this._downX = e4.clientX;
-      this._moved = false;
-      el.setPointerCapture && el.setPointerCapture(e4.pointerId);
-      this._dragPct = Math.round(pctFromX(e4.clientX, el));
-    }
-    _move(e4) {
-      if (!this._dragging)
-        return;
-      this._dragPct = Math.round(pctFromX(e4.clientX, e4.currentTarget));
-      if (!this._moved && Math.abs(e4.clientX - this._downX) < 4)
-        return;
-      this._moved = true;
-      this._debouncedCommit(this._dragPct);
-    }
-    _up(e4) {
-      if (!this._dragging)
-        return;
-      const pct = Math.round(pctFromX(e4.clientX, e4.currentTarget));
-      this._dragging = false;
-      this._debouncedCommit.cancel();
-      this._commit(pct);
-    }
-    _cancel() {
-      this._dragging = false;
-      this._debouncedCommit.cancel();
     }
     disconnectedCallback() {
       super.disconnectedCallback();
@@ -4904,11 +4916,11 @@ ${decls}
         aria-valuenow=${pct}
         aria-valuetext=${`${pct}%`}
         aria-disabled=${s4.allOff ? "true" : "false"}
-        @pointerdown=${this._down}
-        @pointermove=${this._move}
-        @pointerup=${this._up}
-        @pointercancel=${this._cancel}
-        @lostpointercapture=${this._cancel}
+        @pointerdown=${this._drag.down}
+        @pointermove=${this._drag.move}
+        @pointerup=${this._drag.up}
+        @pointercancel=${this._drag.cancel}
+        @lostpointercapture=${this._drag.cancel}
         @keydown=${this._onKey}
       >
         <div
@@ -5005,6 +5017,21 @@ ${decls}
       this._dragging = false;
       this._dragPct = 0;
       this._debouncedCommit = debounce((v2) => this._commit(v2), 150);
+      this._drag = sliderDrag({
+        guard: () => this._unavail(),
+        read: (e4) => Math.round(pctFromX(e4.clientX, e4.currentTarget)),
+        frame: (v2, dragging) => {
+          this._dragging = dragging;
+          if (v2 != null)
+            this._dragPct = v2;
+        },
+        live: (v2) => this._debouncedCommit(v2),
+        end: (v2) => {
+          this._debouncedCommit.cancel();
+          if (v2 != null)
+            this._commit(v2);
+        }
+      });
       if (!this._hold)
         this._hold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
       else
@@ -5056,33 +5083,6 @@ ${decls}
       if (k2 < 4600)
         return t3(hl, "light_row.neutral");
       return t3(hl, "light_row.cool");
-    }
-    _down(e4) {
-      if (this._unavail())
-        return;
-      const track = e4.currentTarget;
-      this._dragging = true;
-      this._downX = e4.clientX;
-      this._moved = false;
-      track.setPointerCapture && track.setPointerCapture(e4.pointerId);
-      this._dragPct = Math.round(pctFromX(e4.clientX, track));
-    }
-    _move(e4) {
-      if (!this._dragging)
-        return;
-      this._dragPct = Math.round(pctFromX(e4.clientX, e4.currentTarget));
-      if (!this._moved && Math.abs(e4.clientX - this._downX) < 4)
-        return;
-      this._moved = true;
-      this._debouncedCommit(this._dragPct);
-    }
-    _up(e4) {
-      if (!this._dragging)
-        return;
-      const pct = Math.round(pctFromX(e4.clientX, e4.currentTarget));
-      this._dragging = false;
-      this._debouncedCommit.cancel();
-      this._commit(pct);
     }
     _commit(pct) {
       if (!this.hass)
@@ -5176,13 +5176,10 @@ ${decls}
           this._hold.hold(p3);
           this._debouncedCommit(p3);
         },
-        onDown: this._down,
-        onMove: this._move,
-        onUp: this._up,
-        onCancel: () => {
-          this._dragging = false;
-          this._debouncedCommit.cancel();
-        }
+        onDown: this._drag.down,
+        onMove: this._drag.move,
+        onUp: this._drag.up,
+        onCancel: this._drag.cancel
       }) : b2`<div class="flex min-h-[var(--fib-hit)] items-center">
                 ${pillSwitch({
         on,
@@ -6220,6 +6217,20 @@ ${decls}
       else
         this._volHold.clear();
       this._volInput = debounce((v2) => this._setVol(v2), 150);
+      this._volDrag = sliderDrag({
+        read: (e4) => Math.round(pctFromX(e4.clientX, e4.currentTarget)),
+        frame: (v2, dragging) => {
+          this._dragging = dragging;
+          if (v2 != null)
+            this._dragVol = v2;
+        },
+        live: (v2) => this._volInput(v2),
+        end: (v2) => {
+          this._volInput.cancel();
+          if (v2 != null)
+            this._setVol(v2);
+        }
+      });
     }
     _resetTransient() {
       this._dragging = false;
@@ -6227,6 +6238,8 @@ ${decls}
       this._srcOpen = false;
       this._flash = null;
       this._sw = null;
+      if (this._volDrag)
+        this._volDrag.abort();
       if (this._volInput)
         this._volInput.cancel();
     }
@@ -6420,30 +6433,6 @@ ${decls}
     _setVol(pct) {
       this._volHold.hold(pct);
       this._mpService("volume_set", { volume_level: pct / 100 }).catch(() => this._volHold.clear());
-    }
-    _volDown(e4) {
-      this._dragging = true;
-      this._downX = e4.clientX;
-      this._moved = false;
-      e4.currentTarget.setPointerCapture && e4.currentTarget.setPointerCapture(e4.pointerId);
-      this._dragVol = Math.round(pctFromX(e4.clientX, e4.currentTarget));
-    }
-    _volMove(e4) {
-      if (!this._dragging)
-        return;
-      this._dragVol = Math.round(pctFromX(e4.clientX, e4.currentTarget));
-      if (!this._moved && Math.abs(e4.clientX - this._downX) < 4)
-        return;
-      this._moved = true;
-      this._volInput(this._dragVol);
-    }
-    _volUp(e4) {
-      if (!this._dragging)
-        return;
-      const v2 = Math.round(pctFromX(e4.clientX, e4.currentTarget));
-      this._dragging = false;
-      this._volInput.cancel();
-      this._setVol(v2);
     }
     _dpadKey(e4) {
       if (e4.target !== e4.currentTarget)
@@ -6715,13 +6704,10 @@ ${decls}
             this._volHold.hold(v2);
             this._volInput(v2);
           },
-          onDown: this._volDown,
-          onMove: this._volMove,
-          onUp: this._volUp,
-          onCancel: () => {
-            this._dragging = false;
-            this._volInput.cancel();
-          }
+          onDown: this._volDrag.down,
+          onMove: this._volDrag.move,
+          onUp: this._volDrag.up,
+          onCancel: this._volDrag.cancel
         })}<span class="pct">${vol}%</span>`;
       }
       const down = remoteVol ? () => this._send("volume_down") : () => this._mpDo("volume_down");

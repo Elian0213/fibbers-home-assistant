@@ -7,7 +7,7 @@ import { LitElement, html, css } from "lit";
 
 import { t } from "../../shared/i18n.js";
 import { twSheet } from "../../shared/tw.js";
-import { stepFromKey, SliderHold } from "../../shared/ui.js";
+import { stepFromKey, sliderDrag, SliderHold } from "../../shared/ui.js";
 import {
   store,
   isUnavail,
@@ -91,6 +91,19 @@ export class FibbersLightGroup extends LitElement {
       this._hold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
     else this._hold.clear();
     this._debouncedCommit = debounce((p) => this._commit(p), 150);
+    // Shared drag gesture: live-track past the slop, final value wins on release.
+    this._drag = sliderDrag({
+      read: (e) => Math.round(pctFromX(e.clientX, e.currentTarget)),
+      frame: (v, dragging) => {
+        this._dragging = dragging;
+        if (v != null) this._dragPct = v;
+      },
+      live: (v) => this._debouncedCommit(v),
+      end: (v) => {
+        this._debouncedCommit.cancel();
+        if (v != null) this._commit(v);
+      },
+    });
     this._rowCache = new Map();
     this._loggedGhosts = false;
     this._open =
@@ -196,39 +209,6 @@ export class FibbersLightGroup extends LitElement {
             brightness_pct: pct,
           });
     Promise.resolve(p).catch(() => this._hold.clear());
-  }
-
-  _down(e) {
-    const el = e.currentTarget;
-    this._dragging = true;
-    this._downX = e.clientX;
-    this._moved = false;
-    el.setPointerCapture && el.setPointerCapture(e.pointerId);
-    // Leading commit suppressed: a tap commits once on pointerup; a drag streams
-    // through the debounce only after it clears the ~4px slop threshold, so a
-    // stationary press never writes a value.
-    this._dragPct = Math.round(pctFromX(e.clientX, el));
-  }
-  _move(e) {
-    if (!this._dragging) return;
-    this._dragPct = Math.round(pctFromX(e.clientX, e.currentTarget));
-    if (!this._moved && Math.abs(e.clientX - this._downX) < 4) return;
-    this._moved = true;
-    this._debouncedCommit(this._dragPct);
-  }
-  _up(e) {
-    if (!this._dragging) return;
-    const pct = Math.round(pctFromX(e.clientX, e.currentTarget));
-    this._dragging = false;
-    this._debouncedCommit.cancel();
-    this._commit(pct);
-  }
-
-  // A cancelled / capture-lost gesture aborts: clear dragging and cancel any
-  // trailing commit so the abandoned value is never written.
-  _cancel() {
-    this._dragging = false;
-    this._debouncedCommit.cancel();
   }
 
   /** Drop the trailing debounced commit on unmount so a stale value never fires. */
@@ -362,11 +342,11 @@ export class FibbersLightGroup extends LitElement {
         aria-valuenow=${pct}
         aria-valuetext=${`${pct}%`}
         aria-disabled=${s.allOff ? "true" : "false"}
-        @pointerdown=${this._down}
-        @pointermove=${this._move}
-        @pointerup=${this._up}
-        @pointercancel=${this._cancel}
-        @lostpointercapture=${this._cancel}
+        @pointerdown=${this._drag.down}
+        @pointermove=${this._drag.move}
+        @pointerup=${this._drag.up}
+        @pointercancel=${this._drag.cancel}
+        @lostpointercapture=${this._drag.cancel}
         @keydown=${this._onKey}
       >
         <div

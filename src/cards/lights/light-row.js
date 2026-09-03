@@ -9,6 +9,7 @@ import { t } from "../../shared/i18n.js";
 import { twSheet } from "../../shared/tw.js";
 import {
   sliderTrack,
+  sliderDrag,
   pillSwitch,
   activateOnKey,
   SliderHold,
@@ -82,6 +83,20 @@ export class FibbersLightRow extends LitElement {
     this._dragging = false;
     this._dragPct = 0;
     this._debouncedCommit = debounce((v) => this._commit(v), 150);
+    // Shared drag gesture: live-track past the slop, final value wins on release.
+    this._drag = sliderDrag({
+      guard: () => this._unavail(),
+      read: (e) => Math.round(pctFromX(e.clientX, e.currentTarget)),
+      frame: (v, dragging) => {
+        this._dragging = dragging;
+        if (v != null) this._dragPct = v;
+      },
+      live: (v) => this._debouncedCommit(v),
+      end: (v) => {
+        this._debouncedCommit.cancel();
+        if (v != null) this._commit(v);
+      },
+    });
     // Construct the hold once — SliderHold.addController has no counterpart, so a
     // fresh one per setConfig (HA calls it per keystroke in the editor) would
     // orphan controllers on the element.
@@ -143,32 +158,6 @@ export class FibbersLightRow extends LitElement {
     return t(hl, "light_row.cool");
   }
 
-  _down(e) {
-    if (this._unavail()) return;
-    const track = e.currentTarget;
-    this._dragging = true;
-    this._downX = e.clientX;
-    this._moved = false;
-    track.setPointerCapture && track.setPointerCapture(e.pointerId);
-    // Leading commit suppressed: a tap commits once on pointerup; a drag streams
-    // through the debounce only after it clears the ~4px slop threshold — same
-    // live-tracking feel as the group master slider.
-    this._dragPct = Math.round(pctFromX(e.clientX, track));
-  }
-  _move(e) {
-    if (!this._dragging) return;
-    this._dragPct = Math.round(pctFromX(e.clientX, e.currentTarget));
-    if (!this._moved && Math.abs(e.clientX - this._downX) < 4) return;
-    this._moved = true;
-    this._debouncedCommit(this._dragPct);
-  }
-  _up(e) {
-    if (!this._dragging) return;
-    const pct = Math.round(pctFromX(e.clientX, e.currentTarget));
-    this._dragging = false;
-    this._debouncedCommit.cancel();
-    this._commit(pct); // final value wins immediately
-  }
   _commit(pct) {
     if (!this.hass) return;
     this._hold.hold(pct); // show the committed value until the bulb catches up
@@ -287,13 +276,10 @@ export class FibbersLightRow extends LitElement {
                   this._hold.hold(p);
                   this._debouncedCommit(p);
                 },
-                onDown: this._down,
-                onMove: this._move,
-                onUp: this._up,
-                onCancel: () => {
-                  this._dragging = false;
-                  this._debouncedCommit.cancel();
-                },
+                onDown: this._drag.down,
+                onMove: this._drag.move,
+                onUp: this._drag.up,
+                onCancel: this._drag.cancel,
               })
             : html`<div class="flex min-h-[var(--fib-hit)] items-center">
                 ${pillSwitch({

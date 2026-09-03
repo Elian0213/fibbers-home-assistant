@@ -18,6 +18,7 @@ import { t } from "../../shared/i18n.js";
 import { twSheet } from "../../shared/tw.js";
 import {
   sliderTrack,
+  sliderDrag,
   overflowChips,
   activateOnKey,
   SliderHold,
@@ -611,6 +612,19 @@ export class FibbersRemote extends LitElement {
     if (!this._volHold) this._volHold = new SliderHold(this, { tolerance: 2 });
     else this._volHold.clear();
     this._volInput = debounce((v) => this._setVol(v), 150);
+    // Shared drag gesture: live-track past the slop, final value wins on release.
+    this._volDrag = sliderDrag({
+      read: (e) => Math.round(pctFromX(e.clientX, e.currentTarget)),
+      frame: (v, dragging) => {
+        this._dragging = dragging;
+        if (v != null) this._dragVol = v;
+      },
+      live: (v) => this._volInput(v),
+      end: (v) => {
+        this._volInput.cancel();
+        if (v != null) this._setVol(v);
+      },
+    });
   }
 
   _resetTransient() {
@@ -619,8 +633,9 @@ export class FibbersRemote extends LitElement {
     this._srcOpen = false;
     this._flash = null;
     this._sw = null; // an in-flight swipe must not carry across a device switch
-    // A pending debounced volume write resolves _mp() at fire time — cancel it so a
-    // write meant for device A can't land on device B after a switch.
+    // A pending debounced volume write resolves _mp() at fire time — cancel it, and
+    // abort any in-flight drag, so a value meant for device A can't land on B.
+    if (this._volDrag) this._volDrag.abort();
     if (this._volInput) this._volInput.cancel();
   }
 
@@ -863,32 +878,6 @@ export class FibbersRemote extends LitElement {
       this._volHold.clear(),
     );
   }
-  _volDown(e) {
-    this._dragging = true;
-    this._downX = e.clientX;
-    this._moved = false;
-    e.currentTarget.setPointerCapture &&
-      e.currentTarget.setPointerCapture(e.pointerId);
-    // Leading commit suppressed: a tap commits once on pointerup; a drag streams
-    // through the debounce only after it clears the ~4px slop threshold — same
-    // live-tracking feel as the other Fibbers sliders.
-    this._dragVol = Math.round(pctFromX(e.clientX, e.currentTarget));
-  }
-  _volMove(e) {
-    if (!this._dragging) return;
-    this._dragVol = Math.round(pctFromX(e.clientX, e.currentTarget));
-    if (!this._moved && Math.abs(e.clientX - this._downX) < 4) return;
-    this._moved = true;
-    this._volInput(this._dragVol);
-  }
-  _volUp(e) {
-    if (!this._dragging) return;
-    const v = Math.round(pctFromX(e.clientX, e.currentTarget));
-    this._dragging = false;
-    this._volInput.cancel();
-    this._setVol(v); // final value wins immediately
-  }
-
   // Keyboard for the swipe surface (which has no arrow buttons to Tab to). Only
   // acts on the container's own key events — a keydown bubbling up from a focused
   // sector is handled by that sector, not stolen here.
@@ -1260,13 +1249,10 @@ export class FibbersRemote extends LitElement {
             this._volHold.hold(v);
             this._volInput(v);
           },
-          onDown: this._volDown,
-          onMove: this._volMove,
-          onUp: this._volUp,
-          onCancel: () => {
-            this._dragging = false;
-            this._volInput.cancel();
-          },
+          onDown: this._volDrag.down,
+          onMove: this._volDrag.move,
+          onUp: this._volDrag.up,
+          onCancel: this._volDrag.cancel,
         })}<span class="pct">${vol}%</span>`;
     }
     // No level: a − VOL + stepper that keeps the row's height and anatomy.
