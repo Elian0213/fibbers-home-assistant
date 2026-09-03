@@ -195,6 +195,10 @@ export function makeHass(flags = {}) {
     friendly_name: "Pi temperatuur",
     unit_of_measurement: "°C",
   });
+  add("sensor.pi_gpu_temp", "48.6", {
+    friendly_name: "Pi GPU temperatuur",
+    unit_of_measurement: "°C",
+  });
   add("sensor.pi_disk", "20.9", {
     friendly_name: "Pi schijf",
     unit_of_measurement: "%",
@@ -277,6 +281,70 @@ export function makeHass(flags = {}) {
     friendly_name: "TV",
     supported_features: 4,
   });
+
+  // remote-card devices (0.8.x). appletv reports NO volume_level → the volume row
+  // renders as the scrub strip; philips reports one → a positional slider, and
+  // carries the controls-panel entities (picture-style select, backlight number,
+  // screen-off switch). A speaker (media_player only) reuses media_player.woonkamer.
+  add("remote.appletv", "on", { friendly_name: "Apple TV" });
+  add("media_player.appletv", "playing", {
+    friendly_name: "Apple TV",
+    media_title: "The Bear",
+    app_name: "Netflix",
+    source: "Netflix",
+    source_list: [
+      "Netflix",
+      "YouTube",
+      "Prime Video",
+      "Spotify",
+      "Disney+",
+      "NPO Start",
+      "Videoland",
+    ],
+    // prev/next/play/pause/select_source; advertises VOLUME_SET but reports no level
+    supported_features: 450487,
+  });
+  add("remote.philips", "on", { friendly_name: "Philips TV" });
+  add("media_player.philips", "on", {
+    friendly_name: "Philips TV",
+    volume_level: 0.27,
+    is_volume_muted: false,
+    supported_features: 155581,
+  });
+  add("input_select.tv_picture_style", "Dolby Vision Dark", {
+    friendly_name: "Beeldstijl",
+    options: [
+      "Persoonlijk",
+      "Levendig",
+      "Natuurlijk",
+      "Film",
+      "Monitor",
+      "Dolby Vision Bright",
+      "Dolby Vision Dark",
+    ],
+  });
+  add("input_number.tv_backlight", "70", {
+    friendly_name: "Achtergrondlicht",
+    min: 0,
+    max: 100,
+    step: 1,
+    unit_of_measurement: "%",
+  });
+  add("switch.tv_screen_off", "off", { friendly_name: "Scherm uit" });
+  add("remote.beamer", "on", { friendly_name: "Beamer" });
+  // a media_player-only speaker for the switcher's speaker device (no d-pad)
+  add("media_player.keuken_sonos", "playing", {
+    friendly_name: "Sonos Keuken",
+    media_title: "Redbone",
+    media_artist: "Childish Gambino",
+    volume_level: 0.35,
+    is_volume_muted: false,
+    source: "Spotify",
+    source_list: ["Spotify", "Radio 538", "TuneIn", "Line-In"],
+    // pause/volume/mute/prev/next/select_source/step/play
+    supported_features: 19517,
+  });
+
   add("climate.woonkamer", "heat", {
     friendly_name: "Thermostaat Woonkamer",
     current_temperature: 21.4,
@@ -286,6 +354,162 @@ export function makeHass(flags = {}) {
     max_temp: 30,
     hvac_modes: ["off", "heat", "cool", "auto"],
     hvac_action: "heating",
+  });
+  // extra climate states for the story variants (cool / off / idle-at-setpoint)
+  add("climate.slaapkamer", "cool", {
+    friendly_name: "Thermostaat Slaapkamer",
+    current_temperature: 24.2,
+    temperature: 21,
+    target_temp_step: 0.5,
+    min_temp: 5,
+    max_temp: 30,
+    hvac_modes: ["off", "heat", "cool", "auto"],
+    hvac_action: "cooling",
+  });
+  add("climate.zolder", "off", {
+    friendly_name: "Thermostaat Zolder",
+    current_temperature: 19.0,
+    temperature: 18,
+    target_temp_step: 0.5,
+    min_temp: 5,
+    max_temp: 30,
+    hvac_modes: ["off", "heat", "cool", "auto"],
+    hvac_action: "off",
+  });
+  add("climate.kantoor", "heat", {
+    friendly_name: "Thermostaat Kantoor",
+    current_temperature: 21.0,
+    temperature: 21,
+    target_temp_step: 0.5,
+    min_temp: 5,
+    max_temp: 30,
+    hvac_modes: ["off", "heat", "cool", "auto"],
+    hvac_action: "idle",
+  });
+  // a paused player + a grouped player for the media story variants
+  add("media_player.slaapkamer", "paused", {
+    friendly_name: "Sonos Slaapkamer",
+    media_title: "Weightless",
+    media_artist: "Marconi Union",
+    volume_level: 0.18,
+    source: "Spotify",
+    source_list: ["Spotify", "NPO Radio 2", "TuneIn"],
+    media_content_type: "music",
+    app_name: "Sonos",
+  });
+  add("media_player.badkamer", "playing", {
+    friendly_name: "Sonos Badkamer",
+    media_title: "Redbone",
+    media_artist: "Childish Gambino",
+    volume_level: 0.3,
+    group_members: ["media_player.woonkamer", "media_player.badkamer"],
+    media_content_type: "music",
+    app_name: "Sonos",
+    // GROUPING(524288) + play/pause/prev/next/volume/select_source
+    supported_features: 543933,
+  });
+  add("media_player.zolder", "unavailable", { friendly_name: "Sonos Zolder" });
+
+  // extra weather conditions for the weather story variants
+  const forecast5 = (a, b, c, d, e) =>
+    [a, b, c, d, e].map((cond, i) => ({
+      datetime: `2026-09-0${i + 1}`,
+      condition: cond,
+      temperature: 18 + i,
+      templow: 10 + i,
+    }));
+  add("weather.thuis_zonnig", "sunny", {
+    friendly_name: "Thuis",
+    temperature: 24,
+    temperature_unit: "°C",
+    humidity: 40,
+    forecast: forecast5("sunny", "sunny", "partlycloudy", "cloudy", "rainy"),
+  });
+  add("weather.thuis_regen", "rainy", {
+    friendly_name: "Thuis",
+    temperature: 13,
+    temperature_unit: "°C",
+    humidity: 88,
+    forecast: forecast5("rainy", "pouring", "cloudy", "partlycloudy", "sunny"),
+  });
+  add("weather.thuis_nacht", "clear-night", {
+    friendly_name: "Thuis",
+    temperature: 11,
+    temperature_unit: "°C",
+    humidity: 72,
+    forecast: forecast5(
+      "clear-night",
+      "sunny",
+      "sunny",
+      "partlycloudy",
+      "rainy",
+    ),
+  });
+  add("weather.onbeschikbaar", "unavailable", { friendly_name: "Weerstation" });
+
+  // climate range (heat_cool low–high band) + an unavailable thermostat
+  add("climate.serre", "heat_cool", {
+    friendly_name: "Thermostaat Serre",
+    current_temperature: 21.5,
+    target_temp_low: 19,
+    target_temp_high: 24,
+    target_temp_step: 0.5,
+    min_temp: 5,
+    max_temp: 30,
+    hvac_modes: ["off", "heat", "cool", "heat_cool", "auto"],
+    hvac_action: "idle",
+  });
+  add("climate.garage", "unavailable", { friendly_name: "Thermostaat Garage" });
+
+  // toggle-card: an automation entity; backup-card: a failed result + empty state
+  add("automation.verlichting_avond", "on", {
+    friendly_name: "Verlichting – Avondlicht",
+    last_triggered: "2026-08-31T19:12:00+00:00",
+  });
+  add("binary_sensor.backup_result", "on", {
+    friendly_name: "Back-up mislukt",
+    device_class: "problem",
+  });
+  add("sensor.backup_none", "unavailable", {
+    friendly_name: "Laatste back-up",
+    device_class: "timestamp",
+  });
+
+  // number-card: a fractional-step helper + a native number.* entity
+  add("input_number.thermostat_offset", "-1.5", {
+    friendly_name: "Thermostaat offset",
+    unit_of_measurement: "°C",
+    min: -5,
+    max: 5,
+    step: 0.5,
+  });
+  add("number.printer_flow", "102", {
+    friendly_name: "Printer flow",
+    unit_of_measurement: "%",
+    min: 50,
+    max: 150,
+    step: 1,
+  });
+
+  // datetime-card: a combined date+time helper
+  add("input_datetime.vergadering", "2026-09-08 09:30:00", {
+    friendly_name: "Vergadering",
+    has_time: true,
+    has_date: true,
+  });
+
+  // light-row: an on/off-only plug (pill toggle) + a warm colour-temp bulb
+  add("light.stekker_lamp", "on", {
+    friendly_name: "Stekkerlamp",
+    supported_color_modes: ["onoff"],
+    color_mode: "onoff",
+  });
+  add("light.leeslamp", "on", {
+    friendly_name: "Leeslamp",
+    brightness: 150,
+    color_temp_kelvin: 2700,
+    color_mode: "color_temp",
+    supported_color_modes: ["color_temp"],
   });
 
   return {

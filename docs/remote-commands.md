@@ -50,3 +50,61 @@ for (const c of ["up", "DPAD_UP", "select", "DPAD_CENTER", "home", "HOME"]) {
 
 The platform is under **Developer Tools → Entities → your remote → (settings) →**
 or `config/entity_registry/get`.
+
+## Card options
+
+A card is one device (flat config) or several behind a switcher (`devices:`). Each
+device takes:
+
+| key | type | what it does |
+|---|---|---|
+| `entity` | `remote.*` | the remote the d-pad / nav / transport / volume send through. Omit for a speaker. |
+| `media_player` | `media_player.*` | drives now-playing, the volume **slider** (when it reports `volume_level`), source chips, and lets transport prefer the player's own services. |
+| `device` | enum | `appletv` \| `philips` \| `androidtv` \| `generic` — override the platform guess. |
+| `commands` | map | per-key command overrides, merged over the device family. |
+| `dpad` | enum | `swipe` \| `buttons` \| `both` \| `grid` — d-pad interaction/shape. |
+| `sources` | `"auto"` \| list | source chips (needs `media_player`). `auto` uses the player's `source_list`. |
+| `favourites` | list | the subset shown collapsed before "All N". |
+| `name`, `icon` | string | device label / icon. |
+| `remember` | bool | persist the selected device (default `true`). |
+| `auto_select` | `"playing"` | on mount, open the device whose `media_player` is playing. |
+| `controls` | list | an extra controls panel — see below. |
+| `language` | string | override HA's language for on-screen strings. |
+
+Volume degrades honestly: a `media_player` that reports `volume_level` gets a
+positional slider; one that doesn't (many Apple TVs) gets a **scrub strip** — drag
+to change, the ends are Volume−/Volume+ buttons — because there is no level to place
+a thumb at.
+
+## Extra controls (`controls:`)
+
+`controls:` renders whatever the remote can't infer — a picture-style preset, a
+backlight, a screen-off switch — in the companion panel. Each entry is
+`{ entity, name?, icon?, type? }`; the kind is inferred from the entity domain
+(`type:` overrides):
+
+| entity domain | renders as | service |
+|---|---|---|
+| `select` / `input_select` | preset chips | `select_option` |
+| `light` | brightness slider | `light.turn_on` (`brightness_pct`) |
+| `number` / `input_number` | value slider | `set_value` |
+| `switch` / `input_boolean` | pill toggle | `toggle` |
+| `button` / `scene` | press key | `press` / `turn_on` |
+
+```yaml
+type: custom:fibbers-remote
+device: philips
+entity: remote.tv
+media_player: media_player.tv
+controls:
+  - entity: input_select.tv_picture_style   # → preset chips
+    name: Beeldstijl
+  - entity: switch.tv_screen_off            # → toggle
+    name: Scherm uit
+```
+
+Picture-style presets aren't a Home Assistant entity out of the box — the
+`philips_js` integration explicitly exposes no picture-style control. To get
+`Dolby Vision Dark` as a chip, expose a `select`/`input_select` yourself (e.g. via
+`pylips` MQTT or a `rest_command` hitting the JointSpace settings API) and point a
+`controls:` entry at it. The card renders whatever you wire up.

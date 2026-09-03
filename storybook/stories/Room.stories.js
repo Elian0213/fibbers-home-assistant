@@ -15,6 +15,15 @@ export const Lit = story({
   sheet: "woonkamer",
 });
 
+/** All configured lights on — reads "2 van 2 aan", fully lit glow. */
+export const AllOn = story({
+  type: "custom:fibbers-room",
+  name: "Keuken",
+  icon: "solar:cooking-pot-bold-duotone",
+  entities: ["light.kitchen", "light.kitchen_lsc_led_strip"],
+  sheet: "keuken",
+});
+
 /** All lights off but reachable — reads "Uit", neutral surface. */
 export const Off = story(
   {

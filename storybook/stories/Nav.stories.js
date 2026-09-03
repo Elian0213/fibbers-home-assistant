@@ -34,9 +34,31 @@ const NAV = {
   ],
 };
 
-/** Five tabs with a notification badge on "Meer". The bar renders into the story iframe's
- * document.body and pins to its bottom. */
+/** Five tabs with a live notification badge on "Meer" (update pending). The bar renders
+ * into the story iframe's document.body and pins to its bottom. */
 export const Default = story(NAV);
 
-/** `offset_bottom` lifts the bar above a companion-app tab strip. */
+/** A minimal two-tab bar — the card-picker stub config, no badges. */
+export const TwoTabs = story({
+  type: "custom:fibbers-nav",
+  tabs: [
+    { name: "Home", icon: "solar:home-2-bold-duotone", path: "/lovelace/0" },
+    {
+      name: "Lights",
+      icon: "solar:lightbulb-bolt-bold-duotone",
+      path: "/lovelace/1",
+    },
+  ],
+});
+
+/** `offset_bottom` lifts the whole bar above a companion-app tab strip. */
 export const WithOffset = story({ ...NAV, offset_bottom: 48 });
+
+/** `extra_bottom` pads the reserved view space so content clears the bar with room to spare. */
+export const ExtraBottom = story({ ...NAV, extra_bottom: 24 });
+
+/** Light theme palette instead of the default Fibbers dark bar. */
+export const LightTheme = story({ ...NAV, theme: "fibbers-light" });
+
+/** `hide_ha_tabs: "header"` swaps HA's own view tabs for this bar as the sole navigation. */
+export const HidesHaTabs = story({ ...NAV, hide_ha_tabs: "header" });

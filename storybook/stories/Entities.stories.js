@@ -39,3 +39,50 @@ export const AllClear = story(
   },
   { hass: HASS_ALL_CLEAR },
 );
+
+/** Every light that's on — HA-localised state text as the secondary line. */
+export const LightsOn = story(
+  {
+    type: "custom:fibbers-entities",
+    title: "Lampen aan",
+    icon: "solar:lightbulb-bold-duotone",
+    filters: [{ domain: "light", state: "on" }],
+    secondary: "state",
+  },
+  { hass: HASS },
+);
+
+/** Filter by an entity_id regex, showing brightness via `attribute:` secondary. */
+export const AttributeSecondary = story(
+  {
+    type: "custom:fibbers-entities",
+    title: "Spots",
+    filters: [{ entity_id: "^light\\.spot_" }],
+    secondary: "attribute:brightness",
+  },
+  { hass: HASS },
+);
+
+/** Scenes sorted by most-recent activation, capped at 4 with a relative "ago" line. */
+export const RecentScenes = story(
+  {
+    type: "custom:fibbers-entities",
+    title: "Recente scenes",
+    icon: "solar:magic-stick-3-bold-duotone",
+    filters: [{ domain: "scene" }],
+    sort: "last_changed",
+    max: 4,
+    secondary: "last_changed",
+  },
+  { hass: HASS },
+);
+
+/** No title/icon — a bare row list of both people with their presence state. */
+export const NoHeader = story(
+  {
+    type: "custom:fibbers-entities",
+    filters: [{ domain: "person" }],
+    secondary: "state",
+  },
+  { hass: HASS },
+);

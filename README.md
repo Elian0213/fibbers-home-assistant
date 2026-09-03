@@ -223,6 +223,8 @@ sections:
         device: appletv
         sources: auto # from the player's source_list
         favourites: [Netflix, YouTube, Plex, Disney+]
+        controls: # optional extra panel — see note below
+          - { entity: switch.tv_screen_off, name: Screen off }
   - type: grid
     cards:
       - type: custom:fibbers-media
@@ -235,6 +237,17 @@ sections:
           - { name: Movie, icon: solar:moon-bold-duotone, scene: scene.movie_light }
           - { name: Bright, icon: solar:sun-bold-duotone, scene: scene.bright }
 ```
+
+The remote's Back/Home sit in their own row under the wheel, transport is
+`⏮ ▶ ⏭`, and volume is a real slider when the player reports a level or a
+drag-to-change **scrub strip** when it doesn't (many Apple TVs). `controls:` adds a
+companion panel for anything the remote can't infer — a `select` becomes preset
+chips, a `light`/`number` a slider, a `switch` a toggle. Note that TV **picture-style
+presets** (e.g. _Dolby Vision Dark_) aren't a Home Assistant entity by default —
+`philips_js` exposes none — so to show them as chips you first expose a
+`select`/`input_select` yourself (via `pylips` or a `rest_command` to the JointSpace
+API) and point a `controls:` entry at it. See
+[docs/remote-commands.md](docs/remote-commands.md).
 
 **Muziek** — a now-playing hero with artwork + seek bar and speaker grouping, with the TV
 players in a clearly separate section:

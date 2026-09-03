@@ -10,3 +10,9 @@ export const Default = story({
   type: "custom:fibbers-section",
   label: "Kamers",
 });
+
+/** A longer label — the mono tracking and uppercase transform hold at width. */
+export const LongLabel = story({
+  type: "custom:fibbers-section",
+  label: "Verlichting & sferen",
+});

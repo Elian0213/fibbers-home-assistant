@@ -17,6 +17,14 @@ export const Dimmed = story({
   entity: "light.kitchen",
 });
 
+/** A custom name + icon override the entity's friendly_name and default bulb glyph. */
+export const Named = story({
+  type: "custom:fibbers-light-row",
+  entity: "light.kitchen_lsc_led_strip",
+  name: "Keuken strip",
+  icon: "solar:lightbulb-bolt-bold-duotone",
+});
+
 /** Off — value reads "Uit" and the icon box is muted. */
 export const Off = story({
   type: "custom:fibbers-light-row",
@@ -34,4 +42,16 @@ export const GroupToggle = story({
   type: "custom:fibbers-light-row",
   entity: "light.tv_led_strip",
   icon_entity: "light.all_color_lights",
+});
+
+/** On/off-only plug — no brightness, so the row renders a plain pill switch instead of a slider. */
+export const OnOffPill = story({
+  type: "custom:fibbers-light-row",
+  entity: "light.stekker_lamp",
+});
+
+/** On at 2700 K — value reads "Warm · 59%" from the warm colour-temp label. */
+export const Warm = story({
+  type: "custom:fibbers-light-row",
+  entity: "light.leeslamp",
 });

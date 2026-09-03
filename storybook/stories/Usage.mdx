@@ -25,8 +25,28 @@ cards. Two things to know:
 | `fibbers-alert`     | "Aandacht nodig" checks      | `type: custom:fibbers-alert`<br/>`checks: [{ type: updates }]`                                          |
 | `fibbers-chips`     | Action pill row              | `type: custom:fibbers-chips`<br/>`chips: [{ name: X, action: {...} }]`                                  |
 | `fibbers-scene`     | Scene tiles                  | `type: custom:fibbers-scene`<br/>`scenes: [{ name: Avond, scene: scene.avond }]`                        |
+| `fibbers-media`     | Now-playing + transport      | `type: custom:fibbers-media`<br/>`entity: media_player.woonkamer`                                       |
+| `fibbers-remote`    | TV/speaker remote            | `type: custom:fibbers-remote`<br/>`entity: remote.tv`<br/>`media_player: media_player.tv`               |
+| `fibbers-climate`   | Thermostat                   | `type: custom:fibbers-climate`<br/>`entity: climate.woonkamer`                                          |
 
 Each card's own sidebar page shows every option and its live YAML.
+
+### Remote extras (`controls:`)
+
+The remote can surface entities it can't infer — a picture-style preset, a screen-off
+switch — in a companion panel. Each entry is `{ entity, name?, icon?, type? }`; the
+kind follows the entity domain (`select` → chips, `light`/`number` → slider,
+`switch` → toggle):
+
+```yaml
+type: custom:fibbers-remote
+device: philips
+entity: remote.tv
+media_player: media_player.tv
+controls:
+  - { entity: input_select.tv_picture_style, name: Beeldstijl } # → preset chips
+  - { entity: switch.tv_screen_off, name: Scherm uit } # → toggle
+```
 
 ## A full "Huis" view
 
