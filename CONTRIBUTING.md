@@ -10,6 +10,11 @@ app-like dashboard.
   compiled into a shared adopted stylesheet. Source lives in `src/` as small ES modules and is
   bundled into a single committed IIFE at `dist/fibbers.js` by `bun build` (production Lit, no
   minify, no polyfills).
+- **`src/` layout**: `index.js` (the card registry) · `cards/<domain>/` (cards by domain:
+  `lights`, `media`, `climate`, `sensors`, `inputs`, `layout`) · `core/` (body-portal singletons,
+  theming, navigation) · `shared/` (widgets + helpers cards import — `ui`, `util`, `i18n`, `icon`,
+  `actions`, `tw`, `tokens`) · `generated/` (`tailwind.gen.js`, `icons.core.gen.js`) ·
+  `translations/`.
 - **Everything a user loads ships from `dist/fibbers.js`.** It's a generated artifact but is
   committed on purpose (HACS serves it). **Edit `src/`, run `bun run build`; never hand-edit
   the bundle.**
@@ -22,7 +27,7 @@ app-like dashboard.
 
 ```bash
 bun install
-bun run gen-icons   # only when adding icons — regenerates src/icons.gen.js from Solar
+bun run gen-icons   # only when adding icons — regenerates src/generated/icons.core.gen.js from Solar
 bun run build       # src/ -> dist/fibbers.js (IIFE)
 bun run watch       # rebuild on change
 bun run check       # prettier --check + build + parse
@@ -43,7 +48,7 @@ dist/fibbers.js`), and a parse check — so always `bun run build` and commit `d
 
 ## Design tokens
 
-Defined once in `src/tokens.js` and emitted per shadow root by `styleBlock()`. Use the exact
+Defined once in `src/shared/tokens.js` and emitted per shadow root by `styleBlock()`. Use the exact
 values; new cards read `var(--fib-x)`.
 
 ```

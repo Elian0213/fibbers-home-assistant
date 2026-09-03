@@ -1,5 +1,5 @@
 /* Compile styles/tailwind.css (scanning src/ for used utilities) into a JS
- * string module src/tailwind.gen.js — the same "generated JS, committed"
+ * string module src/generated/tailwind.gen.js — the same "generated JS, committed"
  * pattern as icons.gen.js, so the bundle stays a single IIFE with no CSS
  * loader. Run via `bun run gen-tw` (build does it automatically). */
 import { execSync } from "node:child_process";
@@ -21,9 +21,9 @@ const esc = css
   .replace(/\$\{/g, "\\${");
 
 writeFileSync(
-  "src/tailwind.gen.js",
+  "src/generated/tailwind.gen.js",
   `/* GENERATED from styles/tailwind.css by 'bun run gen-tw'. Do not hand-edit. */\n` +
     `export const TW_CSS = \`${esc}\`;\n`,
 );
 
-console.log(`gen-tw: wrote src/tailwind.gen.js (${css.length} bytes of CSS)`);
+console.log(`gen-tw: wrote src/generated/tailwind.gen.js (${css.length} bytes of CSS)`);

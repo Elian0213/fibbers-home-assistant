@@ -7,13 +7,25 @@
  * words. A hit means a literal escaped translation — use `t(hl, "<card>.<key>")`
  * instead. The translation JSON itself is not scanned (it is Dutch by design).
  */
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join, relative } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..");
 const cardsDir = join(root, "src/cards");
+
+// Cards live in domain subfolders (cards/lights/, cards/media/, …), so walk the
+// tree rather than reading a single flat directory.
+function jsFiles(dir) {
+  const out = [];
+  for (const entry of readdirSync(dir)) {
+    const p = join(dir, entry);
+    if (statSync(p).isDirectory()) out.push(...jsFiles(p));
+    else if (p.endsWith(".js")) out.push(p);
+  }
+  return out;
+}
 
 // Unambiguously-Dutch tokens we removed. Kept whole-word to avoid colliding with
 // English (e.g. "order" ⊅ "orde"). Short international words (min, auto, media,
@@ -43,10 +55,11 @@ const stripComments = (src) =>
 const LITERAL = /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`/gs;
 
 // Every card, plus the body-portal modules that also render user-facing text.
-const files = readdirSync(cardsDir)
-  .filter((e) => e.endsWith(".js"))
-  .map((e) => join(cardsDir, e));
-files.push(join(root, "src/body-sheet.js"), join(root, "src/body-layer.js"));
+const files = jsFiles(cardsDir);
+files.push(
+  join(root, "src/core/body-sheet.js"),
+  join(root, "src/core/body-layer.js"),
+);
 
 const hits = [];
 for (const file of files) {

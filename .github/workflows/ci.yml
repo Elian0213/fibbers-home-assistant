@@ -27,7 +27,7 @@ jobs:
         run: bun run check
 
       - name: dist/ and generated files are in sync with src/
-        run: git diff --exit-code dist/fibbers.js dist/icons.full.json src/icons.core.gen.js src/tailwind.gen.js
+        run: git diff --exit-code dist/fibbers.js dist/icons.full.json src/generated/icons.core.gen.js src/generated/tailwind.gen.js
 
   storybook:
     runs-on: ubuntu-latest

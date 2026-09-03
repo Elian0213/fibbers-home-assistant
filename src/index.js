@@ -3,39 +3,39 @@
  * Registers ~25 cards (see the CARDS table below) plus the body-appended nav bar
  * and modal sheet, then injects the theme. Edit src/, run `bun run build`.
  */
-import "./icon.js"; // registers <fib-icon>
-import "./editor.js"; // registers <fibbers-form-editor> for getConfigElement()
-import { bar } from "./body-layer.js";
-import { FibbersAlert } from "./cards/alert.js";
-import { FibbersBack } from "./cards/back.js";
-import { FibbersBackup } from "./cards/backup.js";
-import { FibbersChips } from "./cards/chips.js";
-import { FibbersClimate } from "./cards/climate.js";
-import { FibbersDateTime } from "./cards/datetime.js";
-import { FibbersEntities } from "./cards/entities.js";
-import { FibbersGraph } from "./cards/graph.js";
-import { FibbersGreeting } from "./cards/greeting.js";
-import { FibbersLightGroup } from "./cards/light-group.js";
-import { FibbersLightRow } from "./cards/light-row.js";
-import { FibbersMedia } from "./cards/media.js";
-import { FibbersNav } from "./cards/nav.js";
-import { FibbersNumber } from "./cards/number.js";
-import { FibbersPresence } from "./cards/presence.js";
-import { FibbersRemote } from "./cards/remote.js";
-import { FibbersRoom } from "./cards/room.js";
-import { FibbersScene } from "./cards/scene.js";
-import { FibbersScheduler } from "./cards/scheduler.js";
-import { FibbersSection } from "./cards/section.js";
-import { FibbersSelect } from "./cards/select.js";
-import { FibbersSheet } from "./cards/sheet.js";
-import { FibbersStat } from "./cards/stat.js";
-import { FibbersSysmon } from "./cards/sysmon.js";
-import { FibbersToggle } from "./cards/toggle.js";
-import { FibbersWeather } from "./cards/weather.js";
-import { injectGlobalCss } from "./global-css.js";
-import { nav, goBack, previous } from "./nav-stack.js";
-import { T, styleBlock } from "./tokens.js";
-import { navigate } from "./util.js";
+import "./shared/icon.js"; // registers <fib-icon>
+import "./core/editor.js"; // registers <fibbers-form-editor> for getConfigElement()
+import { FibbersClimate } from "./cards/climate/climate.js";
+import { FibbersChips } from "./cards/inputs/chips.js";
+import { FibbersDateTime } from "./cards/inputs/datetime.js";
+import { FibbersNumber } from "./cards/inputs/number.js";
+import { FibbersScene } from "./cards/inputs/scene.js";
+import { FibbersScheduler } from "./cards/inputs/scheduler.js";
+import { FibbersSelect } from "./cards/inputs/select.js";
+import { FibbersToggle } from "./cards/inputs/toggle.js";
+import { FibbersBack } from "./cards/layout/back.js";
+import { FibbersGreeting } from "./cards/layout/greeting.js";
+import { FibbersNav } from "./cards/layout/nav.js";
+import { FibbersRoom } from "./cards/layout/room.js";
+import { FibbersSection } from "./cards/layout/section.js";
+import { FibbersSheet } from "./cards/layout/sheet.js";
+import { FibbersLightGroup } from "./cards/lights/light-group.js";
+import { FibbersLightRow } from "./cards/lights/light-row.js";
+import { FibbersMedia } from "./cards/media/media.js";
+import { FibbersRemote } from "./cards/media/remote.js";
+import { FibbersAlert } from "./cards/sensors/alert.js";
+import { FibbersBackup } from "./cards/sensors/backup.js";
+import { FibbersEntities } from "./cards/sensors/entities.js";
+import { FibbersGraph } from "./cards/sensors/graph.js";
+import { FibbersPresence } from "./cards/sensors/presence.js";
+import { FibbersStat } from "./cards/sensors/stat.js";
+import { FibbersSysmon } from "./cards/sensors/sysmon.js";
+import { FibbersWeather } from "./cards/sensors/weather.js";
+import { bar } from "./core/body-layer.js";
+import { injectGlobalCss } from "./core/global-css.js";
+import { nav, goBack, previous } from "./core/nav-stack.js";
+import { T, styleBlock } from "./shared/tokens.js";
+import { navigate } from "./shared/util.js";
 
 const VERSION = "0.7.4";
 

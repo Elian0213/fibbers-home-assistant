@@ -1,7 +1,7 @@
 /*! Fibbers v0.7.4 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */
 (() => {
 
-  // src/icons.core.gen.js
+  // src/generated/icons.core.gen.js
   var ICONS = {
     "solar:add-circle-bold-duotone": {
       body: '<g fill="currentColor"><path d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" opacity=".5"/><path d="M12.75 9C12.75 8.58579 12.4142 8.25 12 8.25C11.5858 8.25 11.25 8.58579 11.25 9L11.25 11.25H9C8.58579 11.25 8.25 11.5858 8.25 12C8.25 12.4142 8.58579 12.75 9 12.75H11.25V15C11.25 15.4142 11.5858 15.75 12 15.75C12.4142 15.75 12.75 15.4142 12.75 15L12.75 12.75H15C15.4142 12.75 15.75 12.4142 15.75 12C15.75 11.5858 15.4142 11.25 15 11.25H12.75V9Z"/></g>',
@@ -261,7 +261,7 @@
     }
   };
 
-  // src/icon.js
+  // src/shared/icon.js
   var MISSING = "solar:question-circle-bold-duotone";
   var warned = new Set;
   var FULL = null;
@@ -934,7 +934,7 @@
   var o4 = s3.litElementPolyfillSupport;
   o4?.({ LitElement: i4 });
   (s3.litElementVersions ??= []).push("4.2.2");
-  // src/editor.js
+  // src/core/editor.js
   class FibbersFormEditor extends i4 {
     static properties = {
       hass: { attribute: false },
@@ -968,976 +968,6 @@
   }
   if (!customElements.get("fibbers-form-editor"))
     customElements.define("fibbers-form-editor", FibbersFormEditor);
-
-  // src/util.js
-  var store = {
-    get(key, fallback) {
-      try {
-        const raw = sessionStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-      } catch (_2) {
-        return fallback;
-      }
-    },
-    set(key, value) {
-      try {
-        sessionStorage.setItem(key, JSON.stringify(value));
-      } catch (_2) {}
-    }
-  };
-  var norm = (p3) => String(p3 || "").replace(/\/+$/, "") || "/";
-  var here = () => norm(window.location.pathname);
-  function deepFind(localName) {
-    const stack = [document.documentElement];
-    while (stack.length) {
-      const el = stack.pop();
-      if (el.localName === localName)
-        return el;
-      if (el.shadowRoot)
-        stack.push(...el.shadowRoot.children);
-      if (el.children)
-        stack.push(...el.children);
-    }
-    return null;
-  }
-  function moreInfo(host, entityId) {
-    if (!host || !entityId)
-      return;
-    const target = document.querySelector("home-assistant") || host;
-    target.dispatchEvent(new CustomEvent("hass-more-info", {
-      detail: { entityId },
-      bubbles: true,
-      composed: true
-    }));
-  }
-  var fmtNum = (hass, n4, d3) => {
-    if (!Number.isFinite(n4))
-      return String(n4);
-    const lang = hass && (hass.locale && hass.locale.language || hass.language) || "en";
-    const opts = d3 != null ? { minimumFractionDigits: d3, maximumFractionDigits: d3 } : {};
-    try {
-      return n4.toLocaleString(lang, opts);
-    } catch (_2) {
-      return n4.toLocaleString("en", opts);
-    }
-  };
-  function pickEntity(domain, entities, entitiesFallback, fallback) {
-    const inDomain = (list) => (list || []).find((id) => typeof id === "string" && id.startsWith(`${domain}.`));
-    return inDomain(entities) || inDomain(entitiesFallback) || fallback;
-  }
-  var isUnavail = (st) => !st || st.state === "unavailable" || st.state === "unknown";
-  var clamp = (n4, lo, hi) => Number.isFinite(n4) ? Math.max(lo, Math.min(hi, n4)) : lo;
-  var cssUrl = (url) => `url("${encodeURI(String(url))}")`;
-  function fmtState(hass, st) {
-    try {
-      if (hass && typeof hass.formatEntityState === "function")
-        return hass.formatEntityState(st);
-    } catch (_2) {}
-    return st ? st.state : "";
-  }
-  function debounce(fn, ms) {
-    let t3;
-    const wrapped = (...args) => {
-      clearTimeout(t3);
-      t3 = setTimeout(() => fn(...args), ms);
-    };
-    wrapped.cancel = () => clearTimeout(t3);
-    return wrapped;
-  }
-  function pctFromX(clientX, track) {
-    const r4 = track.getBoundingClientRect();
-    return clamp((clientX - r4.left) / r4.width * 100, 0, 100);
-  }
-  async function fetchHistory(hass, entityId, hours = 24) {
-    if (!hass || !hass.callWS)
-      return [];
-    const end = new Date;
-    const start = new Date(end.getTime() - hours * 3600000);
-    const res = await hass.callWS({
-      type: "history/history_during_period",
-      start_time: start.toISOString(),
-      end_time: end.toISOString(),
-      entity_ids: [entityId],
-      minimal_response: true,
-      no_attributes: true
-    });
-    return (res && res[entityId] || []).map((r4) => Number(r4.s != null ? r4.s : r4.state)).filter((n4) => Number.isFinite(n4));
-  }
-  function navigate(path, { replace = false } = {}) {
-    if (!path)
-      return;
-    if (String(path).startsWith("#")) {
-      window.location.hash = path;
-      return;
-    }
-    if (replace)
-      history.replaceState(null, "", path);
-    else
-      history.pushState(null, "", path);
-    window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace } }));
-  }
-
-  // src/hide-tabs.js
-  var STYLE_ID = "fibbers-hide-tabs";
-  var CSS = {
-    true: `ha-tab-group { display: none !important; }`,
-    header: `.header { display: none !important; }`
-  };
-  var state = {
-    mode: false,
-    observer: null,
-    scheduled: false
-  };
-  function suppressed() {
-    if (window.FIBBERS_SHOW_TABS === true)
-      return true;
-    try {
-      return new URLSearchParams(window.location.search).has("disable_km");
-    } catch (_2) {
-      return false;
-    }
-  }
-  var findHuiRoot = () => deepFind("hui-root");
-  var findResolvedPanel = () => deepFind("partial-panel-resolver");
-  function paint() {
-    if (!state.mode || suppressed())
-      return removeStyle();
-    const root = findHuiRoot();
-    if (!root || !root.shadowRoot) {
-      console.debug("fibbers: hui-root not found; leaving HA tabs untouched");
-      return;
-    }
-    const css = CSS[state.mode];
-    if (!css)
-      return;
-    let style = root.shadowRoot.getElementById(STYLE_ID);
-    if (style) {
-      if (style.textContent !== css)
-        style.textContent = css;
-      return;
-    }
-    style = document.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = css;
-    root.shadowRoot.appendChild(style);
-  }
-  function removeStyle() {
-    const root = findHuiRoot();
-    const style = root && root.shadowRoot && root.shadowRoot.getElementById(STYLE_ID);
-    if (style)
-      style.remove();
-  }
-  function schedulePaint() {
-    if (state.scheduled)
-      return;
-    state.scheduled = true;
-    setTimeout(() => {
-      state.scheduled = false;
-      paint();
-    }, 60);
-  }
-  function startObserver() {
-    if (state.observer)
-      return;
-    const panel = findResolvedPanel() || document.body;
-    try {
-      state.observer = new MutationObserver(schedulePaint);
-      state.observer.observe(panel, { childList: true, subtree: true });
-    } catch (_2) {}
-  }
-  function stopObserver() {
-    if (state.observer) {
-      state.observer.disconnect();
-      state.observer = null;
-    }
-  }
-  function setTabHiding(mode) {
-    const normalized = mode === true || mode === "header" ? mode : false;
-    state.mode = normalized;
-    if (!normalized) {
-      removeTabHiding();
-      return;
-    }
-    paint();
-    startObserver();
-    startNavListeners();
-  }
-  function removeTabHiding() {
-    state.mode = false;
-    stopObserver();
-    stopNavListeners();
-    removeStyle();
-  }
-  var navBound = false;
-  function startNavListeners() {
-    if (navBound)
-      return;
-    navBound = true;
-    window.addEventListener("location-changed", schedulePaint);
-    window.addEventListener("popstate", schedulePaint);
-  }
-  function stopNavListeners() {
-    if (!navBound)
-      return;
-    navBound = false;
-    window.removeEventListener("location-changed", schedulePaint);
-    window.removeEventListener("popstate", schedulePaint);
-  }
-
-  // src/nav-stack.js
-  var NAV_KEY = "fibbers:navstack";
-  var nav = {
-    tabs: new Set,
-    stack: store.get(NAV_KEY, []),
-    listeners: new Set,
-    hassRef: null
-  };
-  var registerTabs = (paths) => paths.forEach((p3) => nav.tabs.add(norm(p3)));
-  var isTab = (path) => nav.tabs.has(norm(path));
-  function onRouteChange() {
-    const path = here();
-    const s4 = nav.stack;
-    if (isTab(path)) {
-      nav.stack = [path];
-    } else if (s4.length >= 2 && norm(s4[s4.length - 2]) === path) {
-      nav.stack = s4.slice(0, -1);
-    } else if (norm(s4[s4.length - 1]) !== path) {
-      nav.stack = s4.concat([path]);
-    }
-    if (nav.stack.length > 20)
-      nav.stack = nav.stack.slice(-20);
-    store.set(NAV_KEY, nav.stack);
-    nav.listeners.forEach((fn) => {
-      try {
-        fn();
-      } catch (_2) {}
-    });
-  }
-  var previous = () => nav.stack.length >= 2 ? nav.stack[nav.stack.length - 2] : null;
-  function goBack(fallback) {
-    const prev = previous();
-    if (prev) {
-      nav.stack = nav.stack.slice(0, -1);
-      store.set(NAV_KEY, nav.stack);
-      navigate(prev);
-      return;
-    }
-    if (fallback) {
-      navigate(fallback);
-      return;
-    }
-    if (history.length > 1)
-      history.back();
-  }
-  window.addEventListener("location-changed", onRouteChange);
-  window.addEventListener("popstate", onRouteChange);
-  onRouteChange();
-
-  // src/tokens.js
-  var T2 = {
-    bg: "#111516",
-    card: "#1D2426",
-    card2: "#262F31",
-    line: "#333E41",
-    ink: "#EDF1F1",
-    ink2: "#A9B6B9",
-    muted: "#7D8B8E",
-    accent: "#74B98A",
-    accentSoft: "rgba(116,185,138,.10)",
-    accentBg: "#17281C",
-    accentLine: "#2B4A34",
-    accentTx: "#CFE6D5",
-    amber: "#E8A33D",
-    amberSoft: "rgba(232,163,61,.09)",
-    amberBg: "#3A2B12",
-    amberLine: "#4E3A18",
-    amberTx: "#EBD9BC",
-    blue: "#5AAFD6",
-    blueBg: "#152B36",
-    blueLine: "#2C5A70",
-    blueInk: "#9BD2EA",
-    green: "#63C295",
-    red: "#EC8377",
-    sheet: "#171E20",
-    nav: "#161C1E",
-    grab: "#3E4A4D",
-    rowLine: "#262F31"
-  };
-  function styleBlock() {
-    return `:host {
-    --fib-bg: ${T2.bg};
-    --fib-card: ${T2.card};
-    --fib-card-2: ${T2.card2};
-    --fib-line: ${T2.line};
-    --fib-ink: ${T2.ink};
-    --fib-ink-2: ${T2.ink2};
-    --fib-muted: ${T2.muted};
-    --fib-accent: ${T2.accent};
-    --fib-accent-soft: ${T2.accentSoft};
-    --fib-accent-bg: ${T2.accentBg};
-    --fib-accent-line: ${T2.accentLine};
-    --fib-accent-tx: ${T2.accentTx};
-    --fib-amber: ${T2.amber};
-    --fib-amber-bg: ${T2.amberBg};
-    --fib-amber-line: ${T2.amberLine};
-    --fib-amber-tx: ${T2.amberTx};
-    --fib-blue: ${T2.blue};
-    --fib-blue-bg: ${T2.blueBg};
-    --fib-blue-line: ${T2.blueLine};
-    --fib-blue-ink: ${T2.blueInk};
-    --fib-green: ${T2.green};
-    --fib-red: ${T2.red};
-    --fib-sheet: ${T2.sheet};
-    --fib-nav: ${T2.nav};
-    --fib-grab: ${T2.grab};
-    --fib-row-line: ${T2.rowLine};
-  }`;
-  }
-
-  // src/global-css.js
-  var STYLE_ID2 = "fibbers-global";
-  var DARK_VARS = {
-    "--primary-background-color": T2.bg,
-    "--secondary-background-color": T2.nav,
-    "--card-background-color": T2.card,
-    "--ha-card-background": T2.card,
-    "--app-header-background-color": T2.bg,
-    "--app-header-text-color": T2.ink,
-    "--sidebar-background-color": "#0E1315",
-    "--sidebar-icon-color": T2.muted,
-    "--sidebar-text-color": T2.ink2,
-    "--sidebar-selected-icon-color": T2.accent,
-    "--sidebar-selected-text-color": T2.ink,
-    "--divider-color": T2.line,
-    "--primary-text-color": T2.ink,
-    "--secondary-text-color": "#8B999C",
-    "--disabled-text-color": "#5C6A6D",
-    "--text-primary-color": T2.bg,
-    "--primary-color": T2.accent,
-    "--accent-color": T2.accent,
-    "--state-icon-color": "#8B999C",
-    "--state-icon-active-color": T2.accent,
-    "--error-color": T2.red,
-    "--warning-color": T2.amber,
-    "--success-color": T2.green,
-    "--info-color": T2.blue,
-    "--ha-card-border-radius": "15px",
-    "--ha-card-border-width": "1px",
-    "--ha-card-border-color": T2.line,
-    "--ha-card-box-shadow": "none",
-    "--ha-dialog-border-radius": "22px",
-    "--mdc-dialog-scrim-color": "rgba(6,9,10,.72)",
-    "--mdc-theme-surface": T2.sheet,
-    "--ha-dialog-surface-background": T2.sheet,
-    "--more-info-header-background": T2.sheet,
-    "--dialog-backdrop-filter": "blur(3px)",
-    "--switch-checked-color": T2.accent,
-    "--switch-checked-button-color": T2.ink,
-    "--switch-checked-track-color": "#2E5238",
-    "--switch-unchecked-button-color": "#8B999C",
-    "--switch-unchecked-track-color": T2.line,
-    "--paper-slider-active-color": T2.accent,
-    "--paper-slider-knob-color": T2.accent,
-    "--paper-slider-container-color": "#2C3639"
-  };
-  function injectGlobalCss() {
-    if (window.FIBBERS_DISABLE_GLOBAL_CSS)
-      return;
-    if (document.getElementById(STYLE_ID2))
-      return;
-    const decls = Object.entries(DARK_VARS).map(([k2, v2]) => `  ${k2}: ${v2} !important;`).join(`
-`);
-    const style = document.createElement("style");
-    style.id = STYLE_ID2;
-    style.textContent = `html {
-${decls}
-}`;
-    document.head.appendChild(style);
-  }
-
-  // src/theme.js
-  var STYLE_ID3 = "fibbers-theme";
-  var LIGHT_VARS = {
-    "--primary-background-color": "#EEF1F0",
-    "--secondary-background-color": "#FFFFFF",
-    "--card-background-color": "#FFFFFF",
-    "--ha-card-background": "#FFFFFF",
-    "--app-header-background-color": "#FFFFFF",
-    "--app-header-text-color": "#14201A",
-    "--sidebar-background-color": "#FFFFFF",
-    "--sidebar-icon-color": "#5C6A6D",
-    "--sidebar-text-color": "#3A4744",
-    "--sidebar-selected-icon-color": "#2F6B45",
-    "--sidebar-selected-text-color": "#14201A",
-    "--divider-color": "#E1E5E3",
-    "--primary-text-color": "#14201A",
-    "--secondary-text-color": "#55635C",
-    "--disabled-text-color": "#9AA5A0",
-    "--text-primary-color": "#FFFFFF",
-    "--primary-color": "#2F6B45",
-    "--accent-color": "#2F6B45",
-    "--state-icon-color": "#55635C",
-    "--state-icon-active-color": "#2F6B45",
-    "--error-color": "#C4443B",
-    "--warning-color": "#B7791F",
-    "--success-color": "#2F6B45",
-    "--info-color": "#2F6FB0",
-    "--ha-card-border-radius": "15px",
-    "--ha-card-border-width": "1px",
-    "--ha-card-border-color": "#E1E5E3",
-    "--ha-card-box-shadow": "none",
-    "--ha-dialog-border-radius": "22px",
-    "--mdc-dialog-scrim-color": "rgba(20,32,26,.32)",
-    "--mdc-theme-surface": "#FFFFFF",
-    "--ha-dialog-surface-background": "#FFFFFF",
-    "--more-info-header-background": "#FFFFFF",
-    "--dialog-backdrop-filter": "blur(3px)",
-    "--switch-checked-color": "#2F6B45",
-    "--switch-checked-button-color": "#FFFFFF",
-    "--switch-checked-track-color": "#A9CDB6",
-    "--switch-unchecked-button-color": "#FFFFFF",
-    "--switch-unchecked-track-color": "#C7CDCA",
-    "--paper-slider-active-color": "#2F6B45",
-    "--paper-slider-knob-color": "#2F6B45",
-    "--paper-slider-container-color": "#D8DDDA"
-  };
-  var state2 = { mode: "none", scheduled: false, observer: null, mql: null };
-  var findHuiRoot2 = () => deepFind("hui-root");
-  var findResolvedPanel2 = () => deepFind("partial-panel-resolver");
-  function palette() {
-    if (state2.mode === "fibbers")
-      return DARK_VARS;
-    if (state2.mode === "fibbers-light")
-      return LIGHT_VARS;
-    if (state2.mode === "auto") {
-      const dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-      return dark ? DARK_VARS : LIGHT_VARS;
-    }
-    return null;
-  }
-  var unreachable = (k2) => k2.startsWith("--sidebar-") || /dialog/.test(k2) || k2 === "--mdc-theme-surface" || k2 === "--more-info-header-background";
-  function cssFor(vars) {
-    const decls = Object.entries(vars).filter(([k2]) => !unreachable(k2)).map(([k2, v2]) => `  ${k2}: ${v2};`).join(`
-`);
-    return `:host {
-${decls}
-}`;
-  }
-  function paint2() {
-    const vars = palette();
-    if (!vars)
-      return removeStyle2();
-    const root = findHuiRoot2();
-    if (!root || !root.shadowRoot)
-      return;
-    const css = cssFor(vars);
-    let style = root.shadowRoot.getElementById(STYLE_ID3);
-    if (style) {
-      if (style.textContent !== css)
-        style.textContent = css;
-      return;
-    }
-    style = document.createElement("style");
-    style.id = STYLE_ID3;
-    style.textContent = css;
-    root.shadowRoot.appendChild(style);
-  }
-  function removeStyle2() {
-    const root = findHuiRoot2();
-    const style = root && root.shadowRoot && root.shadowRoot.getElementById(STYLE_ID3);
-    if (style)
-      style.remove();
-  }
-  function schedulePaint2() {
-    if (state2.scheduled)
-      return;
-    state2.scheduled = true;
-    setTimeout(() => {
-      state2.scheduled = false;
-      paint2();
-    }, 60);
-  }
-  function startObserver2() {
-    if (state2.observer)
-      return;
-    const panel = findResolvedPanel2() || document.body;
-    try {
-      state2.observer = new MutationObserver(schedulePaint2);
-      state2.observer.observe(panel, { childList: true, subtree: true });
-    } catch (_2) {}
-  }
-  function stopObserver2() {
-    if (state2.observer) {
-      state2.observer.disconnect();
-      state2.observer = null;
-    }
-  }
-  var onScheme = () => {
-    if (state2.mode === "auto")
-      schedulePaint2();
-  };
-  function watchScheme() {
-    if (state2.mql || !window.matchMedia)
-      return;
-    state2.mql = window.matchMedia("(prefers-color-scheme: dark)");
-    try {
-      state2.mql.addEventListener("change", onScheme);
-    } catch (_2) {
-      state2.mql.addListener(onScheme);
-    }
-  }
-  function unwatchScheme() {
-    if (!state2.mql)
-      return;
-    try {
-      state2.mql.removeEventListener("change", onScheme);
-    } catch (_2) {
-      state2.mql.removeListener(onScheme);
-    }
-    state2.mql = null;
-  }
-  function applyTheme(mode) {
-    const normalized = ["fibbers", "fibbers-light", "auto"].includes(mode) ? mode : "none";
-    state2.mode = normalized;
-    if (normalized === "none") {
-      removeTheme();
-      return;
-    }
-    paint2();
-    startObserver2();
-    startNavListeners2();
-    if (normalized === "auto")
-      watchScheme();
-    else
-      unwatchScheme();
-  }
-  function removeTheme() {
-    state2.mode = "none";
-    stopObserver2();
-    stopNavListeners2();
-    unwatchScheme();
-    removeStyle2();
-  }
-  var navBound2 = false;
-  function startNavListeners2() {
-    if (navBound2)
-      return;
-    navBound2 = true;
-    window.addEventListener("location-changed", schedulePaint2);
-    window.addEventListener("popstate", schedulePaint2);
-  }
-  function stopNavListeners2() {
-    if (!navBound2)
-      return;
-    navBound2 = false;
-    window.removeEventListener("location-changed", schedulePaint2);
-    window.removeEventListener("popstate", schedulePaint2);
-  }
-
-  // src/tailwind.gen.js
-  var TW_CSS = `/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */
-@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-translate-x:0;--tw-translate-y:0;--tw-translate-z:0;--tw-rotate-x:initial;--tw-rotate-y:initial;--tw-rotate-z:initial;--tw-skew-x:initial;--tw-skew-y:initial;--tw-border-style:solid;--tw-leading:initial;--tw-font-weight:initial;--tw-tracking:initial;--tw-ordinal:initial;--tw-slashed-zero:initial;--tw-numeric-figure:initial;--tw-numeric-spacing:initial;--tw-numeric-fraction:initial;--tw-shadow:0 0 #0000;--tw-shadow-color:initial;--tw-shadow-alpha:100%;--tw-inset-shadow:0 0 #0000;--tw-inset-shadow-color:initial;--tw-inset-shadow-alpha:100%;--tw-ring-color:initial;--tw-ring-shadow:0 0 #0000;--tw-inset-ring-color:initial;--tw-inset-ring-shadow:0 0 #0000;--tw-ring-inset:initial;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-offset-shadow:0 0 #0000;--tw-outline-style:solid;--tw-blur:initial;--tw-brightness:initial;--tw-contrast:initial;--tw-grayscale:initial;--tw-hue-rotate:initial;--tw-invert:initial;--tw-opacity:initial;--tw-saturate:initial;--tw-sepia:initial;--tw-drop-shadow:initial;--tw-drop-shadow-color:initial;--tw-drop-shadow-alpha:100%;--tw-drop-shadow-size:initial;--tw-backdrop-blur:initial;--tw-backdrop-brightness:initial;--tw-backdrop-contrast:initial;--tw-backdrop-grayscale:initial;--tw-backdrop-hue-rotate:initial;--tw-backdrop-invert:initial;--tw-backdrop-opacity:initial;--tw-backdrop-saturate:initial;--tw-backdrop-sepia:initial;--tw-scale-x:1;--tw-scale-y:1;--tw-scale-z:1}}}@layer theme{:root,:host{--font-sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";--font-mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;--color-white:#fff;--spacing:.25rem;--font-weight-medium:500;--font-weight-semibold:600;--tracking-tight:-.025em;--leading-tight:1.25;--radius-lg:.5rem;--radius-xl:.75rem;--animate-pulse:pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;--default-transition-duration:.15s;--default-transition-timing-function:cubic-bezier(.4, 0, .2, 1);--default-font-family:var(--font-sans);--default-mono-font-family:var(--font-mono);--color-card:#1d2426;--color-card2:#262f31;--color-line:#333e41;--color-ink:#edf1f1;--color-ink2:#a9b6b9;--color-muted:#7d8b8e;--color-accent:#74b98a;--color-accentbg:#17281c;--color-accentline:#2b4a34;--color-accenttx:#cfe6d5;--color-amber:#e8a33d;--color-amberbg:#3a2b12;--color-amberline:#4e3a18;--color-ambertx:#ebd9bc;--color-blue:#5aafd6;--color-bluebg:#152b36;--color-blueline:#2c5a70;--color-blueink:#9bd2ea;--color-green:#63c295;--color-red:#ec8377}}@layer base{*,:after,:before,::backdrop{box-sizing:border-box;border:0 solid;margin:0;padding:0}::file-selector-button{box-sizing:border-box;border:0 solid;margin:0;padding:0}html,:host{-webkit-text-size-adjust:100%;tab-size:4;line-height:1.5;font-family:var(--default-font-family,-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");font-feature-settings:var(--default-font-feature-settings,normal);font-variation-settings:var(--default-font-variation-settings,normal);-webkit-tap-highlight-color:transparent}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,samp,pre{font-family:var(--default-mono-font-family,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);font-feature-settings:var(--default-mono-font-feature-settings,normal);font-variation-settings:var(--default-mono-font-variation-settings,normal);font-size:1em}small{font-size:80%}sub,sup{vertical-align:baseline;font-size:75%;line-height:0;position:relative}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}:-moz-focusring:where(:not(iframe)){outline:auto}progress{vertical-align:baseline}summary{display:list-item}ol,ul,menu{list-style:none}img,svg,video,canvas,audio,iframe,embed,object{vertical-align:middle;display:block}img,video{max-width:100%;height:auto}button,input,select,optgroup,textarea{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}::file-selector-button{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}:where(select:is([multiple],[size])) optgroup{font-weight:bolder}:where(select:is([multiple],[size])) optgroup option{padding-inline-start:20px}::file-selector-button{margin-inline-end:4px}::placeholder{opacity:1}@supports (not ((-webkit-appearance:-apple-pay-button))) or (contain-intrinsic-size:1px){::placeholder{color:currentColor}@supports (color:color-mix(in lab, red, red)){::placeholder{color:color-mix(in oklab, currentcolor 50%, transparent)}}}textarea{resize:vertical}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-date-and-time-value{min-height:1lh;text-align:inherit}::-webkit-datetime-edit{display:inline-flex}::-webkit-datetime-edit-fields-wrapper{padding:0}::-webkit-datetime-edit{padding-block:0}::-webkit-datetime-edit-year-field{padding-block:0}::-webkit-datetime-edit-month-field{padding-block:0}::-webkit-datetime-edit-day-field{padding-block:0}::-webkit-datetime-edit-hour-field{padding-block:0}::-webkit-datetime-edit-minute-field{padding-block:0}::-webkit-datetime-edit-second-field{padding-block:0}::-webkit-datetime-edit-millisecond-field{padding-block:0}::-webkit-datetime-edit-meridiem-field{padding-block:0}::-webkit-calendar-picker-indicator{line-height:1}:-moz-ui-invalid{box-shadow:none}button,input:where([type=button],[type=reset],[type=submit]){appearance:button}::file-selector-button{appearance:button}::-webkit-inner-spin-button{height:auto}::-webkit-outer-spin-button{height:auto}[hidden]:where(:not([hidden=until-found])){display:none!important}}@layer components;@layer utilities{.\\@container{container-type:inline-size}.pointer-events-none{pointer-events:none}.collapse{visibility:collapse}.invisible{visibility:hidden}.visible{visibility:visible}.absolute{position:absolute}.fixed{position:fixed}.relative{position:relative}.static{position:static}.top-0{top:0}.top-0\\.5{top:calc(var(--spacing) * .5)}.top-1{top:var(--spacing)}.top-1\\/2{top:50%}.top-2{top:calc(var(--spacing) * 2)}.top-\\[calc\\(100\\%\\+4px\\)\\]{top:calc(100% + 4px)}.right-0{right:0}.right-1{right:var(--spacing)}.right-2{right:calc(var(--spacing) * 2)}.bottom-0{bottom:0}.bottom-1{bottom:var(--spacing)}.bottom-2{bottom:calc(var(--spacing) * 2)}.left-0{left:0}.left-0\\.5{left:calc(var(--spacing) * .5)}.left-1{left:var(--spacing)}.left-1\\/2{left:50%}.left-2{left:calc(var(--spacing) * 2)}.left-\\[18px\\]{left:18px}.z-10{z-index:10}.col-start-2{grid-column-start:2}.row-span-2{grid-row:span 2/span 2}.container{width:100%}@media (min-width:40rem){.container{max-width:40rem}}@media (min-width:48rem){.container{max-width:48rem}}@media (min-width:64rem){.container{max-width:64rem}}@media (min-width:80rem){.container{max-width:80rem}}@media (min-width:96rem){.container{max-width:96rem}}.mx-0{margin-inline:0}.mx-auto{margin-inline:auto}.mt-0{margin-top:0}.mt-0\\.5{margin-top:calc(var(--spacing) * .5)}.mt-1{margin-top:var(--spacing)}.mt-1\\.5{margin-top:calc(var(--spacing) * 1.5)}.mt-2{margin-top:calc(var(--spacing) * 2)}.mt-2\\.5{margin-top:calc(var(--spacing) * 2.5)}.mt-3{margin-top:calc(var(--spacing) * 3)}.mb-1{margin-bottom:var(--spacing)}.mb-1\\.5{margin-bottom:calc(var(--spacing) * 1.5)}.mb-2{margin-bottom:calc(var(--spacing) * 2)}.mb-2\\.5{margin-bottom:calc(var(--spacing) * 2.5)}.mb-3{margin-bottom:calc(var(--spacing) * 3)}.ml-0{margin-left:0}.ml-0\\.5{margin-left:calc(var(--spacing) * .5)}.ml-2{margin-left:calc(var(--spacing) * 2)}.ml-\\[7px\\]{margin-left:7px}.ml-\\[18px\\]{margin-left:18px}.ml-auto{margin-left:auto}.block{display:block}.contents{display:contents}.flex{display:flex}.grid{display:grid}.hidden{display:none}.inline{display:inline}.inline-flex{display:inline-flex}.table{display:table}.aspect-square{aspect-ratio:1}.h-1{height:var(--spacing)}.h-1\\.5{height:calc(var(--spacing) * 1.5)}.h-2{height:calc(var(--spacing) * 2)}.h-2\\.5{height:calc(var(--spacing) * 2.5)}.h-3{height:calc(var(--spacing) * 3)}.h-3\\.5{height:calc(var(--spacing) * 3.5)}.h-4{height:calc(var(--spacing) * 4)}.h-5{height:calc(var(--spacing) * 5)}.h-6{height:calc(var(--spacing) * 6)}.h-7{height:calc(var(--spacing) * 7)}.h-8{height:calc(var(--spacing) * 8)}.h-9{height:calc(var(--spacing) * 9)}.h-10{height:calc(var(--spacing) * 10)}.h-11{height:calc(var(--spacing) * 11)}.h-12{height:calc(var(--spacing) * 12)}.h-14{height:calc(var(--spacing) * 14)}.h-20{height:calc(var(--spacing) * 20)}.h-\\[5px\\]{height:5px}.h-\\[13px\\]{height:13px}.h-\\[15px\\]{height:15px}.h-\\[17px\\]{height:17px}.h-\\[18px\\]{height:18px}.h-\\[19px\\]{height:19px}.h-\\[20px\\]{height:20px}.h-\\[22px\\]{height:22px}.h-\\[24px\\]{height:24px}.h-\\[26px\\]{height:26px}.h-\\[30px\\]{height:30px}.h-\\[34px\\]{height:34px}.h-\\[42px\\]{height:42px}.h-\\[var\\(--fib-hit\\)\\]{height:var(--fib-hit)}.h-full{height:100%}.max-h-\\[220px\\]{max-height:220px}.min-h-11{min-height:calc(var(--spacing) * 11)}.min-h-\\[var\\(--fib-hit\\)\\]{min-height:var(--fib-hit)}.w-1{width:var(--spacing)}.w-1\\.5{width:calc(var(--spacing) * 1.5)}.w-3{width:calc(var(--spacing) * 3)}.w-3\\.5{width:calc(var(--spacing) * 3.5)}.w-4{width:calc(var(--spacing) * 4)}.w-5{width:calc(var(--spacing) * 5)}.w-6{width:calc(var(--spacing) * 6)}.w-7{width:calc(var(--spacing) * 7)}.w-8{width:calc(var(--spacing) * 8)}.w-9{width:calc(var(--spacing) * 9)}.w-10{width:calc(var(--spacing) * 10)}.w-11{width:calc(var(--spacing) * 11)}.w-12{width:calc(var(--spacing) * 12)}.w-14{width:calc(var(--spacing) * 14)}.w-20{width:calc(var(--spacing) * 20)}.w-\\[5px\\]{width:5px}.w-\\[13px\\]{width:13px}.w-\\[15px\\]{width:15px}.w-\\[17px\\]{width:17px}.w-\\[18px\\]{width:18px}.w-\\[19px\\]{width:19px}.w-\\[20px\\]{width:20px}.w-\\[22px\\]{width:22px}.w-\\[24px\\]{width:24px}.w-\\[26px\\]{width:26px}.w-\\[30px\\]{width:30px}.w-\\[34px\\]{width:34px}.w-\\[42px\\]{width:42px}.w-\\[var\\(--fib-hit\\)\\]{width:var(--fib-hit)}.w-full{width:100%}.w-px{width:1px}.max-w-\\[10ch\\]{max-width:10ch}.max-w-\\[96px\\]{max-width:96px}.max-w-\\[240px\\]{max-width:240px}.max-w-\\[260px\\]{max-width:260px}.min-w-0{min-width:0}.min-w-\\[52px\\]{min-width:52px}.min-w-\\[68px\\]{min-width:68px}.flex-1{flex:1}.flex-none{flex:none}.shrink{flex-shrink:1}.-translate-x-1{--tw-translate-x:calc(var(--spacing) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-x-1\\/2{--tw-translate-x:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1{--tw-translate-y:calc(var(--spacing) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1\\/2{--tw-translate-y:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.rotate-180{rotate:180deg}.transform{transform:var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,)}.animate-pulse{animation:var(--animate-pulse)}.cursor-pointer{cursor:pointer}.touch-none{touch-action:none}.resize{resize:both}.auto-cols-fr{grid-auto-columns:minmax(0,1fr)}.grid-flow-col{grid-auto-flow:column}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.grid-cols-\\[28px_1fr\\]{grid-template-columns:28px 1fr}.grid-cols-\\[28px_1fr_auto\\]{grid-template-columns:28px 1fr auto}.grid-cols-\\[34px_1fr\\]{grid-template-columns:34px 1fr}.grid-cols-\\[repeat\\(auto-fit\\,minmax\\(84px\\,1fr\\)\\)\\]{grid-template-columns:repeat(auto-fit,minmax(84px,1fr))}.grid-rows-\\[auto_auto\\]{grid-template-rows:auto auto}.flex-col{flex-direction:column}.flex-nowrap{flex-wrap:nowrap}.flex-wrap{flex-wrap:wrap}.items-baseline{align-items:baseline}.items-center{align-items:center}.justify-between{justify-content:space-between}.justify-center{justify-content:center}.gap-1{gap:var(--spacing)}.gap-1\\.5{gap:calc(var(--spacing) * 1.5)}.gap-2{gap:calc(var(--spacing) * 2)}.gap-2\\.5{gap:calc(var(--spacing) * 2.5)}.gap-3{gap:calc(var(--spacing) * 3)}.gap-4{gap:calc(var(--spacing) * 4)}.gap-\\[3px\\]{gap:3px}.gap-\\[5px\\]{gap:5px}.gap-\\[7px\\]{gap:7px}.gap-x-1{column-gap:var(--spacing)}.gap-x-1\\.5{column-gap:calc(var(--spacing) * 1.5)}.gap-x-2{column-gap:calc(var(--spacing) * 2)}.gap-x-2\\.5{column-gap:calc(var(--spacing) * 2.5)}.gap-x-3{column-gap:calc(var(--spacing) * 3)}.gap-x-4{column-gap:calc(var(--spacing) * 4)}.gap-x-\\[11px\\]{column-gap:11px}.gap-y-0{row-gap:0}.gap-y-0\\.5{row-gap:calc(var(--spacing) * .5)}.gap-y-2{row-gap:calc(var(--spacing) * 2)}.gap-y-\\[10px\\]{row-gap:10px}.gap-y-\\[18px\\]{row-gap:18px}.truncate{text-overflow:ellipsis;white-space:nowrap;overflow:hidden}.overflow-auto{overflow:auto}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.rounded{border-radius:.25rem}.rounded-\\[3px\\]{border-radius:3px}.rounded-\\[6px\\]{border-radius:6px}.rounded-\\[7px\\]{border-radius:7px}.rounded-\\[9px\\]{border-radius:9px}.rounded-\\[10px\\]{border-radius:10px}.rounded-\\[11px\\]{border-radius:11px}.rounded-\\[14px\\]{border-radius:14px}.rounded-\\[15px\\]{border-radius:15px}.rounded-full{border-radius:3.40282e38px}.rounded-lg{border-radius:var(--radius-lg)}.rounded-xl{border-radius:var(--radius-xl)}.border{border-style:var(--tw-border-style);border-width:1px}.border-0{border-style:var(--tw-border-style);border-width:0}.border-l{border-left-style:var(--tw-border-style);border-left-width:1px}.border-\\[\\#2E5238\\]{border-color:#2e5238}.border-accentline{border-color:var(--color-accentline)}.border-amberline{border-color:var(--color-amberline)}.border-blueline{border-color:var(--color-blueline)}.border-card2{border-color:var(--color-card2)}.border-line{border-color:var(--color-line)}.bg-\\[\\#2C3639\\]{background-color:#2c3639}.bg-\\[rgba\\(116\\,185\\,138\\,0\\.10\\)\\]{background-color:#74b98a1a}.bg-accent{background-color:var(--color-accent)}.bg-accentbg{background-color:var(--color-accentbg)}.bg-amberbg{background-color:var(--color-amberbg)}.bg-bluebg{background-color:var(--color-bluebg)}.bg-card{background-color:var(--color-card)}.bg-card2{background-color:var(--color-card2)}.bg-line{background-color:var(--color-line)}.bg-transparent{background-color:#0000}.bg-white{background-color:var(--color-white)}.bg-\\[linear-gradient\\(145deg\\,\\#1E3427\\,\\#132016\\)\\]{background-image:linear-gradient(145deg,#1e3427,#132016)}.bg-cover{background-size:cover}.bg-center{background-position:50%}.p-1{padding:var(--spacing)}.p-3{padding:calc(var(--spacing) * 3)}.p-3\\.5{padding:calc(var(--spacing) * 3.5)}.p-\\[13px\\]{padding:13px}.px-0{padding-inline:0}.px-0\\.5{padding-inline:calc(var(--spacing) * .5)}.px-1{padding-inline:var(--spacing)}.px-2{padding-inline:calc(var(--spacing) * 2)}.px-2\\.5{padding-inline:calc(var(--spacing) * 2.5)}.px-3{padding-inline:calc(var(--spacing) * 3)}.px-3\\.5{padding-inline:calc(var(--spacing) * 3.5)}.px-\\[13px\\]{padding-inline:13px}.py-1{padding-block:var(--spacing)}.py-1\\.5{padding-block:calc(var(--spacing) * 1.5)}.py-2{padding-block:calc(var(--spacing) * 2)}.py-3{padding-block:calc(var(--spacing) * 3)}.py-\\[5px\\]{padding-block:5px}.py-\\[7px\\]{padding-block:7px}.py-\\[9px\\]{padding-block:9px}.pt-0{padding-top:0}.pt-0\\.5{padding-top:calc(var(--spacing) * .5)}.pt-\\[5px\\]{padding-top:5px}.pt-\\[7px\\]{padding-top:7px}.pt-\\[13px\\]{padding-top:13px}.pr-\\[11px\\]{padding-right:11px}.pb-1{padding-bottom:var(--spacing)}.pb-1\\.5{padding-bottom:calc(var(--spacing) * 1.5)}.pb-3{padding-bottom:calc(var(--spacing) * 3)}.pb-\\[3px\\]{padding-bottom:3px}.pl-3{padding-left:calc(var(--spacing) * 3)}.pl-\\[7px\\]{padding-left:7px}.text-center{text-align:center}.text-left{text-align:left}.text-right{text-align:right}.font-mono{font-family:var(--font-mono)}.text-\\[9\\.5px\\]{font-size:9.5px}.text-\\[10\\.5px\\]{font-size:10.5px}.text-\\[10px\\]{font-size:10px}.text-\\[11\\.5px\\]{font-size:11.5px}.text-\\[11px\\]{font-size:11px}.text-\\[12\\.5px\\]{font-size:12.5px}.text-\\[12px\\]{font-size:12px}.text-\\[13px\\]{font-size:13px}.text-\\[14px\\]{font-size:14px}.text-\\[15px\\]{font-size:15px}.text-\\[16px\\]{font-size:16px}.text-\\[17px\\]{font-size:17px}.text-\\[20px\\]{font-size:20px}.text-\\[22px\\]{font-size:22px}.text-\\[24px\\]{font-size:24px}.text-\\[26px\\]{font-size:26px}.text-\\[30px\\]{font-size:30px}.leading-\\[1\\.1\\]{--tw-leading:1.1;line-height:1.1}.leading-\\[1\\.15\\]{--tw-leading:1.15;line-height:1.15}.leading-\\[1\\.25\\]{--tw-leading:1.25;line-height:1.25}.leading-\\[1\\.42\\]{--tw-leading:1.42;line-height:1.42}.leading-none{--tw-leading:1;line-height:1}.leading-tight{--tw-leading:var(--leading-tight);line-height:var(--leading-tight)}.font-medium{--tw-font-weight:var(--font-weight-medium);font-weight:var(--font-weight-medium)}.font-semibold{--tw-font-weight:var(--font-weight-semibold);font-weight:var(--font-weight-semibold)}.tracking-\\[-0\\.015em\\]{--tw-tracking:-.015em;letter-spacing:-.015em}.tracking-\\[0\\.01em\\]{--tw-tracking:.01em;letter-spacing:.01em}.tracking-\\[0\\.06em\\]{--tw-tracking:.06em;letter-spacing:.06em}.tracking-\\[0\\.08em\\]{--tw-tracking:.08em;letter-spacing:.08em}.tracking-\\[0\\.11em\\]{--tw-tracking:.11em;letter-spacing:.11em}.tracking-tight{--tw-tracking:var(--tracking-tight);letter-spacing:var(--tracking-tight)}.text-ellipsis{text-overflow:ellipsis}.whitespace-nowrap{white-space:nowrap}.text-accent{color:var(--color-accent)}.text-accenttx{color:var(--color-accenttx)}.text-amber{color:var(--color-amber)}.text-ambertx{color:var(--color-ambertx)}.text-blue{color:var(--color-blue)}.text-blueink{color:var(--color-blueink)}.text-green{color:var(--color-green)}.text-ink{color:var(--color-ink)}.text-ink2{color:var(--color-ink2)}.text-muted{color:var(--color-muted)}.text-red{color:var(--color-red)}.capitalize{text-transform:capitalize}.lowercase{text-transform:lowercase}.uppercase{text-transform:uppercase}.tabular-nums{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,)}.opacity-40{opacity:.4}.opacity-50{opacity:.5}.opacity-\\[\\.66\\]{opacity:.66}.shadow{--tw-shadow:0 1px 3px 0 var(--tw-shadow-color,#0000001a), 0 1px 2px -1px var(--tw-shadow-color,#0000001a);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_3px_rgba\\(0\\,0\\,0\\,\\.4\\)\\]{--tw-shadow:0 1px 3px var(--tw-shadow-color,#0006);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_3px_rgba\\(0\\,0\\,0\\,\\.35\\)\\]{--tw-shadow:0 1px 3px var(--tw-shadow-color,#00000059);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_10px_30px_rgba\\(0\\,0\\,0\\,\\.5\\)\\]{--tw-shadow:0 10px 30px var(--tw-shadow-color,#00000080);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.ring{--tw-ring-shadow:var(--tw-ring-inset,) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color,currentcolor);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.outline{outline-style:var(--tw-outline-style);outline-width:1px}.filter{filter:var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)}.backdrop-filter{-webkit-backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,)}.transition{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to,opacity,box-shadow,transform,translate,scale,rotate,filter,-webkit-backdrop-filter,backdrop-filter,display,content-visibility,overlay,pointer-events;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-all{transition-property:all;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-colors{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-transform{transition-property:transform,translate,scale,rotate;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.\\[--mdc-icon-size\\:13px\\]{--mdc-icon-size:13px}.\\[--mdc-icon-size\\:14px\\]{--mdc-icon-size:14px}.\\[--mdc-icon-size\\:15px\\]{--mdc-icon-size:15px}.\\[--mdc-icon-size\\:16px\\]{--mdc-icon-size:16px}.\\[--mdc-icon-size\\:17px\\]{--mdc-icon-size:17px}.\\[--mdc-icon-size\\:18px\\]{--mdc-icon-size:18px}.\\[--mdc-icon-size\\:19px\\]{--mdc-icon-size:19px}.\\[--mdc-icon-size\\:20px\\]{--mdc-icon-size:20px}.\\[--mdc-icon-size\\:22px\\]{--mdc-icon-size:22px}.\\[--mdc-icon-size\\:24px\\]{--mdc-icon-size:24px}.\\[--mdc-icon-size\\:28px\\]{--mdc-icon-size:28px}.\\[--mdc-icon-size\\:34px\\]{--mdc-icon-size:34px}.group-data-\\[pressed\\=true\\]\\:bg-\\[rgba\\(255\\,255\\,255\\,0\\.06\\)\\]:is(:where(.group)[data-pressed=true] *){background-color:#ffffff0f}@media (hover:hover){.hover\\:bg-card:hover{background-color:var(--color-card)}.hover\\:bg-card2:hover{background-color:var(--color-card2)}}.focus-visible\\:outline:focus-visible{outline-style:var(--tw-outline-style);outline-width:1px}.focus-visible\\:outline-2:focus-visible{outline-style:var(--tw-outline-style);outline-width:2px}.focus-visible\\:\\[outline-offset\\:-2px\\]:focus-visible{outline-offset:-2px}.focus-visible\\:outline-accent:focus-visible{outline-color:var(--color-accent)}.active\\:translate-y-\\[0\\.5px\\]:active{--tw-translate-y:.5px;translate:var(--tw-translate-x) var(--tw-translate-y)}.active\\:scale-90:active{--tw-scale-x:90%;--tw-scale-y:90%;--tw-scale-z:90%;scale:var(--tw-scale-x) var(--tw-scale-y)}.active\\:scale-\\[\\.96\\]:active{scale:.96}.active\\:bg-card2:active{background-color:var(--color-card2)}}@property --tw-translate-x{syntax:"*";inherits:false;initial-value:0}@property --tw-translate-y{syntax:"*";inherits:false;initial-value:0}@property --tw-translate-z{syntax:"*";inherits:false;initial-value:0}@property --tw-rotate-x{syntax:"*";inherits:false}@property --tw-rotate-y{syntax:"*";inherits:false}@property --tw-rotate-z{syntax:"*";inherits:false}@property --tw-skew-x{syntax:"*";inherits:false}@property --tw-skew-y{syntax:"*";inherits:false}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-leading{syntax:"*";inherits:false}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-tracking{syntax:"*";inherits:false}@property --tw-ordinal{syntax:"*";inherits:false}@property --tw-slashed-zero{syntax:"*";inherits:false}@property --tw-numeric-figure{syntax:"*";inherits:false}@property --tw-numeric-spacing{syntax:"*";inherits:false}@property --tw-numeric-fraction{syntax:"*";inherits:false}@property --tw-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-shadow-color{syntax:"*";inherits:false}@property --tw-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-inset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-shadow-color{syntax:"*";inherits:false}@property --tw-inset-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-ring-color{syntax:"*";inherits:false}@property --tw-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-ring-color{syntax:"*";inherits:false}@property --tw-inset-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-ring-inset{syntax:"*";inherits:false}@property --tw-ring-offset-width{syntax:"<length>";inherits:false;initial-value:0}@property --tw-ring-offset-color{syntax:"*";inherits:false;initial-value:#fff}@property --tw-ring-offset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-outline-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-blur{syntax:"*";inherits:false}@property --tw-brightness{syntax:"*";inherits:false}@property --tw-contrast{syntax:"*";inherits:false}@property --tw-grayscale{syntax:"*";inherits:false}@property --tw-hue-rotate{syntax:"*";inherits:false}@property --tw-invert{syntax:"*";inherits:false}@property --tw-opacity{syntax:"*";inherits:false}@property --tw-saturate{syntax:"*";inherits:false}@property --tw-sepia{syntax:"*";inherits:false}@property --tw-drop-shadow{syntax:"*";inherits:false}@property --tw-drop-shadow-color{syntax:"*";inherits:false}@property --tw-drop-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-drop-shadow-size{syntax:"*";inherits:false}@property --tw-backdrop-blur{syntax:"*";inherits:false}@property --tw-backdrop-brightness{syntax:"*";inherits:false}@property --tw-backdrop-contrast{syntax:"*";inherits:false}@property --tw-backdrop-grayscale{syntax:"*";inherits:false}@property --tw-backdrop-hue-rotate{syntax:"*";inherits:false}@property --tw-backdrop-invert{syntax:"*";inherits:false}@property --tw-backdrop-opacity{syntax:"*";inherits:false}@property --tw-backdrop-saturate{syntax:"*";inherits:false}@property --tw-backdrop-sepia{syntax:"*";inherits:false}@property --tw-scale-x{syntax:"*";inherits:false;initial-value:1}@property --tw-scale-y{syntax:"*";inherits:false;initial-value:1}@property --tw-scale-z{syntax:"*";inherits:false;initial-value:1}@keyframes pulse{50%{opacity:.5}}`;
-
-  // src/tw.js
-  var supportsAdopt = "adoptedStyleSheets" in Document.prototype && "replaceSync" in CSSStyleSheet.prototype;
-  var BASE_CSS = `:host{--fib-hit:44px}
-:focus-visible{outline:2px solid var(--color-accent,#74B98A);outline-offset:2px}
-@media (prefers-reduced-motion:reduce){*,::before,::after{transition-duration:.01ms !important;animation-duration:.01ms !important}}
-.fib-hit{position:relative}
-.fib-hit::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:var(--fib-hit);min-height:var(--fib-hit);width:100%;height:100%}`;
-  var twSheet;
-  if (supportsAdopt) {
-    const sheet = new CSSStyleSheet;
-    sheet.replaceSync(`${TW_CSS.replace(/:root/g, ":host")}
-${BASE_CSS}`);
-    try {
-      const doc = new CSSStyleSheet;
-      let hoisted = 0;
-      for (const rule of sheet.cssRules) {
-        if (rule.constructor && rule.constructor.name === "CSSPropertyRule") {
-          doc.insertRule(rule.cssText);
-          hoisted++;
-        }
-      }
-      if (hoisted)
-        document.adoptedStyleSheets = [...document.adoptedStyleSheets, doc];
-    } catch (_e) {}
-    twSheet = sheet;
-  } else {
-    twSheet = r(`${TW_CSS.replace(/:root/g, ":host")}
-${BASE_CSS}`);
-  }
-
-  // src/view-reserve.js
-  var STYLE_ID4 = "fibbers-view-reserve";
-  var state3 = { px: 0, scheduled: false, observer: null };
-  var findHuiRoot3 = () => deepFind("hui-root");
-  var findResolvedPanel3 = () => deepFind("partial-panel-resolver");
-  function paint3() {
-    if (!state3.px)
-      return removeStyle3();
-    const root = findHuiRoot3();
-    if (!root || !root.shadowRoot)
-      return;
-    const css = `#view { padding-bottom: ${state3.px}px !important; }`;
-    let style = root.shadowRoot.getElementById(STYLE_ID4);
-    if (style) {
-      if (style.textContent !== css)
-        style.textContent = css;
-      return;
-    }
-    style = document.createElement("style");
-    style.id = STYLE_ID4;
-    style.textContent = css;
-    root.shadowRoot.appendChild(style);
-  }
-  function removeStyle3() {
-    const root = findHuiRoot3();
-    const style = root && root.shadowRoot && root.shadowRoot.getElementById(STYLE_ID4);
-    if (style)
-      style.remove();
-  }
-  var LOCK_ID = "fibbers-view-lock";
-  function lockView(on) {
-    const root = findHuiRoot3();
-    if (!root || !root.shadowRoot)
-      return;
-    const existing = root.shadowRoot.getElementById(LOCK_ID);
-    if (on) {
-      if (existing)
-        return;
-      const style = document.createElement("style");
-      style.id = LOCK_ID;
-      style.textContent = "#view{overflow:hidden !important}";
-      root.shadowRoot.appendChild(style);
-    } else if (existing) {
-      existing.remove();
-    }
-  }
-  function schedulePaint3() {
-    if (state3.scheduled)
-      return;
-    state3.scheduled = true;
-    setTimeout(() => {
-      state3.scheduled = false;
-      paint3();
-    }, 60);
-  }
-  function startObserver3() {
-    if (state3.observer)
-      return;
-    const panel = findResolvedPanel3() || document.body;
-    try {
-      state3.observer = new MutationObserver(schedulePaint3);
-      state3.observer.observe(panel, { childList: true, subtree: true });
-    } catch (_2) {}
-  }
-  function stopObserver3() {
-    if (state3.observer) {
-      state3.observer.disconnect();
-      state3.observer = null;
-    }
-  }
-  function setViewReserve(px) {
-    const next = Math.max(0, Math.round(px || 0));
-    if (next === state3.px && state3.observer) {
-      paint3();
-      return;
-    }
-    state3.px = next;
-    if (!next) {
-      removeViewReserve();
-      return;
-    }
-    paint3();
-    startObserver3();
-    startNavListeners3();
-  }
-  function removeViewReserve() {
-    state3.px = 0;
-    stopObserver3();
-    stopNavListeners3();
-    removeStyle3();
-  }
-  var navBound3 = false;
-  function startNavListeners3() {
-    if (navBound3)
-      return;
-    navBound3 = true;
-    window.addEventListener("location-changed", schedulePaint3);
-    window.addEventListener("popstate", schedulePaint3);
-  }
-  function stopNavListeners3() {
-    if (!navBound3)
-      return;
-    navBound3 = false;
-    window.removeEventListener("location-changed", schedulePaint3);
-    window.removeEventListener("popstate", schedulePaint3);
-  }
-
-  // src/body-layer.js
-  var bar = {
-    host: null,
-    owners: new Set,
-    config: null,
-    height: 0,
-    hidden: false,
-    lastScroll: 0
-  };
-  var HOST_CSS = `
-  :host {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; display: block;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-user-select: none; user-select: none;
-    touch-action: manipulation;
-    transition: transform .22s ease;
-  }
-  :host([data-hidden="true"]) { transform: translateY(110%); }
-  @media (prefers-reduced-motion: reduce) { :host { transition: none; } }
-  .bar {
-    display: flex; align-items: stretch; gap: 2px;
-    background: ${T2.nav};
-    border-top: 1px solid ${T2.line};
-    padding: 7px 6px calc(9px + env(safe-area-inset-bottom, 0px));
-    box-shadow: 0 60px 0 60px ${T2.nav};
-    transform: translateZ(0);
-  }
-  /* desktop sidebar inset: drop the 60px horizontal spread so the overscroll
-     floor never bleeds a nav-coloured slab over the sidebar */
-  :host([data-inset="true"]) .bar { box-shadow: 0 60px 0 0 ${T2.nav}; }
-`;
-  var hostSheet = new CSSStyleSheet;
-  hostSheet.replaceSync(HOST_CSS);
-  function measureBar() {
-    if (!bar.host)
-      return;
-    const div = bar.host.shadowRoot.querySelector(".bar");
-    const h3 = div ? div.getBoundingClientRect().height : 0;
-    if (h3 && Math.abs(h3 - bar.height) > 0.5) {
-      bar.height = h3;
-      syncViewReserve();
-    }
-  }
-  function syncViewReserve() {
-    const cfg = bar.config || {};
-    const offset = Number(cfg.offset_bottom) || 0;
-    const extra = Number(cfg.extra_bottom) || 0;
-    const base = cfg.reserve != null ? Number(cfg.reserve) : (bar.height || 74) + extra;
-    setViewReserve(base + offset);
-  }
-  var onOrientationChange = () => {
-    setTimeout(measureBar, 250);
-    scheduleInset();
-  };
-  var onResizeInset = () => scheduleInset();
-  var sidebarRO = null;
-  var drawerMO = null;
-  var insetScheduled = false;
-  function computeInset() {
-    if (!bar.config || bar.config.respect_sidebar === false)
-      return 0;
-    const drawer = deepFind("ha-drawer");
-    if (drawer && drawer.getAttribute("type") === "modal")
-      return 0;
-    if (nav.hassRef && nav.hassRef.dockedSidebar === "always_hidden")
-      return 0;
-    const sidebar = deepFind("ha-sidebar");
-    const w2 = sidebar ? sidebar.getBoundingClientRect().width : 0;
-    return w2 > 0 ? Math.round(w2) : 0;
-  }
-  function observeSidebar() {
-    if (!sidebarRO && window.ResizeObserver) {
-      const sidebar = deepFind("ha-sidebar");
-      if (sidebar) {
-        sidebarRO = new ResizeObserver(scheduleInset);
-        sidebarRO.observe(sidebar);
-      }
-    }
-    if (!drawerMO && window.MutationObserver) {
-      const drawer = deepFind("ha-drawer");
-      if (drawer) {
-        drawerMO = new MutationObserver(scheduleInset);
-        drawerMO.observe(drawer, { attributes: true, attributeFilter: ["type"] });
-      }
-    }
-  }
-  function syncSidebarInset() {
-    if (!bar.host)
-      return;
-    observeSidebar();
-    const inset = computeInset();
-    bar.host.style.insetInlineStart = inset ? `${inset}px` : "";
-    if (inset)
-      bar.host.setAttribute("data-inset", "true");
-    else
-      bar.host.removeAttribute("data-inset");
-  }
-  function scheduleInset() {
-    if (insetScheduled)
-      return;
-    insetScheduled = true;
-    requestAnimationFrame(() => {
-      insetScheduled = false;
-      syncSidebarInset();
-    });
-  }
-  function buildBar() {
-    const host = document.createElement("div");
-    host.id = "fibbers-nav";
-    host.setAttribute("role", "navigation");
-    host.setAttribute("aria-label", "Dashboard sections");
-    const shadow = host.attachShadow({ mode: "open" });
-    shadow.adoptedStyleSheets = [twSheet, hostSheet];
-    const div = document.createElement("div");
-    div.className = "bar";
-    shadow.append(div);
-    document.body.appendChild(host);
-    if (window.ResizeObserver)
-      new ResizeObserver(() => measureBar()).observe(div);
-    window.addEventListener("orientationchange", onOrientationChange);
-    window.addEventListener("resize", measureBar);
-    window.addEventListener("resize", onResizeInset);
-    return host;
-  }
-  function tabMatches(tab, path) {
-    const target = norm(tab.path);
-    if (tab.match === "prefix")
-      return path === target || path.startsWith(`${target}/`);
-    return path === target;
-  }
-  function activeIndex(tabs, path) {
-    const exact = tabs.findIndex((t3) => norm(t3.path) === path);
-    if (exact !== -1)
-      return exact;
-    const pre = tabs.findIndex((t3) => tabMatches(t3, path));
-    if (pre !== -1)
-      return pre;
-    const root = nav.stack.length ? norm(nav.stack[0]) : null;
-    return root ? tabs.findIndex((t3) => norm(t3.path) === root) : -1;
-  }
-  function badgeActive(badge, hass) {
-    const st = hass && hass.states[badge.entity];
-    if (!st)
-      return false;
-    if (badge.when)
-      return st.state === badge.when;
-    return !["off", "unavailable", "unknown"].includes(st.state);
-  }
-  var press = (e4, on) => on ? e4.currentTarget.setAttribute("data-pressed", "true") : e4.currentTarget.removeAttribute("data-pressed");
-  function renderBar() {
-    if (!bar.host || !bar.config)
-      return;
-    const div = bar.host.shadowRoot.querySelector(".bar");
-    const tabs = bar.config.tabs || [];
-    const active = activeIndex(tabs, here());
-    D(b2`${tabs.map((tab, i5) => {
-      const badge = tab.badge && badgeActive(tab.badge, nav.hassRef);
-      return b2`<button
-        type="button"
-        aria-current=${i5 === active ? "page" : A}
-        class="group relative flex min-w-0 flex-1 flex-col items-center pb-[3px] pt-[5px]
-               focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent
-               focus-visible:[outline-offset:-2px]"
-        @pointerdown=${(e4) => press(e4, true)}
-        @pointerup=${(e4) => press(e4, false)}
-        @pointercancel=${(e4) => press(e4, false)}
-        @pointerleave=${(e4) => press(e4, false)}
-        @click=${() => {
-        if (norm(tab.path) === here())
-          return;
-        navigate(tab.path);
-      }}
-      >
-        <!-- the highlight is capped to content width so it doesn't become a
-             290px slab in a wide flex cell on desktop; the button stays the tap target -->
-        <span
-          class="pointer-events-none mx-auto flex w-full max-w-[96px] flex-col items-center
-                 gap-[3px] rounded-[9px] px-3 py-1 text-[9.5px] font-medium leading-[1.1]
-                 tracking-[0.01em] group-data-[pressed=true]:bg-[rgba(255,255,255,0.06)]
-                 ${i5 === active ? "bg-[rgba(116,185,138,0.10)] text-accent" : "text-muted"}"
-        >
-          <fib-icon
-            class="h-[17px] w-[17px] [--mdc-icon-size:17px]"
-            icon=${tab.icon || "solar:record-circle-bold-duotone"}
-          ></fib-icon>
-          <span>${tab.name || ""}</span>
-        </span>
-        ${badge ? b2`<span
-                class="absolute left-1/2 top-1 ml-[7px] h-[5px] w-[5px] rounded-full bg-accent"
-              ></span>` : ""}
-      </button>`;
-    })}`, div);
-    measureBar();
-  }
-  var AUTO_HIDE_OPTS = { capture: true, passive: true };
-  function onScrollHide(e4) {
-    const y3 = e4.target && e4.target.scrollTop || 0;
-    const dy = y3 - bar.lastScroll;
-    if (Math.abs(dy) < 6)
-      return;
-    bar.lastScroll = y3;
-    const hide = dy > 0 && y3 > 40;
-    if (hide !== bar.hidden && bar.host) {
-      bar.hidden = hide;
-      bar.host.setAttribute("data-hidden", String(hide));
-    }
-  }
-  var autoHideBound = false;
-  function enableAutoHide() {
-    if (autoHideBound)
-      return;
-    autoHideBound = true;
-    document.addEventListener("scroll", onScrollHide, AUTO_HIDE_OPTS);
-  }
-  function disableAutoHide() {
-    if (!autoHideBound)
-      return;
-    autoHideBound = false;
-    document.removeEventListener("scroll", onScrollHide, AUTO_HIDE_OPTS);
-  }
-  function attach(owner, config) {
-    bar.owners.add(owner);
-    bar.config = config;
-    registerTabs((config.tabs || []).map((t3) => t3.path));
-    if (!bar.host || !document.body.contains(bar.host))
-      bar.host = buildBar();
-    const offset = Number(config.offset_bottom) || 0;
-    bar.host.style.bottom = offset ? `${offset}px` : "";
-    renderBar();
-    measureBar();
-    syncViewReserve();
-    syncSidebarInset();
-    setTimeout(scheduleInset, 200);
-    if (config.auto_hide)
-      enableAutoHide();
-    setTabHiding(config.hide_ha_tabs);
-    applyTheme(config.theme);
-  }
-  function detach(owner) {
-    bar.owners.delete(owner);
-    if (bar.owners.size === 0 && bar.host) {
-      window.removeEventListener("orientationchange", onOrientationChange);
-      window.removeEventListener("resize", measureBar);
-      window.removeEventListener("resize", onResizeInset);
-      disableAutoHide();
-      bar.host.remove();
-      bar.host = null;
-      bar.height = 0;
-      if (sidebarRO) {
-        sidebarRO.disconnect();
-        sidebarRO = null;
-      }
-      if (drawerMO) {
-        drawerMO.disconnect();
-        drawerMO = null;
-      }
-      removeTabHiding();
-      removeTheme();
-      removeViewReserve();
-    }
-  }
-  nav.listeners.add(renderBar);
-  window.addEventListener("hashchange", renderBar);
   // src/translations/en.json
   var en_default = {
     common: {
@@ -2225,7 +1255,7 @@ ${BASE_CSS}`);
     }
   };
 
-  // src/i18n.js
+  // src/shared/i18n.js
   var CATALOGS = { en: en_default, nl: nl_default };
   function catalog(lang) {
     const l3 = String(lang || "en").toLowerCase();
@@ -2257,7 +1287,541 @@ ${BASE_CSS}`);
     return interpolate(str, vars);
   }
 
-  // src/ui.js
+  // src/generated/tailwind.gen.js
+  var TW_CSS = `/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */
+@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-translate-x:0;--tw-translate-y:0;--tw-translate-z:0;--tw-rotate-x:initial;--tw-rotate-y:initial;--tw-rotate-z:initial;--tw-skew-x:initial;--tw-skew-y:initial;--tw-border-style:solid;--tw-leading:initial;--tw-font-weight:initial;--tw-tracking:initial;--tw-ordinal:initial;--tw-slashed-zero:initial;--tw-numeric-figure:initial;--tw-numeric-spacing:initial;--tw-numeric-fraction:initial;--tw-shadow:0 0 #0000;--tw-shadow-color:initial;--tw-shadow-alpha:100%;--tw-inset-shadow:0 0 #0000;--tw-inset-shadow-color:initial;--tw-inset-shadow-alpha:100%;--tw-ring-color:initial;--tw-ring-shadow:0 0 #0000;--tw-inset-ring-color:initial;--tw-inset-ring-shadow:0 0 #0000;--tw-ring-inset:initial;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-offset-shadow:0 0 #0000;--tw-outline-style:solid;--tw-blur:initial;--tw-brightness:initial;--tw-contrast:initial;--tw-grayscale:initial;--tw-hue-rotate:initial;--tw-invert:initial;--tw-opacity:initial;--tw-saturate:initial;--tw-sepia:initial;--tw-drop-shadow:initial;--tw-drop-shadow-color:initial;--tw-drop-shadow-alpha:100%;--tw-drop-shadow-size:initial;--tw-backdrop-blur:initial;--tw-backdrop-brightness:initial;--tw-backdrop-contrast:initial;--tw-backdrop-grayscale:initial;--tw-backdrop-hue-rotate:initial;--tw-backdrop-invert:initial;--tw-backdrop-opacity:initial;--tw-backdrop-saturate:initial;--tw-backdrop-sepia:initial;--tw-scale-x:1;--tw-scale-y:1;--tw-scale-z:1}}}@layer theme{:root,:host{--font-sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";--font-mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;--color-white:#fff;--spacing:.25rem;--font-weight-medium:500;--font-weight-semibold:600;--tracking-tight:-.025em;--leading-tight:1.25;--radius-lg:.5rem;--radius-xl:.75rem;--animate-pulse:pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;--default-transition-duration:.15s;--default-transition-timing-function:cubic-bezier(.4, 0, .2, 1);--default-font-family:var(--font-sans);--default-mono-font-family:var(--font-mono);--color-card:#1d2426;--color-card2:#262f31;--color-line:#333e41;--color-ink:#edf1f1;--color-ink2:#a9b6b9;--color-muted:#7d8b8e;--color-accent:#74b98a;--color-accentbg:#17281c;--color-accentline:#2b4a34;--color-accenttx:#cfe6d5;--color-amber:#e8a33d;--color-amberbg:#3a2b12;--color-amberline:#4e3a18;--color-ambertx:#ebd9bc;--color-blue:#5aafd6;--color-bluebg:#152b36;--color-blueline:#2c5a70;--color-blueink:#9bd2ea;--color-green:#63c295;--color-red:#ec8377}}@layer base{*,:after,:before,::backdrop{box-sizing:border-box;border:0 solid;margin:0;padding:0}::file-selector-button{box-sizing:border-box;border:0 solid;margin:0;padding:0}html,:host{-webkit-text-size-adjust:100%;tab-size:4;line-height:1.5;font-family:var(--default-font-family,-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");font-feature-settings:var(--default-font-feature-settings,normal);font-variation-settings:var(--default-font-variation-settings,normal);-webkit-tap-highlight-color:transparent}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,samp,pre{font-family:var(--default-mono-font-family,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);font-feature-settings:var(--default-mono-font-feature-settings,normal);font-variation-settings:var(--default-mono-font-variation-settings,normal);font-size:1em}small{font-size:80%}sub,sup{vertical-align:baseline;font-size:75%;line-height:0;position:relative}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}:-moz-focusring:where(:not(iframe)){outline:auto}progress{vertical-align:baseline}summary{display:list-item}ol,ul,menu{list-style:none}img,svg,video,canvas,audio,iframe,embed,object{vertical-align:middle;display:block}img,video{max-width:100%;height:auto}button,input,select,optgroup,textarea{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}::file-selector-button{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}:where(select:is([multiple],[size])) optgroup{font-weight:bolder}:where(select:is([multiple],[size])) optgroup option{padding-inline-start:20px}::file-selector-button{margin-inline-end:4px}::placeholder{opacity:1}@supports (not ((-webkit-appearance:-apple-pay-button))) or (contain-intrinsic-size:1px){::placeholder{color:currentColor}@supports (color:color-mix(in lab, red, red)){::placeholder{color:color-mix(in oklab, currentcolor 50%, transparent)}}}textarea{resize:vertical}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-date-and-time-value{min-height:1lh;text-align:inherit}::-webkit-datetime-edit{display:inline-flex}::-webkit-datetime-edit-fields-wrapper{padding:0}::-webkit-datetime-edit{padding-block:0}::-webkit-datetime-edit-year-field{padding-block:0}::-webkit-datetime-edit-month-field{padding-block:0}::-webkit-datetime-edit-day-field{padding-block:0}::-webkit-datetime-edit-hour-field{padding-block:0}::-webkit-datetime-edit-minute-field{padding-block:0}::-webkit-datetime-edit-second-field{padding-block:0}::-webkit-datetime-edit-millisecond-field{padding-block:0}::-webkit-datetime-edit-meridiem-field{padding-block:0}::-webkit-calendar-picker-indicator{line-height:1}:-moz-ui-invalid{box-shadow:none}button,input:where([type=button],[type=reset],[type=submit]){appearance:button}::file-selector-button{appearance:button}::-webkit-inner-spin-button{height:auto}::-webkit-outer-spin-button{height:auto}[hidden]:where(:not([hidden=until-found])){display:none!important}}@layer components;@layer utilities{.\\@container{container-type:inline-size}.pointer-events-none{pointer-events:none}.collapse{visibility:collapse}.invisible{visibility:hidden}.visible{visibility:visible}.absolute{position:absolute}.fixed{position:fixed}.relative{position:relative}.static{position:static}.top-0{top:0}.top-0\\.5{top:calc(var(--spacing) * .5)}.top-1{top:var(--spacing)}.top-1\\/2{top:50%}.top-2{top:calc(var(--spacing) * 2)}.top-\\[calc\\(100\\%\\+4px\\)\\]{top:calc(100% + 4px)}.right-0{right:0}.right-1{right:var(--spacing)}.right-2{right:calc(var(--spacing) * 2)}.bottom-0{bottom:0}.bottom-1{bottom:var(--spacing)}.bottom-2{bottom:calc(var(--spacing) * 2)}.left-0{left:0}.left-0\\.5{left:calc(var(--spacing) * .5)}.left-1{left:var(--spacing)}.left-1\\/2{left:50%}.left-2{left:calc(var(--spacing) * 2)}.left-\\[18px\\]{left:18px}.z-10{z-index:10}.col-start-2{grid-column-start:2}.row-span-2{grid-row:span 2/span 2}.container{width:100%}@media (min-width:40rem){.container{max-width:40rem}}@media (min-width:48rem){.container{max-width:48rem}}@media (min-width:64rem){.container{max-width:64rem}}@media (min-width:80rem){.container{max-width:80rem}}@media (min-width:96rem){.container{max-width:96rem}}.mx-0{margin-inline:0}.mx-auto{margin-inline:auto}.mt-0{margin-top:0}.mt-0\\.5{margin-top:calc(var(--spacing) * .5)}.mt-1{margin-top:var(--spacing)}.mt-1\\.5{margin-top:calc(var(--spacing) * 1.5)}.mt-2{margin-top:calc(var(--spacing) * 2)}.mt-2\\.5{margin-top:calc(var(--spacing) * 2.5)}.mt-3{margin-top:calc(var(--spacing) * 3)}.mb-1{margin-bottom:var(--spacing)}.mb-1\\.5{margin-bottom:calc(var(--spacing) * 1.5)}.mb-2{margin-bottom:calc(var(--spacing) * 2)}.mb-2\\.5{margin-bottom:calc(var(--spacing) * 2.5)}.mb-3{margin-bottom:calc(var(--spacing) * 3)}.ml-0{margin-left:0}.ml-0\\.5{margin-left:calc(var(--spacing) * .5)}.ml-2{margin-left:calc(var(--spacing) * 2)}.ml-\\[7px\\]{margin-left:7px}.ml-\\[18px\\]{margin-left:18px}.ml-auto{margin-left:auto}.block{display:block}.contents{display:contents}.flex{display:flex}.grid{display:grid}.hidden{display:none}.inline{display:inline}.inline-flex{display:inline-flex}.table{display:table}.aspect-square{aspect-ratio:1}.h-1{height:var(--spacing)}.h-1\\.5{height:calc(var(--spacing) * 1.5)}.h-2{height:calc(var(--spacing) * 2)}.h-2\\.5{height:calc(var(--spacing) * 2.5)}.h-3{height:calc(var(--spacing) * 3)}.h-3\\.5{height:calc(var(--spacing) * 3.5)}.h-4{height:calc(var(--spacing) * 4)}.h-5{height:calc(var(--spacing) * 5)}.h-6{height:calc(var(--spacing) * 6)}.h-7{height:calc(var(--spacing) * 7)}.h-8{height:calc(var(--spacing) * 8)}.h-9{height:calc(var(--spacing) * 9)}.h-10{height:calc(var(--spacing) * 10)}.h-11{height:calc(var(--spacing) * 11)}.h-12{height:calc(var(--spacing) * 12)}.h-14{height:calc(var(--spacing) * 14)}.h-20{height:calc(var(--spacing) * 20)}.h-\\[5px\\]{height:5px}.h-\\[13px\\]{height:13px}.h-\\[15px\\]{height:15px}.h-\\[17px\\]{height:17px}.h-\\[18px\\]{height:18px}.h-\\[19px\\]{height:19px}.h-\\[20px\\]{height:20px}.h-\\[22px\\]{height:22px}.h-\\[24px\\]{height:24px}.h-\\[26px\\]{height:26px}.h-\\[30px\\]{height:30px}.h-\\[34px\\]{height:34px}.h-\\[42px\\]{height:42px}.h-\\[var\\(--fib-hit\\)\\]{height:var(--fib-hit)}.h-full{height:100%}.max-h-\\[220px\\]{max-height:220px}.min-h-11{min-height:calc(var(--spacing) * 11)}.min-h-\\[var\\(--fib-hit\\)\\]{min-height:var(--fib-hit)}.w-1{width:var(--spacing)}.w-1\\.5{width:calc(var(--spacing) * 1.5)}.w-3{width:calc(var(--spacing) * 3)}.w-3\\.5{width:calc(var(--spacing) * 3.5)}.w-4{width:calc(var(--spacing) * 4)}.w-5{width:calc(var(--spacing) * 5)}.w-6{width:calc(var(--spacing) * 6)}.w-7{width:calc(var(--spacing) * 7)}.w-8{width:calc(var(--spacing) * 8)}.w-9{width:calc(var(--spacing) * 9)}.w-10{width:calc(var(--spacing) * 10)}.w-11{width:calc(var(--spacing) * 11)}.w-12{width:calc(var(--spacing) * 12)}.w-14{width:calc(var(--spacing) * 14)}.w-20{width:calc(var(--spacing) * 20)}.w-\\[5px\\]{width:5px}.w-\\[13px\\]{width:13px}.w-\\[15px\\]{width:15px}.w-\\[17px\\]{width:17px}.w-\\[18px\\]{width:18px}.w-\\[19px\\]{width:19px}.w-\\[20px\\]{width:20px}.w-\\[22px\\]{width:22px}.w-\\[24px\\]{width:24px}.w-\\[26px\\]{width:26px}.w-\\[30px\\]{width:30px}.w-\\[34px\\]{width:34px}.w-\\[42px\\]{width:42px}.w-\\[var\\(--fib-hit\\)\\]{width:var(--fib-hit)}.w-full{width:100%}.w-px{width:1px}.max-w-\\[10ch\\]{max-width:10ch}.max-w-\\[96px\\]{max-width:96px}.max-w-\\[240px\\]{max-width:240px}.max-w-\\[260px\\]{max-width:260px}.min-w-0{min-width:0}.min-w-\\[52px\\]{min-width:52px}.min-w-\\[68px\\]{min-width:68px}.flex-1{flex:1}.flex-none{flex:none}.shrink{flex-shrink:1}.-translate-x-1{--tw-translate-x:calc(var(--spacing) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-x-1\\/2{--tw-translate-x:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1{--tw-translate-y:calc(var(--spacing) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1\\/2{--tw-translate-y:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.rotate-180{rotate:180deg}.transform{transform:var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,)}.animate-pulse{animation:var(--animate-pulse)}.cursor-pointer{cursor:pointer}.touch-none{touch-action:none}.resize{resize:both}.auto-cols-fr{grid-auto-columns:minmax(0,1fr)}.grid-flow-col{grid-auto-flow:column}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.grid-cols-\\[28px_1fr\\]{grid-template-columns:28px 1fr}.grid-cols-\\[28px_1fr_auto\\]{grid-template-columns:28px 1fr auto}.grid-cols-\\[34px_1fr\\]{grid-template-columns:34px 1fr}.grid-cols-\\[repeat\\(auto-fit\\,minmax\\(84px\\,1fr\\)\\)\\]{grid-template-columns:repeat(auto-fit,minmax(84px,1fr))}.grid-rows-\\[auto_auto\\]{grid-template-rows:auto auto}.flex-col{flex-direction:column}.flex-nowrap{flex-wrap:nowrap}.flex-wrap{flex-wrap:wrap}.items-baseline{align-items:baseline}.items-center{align-items:center}.justify-between{justify-content:space-between}.justify-center{justify-content:center}.gap-1{gap:var(--spacing)}.gap-1\\.5{gap:calc(var(--spacing) * 1.5)}.gap-2{gap:calc(var(--spacing) * 2)}.gap-2\\.5{gap:calc(var(--spacing) * 2.5)}.gap-3{gap:calc(var(--spacing) * 3)}.gap-4{gap:calc(var(--spacing) * 4)}.gap-\\[3px\\]{gap:3px}.gap-\\[5px\\]{gap:5px}.gap-\\[7px\\]{gap:7px}.gap-x-1{column-gap:var(--spacing)}.gap-x-1\\.5{column-gap:calc(var(--spacing) * 1.5)}.gap-x-2{column-gap:calc(var(--spacing) * 2)}.gap-x-2\\.5{column-gap:calc(var(--spacing) * 2.5)}.gap-x-3{column-gap:calc(var(--spacing) * 3)}.gap-x-4{column-gap:calc(var(--spacing) * 4)}.gap-x-\\[11px\\]{column-gap:11px}.gap-y-0{row-gap:0}.gap-y-0\\.5{row-gap:calc(var(--spacing) * .5)}.gap-y-2{row-gap:calc(var(--spacing) * 2)}.gap-y-\\[10px\\]{row-gap:10px}.gap-y-\\[18px\\]{row-gap:18px}.truncate{text-overflow:ellipsis;white-space:nowrap;overflow:hidden}.overflow-auto{overflow:auto}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.rounded{border-radius:.25rem}.rounded-\\[3px\\]{border-radius:3px}.rounded-\\[6px\\]{border-radius:6px}.rounded-\\[7px\\]{border-radius:7px}.rounded-\\[9px\\]{border-radius:9px}.rounded-\\[10px\\]{border-radius:10px}.rounded-\\[11px\\]{border-radius:11px}.rounded-\\[14px\\]{border-radius:14px}.rounded-\\[15px\\]{border-radius:15px}.rounded-full{border-radius:3.40282e38px}.rounded-lg{border-radius:var(--radius-lg)}.rounded-xl{border-radius:var(--radius-xl)}.border{border-style:var(--tw-border-style);border-width:1px}.border-0{border-style:var(--tw-border-style);border-width:0}.border-l{border-left-style:var(--tw-border-style);border-left-width:1px}.border-\\[\\#2E5238\\]{border-color:#2e5238}.border-accentline{border-color:var(--color-accentline)}.border-amberline{border-color:var(--color-amberline)}.border-blueline{border-color:var(--color-blueline)}.border-card2{border-color:var(--color-card2)}.border-line{border-color:var(--color-line)}.bg-\\[\\#2C3639\\]{background-color:#2c3639}.bg-\\[rgba\\(116\\,185\\,138\\,0\\.10\\)\\]{background-color:#74b98a1a}.bg-accent{background-color:var(--color-accent)}.bg-accentbg{background-color:var(--color-accentbg)}.bg-amberbg{background-color:var(--color-amberbg)}.bg-bluebg{background-color:var(--color-bluebg)}.bg-card{background-color:var(--color-card)}.bg-card2{background-color:var(--color-card2)}.bg-line{background-color:var(--color-line)}.bg-transparent{background-color:#0000}.bg-white{background-color:var(--color-white)}.bg-\\[linear-gradient\\(145deg\\,\\#1E3427\\,\\#132016\\)\\]{background-image:linear-gradient(145deg,#1e3427,#132016)}.bg-cover{background-size:cover}.bg-center{background-position:50%}.p-1{padding:var(--spacing)}.p-3{padding:calc(var(--spacing) * 3)}.p-3\\.5{padding:calc(var(--spacing) * 3.5)}.p-\\[13px\\]{padding:13px}.px-0{padding-inline:0}.px-0\\.5{padding-inline:calc(var(--spacing) * .5)}.px-1{padding-inline:var(--spacing)}.px-2{padding-inline:calc(var(--spacing) * 2)}.px-2\\.5{padding-inline:calc(var(--spacing) * 2.5)}.px-3{padding-inline:calc(var(--spacing) * 3)}.px-3\\.5{padding-inline:calc(var(--spacing) * 3.5)}.px-\\[13px\\]{padding-inline:13px}.py-1{padding-block:var(--spacing)}.py-1\\.5{padding-block:calc(var(--spacing) * 1.5)}.py-2{padding-block:calc(var(--spacing) * 2)}.py-3{padding-block:calc(var(--spacing) * 3)}.py-\\[5px\\]{padding-block:5px}.py-\\[7px\\]{padding-block:7px}.py-\\[9px\\]{padding-block:9px}.pt-0{padding-top:0}.pt-0\\.5{padding-top:calc(var(--spacing) * .5)}.pt-\\[5px\\]{padding-top:5px}.pt-\\[7px\\]{padding-top:7px}.pt-\\[13px\\]{padding-top:13px}.pr-\\[11px\\]{padding-right:11px}.pb-1{padding-bottom:var(--spacing)}.pb-1\\.5{padding-bottom:calc(var(--spacing) * 1.5)}.pb-3{padding-bottom:calc(var(--spacing) * 3)}.pb-\\[3px\\]{padding-bottom:3px}.pl-3{padding-left:calc(var(--spacing) * 3)}.pl-\\[7px\\]{padding-left:7px}.text-center{text-align:center}.text-left{text-align:left}.text-right{text-align:right}.font-mono{font-family:var(--font-mono)}.text-\\[9\\.5px\\]{font-size:9.5px}.text-\\[10\\.5px\\]{font-size:10.5px}.text-\\[10px\\]{font-size:10px}.text-\\[11\\.5px\\]{font-size:11.5px}.text-\\[11px\\]{font-size:11px}.text-\\[12\\.5px\\]{font-size:12.5px}.text-\\[12px\\]{font-size:12px}.text-\\[13px\\]{font-size:13px}.text-\\[14px\\]{font-size:14px}.text-\\[15px\\]{font-size:15px}.text-\\[16px\\]{font-size:16px}.text-\\[17px\\]{font-size:17px}.text-\\[20px\\]{font-size:20px}.text-\\[22px\\]{font-size:22px}.text-\\[24px\\]{font-size:24px}.text-\\[26px\\]{font-size:26px}.text-\\[30px\\]{font-size:30px}.leading-\\[1\\.1\\]{--tw-leading:1.1;line-height:1.1}.leading-\\[1\\.15\\]{--tw-leading:1.15;line-height:1.15}.leading-\\[1\\.25\\]{--tw-leading:1.25;line-height:1.25}.leading-\\[1\\.42\\]{--tw-leading:1.42;line-height:1.42}.leading-none{--tw-leading:1;line-height:1}.leading-tight{--tw-leading:var(--leading-tight);line-height:var(--leading-tight)}.font-medium{--tw-font-weight:var(--font-weight-medium);font-weight:var(--font-weight-medium)}.font-semibold{--tw-font-weight:var(--font-weight-semibold);font-weight:var(--font-weight-semibold)}.tracking-\\[-0\\.015em\\]{--tw-tracking:-.015em;letter-spacing:-.015em}.tracking-\\[0\\.01em\\]{--tw-tracking:.01em;letter-spacing:.01em}.tracking-\\[0\\.06em\\]{--tw-tracking:.06em;letter-spacing:.06em}.tracking-\\[0\\.08em\\]{--tw-tracking:.08em;letter-spacing:.08em}.tracking-\\[0\\.11em\\]{--tw-tracking:.11em;letter-spacing:.11em}.tracking-tight{--tw-tracking:var(--tracking-tight);letter-spacing:var(--tracking-tight)}.text-ellipsis{text-overflow:ellipsis}.whitespace-nowrap{white-space:nowrap}.text-accent{color:var(--color-accent)}.text-accenttx{color:var(--color-accenttx)}.text-amber{color:var(--color-amber)}.text-ambertx{color:var(--color-ambertx)}.text-blue{color:var(--color-blue)}.text-blueink{color:var(--color-blueink)}.text-green{color:var(--color-green)}.text-ink{color:var(--color-ink)}.text-ink2{color:var(--color-ink2)}.text-muted{color:var(--color-muted)}.text-red{color:var(--color-red)}.capitalize{text-transform:capitalize}.lowercase{text-transform:lowercase}.uppercase{text-transform:uppercase}.tabular-nums{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,)}.opacity-40{opacity:.4}.opacity-50{opacity:.5}.opacity-\\[\\.66\\]{opacity:.66}.shadow{--tw-shadow:0 1px 3px 0 var(--tw-shadow-color,#0000001a), 0 1px 2px -1px var(--tw-shadow-color,#0000001a);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_3px_rgba\\(0\\,0\\,0\\,\\.4\\)\\]{--tw-shadow:0 1px 3px var(--tw-shadow-color,#0006);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_3px_rgba\\(0\\,0\\,0\\,\\.35\\)\\]{--tw-shadow:0 1px 3px var(--tw-shadow-color,#00000059);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_10px_30px_rgba\\(0\\,0\\,0\\,\\.5\\)\\]{--tw-shadow:0 10px 30px var(--tw-shadow-color,#00000080);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.ring{--tw-ring-shadow:var(--tw-ring-inset,) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color,currentcolor);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.outline{outline-style:var(--tw-outline-style);outline-width:1px}.filter{filter:var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)}.backdrop-filter{-webkit-backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,)}.transition{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to,opacity,box-shadow,transform,translate,scale,rotate,filter,-webkit-backdrop-filter,backdrop-filter,display,content-visibility,overlay,pointer-events;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-all{transition-property:all;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-colors{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-transform{transition-property:transform,translate,scale,rotate;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.\\[--mdc-icon-size\\:13px\\]{--mdc-icon-size:13px}.\\[--mdc-icon-size\\:14px\\]{--mdc-icon-size:14px}.\\[--mdc-icon-size\\:15px\\]{--mdc-icon-size:15px}.\\[--mdc-icon-size\\:16px\\]{--mdc-icon-size:16px}.\\[--mdc-icon-size\\:17px\\]{--mdc-icon-size:17px}.\\[--mdc-icon-size\\:18px\\]{--mdc-icon-size:18px}.\\[--mdc-icon-size\\:19px\\]{--mdc-icon-size:19px}.\\[--mdc-icon-size\\:20px\\]{--mdc-icon-size:20px}.\\[--mdc-icon-size\\:22px\\]{--mdc-icon-size:22px}.\\[--mdc-icon-size\\:24px\\]{--mdc-icon-size:24px}.\\[--mdc-icon-size\\:28px\\]{--mdc-icon-size:28px}.\\[--mdc-icon-size\\:34px\\]{--mdc-icon-size:34px}.group-data-\\[pressed\\=true\\]\\:bg-\\[rgba\\(255\\,255\\,255\\,0\\.06\\)\\]:is(:where(.group)[data-pressed=true] *){background-color:#ffffff0f}@media (hover:hover){.hover\\:bg-card:hover{background-color:var(--color-card)}.hover\\:bg-card2:hover{background-color:var(--color-card2)}}.focus-visible\\:outline:focus-visible{outline-style:var(--tw-outline-style);outline-width:1px}.focus-visible\\:outline-2:focus-visible{outline-style:var(--tw-outline-style);outline-width:2px}.focus-visible\\:\\[outline-offset\\:-2px\\]:focus-visible{outline-offset:-2px}.focus-visible\\:outline-accent:focus-visible{outline-color:var(--color-accent)}.active\\:translate-y-\\[0\\.5px\\]:active{--tw-translate-y:.5px;translate:var(--tw-translate-x) var(--tw-translate-y)}.active\\:scale-90:active{--tw-scale-x:90%;--tw-scale-y:90%;--tw-scale-z:90%;scale:var(--tw-scale-x) var(--tw-scale-y)}.active\\:scale-\\[\\.96\\]:active{scale:.96}.active\\:bg-card2:active{background-color:var(--color-card2)}}@property --tw-translate-x{syntax:"*";inherits:false;initial-value:0}@property --tw-translate-y{syntax:"*";inherits:false;initial-value:0}@property --tw-translate-z{syntax:"*";inherits:false;initial-value:0}@property --tw-rotate-x{syntax:"*";inherits:false}@property --tw-rotate-y{syntax:"*";inherits:false}@property --tw-rotate-z{syntax:"*";inherits:false}@property --tw-skew-x{syntax:"*";inherits:false}@property --tw-skew-y{syntax:"*";inherits:false}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-leading{syntax:"*";inherits:false}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-tracking{syntax:"*";inherits:false}@property --tw-ordinal{syntax:"*";inherits:false}@property --tw-slashed-zero{syntax:"*";inherits:false}@property --tw-numeric-figure{syntax:"*";inherits:false}@property --tw-numeric-spacing{syntax:"*";inherits:false}@property --tw-numeric-fraction{syntax:"*";inherits:false}@property --tw-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-shadow-color{syntax:"*";inherits:false}@property --tw-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-inset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-shadow-color{syntax:"*";inherits:false}@property --tw-inset-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-ring-color{syntax:"*";inherits:false}@property --tw-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-ring-color{syntax:"*";inherits:false}@property --tw-inset-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-ring-inset{syntax:"*";inherits:false}@property --tw-ring-offset-width{syntax:"<length>";inherits:false;initial-value:0}@property --tw-ring-offset-color{syntax:"*";inherits:false;initial-value:#fff}@property --tw-ring-offset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-outline-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-blur{syntax:"*";inherits:false}@property --tw-brightness{syntax:"*";inherits:false}@property --tw-contrast{syntax:"*";inherits:false}@property --tw-grayscale{syntax:"*";inherits:false}@property --tw-hue-rotate{syntax:"*";inherits:false}@property --tw-invert{syntax:"*";inherits:false}@property --tw-opacity{syntax:"*";inherits:false}@property --tw-saturate{syntax:"*";inherits:false}@property --tw-sepia{syntax:"*";inherits:false}@property --tw-drop-shadow{syntax:"*";inherits:false}@property --tw-drop-shadow-color{syntax:"*";inherits:false}@property --tw-drop-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-drop-shadow-size{syntax:"*";inherits:false}@property --tw-backdrop-blur{syntax:"*";inherits:false}@property --tw-backdrop-brightness{syntax:"*";inherits:false}@property --tw-backdrop-contrast{syntax:"*";inherits:false}@property --tw-backdrop-grayscale{syntax:"*";inherits:false}@property --tw-backdrop-hue-rotate{syntax:"*";inherits:false}@property --tw-backdrop-invert{syntax:"*";inherits:false}@property --tw-backdrop-opacity{syntax:"*";inherits:false}@property --tw-backdrop-saturate{syntax:"*";inherits:false}@property --tw-backdrop-sepia{syntax:"*";inherits:false}@property --tw-scale-x{syntax:"*";inherits:false;initial-value:1}@property --tw-scale-y{syntax:"*";inherits:false;initial-value:1}@property --tw-scale-z{syntax:"*";inherits:false;initial-value:1}@keyframes pulse{50%{opacity:.5}}`;
+
+  // src/shared/tw.js
+  var supportsAdopt = "adoptedStyleSheets" in Document.prototype && "replaceSync" in CSSStyleSheet.prototype;
+  var BASE_CSS = `:host{--fib-hit:44px}
+:focus-visible{outline:2px solid var(--color-accent,#74B98A);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*,::before,::after{transition-duration:.01ms !important;animation-duration:.01ms !important}}
+.fib-hit{position:relative}
+.fib-hit::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:var(--fib-hit);min-height:var(--fib-hit);width:100%;height:100%}`;
+  var twSheet;
+  if (supportsAdopt) {
+    const sheet = new CSSStyleSheet;
+    sheet.replaceSync(`${TW_CSS.replace(/:root/g, ":host")}
+${BASE_CSS}`);
+    try {
+      const doc = new CSSStyleSheet;
+      let hoisted = 0;
+      for (const rule of sheet.cssRules) {
+        if (rule.constructor && rule.constructor.name === "CSSPropertyRule") {
+          doc.insertRule(rule.cssText);
+          hoisted++;
+        }
+      }
+      if (hoisted)
+        document.adoptedStyleSheets = [...document.adoptedStyleSheets, doc];
+    } catch (_e) {}
+    twSheet = sheet;
+  } else {
+    twSheet = r(`${TW_CSS.replace(/:root/g, ":host")}
+${BASE_CSS}`);
+  }
+
+  // src/shared/util.js
+  var store = {
+    get(key, fallback) {
+      try {
+        const raw = sessionStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (_2) {
+        return fallback;
+      }
+    },
+    set(key, value) {
+      try {
+        sessionStorage.setItem(key, JSON.stringify(value));
+      } catch (_2) {}
+    }
+  };
+  var norm = (p3) => String(p3 || "").replace(/\/+$/, "") || "/";
+  var here = () => norm(window.location.pathname);
+  function deepFind(localName) {
+    const stack = [document.documentElement];
+    while (stack.length) {
+      const el = stack.pop();
+      if (el.localName === localName)
+        return el;
+      if (el.shadowRoot)
+        stack.push(...el.shadowRoot.children);
+      if (el.children)
+        stack.push(...el.children);
+    }
+    return null;
+  }
+  function moreInfo(host, entityId) {
+    if (!host || !entityId)
+      return;
+    const target = document.querySelector("home-assistant") || host;
+    target.dispatchEvent(new CustomEvent("hass-more-info", {
+      detail: { entityId },
+      bubbles: true,
+      composed: true
+    }));
+  }
+  var fmtNum = (hass, n4, d3) => {
+    if (!Number.isFinite(n4))
+      return String(n4);
+    const lang = hass && (hass.locale && hass.locale.language || hass.language) || "en";
+    const opts = d3 != null ? { minimumFractionDigits: d3, maximumFractionDigits: d3 } : {};
+    try {
+      return n4.toLocaleString(lang, opts);
+    } catch (_2) {
+      return n4.toLocaleString("en", opts);
+    }
+  };
+  function pickEntity(domain, entities, entitiesFallback, fallback) {
+    const inDomain = (list) => (list || []).find((id) => typeof id === "string" && id.startsWith(`${domain}.`));
+    return inDomain(entities) || inDomain(entitiesFallback) || fallback;
+  }
+  var isUnavail = (st) => !st || st.state === "unavailable" || st.state === "unknown";
+  var clamp = (n4, lo, hi) => Number.isFinite(n4) ? Math.max(lo, Math.min(hi, n4)) : lo;
+  var cssUrl = (url) => `url("${encodeURI(String(url))}")`;
+  function fmtState(hass, st) {
+    try {
+      if (hass && typeof hass.formatEntityState === "function")
+        return hass.formatEntityState(st);
+    } catch (_2) {}
+    return st ? st.state : "";
+  }
+  function debounce(fn, ms) {
+    let t4;
+    const wrapped = (...args) => {
+      clearTimeout(t4);
+      t4 = setTimeout(() => fn(...args), ms);
+    };
+    wrapped.cancel = () => clearTimeout(t4);
+    return wrapped;
+  }
+  function pctFromX(clientX, track) {
+    const r4 = track.getBoundingClientRect();
+    return clamp((clientX - r4.left) / r4.width * 100, 0, 100);
+  }
+  async function fetchHistory(hass, entityId, hours = 24) {
+    if (!hass || !hass.callWS)
+      return [];
+    const end = new Date;
+    const start = new Date(end.getTime() - hours * 3600000);
+    const res = await hass.callWS({
+      type: "history/history_during_period",
+      start_time: start.toISOString(),
+      end_time: end.toISOString(),
+      entity_ids: [entityId],
+      minimal_response: true,
+      no_attributes: true
+    });
+    return (res && res[entityId] || []).map((r4) => Number(r4.s != null ? r4.s : r4.state)).filter((n4) => Number.isFinite(n4));
+  }
+  function navigate(path, { replace = false } = {}) {
+    if (!path)
+      return;
+    if (String(path).startsWith("#")) {
+      window.location.hash = path;
+      return;
+    }
+    if (replace)
+      history.replaceState(null, "", path);
+    else
+      history.pushState(null, "", path);
+    window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace } }));
+  }
+
+  // src/cards/climate/climate.js
+  var MODE = {
+    heat: { icon: "solar:fire-bold-duotone", key: "mode_heat" },
+    cool: { icon: "solar:snowflake-bold-duotone", key: "mode_cool" },
+    fan_only: { icon: "solar:wind-bold-duotone", key: "mode_fan_only" },
+    auto: { icon: "solar:temperature-bold-duotone", key: "mode_auto" },
+    heat_cool: { icon: "solar:temperature-bold-duotone", key: "mode_auto" },
+    dry: { icon: "solar:wind-bold-duotone", key: "mode_dry" },
+    off: { icon: "solar:power-bold-duotone", key: "mode_off" }
+  };
+  var ACTION_KEY = {
+    heating: "action_heating",
+    cooling: "action_cooling",
+    drying: "action_drying",
+    fan: "action_fan",
+    idle: "action_idle",
+    off: "action_off"
+  };
+
+  class FibbersClimate extends i4 {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true }
+    };
+    static styles = [
+      twSheet,
+      i`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig(hass, entities, entitiesFallback) {
+      return {
+        type: "custom:fibbers-climate",
+        entity: pickEntity("climate", entities, entitiesFallback, "climate.example")
+      };
+    }
+    setConfig(config) {
+      if (!config || !config.entity) {
+        throw new Error("fibbers-climate: `entity` (a climate.*) is required");
+      }
+      this._config = config;
+    }
+    _st() {
+      return this.hass && this.hass.states[this._config.entity];
+    }
+    _bump(delta) {
+      const st = this._st();
+      if (!st || isUnavail(st))
+        return;
+      const step = Number(st.attributes.target_temp_step) || 0.5;
+      const cur = Number(st.attributes.temperature);
+      if (!Number.isFinite(cur))
+        return;
+      const min = st.attributes.min_temp ?? 5;
+      const max = st.attributes.max_temp ?? 35;
+      const snapped = Math.round((cur + delta * step) / step) * step;
+      const next = clamp(Number(snapped.toFixed(2)), min, max);
+      this.hass.callService("climate", "set_temperature", {
+        entity_id: this._config.entity,
+        temperature: next
+      });
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return b2``;
+      const hl = cfg.language || this.hass;
+      const st = this._st();
+      if (!st)
+        return b2`<div
+        class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
+      >
+        ${t3(hl, "common.not_available")}
+      </div>`;
+      const a3 = st.attributes;
+      const unavail = isUnavail(st);
+      const cur = a3.current_temperature;
+      const target = a3.temperature;
+      const low = a3.target_temp_low;
+      const high = a3.target_temp_high;
+      const range = target == null && (low != null || high != null);
+      const canBump = !unavail && !range && target != null;
+      const modes = (a3.hvac_modes || []).filter((m2) => MODE[m2]);
+      const action = a3.hvac_action;
+      return b2`<div
+      class="rounded-[14px] border border-line bg-card p-[13px] ${unavail ? "opacity-50" : ""}"
+    >
+      <div class="mb-3 flex items-baseline justify-between gap-2">
+        <div>
+          <div
+            class="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted"
+          >
+            ${cfg.name || a3.friendly_name || t3(hl, "climate.default_name")}
+          </div>
+          <div class="text-[24px] font-semibold leading-none text-ink">
+            ${cur != null ? cur : "—"}<span class="text-[14px] text-ink2"
+              >°</span
+            >
+          </div>
+        </div>
+        <span class="text-[11px] text-muted"
+          >${ACTION_KEY[action] ? t3(hl, `climate.${ACTION_KEY[action]}`) : t3(hl, st.state !== "off" ? "climate.on" : "climate.off")}</span
+        >
+      </div>
+
+      <div class="mb-3 flex items-center justify-center gap-4">
+        <button
+          type="button"
+          aria-label="Lower setpoint"
+          ?disabled=${!canBump}
+          class="fib-hit flex h-10 w-10 items-center justify-center rounded-full bg-card2 text-ink
+                 transition-transform active:scale-90
+                 ${canBump ? "" : "pointer-events-none opacity-40"}"
+          @click=${() => this._bump(-1)}
+        >
+          <fib-icon
+            class="h-6 w-6 [--mdc-icon-size:24px]"
+            icon="solar:minus-circle-bold-duotone"
+          ></fib-icon>
+        </button>
+        <div class="min-w-[68px] text-center">
+          <div class="text-[26px] font-semibold leading-none text-accent">
+            ${range ? b2`${low ?? "—"}–${high ?? "—"}` : target != null ? target : "—"}<span class="text-[14px]">°</span>
+          </div>
+          <div
+            class="mt-0.5 text-[9.5px] uppercase tracking-[0.08em] text-muted"
+          >
+            ${t3(hl, "climate.setpoint")}
+          </div>
+        </div>
+        <button
+          type="button"
+          aria-label="Raise setpoint"
+          ?disabled=${!canBump}
+          class="fib-hit flex h-10 w-10 items-center justify-center rounded-full bg-card2 text-ink
+                 transition-transform active:scale-90
+                 ${canBump ? "" : "pointer-events-none opacity-40"}"
+          @click=${() => this._bump(1)}
+        >
+          <fib-icon
+            class="h-6 w-6 [--mdc-icon-size:24px]"
+            icon="solar:add-circle-bold-duotone"
+          ></fib-icon>
+        </button>
+      </div>
+
+      ${modes.length ? b2`<div class="flex flex-wrap justify-center gap-[7px]">
+              ${modes.map((m2) => {
+        const active = st.state === m2;
+        return b2`<button
+                  type="button"
+                  ?disabled=${unavail}
+                  class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[5px]
+                       text-[10.5px] font-medium ${active ? "border-accentline bg-accentbg text-accent" : "border-line bg-card2 text-ink2"} ${unavail ? "pointer-events-none opacity-40" : ""}"
+                  @click=${() => this.hass.callService("climate", "set_hvac_mode", {
+          entity_id: cfg.entity,
+          hvac_mode: m2
+        })}
+                >
+                  <fib-icon
+                    class="h-[13px] w-[13px] [--mdc-icon-size:13px]"
+                    icon=${MODE[m2].icon}
+                  ></fib-icon>
+                  ${t3(hl, `climate.${MODE[m2].key}`)}
+                </button>`;
+      })}
+            </div>` : ""}
+    </div>`;
+    }
+    getCardSize() {
+      return 3;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 3 };
+    }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
+    }
+  }
+
+  // src/shared/actions.js
+  function runAction(action, hass, host, fallbackEntity) {
+    const a3 = action || { action: "none" };
+    switch (a3.action) {
+      case "navigate":
+        if (a3.navigation_path)
+          navigate(a3.navigation_path);
+        break;
+      case "url":
+        if (a3.url_path)
+          window.open(a3.url_path, a3.url_path.startsWith("http") ? "_blank" : "_self");
+        break;
+      case "toggle": {
+        const entity = a3.entity || fallbackEntity;
+        if (entity && hass)
+          hass.callService("homeassistant", "toggle", { entity_id: entity });
+        break;
+      }
+      case "more-info":
+        moreInfo(host, a3.entity || fallbackEntity);
+        break;
+      case "call-service":
+      case "perform-action": {
+        const svc = a3.service || a3.perform_action;
+        if (svc && svc.includes(".") && hass) {
+          const [domain, service] = svc.split(".");
+          hass.callService(domain, service, a3.data || a3.service_data || {}, a3.target);
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  // src/cards/inputs/chips.js
+  class FibbersChips extends i4 {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true }
+    };
+    static styles = [
+      twSheet,
+      i`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return {
+        type: "custom:fibbers-chips",
+        chips: [
+          {
+            name: "All off",
+            icon: "solar:power-bold-duotone",
+            action: { action: "toggle" }
+          }
+        ]
+      };
+    }
+    setConfig(config) {
+      if (!config || !Array.isArray(config.chips)) {
+        throw new Error("fibbers-chips: `chips` must be a list");
+      }
+      this._config = config;
+    }
+    _active(chip) {
+      const aw = chip.active_when;
+      if (!aw || !aw.entity || !this.hass)
+        return false;
+      const st = this.hass.states[aw.entity];
+      return !!(st && (aw.state != null ? st.state === aw.state : st.state === "on"));
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return b2``;
+      return b2`<div class="flex flex-wrap gap-x-2 gap-y-[18px]">
+      ${cfg.chips.map((chip) => {
+        const active = this._active(chip);
+        return b2`<button
+          type="button"
+          aria-label=${chip.name || chip.entity || "action"}
+          class="fib-hit inline-flex items-center gap-[5px] rounded-full border px-2.5 py-[5px]
+                 text-[10.5px] font-medium
+                 ${active ? "border-blueline bg-bluebg text-blueink" : "border-line bg-card2 text-ink2"}"
+          @click=${() => this.hass && runAction(chip.action || chip.tap_action, this.hass, this, chip.entity)}
+        >
+          ${chip.icon ? b2`<fib-icon
+                  class="h-[13px] w-[13px] [--mdc-icon-size:13px]"
+                  icon=${chip.icon}
+                ></fib-icon>` : ""}
+          <span>${chip.name || ""}</span>
+        </button>`;
+      })}
+    </div>`;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
+    }
+  }
+
+  // src/cards/inputs/datetime.js
+  var hhmm = (s4) => {
+    const m2 = typeof s4 === "string" && s4.match(/^(\d{2}:\d{2})/);
+    return m2 ? m2[1] : "";
+  };
+  var EDITOR_SCHEMA = [
+    { name: "entity", selector: { entity: {} } },
+    { name: "name", selector: { text: {} } },
+    { name: "icon", selector: { icon: {} } }
+  ];
+
+  class FibbersDateTime extends i4 {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true }
+    };
+    static styles = [
+      twSheet,
+      i`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig(hass, entities, entitiesFallback) {
+      return {
+        type: "custom:fibbers-datetime",
+        entity: pickEntity("input_datetime", entities, entitiesFallback, "input_datetime.example")
+      };
+    }
+    static getConfigElement() {
+      const el = document.createElement("fibbers-form-editor");
+      el.schema = EDITOR_SCHEMA;
+      return el;
+    }
+    setConfig(config) {
+      if (!config || !config.entity) {
+        throw new Error("fibbers-datetime: `entity` is required");
+      }
+      this._config = config;
+    }
+    _st() {
+      return this.hass && this.hass.states[this._config.entity];
+    }
+    _display(st) {
+      const a3 = st.attributes || {};
+      if (a3.has_time && !a3.has_date)
+        return hhmm(st.state) || "—";
+      return fmtState(this.hass, st) || st.state || "—";
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return b2``;
+      const hl = cfg.language || this.hass;
+      const st = this._st();
+      if (!st) {
+        return b2`<div
+        class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
+      >
+        ${t3(hl, "common.not_available")}
+      </div>`;
+      }
+      const name = cfg.name || st.attributes.friendly_name || cfg.entity;
+      const icon = cfg.icon || st.attributes.icon || "solar:clock-circle-bold-duotone";
+      const timeOnly = st.attributes.has_time && !st.attributes.has_date;
+      const val = this._display(st);
+      return b2`<div class="rounded-[14px] border border-line bg-card p-[13px]">
+      <div class="mb-1.5 flex items-center gap-2">
+        <fib-icon
+          class="h-4 w-4 [--mdc-icon-size:16px] text-accent"
+          icon=${icon}
+        ></fib-icon>
+        <span
+          class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
+          >${name}</span
+        >
+      </div>
+      <button
+        type="button"
+        class="text-left"
+        @click=${() => moreInfo(this, cfg.entity)}
+      >
+        <span
+          class="font-semibold leading-none text-ink ${timeOnly ? "text-[30px]" : "text-[20px]"}"
+          >${val}</span
+        >
+      </button>
+    </div>`;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
+    }
+  }
+
+  // src/shared/ui.js
   function activateOnKey(fn) {
     return (e4) => {
       if (e4.key === "Enter" || e4.key === " ") {
@@ -2483,79 +2047,410 @@ ${BASE_CSS}`);
   </button>`;
   }
 
-  // src/cards/alert.js
-  var friendly = (s4) => s4.attributes && s4.attributes.friendly_name || s4.entity_id;
-  function compileCheck(check) {
-    if (!check || !check.exclude_pattern)
-      return check;
-    try {
-      return { ...check, _excludeRe: new RegExp(check.exclude_pattern, "i") };
-    } catch (e4) {
-      throw new Error(`fibbers-alert: invalid exclude_pattern "${check.exclude_pattern}" — ${e4.message}`);
-    }
-  }
-  var excludedBy = (re, s4) => re && (re.test(s4.entity_id) || re.test(friendly(s4)));
-  function runCheck(check, hass, hl) {
-    const states = Object.values(hass.states);
-    const out = [];
-    switch (check.type) {
-      case "unavailable_lights": {
-        const exclude = check.exclude || [];
-        const re = check._excludeRe;
-        const offline = states.filter((s4) => s4.entity_id.startsWith("light.") && !exclude.includes(s4.entity_id) && !excludedBy(re, s4) && isUnavail(s4));
-        if (offline.length)
-          out.push({
-            label: t3(hl, "alert.lights_offline", { count: offline.length }),
-            detail: offline.map(friendly).join(", "),
-            entity: offline[0].entity_id
-          });
-        break;
-      }
-      case "low_battery": {
-        const below = check.below != null ? check.below : 20;
-        const re = check._excludeRe;
-        states.filter((s4) => (s4.attributes || {}).device_class === "battery" && !isNaN(parseFloat(s4.state)) && parseFloat(s4.state) < below && !excludedBy(re, s4)).forEach((s4) => out.push({
-          label: t3(hl, "alert.low_battery"),
-          detail: `${friendly(s4)} (${s4.state}%)`,
-          entity: s4.entity_id
-        }));
-        break;
-      }
-      case "updates": {
-        const ups = states.filter((s4) => s4.entity_id.startsWith("update.") && s4.state === "on");
-        if (ups.length)
-          out.push({
-            label: t3(hl, "alert.updates"),
-            detail: t3(hl, "alert.updates_available", {
-              n: ups.length,
-              count: ups.length
-            }),
-            entity: ups[0].entity_id
-          });
-        break;
-      }
-      case "backup_age": {
-        const st = hass.states[check.entity];
-        const max = check.max_hours != null ? check.max_hours : 26;
-        if (st && !isUnavail(st)) {
-          const ts = Date.parse(st.state);
-          if (!isNaN(ts)) {
-            const hours = (Date.now() - ts) / 3600000;
-            if (hours > max)
-              out.push({
-                label: t3(hl, "alert.backup"),
-                detail: t3(hl, "common.hours_ago", { n: Math.round(hours) }),
-                entity: check.entity
-              });
-          }
+  // src/cards/inputs/number.js
+  var DOMAINS = ["input_number", "number"];
+  var EDITOR_SCHEMA2 = [
+    { name: "entity", selector: { entity: { domain: DOMAINS } } },
+    { name: "name", selector: { text: {} } },
+    { name: "icon", selector: { icon: {} } },
+    { name: "unit", selector: { text: {} } },
+    { name: "step", selector: { number: {} } },
+    {
+      name: "mode",
+      selector: {
+        select: {
+          mode: "dropdown",
+          options: [
+            { value: "slider", label: "Slider" },
+            { value: "stepper", label: "Stepper" }
+          ]
         }
-        break;
       }
     }
-    return out;
+  ];
+
+  class FibbersNumber extends i4 {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true },
+      _dragging: { state: true },
+      _dragVal: { state: true }
+    };
+    static styles = [
+      twSheet,
+      i`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig(hass, entities, entitiesFallback) {
+      return {
+        type: "custom:fibbers-number",
+        entity: pickEntity("input_number", entities, entitiesFallback, "input_number.example")
+      };
+    }
+    static getConfigElement() {
+      const el = document.createElement("fibbers-form-editor");
+      el.schema = EDITOR_SCHEMA2;
+      return el;
+    }
+    setConfig(config) {
+      if (!config || !config.entity) {
+        throw new Error("fibbers-number: `entity` is required");
+      }
+      if (!DOMAINS.includes(String(config.entity).split(".")[0])) {
+        throw new Error("fibbers-number: `entity` must be an input_number.* or number.*");
+      }
+      this._config = config;
+      this._dragging = false;
+      this._dragVal = 0;
+      this._debouncedSet = debounce((v2) => this._setValue(v2), 150);
+      if (!this._hold)
+        this._hold = new SliderHold(this, { tolerance: 0.5, timeout: 5000 });
+      else
+        this._hold.clear();
+    }
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      this._debouncedSet.cancel();
+    }
+    _st() {
+      return this.hass && this.hass.states[this._config.entity];
+    }
+    _unavail() {
+      return isUnavail(this._st());
+    }
+    _bounds() {
+      const a3 = this._st() && this._st().attributes || {};
+      const min = Number(a3.min != null ? a3.min : 0);
+      const max = Number(a3.max != null ? a3.max : 100);
+      const raw = Number(this._config.step != null ? this._config.step : a3.step);
+      const step = Number.isFinite(raw) && raw > 0 ? raw : 1;
+      return { min, max: max > min ? max : min + 1, step };
+    }
+    _decimals() {
+      const s4 = this._bounds().step;
+      if (Number.isInteger(s4))
+        return 0;
+      const i5 = String(s4).indexOf(".");
+      return i5 < 0 ? 0 : String(s4).length - i5 - 1;
+    }
+    _value() {
+      const n4 = Number(this._st() && this._st().state);
+      const { min, max, step } = this._bounds();
+      const entityVal = Number.isFinite(n4) ? n4 : min;
+      this._hold.tolerance = Math.max(step / 2, (max - min) / 1000);
+      return this._hold.value(entityVal, {
+        dragging: this._dragging,
+        dragValue: this._dragVal,
+        gone: this._unavail()
+      });
+    }
+    _snap(v2) {
+      const { min, max, step } = this._bounds();
+      const snapped = Math.round((v2 - min) / step) * step + min;
+      return clamp(Number(snapped.toFixed(4)), min, max);
+    }
+    _pct(v2) {
+      const { min, max } = this._bounds();
+      return clamp((v2 - min) / (max - min) * 100, 0, 100);
+    }
+    _valFromX(clientX, track) {
+      const { min, max } = this._bounds();
+      return this._snap(min + pctFromX(clientX, track) / 100 * (max - min));
+    }
+    _setValue(value) {
+      if (!this.hass)
+        return;
+      this._hold.hold(value);
+      const domain = this._config.entity.split(".")[0];
+      const p3 = this.hass.callService(domain, "set_value", {
+        entity_id: this._config.entity,
+        value
+      });
+      Promise.resolve(p3).catch(() => this._hold.clear());
+    }
+    _down(e4) {
+      if (this._unavail())
+        return;
+      const el = e4.currentTarget;
+      this._dragging = true;
+      this._downX = e4.clientX;
+      this._moved = false;
+      el.setPointerCapture && el.setPointerCapture(e4.pointerId);
+      this._dragVal = this._valFromX(e4.clientX, el);
+    }
+    _move(e4) {
+      if (!this._dragging)
+        return;
+      this._dragVal = this._valFromX(e4.clientX, e4.currentTarget);
+      if (!this._moved && Math.abs(e4.clientX - this._downX) < 4)
+        return;
+      this._moved = true;
+      this._debouncedSet(this._dragVal);
+    }
+    _up(e4) {
+      if (!this._dragging)
+        return;
+      const v2 = this._valFromX(e4.clientX, e4.currentTarget);
+      this._dragging = false;
+      this._debouncedSet.cancel();
+      this._setValue(v2);
+    }
+    _cancel() {
+      this._dragging = false;
+      this._debouncedSet.cancel();
+    }
+    _bump(dir) {
+      if (this._unavail())
+        return;
+      this._setValue(this._snap(this._value() + dir * this._bounds().step));
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return b2``;
+      const hl = cfg.language || this.hass;
+      const st = this._st();
+      const unavail = this._unavail();
+      const name = cfg.name || st && st.attributes.friendly_name || cfg.entity;
+      const icon = cfg.icon || st && st.attributes.icon || "solar:tuning-2-bold-duotone";
+      const unit = cfg.unit != null ? cfg.unit : st && st.attributes.unit_of_measurement || "";
+      const v2 = this._value();
+      const val = unavail ? t3(hl, "number.unavailable") : `${fmtNum(this.hass, v2, this._decimals())}${unit ? ` ${unit}` : ""}`;
+      const pct = this._pct(v2);
+      const head = b2`<div class="flex items-center gap-2.5">
+      <div
+        class="flex h-7 w-7 flex-none items-center justify-center rounded-lg
+               ${unavail ? "bg-card2 text-muted" : "bg-accentbg text-accent"}"
+      >
+        <fib-icon
+          class="h-[17px] w-[17px] [--mdc-icon-size:17px]"
+          icon=${icon}
+        ></fib-icon>
+      </div>
+      <span class="flex-1 text-[12px] font-medium text-ink">${name}</span>
+      <span class="whitespace-nowrap text-[11px] font-medium text-muted"
+        >${val}</span
+      >
+    </div>`;
+      if (cfg.mode === "stepper") {
+        return b2`<div
+        class="flex items-center gap-2.5 rounded-[14px] border border-line bg-card p-[13px]
+               ${unavail ? "opacity-50" : ""}"
+      >
+        <div
+          class="flex h-7 w-7 flex-none items-center justify-center rounded-lg
+                 ${unavail ? "bg-card2 text-muted" : "bg-accentbg text-accent"}"
+        >
+          <fib-icon
+            class="h-[17px] w-[17px] [--mdc-icon-size:17px]"
+            icon=${icon}
+          ></fib-icon>
+        </div>
+        <span class="flex-1 text-[12px] font-medium text-ink">${name}</span>
+        ${this._stepBtn("solar:minus-circle-bold-duotone", -1, unavail)}
+        <span
+          class="min-w-[52px] text-center text-[13px] font-semibold text-ink"
+          >${val}</span
+        >
+        ${this._stepBtn("solar:add-circle-bold-duotone", 1, unavail)}
+      </div>`;
+      }
+      return b2`<div
+      class="rounded-[14px] border border-line bg-card p-[13px] ${unavail ? "opacity-50" : ""}"
+    >
+      ${head}
+      ${(() => {
+        const b3 = this._bounds();
+        return sliderTrack({
+          pct,
+          disabled: unavail,
+          cls: "mt-2.5",
+          label: name,
+          value: v2,
+          min: b3.min,
+          max: b3.max,
+          step: b3.step,
+          valueText: val,
+          onInput: (nv) => this._setValue(this._snap(nv)),
+          onDown: this._down,
+          onMove: this._move,
+          onUp: this._up,
+          onCancel: () => this._cancel()
+        });
+      })()}
+    </div>`;
+    }
+    _stepBtn(icon, dir, unavail) {
+      const hl = this._config.language || this.hass;
+      return b2`<button
+      type="button"
+      class="fib-hit flex h-8 w-8 flex-none items-center justify-center rounded-full bg-card2
+             text-accent transition-transform active:scale-90
+             ${unavail ? "pointer-events-none opacity-40" : ""}"
+      aria-label=${dir > 0 ? t3(hl, "number.more") : t3(hl, "number.less")}
+      @click=${() => this._bump(dir)}
+    >
+      <fib-icon
+        class="h-[22px] w-[22px] [--mdc-icon-size:22px]"
+        icon=${icon}
+      ></fib-icon>
+    </button>`;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
+    }
   }
 
-  class FibbersAlert extends i4 {
+  // src/cards/inputs/scene.js
+  var activatedAt = (st) => {
+    if (!st)
+      return 0;
+    const raw = st.attributes && st.attributes.last_activated || st.state || null;
+    const ts = raw ? Date.parse(raw) : NaN;
+    return isNaN(ts) ? 0 : ts;
+  };
+
+  class FibbersScene extends i4 {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true },
+      _open: { state: true }
+    };
+    static styles = [
+      twSheet,
+      i`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return {
+        type: "custom:fibbers-scene",
+        scenes: [
+          {
+            name: "Evening",
+            icon: "solar:moon-bold-duotone",
+            scene: "scene.example"
+          }
+        ]
+      };
+    }
+    setConfig(config) {
+      if (!config || !Array.isArray(config.scenes) || !config.scenes.length) {
+        throw new Error("fibbers-scene: `scenes` must be a non-empty list");
+      }
+      config.scenes.forEach((s4, i5) => {
+        if (!s4 || !s4.scene)
+          throw new Error(`fibbers-scene: scenes[${i5}] is missing \`scene\``);
+      });
+      if (config.favourites != null && (!Number.isInteger(config.favourites) || config.favourites < 1)) {
+        throw new Error("fibbers-scene: `favourites` must be a positive integer");
+      }
+      this._config = config;
+      this._open = false;
+    }
+    _fav() {
+      const n4 = this._config.favourites;
+      return n4 && n4 < this._config.scenes.length ? n4 : this._config.scenes.length;
+    }
+    _activeIndex() {
+      if (!this.hass)
+        return -1;
+      let best = -1, bestT = 0;
+      this._config.scenes.forEach((s4, i5) => {
+        const ts = activatedAt(this.hass.states[s4.scene]);
+        if (ts > bestT) {
+          bestT = ts;
+          best = i5;
+        }
+      });
+      return best;
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return b2``;
+      const hl = cfg.language || this.hass;
+      const fav = this._fav();
+      const active = this._activeIndex();
+      const total = cfg.scenes.length;
+      const hidden = total - fav;
+      const tile = (s4, i5) => {
+        const isActive = i5 === active;
+        const show = i5 < fav || this._open;
+        return b2`<button
+        type="button"
+        ?hidden=${!show}
+        class="flex flex-col items-center gap-[7px] rounded-[14px] border p-3.5
+               text-ink2 transition-transform active:scale-[.96]
+               ${isActive ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)] text-accenttx" : "border-line bg-card"}"
+        @click=${() => this.hass && this.hass.callService("scene", "turn_on", { entity_id: s4.scene })}
+      >
+        <fib-icon
+          class="h-5 w-5 [--mdc-icon-size:20px] ${isActive ? "text-accent" : "text-muted"}"
+          icon=${s4.icon || "solar:palette-bold-duotone"}
+        ></fib-icon>
+        <span class="text-center text-[11px] font-medium"
+          >${s4.name || s4.scene}</span
+        >
+      </button>`;
+      };
+      return b2`
+      <div class="grid grid-cols-[repeat(auto-fit,minmax(84px,1fr))] gap-2">
+        ${cfg.scenes.map(tile)}
+      </div>
+      ${hidden > 0 ? b2`<button
+              type="button"
+              class="mt-2 flex w-full items-center justify-center gap-1.5 rounded-[11px]
+                   border border-line bg-transparent py-[9px] text-[11px] font-medium text-ink2"
+              @click=${() => this._open = !this._open}
+            >
+              <span
+                >${this._open ? t3(hl, "scene.show_less") : t3(hl, "scene.show_all", { n: total })}</span
+              >
+              <fib-icon
+                class="h-[15px] w-[15px] text-muted transition-transform [--mdc-icon-size:15px]
+                     ${this._open ? "rotate-180" : ""}"
+                icon="solar:alt-arrow-down-bold-duotone"
+              ></fib-icon>
+            </button>` : ""}
+    `;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
+    }
+  }
+
+  // src/cards/inputs/scheduler.js
+  var hhmm2 = (s4) => {
+    const m2 = typeof s4 === "string" && s4.match(/^(\d{2}:\d{2})/);
+    return m2 ? m2[1] : "";
+  };
+  var addMinutes = (s4, mins) => {
+    const [h3, m2] = hhmm2(s4).split(":").map(Number);
+    if (!Number.isFinite(h3) || !Number.isFinite(m2))
+      return "";
+    const total = (h3 * 60 + m2 + Math.round(mins)) % (24 * 60);
+    return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+  };
+
+  class FibbersScheduler extends i4 {
     static properties = {
       hass: { attribute: false },
       _config: { state: true }
@@ -2568,66 +2463,84 @@ ${BASE_CSS}`);
       }
     `
     ];
-    static getStubConfig() {
+    static getStubConfig(hass, entities, entitiesFallback) {
       return {
-        type: "custom:fibbers-alert",
-        checks: [{ type: "unavailable_lights" }, { type: "updates" }]
+        type: "custom:fibbers-scheduler",
+        name: "Alarm",
+        time: pickEntity("input_datetime", entities, entitiesFallback, "input_datetime.example"),
+        enable: pickEntity("input_boolean", entities, entitiesFallback, "input_boolean.example")
       };
     }
     setConfig(config) {
-      if (!config || !Array.isArray(config.checks)) {
-        throw new Error("fibbers-alert: `checks` must be a list");
+      if (!config || !config.time) {
+        throw new Error("fibbers-scheduler: `time` (an input_datetime) is required");
       }
       this._config = config;
-      this._checks = config.checks.map(compileCheck);
     }
-    _findings() {
-      if (!this.hass)
-        return [];
-      const out = [];
-      const hl = this._config.language || this.hass;
-      this._checks.forEach((c4) => {
-        try {
-          out.push(...runCheck(c4, this.hass, hl));
-        } catch (_2) {}
-      });
-      return out;
-    }
-    _moreInfo(entity) {
-      moreInfo(this, entity);
+    _state(id) {
+      return id && this.hass ? this.hass.states[id] : null;
     }
     render() {
-      if (!this._config)
+      const cfg = this._config;
+      if (!cfg)
         return b2``;
-      const findings = this._findings();
-      const hl = this._config.language || this.hass;
-      const alert = findings.length > 0;
-      return b2`<div
-      class="rounded-xl border p-3
-             ${alert ? "border-amberline bg-amberbg" : "border-line bg-card"}"
-    >
-      <div class="flex items-center gap-2">
+      const hl = cfg.language || this.hass;
+      const timeSt = this._state(cfg.time);
+      const time = hhmm2(timeSt && timeSt.state);
+      const enSt = this._state(cfg.enable);
+      const on = enSt ? enSt.state === "on" : true;
+      const durSt = this._state(cfg.duration);
+      const dur = durSt ? Number(durSt.state) : null;
+      const windowEnd = dur ? addMinutes(time, dur) : "";
+      return b2`<div class="rounded-[14px] border border-line bg-card p-[13px]">
+      <div class="mb-2 flex items-center gap-2">
         <fib-icon
-          class="h-4 w-4 [--mdc-icon-size:16px] ${alert ? "text-amber" : "text-green"}"
-          icon=${alert ? "solar:danger-triangle-bold-duotone" : "solar:check-circle-bold-duotone"}
+          class="h-4 w-4 [--mdc-icon-size:16px] ${on ? "text-accent" : "text-muted"}"
+          icon="solar:alarm-bold-duotone"
         ></fib-icon>
         <span
-          class="text-[12px] font-semibold ${alert ? "text-amber" : "text-green"}"
-          >${alert ? t3(hl, "alert.attention_needed") : t3(hl, "alert.all_clear")}</span
+          class="flex-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
+          >${cfg.name || t3(hl, "scheduler.default_name")}</span
         >
+        ${cfg.enable ? pillSwitch({
+        on,
+        label: cfg.name || t3(hl, "scheduler.default_name"),
+        onClick: () => this.hass && this.hass.callService("homeassistant", "toggle", {
+          entity_id: cfg.enable
+        })
+      }) : ""}
       </div>
-      ${alert ? b2`<div class="mt-2 flex flex-col gap-[5px]">
-              ${findings.map((f3) => b2`<div
-                    role="button"
-                    tabindex="0"
-                    aria-label=${`${f3.label} — ${t3(hl, "common.more_info")}`}
-                    class="fib-hit cursor-pointer text-[11.5px] leading-[1.42] text-ambertx"
-                    @click=${() => this._moreInfo(f3.entity)}
-                    @keydown=${activateOnKey(() => this._moreInfo(f3.entity))}
-                  >
-                    <b class="font-semibold text-amber">${f3.label}</b> —
-                    ${f3.detail}
-                  </div>`)}
+
+      <button
+        type="button"
+        class="text-left ${on ? "" : "opacity-50"}"
+        @click=${() => moreInfo(this, cfg.time)}
+      >
+        <span class="text-[30px] font-semibold leading-none text-ink"
+          >${time || "—"}</span
+        >
+        ${windowEnd ? b2`<span class="ml-2 text-[13px] text-muted"
+                >→
+                ${windowEnd}${dur ? b2` · ${t3(hl, "scheduler.duration", { n: dur })}` : ""}</span
+              >` : ""}
+      </button>
+
+      ${Array.isArray(cfg.days) && cfg.days.length ? b2`<div class="mt-3 flex flex-wrap gap-x-2 gap-y-[18px]">
+              ${cfg.days.map((d3) => {
+        const obj = typeof d3 === "object";
+        const st = obj ? this._state(d3.entity) : null;
+        const active = obj ? st && st.state === "on" : true;
+        return b2`<button
+                  type="button"
+                  class="fib-hit rounded-full border px-2.5 py-1 text-[10.5px] font-medium
+                       ${active ? "border-accentline bg-accentbg text-accent" : "border-line bg-card2 text-ink2"}"
+                  @click=${() => obj && this.hass && this.hass.callService("homeassistant", "toggle", {
+          entity_id: d3.entity
+        })}
+                >
+                  ${obj ? d3.name : d3}
+                </button>`;
+      })}
             </div>` : ""}
     </div>`;
     }
@@ -2642,7 +2555,359 @@ ${BASE_CSS}`);
     }
   }
 
-  // src/cards/back.js
+  // src/cards/inputs/select.js
+  var DOMAINS2 = ["input_select", "select"];
+  var EDITOR_SCHEMA3 = [
+    { name: "entity", selector: { entity: { domain: DOMAINS2 } } },
+    { name: "name", selector: { text: {} } },
+    { name: "icon", selector: { icon: {} } },
+    {
+      name: "mode",
+      selector: {
+        select: {
+          mode: "dropdown",
+          options: [
+            { value: "chips", label: "Chips" },
+            { value: "dropdown", label: "Dropdown" }
+          ]
+        }
+      }
+    },
+    { name: "chips_max", selector: { number: { min: 1, mode: "box" } } }
+  ];
+
+  class FibbersSelect extends i4 {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true },
+      _open: { state: true }
+    };
+    static styles = [
+      twSheet,
+      i`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig(hass, entities, entitiesFallback) {
+      return {
+        type: "custom:fibbers-select",
+        entity: pickEntity("input_select", entities, entitiesFallback, "input_select.example")
+      };
+    }
+    static getConfigElement() {
+      const el = document.createElement("fibbers-form-editor");
+      el.schema = EDITOR_SCHEMA3;
+      return el;
+    }
+    setConfig(config) {
+      if (!config || !config.entity) {
+        throw new Error("fibbers-select: `entity` is required");
+      }
+      if (!DOMAINS2.includes(String(config.entity).split(".")[0])) {
+        throw new Error("fibbers-select: `entity` must be an input_select.* or select.*");
+      }
+      this._config = config;
+      this._open = false;
+    }
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      this._removeOutside();
+    }
+    _st() {
+      return this.hass && this.hass.states[this._config.entity];
+    }
+    _options() {
+      const st = this._st();
+      return st && st.attributes && st.attributes.options || [];
+    }
+    _current() {
+      const st = this._st();
+      return st ? st.state : "";
+    }
+    _select(opt) {
+      if (this.hass) {
+        const domain = this._config.entity.split(".")[0];
+        this.hass.callService(domain, "select_option", {
+          entity_id: this._config.entity,
+          option: opt
+        });
+      }
+      this._close();
+    }
+    _openMenu() {
+      this._removeOutside();
+      this._open = true;
+      this._outside = (e4) => {
+        if (!e4.composedPath().includes(this))
+          this._close();
+      };
+      setTimeout(() => document.addEventListener("click", this._outside), 0);
+    }
+    _close() {
+      this._open = false;
+      this._removeOutside();
+    }
+    _removeOutside() {
+      if (this._outside) {
+        document.removeEventListener("click", this._outside);
+        this._outside = null;
+      }
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return b2``;
+      const hl = cfg.language || this.hass;
+      const st = this._st();
+      if (!st) {
+        return b2`<div
+        class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
+      >
+        ${t3(hl, "common.not_available")}
+      </div>`;
+      }
+      const name = cfg.name || st.attributes.friendly_name || cfg.entity;
+      const icon = cfg.icon || st.attributes.icon || "solar:list-bold-duotone";
+      const options = this._options();
+      const current = this._current();
+      const max = cfg.chips_max != null ? cfg.chips_max : 6;
+      const mode = cfg.mode === "chips" || cfg.mode === "dropdown" ? cfg.mode : options.length <= max ? "chips" : "dropdown";
+      const header = b2`<div class="mb-2 flex items-center gap-2.5">
+      <div
+        class="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-accentbg text-accent"
+      >
+        <fib-icon
+          class="h-[17px] w-[17px] [--mdc-icon-size:17px]"
+          icon=${icon}
+        ></fib-icon>
+      </div>
+      <span class="flex-1 text-[12px] font-medium text-ink">${name}</span>
+    </div>`;
+      const body = mode === "chips" ? b2`<div class="flex flex-wrap gap-x-2 gap-y-[18px]">
+            ${options.map((o5) => {
+        const active = o5 === current;
+        return b2`<button
+                type="button"
+                class="fib-hit rounded-full border px-2.5 py-1 text-[10.5px] font-medium
+                       ${active ? "border-accentline bg-accentbg text-accent" : "border-line bg-card2 text-ink2"}"
+                @click=${() => this._select(o5)}
+              >
+                ${o5}
+              </button>`;
+      })}
+          </div>` : b2`<div class="relative">
+            <button
+              type="button"
+              class="flex w-full items-center justify-between gap-2 rounded-[10px] border border-line
+                     bg-card2 px-3 py-2 text-left text-[12px] font-medium text-ink"
+              aria-haspopup="listbox"
+              aria-expanded=${this._open ? "true" : "false"}
+              @click=${() => this._open ? this._close() : this._openMenu()}
+            >
+              <span class="truncate">${current || "—"}</span>
+              <fib-icon
+                class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-muted transition-transform
+                       ${this._open ? "rotate-180" : ""}"
+                icon="solar:alt-arrow-down-bold-duotone"
+              ></fib-icon>
+            </button>
+            ${this._open ? b2`<div
+                    class="absolute left-0 right-0 top-[calc(100%+4px)] z-10 max-h-[220px] overflow-auto
+                         rounded-[10px] border border-line bg-card p-1 shadow-[0_10px_30px_rgba(0,0,0,.5)]"
+                    role="listbox"
+                  >
+                    ${options.map((o5) => b2`<button
+                          type="button"
+                          role="option"
+                          aria-selected=${o5 === current ? "true" : "false"}
+                          class="flex w-full items-center justify-between gap-2 rounded-[7px] px-2.5 py-2
+                             text-left text-[12px] hover:bg-card2
+                             ${o5 === current ? "text-accent" : "text-ink"}"
+                          @click=${() => this._select(o5)}
+                        >
+                          <span class="truncate">${o5}</span>
+                          ${o5 === current ? b2`<fib-icon
+                                  class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-accent"
+                                  icon="solar:check-circle-bold-duotone"
+                                ></fib-icon>` : ""}
+                        </button>`)}
+                  </div>` : ""}
+          </div>`;
+      return b2`<div class="rounded-[14px] border border-line bg-card p-[13px]">
+      ${header}${body}
+    </div>`;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
+    }
+  }
+
+  // src/cards/inputs/toggle.js
+  var EDITOR_SCHEMA4 = [
+    { name: "entity", selector: { entity: {} } },
+    { name: "name", selector: { text: {} } },
+    { name: "icon", selector: { icon: {} } },
+    { name: "secondary", selector: { text: {} } },
+    { name: "secondary_entity", selector: { entity: {} } },
+    { name: "confirm", selector: { boolean: {} } }
+  ];
+
+  class FibbersToggle extends i4 {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true }
+    };
+    static styles = [
+      twSheet,
+      i`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig(hass, entities, entitiesFallback) {
+      return {
+        type: "custom:fibbers-toggle",
+        entity: pickEntity("input_boolean", entities, entitiesFallback, "input_boolean.example")
+      };
+    }
+    static getConfigElement() {
+      const el = document.createElement("fibbers-form-editor");
+      el.schema = EDITOR_SCHEMA4;
+      return el;
+    }
+    setConfig(config) {
+      if (!config || !config.entity) {
+        throw new Error("fibbers-toggle: `entity` is required");
+      }
+      this._config = config;
+    }
+    _st() {
+      return this.hass && this.hass.states[this._config.entity];
+    }
+    _toggle() {
+      if (!this.hass)
+        return;
+      const cfg = this._config;
+      if (cfg.confirm && !window.confirm(`${cfg.name || cfg.entity}?`))
+        return;
+      this.hass.callService("homeassistant", "toggle", { entity_id: cfg.entity });
+    }
+    _secondary() {
+      const cfg = this._config;
+      if (cfg.secondary)
+        return cfg.secondary;
+      if (cfg.secondary_entity) {
+        const s4 = this.hass && this.hass.states[cfg.secondary_entity];
+        return s4 ? fmtState(this.hass, s4) : "";
+      }
+      return "";
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return b2``;
+      const hl = cfg.language || this.hass;
+      const st = this._st();
+      if (!st) {
+        return b2`<div
+        class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
+      >
+        ${t3(hl, "common.not_available")}
+      </div>`;
+      }
+      const on = st.state === "on";
+      const name = cfg.name || st.attributes.friendly_name || cfg.entity;
+      const icon = cfg.icon || st.attributes.icon || "solar:power-bold-duotone";
+      const sub = this._secondary();
+      return b2`<div
+      class="flex items-center gap-2.5 rounded-[14px] border border-line bg-card p-[13px]"
+    >
+      <div
+        class="flex h-8 w-8 flex-none items-center justify-center rounded-lg
+               ${on ? "bg-accentbg text-accent" : "bg-card2 text-muted"}"
+      >
+        <fib-icon
+          class="h-[18px] w-[18px] [--mdc-icon-size:18px]"
+          icon=${icon}
+        ></fib-icon>
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="truncate text-[12px] font-medium text-ink">${name}</div>
+        ${sub ? b2`<div class="truncate text-[10.5px] text-muted">${sub}</div>` : ""}
+      </div>
+      ${pillSwitch({ on, onClick: () => this._toggle(), label: name })}
+    </div>`;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
+    }
+  }
+
+  // src/core/nav-stack.js
+  var NAV_KEY = "fibbers:navstack";
+  var nav = {
+    tabs: new Set,
+    stack: store.get(NAV_KEY, []),
+    listeners: new Set,
+    hassRef: null
+  };
+  var registerTabs = (paths) => paths.forEach((p3) => nav.tabs.add(norm(p3)));
+  var isTab = (path) => nav.tabs.has(norm(path));
+  function onRouteChange() {
+    const path = here();
+    const s4 = nav.stack;
+    if (isTab(path)) {
+      nav.stack = [path];
+    } else if (s4.length >= 2 && norm(s4[s4.length - 2]) === path) {
+      nav.stack = s4.slice(0, -1);
+    } else if (norm(s4[s4.length - 1]) !== path) {
+      nav.stack = s4.concat([path]);
+    }
+    if (nav.stack.length > 20)
+      nav.stack = nav.stack.slice(-20);
+    store.set(NAV_KEY, nav.stack);
+    nav.listeners.forEach((fn) => {
+      try {
+        fn();
+      } catch (_2) {}
+    });
+  }
+  var previous = () => nav.stack.length >= 2 ? nav.stack[nav.stack.length - 2] : null;
+  function goBack(fallback) {
+    const prev = previous();
+    if (prev) {
+      nav.stack = nav.stack.slice(0, -1);
+      store.set(NAV_KEY, nav.stack);
+      navigate(prev);
+      return;
+    }
+    if (fallback) {
+      navigate(fallback);
+      return;
+    }
+    if (history.length > 1)
+      history.back();
+  }
+  window.addEventListener("location-changed", onRouteChange);
+  window.addEventListener("popstate", onRouteChange);
+  onRouteChange();
+
+  // src/cards/layout/back.js
   class FibbersBack extends i4 {
     static properties = {
       _config: { state: true },
@@ -2713,927 +2978,7 @@ ${BASE_CSS}`);
     }
   }
 
-  // src/cards/backup.js
-  function ago(iso, hl) {
-    const time = Date.parse(iso);
-    if (isNaN(time))
-      return { text: String(iso), hours: Infinity };
-    const hours = (Date.now() - time) / 3600000;
-    const mins = Math.round(hours * 60);
-    let text;
-    if (mins < 60)
-      text = t3(hl, "common.minutes_ago", { n: mins });
-    else if (hours < 24)
-      text = t3(hl, "common.hours_ago", { n: Math.round(hours) });
-    else
-      text = t3(hl, "common.days_ago", { n: Math.round(hours / 24) });
-    return { text, hours };
-  }
-  var clock = (iso, lang) => {
-    const time = Date.parse(iso);
-    if (isNaN(time))
-      return String(iso);
-    return new Date(time).toLocaleTimeString(lang || "en", {
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-  };
-
-  class FibbersBackup extends i4 {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true }
-    };
-    static styles = [
-      twSheet,
-      i`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig() {
-      return { type: "custom:fibbers-backup", entity: "sensor.backup_last" };
-    }
-    setConfig(config) {
-      if (!config || !config.entity) {
-        throw new Error("fibbers-backup: `entity` (last-backup timestamp) is required");
-      }
-      this._config = config;
-    }
-    render() {
-      const cfg = this._config;
-      if (!cfg)
-        return b2``;
-      const hl = cfg.language || this.hass;
-      const st = this.hass && this.hass.states[cfg.entity];
-      let value, sub, warn;
-      if (isUnavail(st)) {
-        value = "—";
-        sub = t3(hl, "backup.none");
-        warn = true;
-      } else {
-        const a3 = ago(st.state, hl);
-        const stale = a3.hours > (cfg.stale_hours != null ? cfg.stale_hours : 26);
-        let failed = false;
-        if (cfg.result) {
-          const r4 = this.hass.states[cfg.result];
-          failed = r4 && ["off", "failed", "error", "false"].includes(String(r4.state));
-        }
-        value = a3.text;
-        const bits = [t3(hl, failed ? "backup.failed" : "backup.succeeded")];
-        if (cfg.next) {
-          const n4 = this.hass.states[cfg.next];
-          if (n4 && !isUnavail(n4))
-            bits.push(t3(hl, "backup.next", { time: clock(n4.state, langOf(hl)) }));
-        }
-        sub = bits.join(" · ");
-        warn = stale || failed;
-      }
-      return b2`<div
-      class="grid grid-cols-[34px_1fr] items-center gap-x-[11px] gap-y-0.5
-             rounded-[14px] border p-[13px]
-             ${warn ? "border-amberline bg-amberbg" : "border-line bg-card"}"
-    >
-      <div
-        class="row-span-2 flex h-[34px] w-[34px] items-center justify-center rounded-[10px]
-               ${warn ? "bg-amberbg" : "bg-accentbg"}"
-      >
-        <fib-icon
-          class="h-[19px] w-[19px] [--mdc-icon-size:19px] ${warn ? "text-amber" : "text-accent"}"
-          icon="solar:diskette-bold-duotone"
-        ></fib-icon>
-      </div>
-      <div class="text-[11px] font-medium text-muted">
-        ${cfg.name || t3(hl, "backup.default_name")}
-      </div>
-      <div class="text-[17px] font-semibold leading-[1.15] text-ink">
-        ${value}
-      </div>
-      <div
-        class="col-start-2 text-[10.5px] ${warn ? "text-ambertx" : "text-muted"}"
-      >
-        ${sub}
-      </div>
-    </div>`;
-    }
-    getCardSize() {
-      return 1;
-    }
-    getLayoutOptions() {
-      return { grid_columns: 6, grid_rows: 1 };
-    }
-    getGridOptions() {
-      return { columns: 6, rows: "auto", min_columns: 3 };
-    }
-  }
-
-  // src/actions.js
-  function runAction(action, hass, host, fallbackEntity) {
-    const a3 = action || { action: "none" };
-    switch (a3.action) {
-      case "navigate":
-        if (a3.navigation_path)
-          navigate(a3.navigation_path);
-        break;
-      case "url":
-        if (a3.url_path)
-          window.open(a3.url_path, a3.url_path.startsWith("http") ? "_blank" : "_self");
-        break;
-      case "toggle": {
-        const entity = a3.entity || fallbackEntity;
-        if (entity && hass)
-          hass.callService("homeassistant", "toggle", { entity_id: entity });
-        break;
-      }
-      case "more-info":
-        moreInfo(host, a3.entity || fallbackEntity);
-        break;
-      case "call-service":
-      case "perform-action": {
-        const svc = a3.service || a3.perform_action;
-        if (svc && svc.includes(".") && hass) {
-          const [domain, service] = svc.split(".");
-          hass.callService(domain, service, a3.data || a3.service_data || {}, a3.target);
-        }
-        break;
-      }
-      default:
-        break;
-    }
-  }
-
-  // src/cards/chips.js
-  class FibbersChips extends i4 {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true }
-    };
-    static styles = [
-      twSheet,
-      i`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig() {
-      return {
-        type: "custom:fibbers-chips",
-        chips: [
-          {
-            name: "All off",
-            icon: "solar:power-bold-duotone",
-            action: { action: "toggle" }
-          }
-        ]
-      };
-    }
-    setConfig(config) {
-      if (!config || !Array.isArray(config.chips)) {
-        throw new Error("fibbers-chips: `chips` must be a list");
-      }
-      this._config = config;
-    }
-    _active(chip) {
-      const aw = chip.active_when;
-      if (!aw || !aw.entity || !this.hass)
-        return false;
-      const st = this.hass.states[aw.entity];
-      return !!(st && (aw.state != null ? st.state === aw.state : st.state === "on"));
-    }
-    render() {
-      const cfg = this._config;
-      if (!cfg)
-        return b2``;
-      return b2`<div class="flex flex-wrap gap-x-2 gap-y-[18px]">
-      ${cfg.chips.map((chip) => {
-        const active = this._active(chip);
-        return b2`<button
-          type="button"
-          aria-label=${chip.name || chip.entity || "action"}
-          class="fib-hit inline-flex items-center gap-[5px] rounded-full border px-2.5 py-[5px]
-                 text-[10.5px] font-medium
-                 ${active ? "border-blueline bg-bluebg text-blueink" : "border-line bg-card2 text-ink2"}"
-          @click=${() => this.hass && runAction(chip.action || chip.tap_action, this.hass, this, chip.entity)}
-        >
-          ${chip.icon ? b2`<fib-icon
-                  class="h-[13px] w-[13px] [--mdc-icon-size:13px]"
-                  icon=${chip.icon}
-                ></fib-icon>` : ""}
-          <span>${chip.name || ""}</span>
-        </button>`;
-      })}
-    </div>`;
-    }
-    getCardSize() {
-      return 1;
-    }
-    getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 1 };
-    }
-    getGridOptions() {
-      return { columns: "full", rows: "auto" };
-    }
-  }
-
-  // src/cards/climate.js
-  var MODE = {
-    heat: { icon: "solar:fire-bold-duotone", key: "mode_heat" },
-    cool: { icon: "solar:snowflake-bold-duotone", key: "mode_cool" },
-    fan_only: { icon: "solar:wind-bold-duotone", key: "mode_fan_only" },
-    auto: { icon: "solar:temperature-bold-duotone", key: "mode_auto" },
-    heat_cool: { icon: "solar:temperature-bold-duotone", key: "mode_auto" },
-    dry: { icon: "solar:wind-bold-duotone", key: "mode_dry" },
-    off: { icon: "solar:power-bold-duotone", key: "mode_off" }
-  };
-  var ACTION_KEY = {
-    heating: "action_heating",
-    cooling: "action_cooling",
-    drying: "action_drying",
-    fan: "action_fan",
-    idle: "action_idle",
-    off: "action_off"
-  };
-
-  class FibbersClimate extends i4 {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true }
-    };
-    static styles = [
-      twSheet,
-      i`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig(hass, entities, entitiesFallback) {
-      return {
-        type: "custom:fibbers-climate",
-        entity: pickEntity("climate", entities, entitiesFallback, "climate.example")
-      };
-    }
-    setConfig(config) {
-      if (!config || !config.entity) {
-        throw new Error("fibbers-climate: `entity` (a climate.*) is required");
-      }
-      this._config = config;
-    }
-    _st() {
-      return this.hass && this.hass.states[this._config.entity];
-    }
-    _bump(delta) {
-      const st = this._st();
-      if (!st || isUnavail(st))
-        return;
-      const step = Number(st.attributes.target_temp_step) || 0.5;
-      const cur = Number(st.attributes.temperature);
-      if (!Number.isFinite(cur))
-        return;
-      const min = st.attributes.min_temp ?? 5;
-      const max = st.attributes.max_temp ?? 35;
-      const snapped = Math.round((cur + delta * step) / step) * step;
-      const next = clamp(Number(snapped.toFixed(2)), min, max);
-      this.hass.callService("climate", "set_temperature", {
-        entity_id: this._config.entity,
-        temperature: next
-      });
-    }
-    render() {
-      const cfg = this._config;
-      if (!cfg)
-        return b2``;
-      const hl = cfg.language || this.hass;
-      const st = this._st();
-      if (!st)
-        return b2`<div
-        class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
-      >
-        ${t3(hl, "common.not_available")}
-      </div>`;
-      const a3 = st.attributes;
-      const unavail = isUnavail(st);
-      const cur = a3.current_temperature;
-      const target = a3.temperature;
-      const low = a3.target_temp_low;
-      const high = a3.target_temp_high;
-      const range = target == null && (low != null || high != null);
-      const canBump = !unavail && !range && target != null;
-      const modes = (a3.hvac_modes || []).filter((m2) => MODE[m2]);
-      const action = a3.hvac_action;
-      return b2`<div
-      class="rounded-[14px] border border-line bg-card p-[13px] ${unavail ? "opacity-50" : ""}"
-    >
-      <div class="mb-3 flex items-baseline justify-between gap-2">
-        <div>
-          <div
-            class="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted"
-          >
-            ${cfg.name || a3.friendly_name || t3(hl, "climate.default_name")}
-          </div>
-          <div class="text-[24px] font-semibold leading-none text-ink">
-            ${cur != null ? cur : "—"}<span class="text-[14px] text-ink2"
-              >°</span
-            >
-          </div>
-        </div>
-        <span class="text-[11px] text-muted"
-          >${ACTION_KEY[action] ? t3(hl, `climate.${ACTION_KEY[action]}`) : t3(hl, st.state !== "off" ? "climate.on" : "climate.off")}</span
-        >
-      </div>
-
-      <div class="mb-3 flex items-center justify-center gap-4">
-        <button
-          type="button"
-          aria-label="Lower setpoint"
-          ?disabled=${!canBump}
-          class="fib-hit flex h-10 w-10 items-center justify-center rounded-full bg-card2 text-ink
-                 transition-transform active:scale-90
-                 ${canBump ? "" : "pointer-events-none opacity-40"}"
-          @click=${() => this._bump(-1)}
-        >
-          <fib-icon
-            class="h-6 w-6 [--mdc-icon-size:24px]"
-            icon="solar:minus-circle-bold-duotone"
-          ></fib-icon>
-        </button>
-        <div class="min-w-[68px] text-center">
-          <div class="text-[26px] font-semibold leading-none text-accent">
-            ${range ? b2`${low ?? "—"}–${high ?? "—"}` : target != null ? target : "—"}<span class="text-[14px]">°</span>
-          </div>
-          <div
-            class="mt-0.5 text-[9.5px] uppercase tracking-[0.08em] text-muted"
-          >
-            ${t3(hl, "climate.setpoint")}
-          </div>
-        </div>
-        <button
-          type="button"
-          aria-label="Raise setpoint"
-          ?disabled=${!canBump}
-          class="fib-hit flex h-10 w-10 items-center justify-center rounded-full bg-card2 text-ink
-                 transition-transform active:scale-90
-                 ${canBump ? "" : "pointer-events-none opacity-40"}"
-          @click=${() => this._bump(1)}
-        >
-          <fib-icon
-            class="h-6 w-6 [--mdc-icon-size:24px]"
-            icon="solar:add-circle-bold-duotone"
-          ></fib-icon>
-        </button>
-      </div>
-
-      ${modes.length ? b2`<div class="flex flex-wrap justify-center gap-[7px]">
-              ${modes.map((m2) => {
-        const active = st.state === m2;
-        return b2`<button
-                  type="button"
-                  ?disabled=${unavail}
-                  class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[5px]
-                       text-[10.5px] font-medium ${active ? "border-accentline bg-accentbg text-accent" : "border-line bg-card2 text-ink2"} ${unavail ? "pointer-events-none opacity-40" : ""}"
-                  @click=${() => this.hass.callService("climate", "set_hvac_mode", {
-          entity_id: cfg.entity,
-          hvac_mode: m2
-        })}
-                >
-                  <fib-icon
-                    class="h-[13px] w-[13px] [--mdc-icon-size:13px]"
-                    icon=${MODE[m2].icon}
-                  ></fib-icon>
-                  ${t3(hl, `climate.${MODE[m2].key}`)}
-                </button>`;
-      })}
-            </div>` : ""}
-    </div>`;
-    }
-    getCardSize() {
-      return 3;
-    }
-    getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 3 };
-    }
-    getGridOptions() {
-      return { columns: "full", rows: "auto" };
-    }
-  }
-
-  // src/cards/datetime.js
-  var hhmm = (s4) => {
-    const m2 = typeof s4 === "string" && s4.match(/^(\d{2}:\d{2})/);
-    return m2 ? m2[1] : "";
-  };
-  var EDITOR_SCHEMA = [
-    { name: "entity", selector: { entity: {} } },
-    { name: "name", selector: { text: {} } },
-    { name: "icon", selector: { icon: {} } }
-  ];
-
-  class FibbersDateTime extends i4 {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true }
-    };
-    static styles = [
-      twSheet,
-      i`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig(hass, entities, entitiesFallback) {
-      return {
-        type: "custom:fibbers-datetime",
-        entity: pickEntity("input_datetime", entities, entitiesFallback, "input_datetime.example")
-      };
-    }
-    static getConfigElement() {
-      const el = document.createElement("fibbers-form-editor");
-      el.schema = EDITOR_SCHEMA;
-      return el;
-    }
-    setConfig(config) {
-      if (!config || !config.entity) {
-        throw new Error("fibbers-datetime: `entity` is required");
-      }
-      this._config = config;
-    }
-    _st() {
-      return this.hass && this.hass.states[this._config.entity];
-    }
-    _display(st) {
-      const a3 = st.attributes || {};
-      if (a3.has_time && !a3.has_date)
-        return hhmm(st.state) || "—";
-      return fmtState(this.hass, st) || st.state || "—";
-    }
-    render() {
-      const cfg = this._config;
-      if (!cfg)
-        return b2``;
-      const hl = cfg.language || this.hass;
-      const st = this._st();
-      if (!st) {
-        return b2`<div
-        class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
-      >
-        ${t3(hl, "common.not_available")}
-      </div>`;
-      }
-      const name = cfg.name || st.attributes.friendly_name || cfg.entity;
-      const icon = cfg.icon || st.attributes.icon || "solar:clock-circle-bold-duotone";
-      const timeOnly = st.attributes.has_time && !st.attributes.has_date;
-      const val = this._display(st);
-      return b2`<div class="rounded-[14px] border border-line bg-card p-[13px]">
-      <div class="mb-1.5 flex items-center gap-2">
-        <fib-icon
-          class="h-4 w-4 [--mdc-icon-size:16px] text-accent"
-          icon=${icon}
-        ></fib-icon>
-        <span
-          class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-          >${name}</span
-        >
-      </div>
-      <button
-        type="button"
-        class="text-left"
-        @click=${() => moreInfo(this, cfg.entity)}
-      >
-        <span
-          class="font-semibold leading-none text-ink ${timeOnly ? "text-[30px]" : "text-[20px]"}"
-          >${val}</span
-        >
-      </button>
-    </div>`;
-    }
-    getCardSize() {
-      return 1;
-    }
-    getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 1 };
-    }
-    getGridOptions() {
-      return { columns: "full", rows: "auto" };
-    }
-  }
-
-  // src/cards/entities.js
-  var DOMAIN_ICON = {
-    light: "solar:lightbulb-bold-duotone",
-    switch: "solar:socket-bold-duotone",
-    automation: "solar:bolt-circle-bold-duotone",
-    sensor: "solar:widget-bold-duotone",
-    binary_sensor: "solar:widget-bold-duotone",
-    person: "solar:user-bold-duotone",
-    media_player: "solar:speaker-bold-duotone"
-  };
-  var num = (s4) => parseFloat(String(s4).replace(",", "."));
-  function ago2(iso, hl) {
-    const parsed = Date.parse(iso);
-    if (isNaN(parsed))
-      return "";
-    const mins = Math.max(0, Math.round((Date.now() - parsed) / 60000));
-    if (mins < 60)
-      return t3(hl, "common.minutes_ago", { n: mins });
-    const hrs = Math.round(mins / 60);
-    if (hrs < 24)
-      return t3(hl, "common.hours_ago", { n: hrs });
-    return t3(hl, "common.days_ago", { n: Math.round(hrs / 24) });
-  }
-  function compileFilters(filters, label) {
-    return (filters || []).map((f3) => {
-      if (!f3.entity_id)
-        return f3;
-      try {
-        return { ...f3, _re: new RegExp(f3.entity_id) };
-      } catch (e4) {
-        throw new Error(`fibbers-entities: invalid ${label} entity_id regex "${f3.entity_id}" — ${e4.message}`);
-      }
-    });
-  }
-  function matches(st, f3) {
-    if (f3.domain && !st.entity_id.startsWith(`${f3.domain}.`))
-      return false;
-    if (f3._re && !f3._re.test(st.entity_id))
-      return false;
-    if (f3.state != null) {
-      const want = Array.isArray(f3.state) ? f3.state : [f3.state];
-      if (!want.map(String).includes(String(st.state)))
-        return false;
-    }
-    if (f3.state_not != null) {
-      const no = Array.isArray(f3.state_not) ? f3.state_not : [f3.state_not];
-      if (no.map(String).includes(String(st.state)))
-        return false;
-    }
-    if (f3.attributes) {
-      for (const [k2, v2] of Object.entries(f3.attributes)) {
-        if (String((st.attributes || {})[k2]) !== String(v2))
-          return false;
-      }
-    }
-    if (f3.below != null && !(num(st.state) < f3.below))
-      return false;
-    if (f3.above != null && !(num(st.state) > f3.above))
-      return false;
-    if (f3.stale_hours != null) {
-      const ts = Date.parse(st.last_changed);
-      if (isNaN(ts) || (Date.now() - ts) / 3600000 < f3.stale_hours)
-        return false;
-    }
-    return true;
-  }
-
-  class FibbersEntities extends i4 {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true }
-    };
-    static styles = [
-      twSheet,
-      i`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig() {
-      return {
-        type: "custom:fibbers-entities",
-        title: "Unavailable",
-        filters: [{ domain: "light", state: ["unavailable", "unknown"] }]
-      };
-    }
-    setConfig(config) {
-      if (!config || !Array.isArray(config.filters) || !config.filters.length) {
-        throw new Error("fibbers-entities: `filters` must be a non-empty list");
-      }
-      this._config = config;
-      this._filters = compileFilters(config.filters, "filter");
-      this._exclude = compileFilters(config.exclude, "exclude");
-      this._matchedHass = null;
-      this._matchedCache = null;
-    }
-    _matched() {
-      const hass = this.hass;
-      if (!hass)
-        return [];
-      if (this._matchedHass === hass)
-        return this._matchedCache;
-      const seen = new Set;
-      const out = [];
-      for (const st of Object.values(hass.states)) {
-        if (!this._filters.some((f3) => matches(st, f3)))
-          continue;
-        if (this._exclude.some((f3) => matches(st, f3)))
-          continue;
-        if (seen.has(st.entity_id))
-          continue;
-        seen.add(st.entity_id);
-        out.push(st);
-      }
-      if (this._config.sort === "last_changed") {
-        out.sort((a3, b3) => Date.parse(a3.last_changed) - Date.parse(b3.last_changed));
-      } else {
-        const lang = langOf(this._config.language || this.hass);
-        out.sort((a3, b3) => this._name(a3).localeCompare(this._name(b3), lang));
-      }
-      const max = this._config.max;
-      const rows = max ? out.slice(0, max) : out;
-      this._matchedHass = hass;
-      this._matchedCache = rows;
-      return rows;
-    }
-    _name(st) {
-      return st.attributes && st.attributes.friendly_name || st.entity_id;
-    }
-    _icon(st) {
-      if (st.attributes && st.attributes.icon)
-        return st.attributes.icon;
-      if ((st.attributes || {}).device_class === "battery")
-        return "solar:battery-low-bold-duotone";
-      return DOMAIN_ICON[st.entity_id.split(".")[0]] || "solar:widget-bold-duotone";
-    }
-    _secondary(st) {
-      const hl = this._config.language || this.hass;
-      const s4 = this._config.secondary || "state";
-      if (s4 === "last_changed")
-        return ago2(st.last_changed, hl);
-      if (s4.startsWith("attribute:")) {
-        const k2 = s4.slice("attribute:".length);
-        return String((st.attributes || {})[k2] ?? "");
-      }
-      return fmtState(this.hass, st);
-    }
-    shouldUpdate(changed) {
-      if (!this._config)
-        return false;
-      if (changed.has("_config")) {
-        this._sig = null;
-        return true;
-      }
-      const sig = this._matched().map((st) => `${st.entity_id}=${st.state}|${this._icon(st)}|${this._name(st)}|${this._secondary(st)}`).join(";");
-      if (sig === this._sig)
-        return false;
-      this._sig = sig;
-      return true;
-    }
-    render() {
-      const cfg = this._config;
-      if (!cfg)
-        return b2``;
-      const rows = this._matched();
-      return b2`<div
-      class="rounded-[14px] border border-line bg-card px-1 py-1.5"
-    >
-      ${cfg.title ? b2`<div
-              class="flex items-center gap-[7px] px-2.5 pb-1.5 pt-[7px] text-[10px]
-                   font-semibold uppercase tracking-[0.08em] text-muted"
-            >
-              ${cfg.icon ? b2`<fib-icon
-                      class="h-3.5 w-3.5 [--mdc-icon-size:14px] text-muted"
-                      icon=${cfg.icon}
-                    ></fib-icon>` : ""}
-              <span>${cfg.title}</span>
-            </div>` : ""}
-      ${rows.length ? rows.map((st) => b2`<div
-                  role="button"
-                  tabindex="0"
-                  class="grid cursor-pointer grid-cols-[28px_1fr_auto] items-center gap-x-2.5
-                     rounded-[10px] px-2.5 py-2 hover:bg-card2"
-                  @click=${() => moreInfo(this, st.entity_id)}
-                  @keydown=${activateOnKey(() => moreInfo(this, st.entity_id))}
-                >
-                  <div
-                    class="flex h-7 w-7 items-center justify-center rounded-lg bg-card2"
-                  >
-                    <fib-icon
-                      class="h-4 w-4 [--mdc-icon-size:16px] text-muted"
-                      icon=${this._icon(st)}
-                    ></fib-icon>
-                  </div>
-                  <span
-                    class="overflow-hidden text-ellipsis whitespace-nowrap text-[12px]
-                       font-medium text-ink"
-                    >${this._name(st)}</span
-                  >
-                  <span class="whitespace-nowrap text-[10.5px] text-muted"
-                    >${this._secondary(st)}</span
-                  >
-                </div>`) : cfg.empty ? b2`<div
-                class="flex items-center gap-[7px] px-2.5 py-3 text-[11.5px] text-muted"
-              >
-                <fib-icon
-                  class="h-[15px] w-[15px] [--mdc-icon-size:15px] text-green"
-                  icon="solar:check-circle-bold-duotone"
-                ></fib-icon>
-                <span>${cfg.empty}</span>
-              </div>` : ""}
-    </div>`;
-    }
-    getCardSize() {
-      return 2;
-    }
-    getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 2 };
-    }
-    getGridOptions() {
-      return { columns: "full", rows: "auto" };
-    }
-  }
-
-  // src/cards/graph.js
-  var COLORS = ["accent", "amber", "blue", "green", "red"];
-  var STROKE = {
-    accent: "text-accent",
-    amber: "text-amber",
-    blue: "text-blue",
-    green: "text-green",
-    red: "text-red"
-  };
-  var W = 300;
-
-  class FibbersGraph extends i4 {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true },
-      _series: { state: true },
-      _settled: { state: true }
-    };
-    static styles = [
-      twSheet,
-      i`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig(hass, entities, entitiesFallback) {
-      return {
-        type: "custom:fibbers-graph",
-        entity: pickEntity("sensor", entities, entitiesFallback, "sensor.example"),
-        hours: 24
-      };
-    }
-    setConfig(config) {
-      if (!config || !config.entity && !Array.isArray(config.data)) {
-        throw new Error("fibbers-graph: `entity` or `data` is required");
-      }
-      if (config.color != null && !COLORS.includes(config.color)) {
-        throw new Error(`fibbers-graph: \`color\` must be one of ${COLORS.join(", ")}`);
-      }
-      this._config = config;
-      this._series = Array.isArray(config.data) ? config.data.map(Number).filter(Number.isFinite) : null;
-      this._fetchedFor = null;
-      this._lastTry = 0;
-      this._fetchedAt = 0;
-      this._misses = 0;
-      this._settled = this._series != null;
-      this._gen = (this._gen || 0) + 1;
-    }
-    updated(changed) {
-      if (changed.has("hass") && this._config.entity && !this._config.data)
-        this._maybeFetch();
-    }
-    async _maybeFetch() {
-      const id = this._config.entity;
-      if (!this.hass || !this.hass.callWS)
-        return;
-      const now = Date.now();
-      const maxAge = Math.max(60000, (this._config.hours || 24) * 3600000 / 20);
-      if (this._fetchedFor === id && now - this._fetchedAt < maxAge)
-        return;
-      const backoff = this._series ? 8000 : Math.min(500 * 2 ** this._misses, 8000);
-      if (this._lastTry && now - this._lastTry < backoff)
-        return;
-      this._lastTry = now;
-      const gen = this._gen += 1;
-      try {
-        const nums = await fetchHistory(this.hass, id, this._config.hours || 24);
-        if (gen !== this._gen)
-          return;
-        if (nums.length) {
-          this._series = nums;
-          this._fetchedFor = id;
-          this._fetchedAt = Date.now();
-          this._misses = 0;
-        } else {
-          this._misses += 1;
-        }
-      } catch (_e) {
-        if (gen === this._gen)
-          this._misses += 1;
-      } finally {
-        if (gen === this._gen)
-          this._settled = true;
-      }
-    }
-    _current() {
-      const st = this._config.entity && this.hass && this.hass.states[this._config.entity];
-      if (st && st.state !== "unavailable" && st.state !== "unknown") {
-        const n4 = Number(st.state);
-        if (Number.isFinite(n4))
-          return n4;
-      }
-      return this._series && this._series.length ? this._series[this._series.length - 1] : null;
-    }
-    _unit() {
-      if (this._config.unit != null)
-        return this._config.unit;
-      const st = this._config.entity && this.hass && this.hass.states[this._config.entity];
-      return st && st.attributes.unit_of_measurement || "";
-    }
-    render() {
-      const cfg = this._config;
-      if (!cfg)
-        return b2``;
-      const st = cfg.entity && this.hass && this.hass.states[cfg.entity];
-      const name = cfg.name || st && st.attributes.friendly_name || cfg.entity;
-      const hl = cfg.language || this.hass;
-      const now = this._current();
-      const h3 = cfg.height || 46;
-      const series = this._series;
-      const color = cfg.color || "accent";
-      const colorCls = STROKE[color] || "text-accent";
-      let body;
-      if (!series || series.length < 2) {
-        body = this._settled ? b2`<div
-            class="flex items-center text-[11px] text-muted"
-            style="height:${h3}px"
-          >
-            ${t3(hl, "graph.no_history")}
-          </div>` : b2`<div
-            class="animate-pulse rounded-[6px] bg-card2"
-            style="height:${h3}px"
-          ></div>`;
-      } else {
-        let min = Math.min(...series);
-        let max = Math.max(...series);
-        const pad = (max - min || 1) * 0.12;
-        min -= pad;
-        max += pad;
-        const n4 = series.length;
-        const x2 = (i5) => i5 / (n4 - 1) * W;
-        const y3 = (v2) => h3 - (v2 - min) / (max - min || 1) * h3;
-        const pts = series.map((v2, i5) => `${x2(i5).toFixed(1)},${y3(v2).toFixed(1)}`);
-        const line = `M${pts.join(" L")}`;
-        const area = `M0,${h3} L${pts.join(" L")} L${W},${h3} Z`;
-        body = b2`<svg
-        viewBox="0 0 ${W} ${h3}"
-        preserveAspectRatio="none"
-        class="block w-full ${colorCls}"
-        style="height:${h3}px;overflow:visible"
-      >
-        <path
-          d=${area}
-          style="fill:currentColor;opacity:${cfg.fill === false ? 0 : 0.12}"
-        ></path>
-        <path
-          d=${line}
-          style="fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke"
-        ></path>
-      </svg>`;
-      }
-      return b2`<div class="rounded-[14px] border border-line bg-card p-[13px]">
-      <div class="mb-2 flex items-baseline justify-between gap-2">
-        <span class="text-[11px] font-medium text-muted">${name}</span>
-        <span class="text-[15px] font-semibold text-ink">
-          ${now != null ? fmtNum(this.hass, now, cfg.decimals) : "—"}<span
-            class="ml-0.5 text-[11px] font-medium text-ink2"
-            >${this._unit()}</span
-          >
-        </span>
-      </div>
-      ${body}
-      ${cfg.show_stats && series && series.length >= 2 ? b2`<div
-              class="mt-1.5 flex justify-between text-[9.5px] text-muted"
-            >
-              <span
-                >min
-                ${fmtNum(this.hass, Math.min(...series), cfg.decimals)}</span
-              >
-              <span
-                >max
-                ${fmtNum(this.hass, Math.max(...series), cfg.decimals)}</span
-              >
-            </div>` : ""}
-    </div>`;
-    }
-    getCardSize() {
-      return 2;
-    }
-    getLayoutOptions() {
-      return { grid_columns: 6, grid_rows: 2 };
-    }
-    getGridOptions() {
-      return { columns: 6, rows: "auto", min_columns: 3 };
-    }
-  }
-
-  // src/cards/greeting.js
+  // src/cards/layout/greeting.js
   var PERIODS = [
     { until: 6, key: "night", icon: "solar:moon-stars-bold-duotone" },
     { until: 12, key: "morning", icon: "solar:sunrise-bold-duotone" },
@@ -3641,7 +2986,7 @@ ${BASE_CSS}`);
     { until: 23, key: "evening", icon: "solar:moon-bold-duotone" },
     { until: 24, key: "night", icon: "solar:moon-stars-bold-duotone" }
   ];
-  var friendly2 = (st, id) => st && st.attributes && st.attributes.friendly_name || id;
+  var friendly = (st, id) => st && st.attributes && st.attributes.friendly_name || id;
   function joinNames(names, and) {
     if (names.length <= 1)
       return names[0] || "";
@@ -3716,7 +3061,7 @@ ${BASE_CSS}`);
         if (offline)
           parts.push(t3(hl, "greeting.offline_count", { n: offline }));
       }
-      const home = this._people().map((id) => hass.states[id]).filter((st) => st && st.state === "home").map((st, i5, arr) => friendly2(st, arr[i5].entity_id));
+      const home = this._people().map((id) => hass.states[id]).filter((st) => st && st.state === "home").map((st, i5, arr) => friendly(st, arr[i5].entity_id));
       parts.push(home.length ? t3(hl, "greeting.someone_home", {
         names: joinNames(home, t3(hl, "common.and"))
       }) : t3(hl, "greeting.nobody_home"));
@@ -3769,9 +3114,1543 @@ ${BASE_CSS}`);
     }
   }
 
-  // src/cards/light-group.js
+  // src/shared/tokens.js
+  var T2 = {
+    bg: "#111516",
+    card: "#1D2426",
+    card2: "#262F31",
+    line: "#333E41",
+    ink: "#EDF1F1",
+    ink2: "#A9B6B9",
+    muted: "#7D8B8E",
+    accent: "#74B98A",
+    accentSoft: "rgba(116,185,138,.10)",
+    accentBg: "#17281C",
+    accentLine: "#2B4A34",
+    accentTx: "#CFE6D5",
+    amber: "#E8A33D",
+    amberSoft: "rgba(232,163,61,.09)",
+    amberBg: "#3A2B12",
+    amberLine: "#4E3A18",
+    amberTx: "#EBD9BC",
+    blue: "#5AAFD6",
+    blueBg: "#152B36",
+    blueLine: "#2C5A70",
+    blueInk: "#9BD2EA",
+    green: "#63C295",
+    red: "#EC8377",
+    sheet: "#171E20",
+    nav: "#161C1E",
+    grab: "#3E4A4D",
+    rowLine: "#262F31"
+  };
+  function styleBlock() {
+    return `:host {
+    --fib-bg: ${T2.bg};
+    --fib-card: ${T2.card};
+    --fib-card-2: ${T2.card2};
+    --fib-line: ${T2.line};
+    --fib-ink: ${T2.ink};
+    --fib-ink-2: ${T2.ink2};
+    --fib-muted: ${T2.muted};
+    --fib-accent: ${T2.accent};
+    --fib-accent-soft: ${T2.accentSoft};
+    --fib-accent-bg: ${T2.accentBg};
+    --fib-accent-line: ${T2.accentLine};
+    --fib-accent-tx: ${T2.accentTx};
+    --fib-amber: ${T2.amber};
+    --fib-amber-bg: ${T2.amberBg};
+    --fib-amber-line: ${T2.amberLine};
+    --fib-amber-tx: ${T2.amberTx};
+    --fib-blue: ${T2.blue};
+    --fib-blue-bg: ${T2.blueBg};
+    --fib-blue-line: ${T2.blueLine};
+    --fib-blue-ink: ${T2.blueInk};
+    --fib-green: ${T2.green};
+    --fib-red: ${T2.red};
+    --fib-sheet: ${T2.sheet};
+    --fib-nav: ${T2.nav};
+    --fib-grab: ${T2.grab};
+    --fib-row-line: ${T2.rowLine};
+  }`;
+  }
+
+  // src/core/hide-tabs.js
+  var STYLE_ID = "fibbers-hide-tabs";
+  var CSS = {
+    true: `ha-tab-group { display: none !important; }`,
+    header: `.header { display: none !important; }`
+  };
+  var state = {
+    mode: false,
+    observer: null,
+    scheduled: false
+  };
+  function suppressed() {
+    if (window.FIBBERS_SHOW_TABS === true)
+      return true;
+    try {
+      return new URLSearchParams(window.location.search).has("disable_km");
+    } catch (_2) {
+      return false;
+    }
+  }
+  var findHuiRoot = () => deepFind("hui-root");
+  var findResolvedPanel = () => deepFind("partial-panel-resolver");
+  function paint() {
+    if (!state.mode || suppressed())
+      return removeStyle();
+    const root = findHuiRoot();
+    if (!root || !root.shadowRoot) {
+      console.debug("fibbers: hui-root not found; leaving HA tabs untouched");
+      return;
+    }
+    const css = CSS[state.mode];
+    if (!css)
+      return;
+    let style = root.shadowRoot.getElementById(STYLE_ID);
+    if (style) {
+      if (style.textContent !== css)
+        style.textContent = css;
+      return;
+    }
+    style = document.createElement("style");
+    style.id = STYLE_ID;
+    style.textContent = css;
+    root.shadowRoot.appendChild(style);
+  }
+  function removeStyle() {
+    const root = findHuiRoot();
+    const style = root && root.shadowRoot && root.shadowRoot.getElementById(STYLE_ID);
+    if (style)
+      style.remove();
+  }
+  function schedulePaint() {
+    if (state.scheduled)
+      return;
+    state.scheduled = true;
+    setTimeout(() => {
+      state.scheduled = false;
+      paint();
+    }, 60);
+  }
+  function startObserver() {
+    if (state.observer)
+      return;
+    const panel = findResolvedPanel() || document.body;
+    try {
+      state.observer = new MutationObserver(schedulePaint);
+      state.observer.observe(panel, { childList: true, subtree: true });
+    } catch (_2) {}
+  }
+  function stopObserver() {
+    if (state.observer) {
+      state.observer.disconnect();
+      state.observer = null;
+    }
+  }
+  function setTabHiding(mode) {
+    const normalized = mode === true || mode === "header" ? mode : false;
+    state.mode = normalized;
+    if (!normalized) {
+      removeTabHiding();
+      return;
+    }
+    paint();
+    startObserver();
+    startNavListeners();
+  }
+  function removeTabHiding() {
+    state.mode = false;
+    stopObserver();
+    stopNavListeners();
+    removeStyle();
+  }
+  var navBound = false;
+  function startNavListeners() {
+    if (navBound)
+      return;
+    navBound = true;
+    window.addEventListener("location-changed", schedulePaint);
+    window.addEventListener("popstate", schedulePaint);
+  }
+  function stopNavListeners() {
+    if (!navBound)
+      return;
+    navBound = false;
+    window.removeEventListener("location-changed", schedulePaint);
+    window.removeEventListener("popstate", schedulePaint);
+  }
+
+  // src/core/global-css.js
+  var STYLE_ID2 = "fibbers-global";
+  var DARK_VARS = {
+    "--primary-background-color": T2.bg,
+    "--secondary-background-color": T2.nav,
+    "--card-background-color": T2.card,
+    "--ha-card-background": T2.card,
+    "--app-header-background-color": T2.bg,
+    "--app-header-text-color": T2.ink,
+    "--sidebar-background-color": "#0E1315",
+    "--sidebar-icon-color": T2.muted,
+    "--sidebar-text-color": T2.ink2,
+    "--sidebar-selected-icon-color": T2.accent,
+    "--sidebar-selected-text-color": T2.ink,
+    "--divider-color": T2.line,
+    "--primary-text-color": T2.ink,
+    "--secondary-text-color": "#8B999C",
+    "--disabled-text-color": "#5C6A6D",
+    "--text-primary-color": T2.bg,
+    "--primary-color": T2.accent,
+    "--accent-color": T2.accent,
+    "--state-icon-color": "#8B999C",
+    "--state-icon-active-color": T2.accent,
+    "--error-color": T2.red,
+    "--warning-color": T2.amber,
+    "--success-color": T2.green,
+    "--info-color": T2.blue,
+    "--ha-card-border-radius": "15px",
+    "--ha-card-border-width": "1px",
+    "--ha-card-border-color": T2.line,
+    "--ha-card-box-shadow": "none",
+    "--ha-dialog-border-radius": "22px",
+    "--mdc-dialog-scrim-color": "rgba(6,9,10,.72)",
+    "--mdc-theme-surface": T2.sheet,
+    "--ha-dialog-surface-background": T2.sheet,
+    "--more-info-header-background": T2.sheet,
+    "--dialog-backdrop-filter": "blur(3px)",
+    "--switch-checked-color": T2.accent,
+    "--switch-checked-button-color": T2.ink,
+    "--switch-checked-track-color": "#2E5238",
+    "--switch-unchecked-button-color": "#8B999C",
+    "--switch-unchecked-track-color": T2.line,
+    "--paper-slider-active-color": T2.accent,
+    "--paper-slider-knob-color": T2.accent,
+    "--paper-slider-container-color": "#2C3639"
+  };
+  function injectGlobalCss() {
+    if (window.FIBBERS_DISABLE_GLOBAL_CSS)
+      return;
+    if (document.getElementById(STYLE_ID2))
+      return;
+    const decls = Object.entries(DARK_VARS).map(([k2, v2]) => `  ${k2}: ${v2} !important;`).join(`
+`);
+    const style = document.createElement("style");
+    style.id = STYLE_ID2;
+    style.textContent = `html {
+${decls}
+}`;
+    document.head.appendChild(style);
+  }
+
+  // src/core/theme.js
+  var STYLE_ID3 = "fibbers-theme";
+  var LIGHT_VARS = {
+    "--primary-background-color": "#EEF1F0",
+    "--secondary-background-color": "#FFFFFF",
+    "--card-background-color": "#FFFFFF",
+    "--ha-card-background": "#FFFFFF",
+    "--app-header-background-color": "#FFFFFF",
+    "--app-header-text-color": "#14201A",
+    "--sidebar-background-color": "#FFFFFF",
+    "--sidebar-icon-color": "#5C6A6D",
+    "--sidebar-text-color": "#3A4744",
+    "--sidebar-selected-icon-color": "#2F6B45",
+    "--sidebar-selected-text-color": "#14201A",
+    "--divider-color": "#E1E5E3",
+    "--primary-text-color": "#14201A",
+    "--secondary-text-color": "#55635C",
+    "--disabled-text-color": "#9AA5A0",
+    "--text-primary-color": "#FFFFFF",
+    "--primary-color": "#2F6B45",
+    "--accent-color": "#2F6B45",
+    "--state-icon-color": "#55635C",
+    "--state-icon-active-color": "#2F6B45",
+    "--error-color": "#C4443B",
+    "--warning-color": "#B7791F",
+    "--success-color": "#2F6B45",
+    "--info-color": "#2F6FB0",
+    "--ha-card-border-radius": "15px",
+    "--ha-card-border-width": "1px",
+    "--ha-card-border-color": "#E1E5E3",
+    "--ha-card-box-shadow": "none",
+    "--ha-dialog-border-radius": "22px",
+    "--mdc-dialog-scrim-color": "rgba(20,32,26,.32)",
+    "--mdc-theme-surface": "#FFFFFF",
+    "--ha-dialog-surface-background": "#FFFFFF",
+    "--more-info-header-background": "#FFFFFF",
+    "--dialog-backdrop-filter": "blur(3px)",
+    "--switch-checked-color": "#2F6B45",
+    "--switch-checked-button-color": "#FFFFFF",
+    "--switch-checked-track-color": "#A9CDB6",
+    "--switch-unchecked-button-color": "#FFFFFF",
+    "--switch-unchecked-track-color": "#C7CDCA",
+    "--paper-slider-active-color": "#2F6B45",
+    "--paper-slider-knob-color": "#2F6B45",
+    "--paper-slider-container-color": "#D8DDDA"
+  };
+  var state2 = { mode: "none", scheduled: false, observer: null, mql: null };
+  var findHuiRoot2 = () => deepFind("hui-root");
+  var findResolvedPanel2 = () => deepFind("partial-panel-resolver");
+  function palette() {
+    if (state2.mode === "fibbers")
+      return DARK_VARS;
+    if (state2.mode === "fibbers-light")
+      return LIGHT_VARS;
+    if (state2.mode === "auto") {
+      const dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      return dark ? DARK_VARS : LIGHT_VARS;
+    }
+    return null;
+  }
+  var unreachable = (k2) => k2.startsWith("--sidebar-") || /dialog/.test(k2) || k2 === "--mdc-theme-surface" || k2 === "--more-info-header-background";
+  function cssFor(vars) {
+    const decls = Object.entries(vars).filter(([k2]) => !unreachable(k2)).map(([k2, v2]) => `  ${k2}: ${v2};`).join(`
+`);
+    return `:host {
+${decls}
+}`;
+  }
+  function paint2() {
+    const vars = palette();
+    if (!vars)
+      return removeStyle2();
+    const root = findHuiRoot2();
+    if (!root || !root.shadowRoot)
+      return;
+    const css = cssFor(vars);
+    let style = root.shadowRoot.getElementById(STYLE_ID3);
+    if (style) {
+      if (style.textContent !== css)
+        style.textContent = css;
+      return;
+    }
+    style = document.createElement("style");
+    style.id = STYLE_ID3;
+    style.textContent = css;
+    root.shadowRoot.appendChild(style);
+  }
+  function removeStyle2() {
+    const root = findHuiRoot2();
+    const style = root && root.shadowRoot && root.shadowRoot.getElementById(STYLE_ID3);
+    if (style)
+      style.remove();
+  }
+  function schedulePaint2() {
+    if (state2.scheduled)
+      return;
+    state2.scheduled = true;
+    setTimeout(() => {
+      state2.scheduled = false;
+      paint2();
+    }, 60);
+  }
+  function startObserver2() {
+    if (state2.observer)
+      return;
+    const panel = findResolvedPanel2() || document.body;
+    try {
+      state2.observer = new MutationObserver(schedulePaint2);
+      state2.observer.observe(panel, { childList: true, subtree: true });
+    } catch (_2) {}
+  }
+  function stopObserver2() {
+    if (state2.observer) {
+      state2.observer.disconnect();
+      state2.observer = null;
+    }
+  }
+  var onScheme = () => {
+    if (state2.mode === "auto")
+      schedulePaint2();
+  };
+  function watchScheme() {
+    if (state2.mql || !window.matchMedia)
+      return;
+    state2.mql = window.matchMedia("(prefers-color-scheme: dark)");
+    try {
+      state2.mql.addEventListener("change", onScheme);
+    } catch (_2) {
+      state2.mql.addListener(onScheme);
+    }
+  }
+  function unwatchScheme() {
+    if (!state2.mql)
+      return;
+    try {
+      state2.mql.removeEventListener("change", onScheme);
+    } catch (_2) {
+      state2.mql.removeListener(onScheme);
+    }
+    state2.mql = null;
+  }
+  function applyTheme(mode) {
+    const normalized = ["fibbers", "fibbers-light", "auto"].includes(mode) ? mode : "none";
+    state2.mode = normalized;
+    if (normalized === "none") {
+      removeTheme();
+      return;
+    }
+    paint2();
+    startObserver2();
+    startNavListeners2();
+    if (normalized === "auto")
+      watchScheme();
+    else
+      unwatchScheme();
+  }
+  function removeTheme() {
+    state2.mode = "none";
+    stopObserver2();
+    stopNavListeners2();
+    unwatchScheme();
+    removeStyle2();
+  }
+  var navBound2 = false;
+  function startNavListeners2() {
+    if (navBound2)
+      return;
+    navBound2 = true;
+    window.addEventListener("location-changed", schedulePaint2);
+    window.addEventListener("popstate", schedulePaint2);
+  }
+  function stopNavListeners2() {
+    if (!navBound2)
+      return;
+    navBound2 = false;
+    window.removeEventListener("location-changed", schedulePaint2);
+    window.removeEventListener("popstate", schedulePaint2);
+  }
+
+  // src/core/view-reserve.js
+  var STYLE_ID4 = "fibbers-view-reserve";
+  var state3 = { px: 0, scheduled: false, observer: null };
+  var findHuiRoot3 = () => deepFind("hui-root");
+  var findResolvedPanel3 = () => deepFind("partial-panel-resolver");
+  function paint3() {
+    if (!state3.px)
+      return removeStyle3();
+    const root = findHuiRoot3();
+    if (!root || !root.shadowRoot)
+      return;
+    const css = `#view { padding-bottom: ${state3.px}px !important; }`;
+    let style = root.shadowRoot.getElementById(STYLE_ID4);
+    if (style) {
+      if (style.textContent !== css)
+        style.textContent = css;
+      return;
+    }
+    style = document.createElement("style");
+    style.id = STYLE_ID4;
+    style.textContent = css;
+    root.shadowRoot.appendChild(style);
+  }
+  function removeStyle3() {
+    const root = findHuiRoot3();
+    const style = root && root.shadowRoot && root.shadowRoot.getElementById(STYLE_ID4);
+    if (style)
+      style.remove();
+  }
+  var LOCK_ID = "fibbers-view-lock";
+  function lockView(on) {
+    const root = findHuiRoot3();
+    if (!root || !root.shadowRoot)
+      return;
+    const existing = root.shadowRoot.getElementById(LOCK_ID);
+    if (on) {
+      if (existing)
+        return;
+      const style = document.createElement("style");
+      style.id = LOCK_ID;
+      style.textContent = "#view{overflow:hidden !important}";
+      root.shadowRoot.appendChild(style);
+    } else if (existing) {
+      existing.remove();
+    }
+  }
+  function schedulePaint3() {
+    if (state3.scheduled)
+      return;
+    state3.scheduled = true;
+    setTimeout(() => {
+      state3.scheduled = false;
+      paint3();
+    }, 60);
+  }
+  function startObserver3() {
+    if (state3.observer)
+      return;
+    const panel = findResolvedPanel3() || document.body;
+    try {
+      state3.observer = new MutationObserver(schedulePaint3);
+      state3.observer.observe(panel, { childList: true, subtree: true });
+    } catch (_2) {}
+  }
+  function stopObserver3() {
+    if (state3.observer) {
+      state3.observer.disconnect();
+      state3.observer = null;
+    }
+  }
+  function setViewReserve(px) {
+    const next = Math.max(0, Math.round(px || 0));
+    if (next === state3.px && state3.observer) {
+      paint3();
+      return;
+    }
+    state3.px = next;
+    if (!next) {
+      removeViewReserve();
+      return;
+    }
+    paint3();
+    startObserver3();
+    startNavListeners3();
+  }
+  function removeViewReserve() {
+    state3.px = 0;
+    stopObserver3();
+    stopNavListeners3();
+    removeStyle3();
+  }
+  var navBound3 = false;
+  function startNavListeners3() {
+    if (navBound3)
+      return;
+    navBound3 = true;
+    window.addEventListener("location-changed", schedulePaint3);
+    window.addEventListener("popstate", schedulePaint3);
+  }
+  function stopNavListeners3() {
+    if (!navBound3)
+      return;
+    navBound3 = false;
+    window.removeEventListener("location-changed", schedulePaint3);
+    window.removeEventListener("popstate", schedulePaint3);
+  }
+
+  // src/core/body-layer.js
+  var bar = {
+    host: null,
+    owners: new Set,
+    config: null,
+    height: 0,
+    hidden: false,
+    lastScroll: 0
+  };
+  var HOST_CSS = `
+  :host {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; display: block;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none; user-select: none;
+    touch-action: manipulation;
+    transition: transform .22s ease;
+  }
+  :host([data-hidden="true"]) { transform: translateY(110%); }
+  @media (prefers-reduced-motion: reduce) { :host { transition: none; } }
+  .bar {
+    display: flex; align-items: stretch; gap: 2px;
+    background: ${T2.nav};
+    border-top: 1px solid ${T2.line};
+    padding: 7px 6px calc(9px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 60px 0 60px ${T2.nav};
+    transform: translateZ(0);
+  }
+  /* desktop sidebar inset: drop the 60px horizontal spread so the overscroll
+     floor never bleeds a nav-coloured slab over the sidebar */
+  :host([data-inset="true"]) .bar { box-shadow: 0 60px 0 0 ${T2.nav}; }
+`;
+  var hostSheet = new CSSStyleSheet;
+  hostSheet.replaceSync(HOST_CSS);
+  function measureBar() {
+    if (!bar.host)
+      return;
+    const div = bar.host.shadowRoot.querySelector(".bar");
+    const h3 = div ? div.getBoundingClientRect().height : 0;
+    if (h3 && Math.abs(h3 - bar.height) > 0.5) {
+      bar.height = h3;
+      syncViewReserve();
+    }
+  }
+  function syncViewReserve() {
+    const cfg = bar.config || {};
+    const offset = Number(cfg.offset_bottom) || 0;
+    const extra = Number(cfg.extra_bottom) || 0;
+    const base = cfg.reserve != null ? Number(cfg.reserve) : (bar.height || 74) + extra;
+    setViewReserve(base + offset);
+  }
+  var onOrientationChange = () => {
+    setTimeout(measureBar, 250);
+    scheduleInset();
+  };
+  var onResizeInset = () => scheduleInset();
+  var sidebarRO = null;
+  var drawerMO = null;
+  var insetScheduled = false;
+  function computeInset() {
+    if (!bar.config || bar.config.respect_sidebar === false)
+      return 0;
+    const drawer = deepFind("ha-drawer");
+    if (drawer && drawer.getAttribute("type") === "modal")
+      return 0;
+    if (nav.hassRef && nav.hassRef.dockedSidebar === "always_hidden")
+      return 0;
+    const sidebar = deepFind("ha-sidebar");
+    const w2 = sidebar ? sidebar.getBoundingClientRect().width : 0;
+    return w2 > 0 ? Math.round(w2) : 0;
+  }
+  function observeSidebar() {
+    if (!sidebarRO && window.ResizeObserver) {
+      const sidebar = deepFind("ha-sidebar");
+      if (sidebar) {
+        sidebarRO = new ResizeObserver(scheduleInset);
+        sidebarRO.observe(sidebar);
+      }
+    }
+    if (!drawerMO && window.MutationObserver) {
+      const drawer = deepFind("ha-drawer");
+      if (drawer) {
+        drawerMO = new MutationObserver(scheduleInset);
+        drawerMO.observe(drawer, { attributes: true, attributeFilter: ["type"] });
+      }
+    }
+  }
+  function syncSidebarInset() {
+    if (!bar.host)
+      return;
+    observeSidebar();
+    const inset = computeInset();
+    bar.host.style.insetInlineStart = inset ? `${inset}px` : "";
+    if (inset)
+      bar.host.setAttribute("data-inset", "true");
+    else
+      bar.host.removeAttribute("data-inset");
+  }
+  function scheduleInset() {
+    if (insetScheduled)
+      return;
+    insetScheduled = true;
+    requestAnimationFrame(() => {
+      insetScheduled = false;
+      syncSidebarInset();
+    });
+  }
+  function buildBar() {
+    const host = document.createElement("div");
+    host.id = "fibbers-nav";
+    host.setAttribute("role", "navigation");
+    host.setAttribute("aria-label", "Dashboard sections");
+    const shadow = host.attachShadow({ mode: "open" });
+    shadow.adoptedStyleSheets = [twSheet, hostSheet];
+    const div = document.createElement("div");
+    div.className = "bar";
+    shadow.append(div);
+    document.body.appendChild(host);
+    if (window.ResizeObserver)
+      new ResizeObserver(() => measureBar()).observe(div);
+    window.addEventListener("orientationchange", onOrientationChange);
+    window.addEventListener("resize", measureBar);
+    window.addEventListener("resize", onResizeInset);
+    return host;
+  }
+  function tabMatches(tab, path) {
+    const target = norm(tab.path);
+    if (tab.match === "prefix")
+      return path === target || path.startsWith(`${target}/`);
+    return path === target;
+  }
+  function activeIndex(tabs, path) {
+    const exact = tabs.findIndex((t4) => norm(t4.path) === path);
+    if (exact !== -1)
+      return exact;
+    const pre = tabs.findIndex((t4) => tabMatches(t4, path));
+    if (pre !== -1)
+      return pre;
+    const root = nav.stack.length ? norm(nav.stack[0]) : null;
+    return root ? tabs.findIndex((t4) => norm(t4.path) === root) : -1;
+  }
+  function badgeActive(badge, hass) {
+    const st = hass && hass.states[badge.entity];
+    if (!st)
+      return false;
+    if (badge.when)
+      return st.state === badge.when;
+    return !["off", "unavailable", "unknown"].includes(st.state);
+  }
+  var press = (e4, on) => on ? e4.currentTarget.setAttribute("data-pressed", "true") : e4.currentTarget.removeAttribute("data-pressed");
+  function renderBar() {
+    if (!bar.host || !bar.config)
+      return;
+    const div = bar.host.shadowRoot.querySelector(".bar");
+    const tabs = bar.config.tabs || [];
+    const active = activeIndex(tabs, here());
+    D(b2`${tabs.map((tab, i5) => {
+      const badge = tab.badge && badgeActive(tab.badge, nav.hassRef);
+      return b2`<button
+        type="button"
+        aria-current=${i5 === active ? "page" : A}
+        class="group relative flex min-w-0 flex-1 flex-col items-center pb-[3px] pt-[5px]
+               focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent
+               focus-visible:[outline-offset:-2px]"
+        @pointerdown=${(e4) => press(e4, true)}
+        @pointerup=${(e4) => press(e4, false)}
+        @pointercancel=${(e4) => press(e4, false)}
+        @pointerleave=${(e4) => press(e4, false)}
+        @click=${() => {
+        if (norm(tab.path) === here())
+          return;
+        navigate(tab.path);
+      }}
+      >
+        <!-- the highlight is capped to content width so it doesn't become a
+             290px slab in a wide flex cell on desktop; the button stays the tap target -->
+        <span
+          class="pointer-events-none mx-auto flex w-full max-w-[96px] flex-col items-center
+                 gap-[3px] rounded-[9px] px-3 py-1 text-[9.5px] font-medium leading-[1.1]
+                 tracking-[0.01em] group-data-[pressed=true]:bg-[rgba(255,255,255,0.06)]
+                 ${i5 === active ? "bg-[rgba(116,185,138,0.10)] text-accent" : "text-muted"}"
+        >
+          <fib-icon
+            class="h-[17px] w-[17px] [--mdc-icon-size:17px]"
+            icon=${tab.icon || "solar:record-circle-bold-duotone"}
+          ></fib-icon>
+          <span>${tab.name || ""}</span>
+        </span>
+        ${badge ? b2`<span
+                class="absolute left-1/2 top-1 ml-[7px] h-[5px] w-[5px] rounded-full bg-accent"
+              ></span>` : ""}
+      </button>`;
+    })}`, div);
+    measureBar();
+  }
+  var AUTO_HIDE_OPTS = { capture: true, passive: true };
+  function onScrollHide(e4) {
+    const y3 = e4.target && e4.target.scrollTop || 0;
+    const dy = y3 - bar.lastScroll;
+    if (Math.abs(dy) < 6)
+      return;
+    bar.lastScroll = y3;
+    const hide = dy > 0 && y3 > 40;
+    if (hide !== bar.hidden && bar.host) {
+      bar.hidden = hide;
+      bar.host.setAttribute("data-hidden", String(hide));
+    }
+  }
+  var autoHideBound = false;
+  function enableAutoHide() {
+    if (autoHideBound)
+      return;
+    autoHideBound = true;
+    document.addEventListener("scroll", onScrollHide, AUTO_HIDE_OPTS);
+  }
+  function disableAutoHide() {
+    if (!autoHideBound)
+      return;
+    autoHideBound = false;
+    document.removeEventListener("scroll", onScrollHide, AUTO_HIDE_OPTS);
+  }
+  function attach(owner, config) {
+    bar.owners.add(owner);
+    bar.config = config;
+    registerTabs((config.tabs || []).map((t4) => t4.path));
+    if (!bar.host || !document.body.contains(bar.host))
+      bar.host = buildBar();
+    const offset = Number(config.offset_bottom) || 0;
+    bar.host.style.bottom = offset ? `${offset}px` : "";
+    renderBar();
+    measureBar();
+    syncViewReserve();
+    syncSidebarInset();
+    setTimeout(scheduleInset, 200);
+    if (config.auto_hide)
+      enableAutoHide();
+    setTabHiding(config.hide_ha_tabs);
+    applyTheme(config.theme);
+  }
+  function detach(owner) {
+    bar.owners.delete(owner);
+    if (bar.owners.size === 0 && bar.host) {
+      window.removeEventListener("orientationchange", onOrientationChange);
+      window.removeEventListener("resize", measureBar);
+      window.removeEventListener("resize", onResizeInset);
+      disableAutoHide();
+      bar.host.remove();
+      bar.host = null;
+      bar.height = 0;
+      if (sidebarRO) {
+        sidebarRO.disconnect();
+        sidebarRO = null;
+      }
+      if (drawerMO) {
+        drawerMO.disconnect();
+        drawerMO = null;
+      }
+      removeTabHiding();
+      removeTheme();
+      removeViewReserve();
+    }
+  }
+  nav.listeners.add(renderBar);
+  window.addEventListener("hashchange", renderBar);
+
+  // src/cards/layout/nav.js
+  var EDITOR_SCHEMA5 = [
+    {
+      name: "theme",
+      selector: {
+        select: {
+          mode: "dropdown",
+          options: [
+            { value: "none", label: "None" },
+            { value: "fibbers", label: "Fibbers (dark)" },
+            { value: "fibbers-light", label: "Fibbers Light" },
+            { value: "auto", label: "Auto" }
+          ]
+        }
+      }
+    },
+    { name: "respect_sidebar", selector: { boolean: {} } },
+    { name: "offset_bottom", selector: { number: { min: 0, mode: "box" } } },
+    { name: "extra_bottom", selector: { number: { min: 0, mode: "box" } } }
+  ];
+
+  class FibbersNav extends i4 {
+    static properties = { preview: { type: Boolean, reflect: true } };
+    static styles = [
+      i`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return {
+        type: "custom:fibbers-nav",
+        tabs: [
+          {
+            name: "Home",
+            icon: "solar:home-2-bold-duotone",
+            path: "/lovelace/0"
+          },
+          {
+            name: "Lights",
+            icon: "solar:lightbulb-bolt-bold-duotone",
+            path: "/lovelace/1"
+          }
+        ]
+      };
+    }
+    static getConfigElement() {
+      const el = document.createElement("fibbers-form-editor");
+      el.schema = EDITOR_SCHEMA5;
+      return el;
+    }
+    setConfig(config) {
+      if (!config || !Array.isArray(config.tabs) || !config.tabs.length) {
+        throw new Error("fibbers-nav: `tabs` must be a non-empty list of {name, icon, path}");
+      }
+      config.tabs.forEach((t4, i5) => {
+        if (!t4 || !t4.path)
+          throw new Error(`fibbers-nav: tabs[${i5}] is missing \`path\``);
+      });
+      if (config.offset_bottom != null && !Number.isFinite(Number(config.offset_bottom))) {
+        throw new Error("fibbers-nav: `offset_bottom` must be a number of pixels");
+      }
+      if (config.hide_ha_tabs != null && config.hide_ha_tabs !== true && config.hide_ha_tabs !== false && config.hide_ha_tabs !== "header") {
+        throw new Error('fibbers-nav: `hide_ha_tabs` must be false, true, or "header"');
+      }
+      if (config.respect_sidebar != null && typeof config.respect_sidebar !== "boolean") {
+        throw new Error("fibbers-nav: `respect_sidebar` must be true or false");
+      }
+      if (config.theme != null && !["none", "fibbers", "fibbers-light", "auto"].includes(config.theme)) {
+        throw new Error('fibbers-nav: `theme` must be "fibbers", "fibbers-light", "auto", or "none"');
+      }
+      if (config.reserve != null && !Number.isFinite(Number(config.reserve))) {
+        throw new Error("fibbers-nav: `reserve` must be a number of pixels");
+      }
+      if (config.extra_bottom != null && !Number.isFinite(Number(config.extra_bottom))) {
+        throw new Error("fibbers-nav: `extra_bottom` must be a number of pixels");
+      }
+      this._config = config;
+      if (this.isConnected && !this.preview)
+        attach(this, this._config);
+    }
+    set hass(hass) {
+      if (this.preview)
+        return;
+      nav.hassRef = hass;
+      if (this._config && (this._config.tabs || []).some((t4) => t4.badge))
+        renderBar();
+    }
+    connectedCallback() {
+      super.connectedCallback();
+      if (this.preview)
+        return;
+      const cell = this.getRootNode().host;
+      if (cell) {
+        this._cell = cell;
+        cell.style.display = "none";
+      }
+      if (this._config)
+        attach(this, this._config);
+    }
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      if (this._cell) {
+        this._cell.style.display = "";
+        this._cell = null;
+      }
+      if (!this.preview)
+        detach(this);
+    }
+    render() {
+      if (!this.preview)
+        return b2``;
+      const tabs = this._config && this._config.tabs || [];
+      return b2`<div
+      style="display:flex;gap:2px;background:#1d2426;border:1px solid #262f31;
+             border-radius:12px;padding:7px 6px"
+    >
+      ${tabs.map((tab, i5) => b2`<div
+            style="flex:1;display:flex;flex-direction:column;align-items:center;
+                 gap:3px;font:500 10px system-ui;color:${i5 === 0 ? "#74b98a" : "#8b999c"}"
+          >
+            <fib-icon
+              style="--mdc-icon-size:20px"
+              icon=${tab.icon || "solar:widget-bold-duotone"}
+            ></fib-icon>
+            <span>${tab.name || ""}</span>
+          </div>`)}
+    </div>`;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: 1, rows: 1, min_columns: 1, min_rows: 1 };
+    }
+  }
+
+  // src/cards/layout/room.js
   var isLight = (id) => typeof id === "string" && id.startsWith("light.");
-  var EDITOR_SCHEMA2 = [
+  var EDITOR_SCHEMA6 = [
+    { name: "name", selector: { text: {} } },
+    { name: "icon", selector: { icon: {} } },
+    {
+      name: "entities",
+      selector: { entity: { domain: "light", multiple: true } }
+    },
+    { name: "area", selector: { area: {} } },
+    { name: "sheet", selector: { text: {} } }
+  ];
+
+  class FibbersRoom extends i4 {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true }
+    };
+    static styles = [
+      twSheet,
+      i`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig(hass, entities, entitiesFallback) {
+      return {
+        type: "custom:fibbers-room",
+        name: "Room",
+        icon: "solar:sofa-2-bold-duotone",
+        entities: [
+          pickEntity("light", entities, entitiesFallback, "light.example")
+        ]
+      };
+    }
+    static getConfigElement() {
+      const el = document.createElement("fibbers-form-editor");
+      el.schema = EDITOR_SCHEMA6;
+      return el;
+    }
+    setConfig(config) {
+      if (!config || !config.name) {
+        throw new Error("fibbers-room: `name` is required");
+      }
+      if (config.entities != null && !Array.isArray(config.entities)) {
+        throw new Error("fibbers-room: `entities` must be a list");
+      }
+      if (config.entities == null && !config.area) {
+        throw new Error("fibbers-room: provide `entities` or an `area`");
+      }
+      this._config = config;
+    }
+    _entities() {
+      const c4 = this._config;
+      if (Array.isArray(c4.entities))
+        return c4.entities;
+      const hass = this.hass;
+      if (!c4.area || !hass || !hass.entities)
+        return [];
+      const devices = hass.devices || {};
+      return Object.values(hass.entities).filter((e4) => {
+        const area = e4.area_id || (devices[e4.device_id] || {}).area_id;
+        return area === c4.area && isLight(e4.entity_id);
+      }).map((e4) => e4.entity_id);
+    }
+    _lights() {
+      return this._entities().filter(isLight);
+    }
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      clearTimeout(this._timer);
+    }
+    _state() {
+      const hass = this.hass;
+      const hl = this._config.language || hass;
+      const lights = this._lights();
+      if (!hass || !lights.length)
+        return { label: "—", lit: false, offline: false };
+      let on = 0, avail = 0;
+      lights.forEach((id) => {
+        const st = hass.states[id];
+        if (isUnavail(st))
+          return;
+        avail++;
+        if (st.state === "on")
+          on++;
+      });
+      if (avail === 0)
+        return { label: t3(hl, "room.offline"), lit: false, offline: true };
+      if (on === 0)
+        return { label: t3(hl, "room.off"), lit: false, offline: false };
+      return {
+        label: t3(hl, "room.state_count", { on, total: lights.length }),
+        lit: true,
+        offline: false
+      };
+    }
+    _down() {
+      this._held = false;
+      this._timer = setTimeout(() => {
+        this._held = true;
+        this._moreInfo();
+      }, 500);
+    }
+    _up() {
+      clearTimeout(this._timer);
+    }
+    _click() {
+      if (this._held)
+        return;
+      if (this._config.sheet)
+        window.location.hash = this._config.sheet;
+    }
+    _moreInfo() {
+      moreInfo(this, this._lights()[0] || this._entities()[0]);
+    }
+    render() {
+      if (!this._config)
+        return b2``;
+      const s4 = this._state();
+      return b2`<button
+      type="button"
+      class="block w-full cursor-pointer rounded-[15px] border px-[13px] pb-3 pt-[13px]
+             text-left transition-colors active:translate-y-[0.5px]
+             ${s4.lit ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)]" : "border-line bg-card"}
+             ${s4.offline ? "opacity-[.66]" : ""}"
+      @pointerdown=${this._down}
+      @pointerup=${this._up}
+      @pointercancel=${this._up}
+      @pointerleave=${this._up}
+      @click=${this._click}
+    >
+      <fib-icon
+        class="block h-[19px] w-[19px] [--mdc-icon-size:19px] ${s4.lit ? "text-accent" : "text-muted"}"
+        icon=${this._config.icon || "solar:home-angle-bold-duotone"}
+      ></fib-icon>
+      <div class="mt-2 text-[13px] font-semibold tracking-tight text-ink">
+        ${this._config.name}
+      </div>
+      <div class="mt-0.5 text-[11px] ${s4.offline ? "text-red" : "text-muted"}">
+        ${s4.label}
+      </div>
+    </button>`;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: 6, grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: 6, rows: "auto", min_columns: 3 };
+    }
+  }
+
+  // src/cards/layout/section.js
+  var EDITOR_SCHEMA7 = [{ name: "label", selector: { text: {} } }];
+
+  class FibbersSection extends i4 {
+    static properties = { _config: { state: true } };
+    static styles = [
+      twSheet,
+      i`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return { type: "custom:fibbers-section", label: "Section" };
+    }
+    static getConfigElement() {
+      const el = document.createElement("fibbers-form-editor");
+      el.schema = EDITOR_SCHEMA7;
+      return el;
+    }
+    setConfig(config) {
+      if (!config || !config.label) {
+        throw new Error("fibbers-section: `label` is required");
+      }
+      this._config = config;
+    }
+    set hass(_hass) {}
+    render() {
+      if (!this._config)
+        return b2``;
+      return b2`<div
+      class="px-0.5 pt-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.11em] text-muted"
+    >
+      ${this._config.label}
+    </div>`;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: "full", rows: "auto" };
+    }
+  }
+
+  // src/core/body-sheet.js
+  var layer = {
+    host: null,
+    shadow: null,
+    backdrop: null,
+    panel: null,
+    headEl: null,
+    bodyEl: null,
+    sheets: new Map,
+    openId: null,
+    closeTimer: null,
+    drag: null,
+    built: false
+  };
+  var reduceMotion = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function deepActiveElement() {
+    let el = document.activeElement;
+    while (el && el.shadowRoot && el.shadowRoot.activeElement)
+      el = el.shadowRoot.activeElement;
+    return el;
+  }
+  function onFocusIn(e4) {
+    if (layer.openId == null || !layer.host || !layer.panel)
+      return;
+    const path = e4.composedPath();
+    if (path.includes(layer.host))
+      return;
+    if (path.some((n4) => n4.localName === "ha-dialog" || n4.getAttribute && n4.getAttribute("role") === "dialog"))
+      return;
+    layer.panel.focus();
+  }
+  var onKeydown = (e4) => {
+    if (e4.key === "Escape")
+      closeSheet();
+  };
+  var SHEET_CSS = `
+  :host {
+    position: fixed; inset: 0; z-index: 9; display: none;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: ${T2.ink};
+    -webkit-font-smoothing: antialiased;
+  }
+  :host([data-open="true"]) { display: block; }
+
+  .backdrop {
+    position: absolute; inset: 0;
+    background: rgba(6, 9, 10, .72);
+    -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+    opacity: 0; transition: opacity .24s ease;
+  }
+  :host([data-shown="true"]) .backdrop { opacity: 1; }
+
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    max-height: 88vh; display: flex; flex-direction: column;
+    background: ${T2.sheet};
+    border-top: 1px solid ${T2.line};
+    border-radius: 24px 24px 0 0;
+    padding: 8px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    transform: translateY(100%);
+    transition: transform .28s cubic-bezier(.22, 1, .36, 1);
+  }
+  :host([data-shown="true"]) .sheet { transform: translateY(0); }
+  @media (prefers-reduced-motion: reduce) { .backdrop, .sheet { transition: none; } }
+
+  .grab {
+    width: 34px; height: 4px; border-radius: 2px;
+    background: ${T2.grab};
+    margin: 4px auto 10px; flex: 0 0 auto;
+    touch-action: none; cursor: grab;
+  }
+  .head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 2px 12px; flex: 0 0 auto; touch-action: none;
+  }
+  .body {
+    flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    display: flex; flex-direction: column; gap: 10px; padding-bottom: 6px;
+  }
+
+  @media (min-width: 640px) {
+    .sheet {
+      inset: 0; margin: auto; height: fit-content; max-height: 88vh;
+      width: min(460px, calc(100vw - 32px));
+      border-radius: 24px; border: 1px solid ${T2.line};
+      opacity: 0; transform: translateY(8px);
+      transition: opacity .2s ease, transform .2s ease;
+    }
+    :host([data-shown="true"]) .sheet { transform: translateY(0); opacity: 1; }
+  }
+`;
+  var sheetSheet = new CSSStyleSheet;
+  sheetSheet.replaceSync(SHEET_CSS);
+  function build() {
+    if (layer.built)
+      return;
+    const host = document.createElement("div");
+    host.id = "fibbers-sheet";
+    const shadow = host.attachShadow({ mode: "open" });
+    shadow.adoptedStyleSheets = [twSheet, sheetSheet];
+    const backdrop = document.createElement("div");
+    backdrop.className = "backdrop";
+    const sheet = document.createElement("div");
+    sheet.className = "sheet";
+    sheet.setAttribute("role", "dialog");
+    sheet.setAttribute("aria-modal", "true");
+    sheet.setAttribute("tabindex", "-1");
+    const grab = document.createElement("div");
+    grab.className = "grab";
+    const head = document.createElement("div");
+    head.className = "head";
+    const body = document.createElement("div");
+    body.className = "body";
+    sheet.append(grab, head, body);
+    shadow.append(backdrop, sheet);
+    document.body.appendChild(host);
+    backdrop.addEventListener("click", () => closeSheet());
+    bindDrag(grab, sheet);
+    bindDrag(head, sheet);
+    layer.host = host;
+    layer.shadow = shadow;
+    layer.backdrop = backdrop;
+    layer.panel = sheet;
+    layer.headEl = head;
+    layer.bodyEl = body;
+    layer.built = true;
+  }
+  function bindDrag(handle, sheet) {
+    handle.addEventListener("pointerdown", (e4) => {
+      if (window.innerWidth >= 640)
+        return;
+      layer.drag = { startY: e4.clientY, dy: 0 };
+      sheet.style.transition = "none";
+      handle.setPointerCapture && handle.setPointerCapture(e4.pointerId);
+    });
+    handle.addEventListener("pointermove", (e4) => {
+      if (!layer.drag)
+        return;
+      const dy = Math.max(0, e4.clientY - layer.drag.startY);
+      layer.drag.dy = dy;
+      sheet.style.transform = `translateY(${dy}px)`;
+      if (layer.backdrop)
+        layer.backdrop.style.opacity = String(Math.max(0, 1 - dy / 400));
+    });
+    const end = () => {
+      if (!layer.drag)
+        return;
+      const dy = layer.drag.dy;
+      layer.drag = null;
+      sheet.style.transition = "";
+      sheet.style.transform = "";
+      if (layer.backdrop)
+        layer.backdrop.style.opacity = "";
+      if (dy > 80)
+        closeSheet();
+    };
+    handle.addEventListener("pointerup", end);
+    handle.addEventListener("pointercancel", end);
+  }
+  async function renderContent(card) {
+    const cfg = card._config;
+    if (layer.panel)
+      layer.panel.setAttribute("aria-label", cfg.title || "Dialog");
+    D(b2`
+      ${cfg.icon ? b2`<fib-icon
+              class="h-5 w-5 flex-none [--mdc-icon-size:20px] text-accent"
+              icon=${cfg.icon}
+            ></fib-icon>` : ""}
+      <div class="min-w-0 flex-1">
+        <div class="text-[16px] font-semibold tracking-[-0.015em] text-ink">
+          ${cfg.title || ""}
+        </div>
+        ${cfg.subtitle ? b2`<div class="mt-0.5 text-[11px] text-muted">
+                ${cfg.subtitle}
+              </div>` : ""}
+      </div>
+      <button
+        type="button"
+        aria-label=${t3(card._hass, "sheet.close")}
+        class="fib-hit flex h-[30px] w-[30px] flex-none cursor-pointer items-center justify-center
+               rounded-full border-0 bg-card2 text-[15px] leading-none text-ink2"
+        @click=${() => closeSheet()}
+      >
+        ✕
+      </button>
+    `, layer.headEl);
+    const body = layer.bodyEl;
+    body.textContent = "";
+    card._children = [];
+    const configs = Array.isArray(cfg.cards) ? cfg.cards : [];
+    if (!configs.length)
+      return;
+    try {
+      const helpers = await window.loadCardHelpers();
+      for (const c4 of configs) {
+        const el = helpers.createCardElement(c4);
+        if (card._hass)
+          el.hass = card._hass;
+        card._children.push(el);
+        body.appendChild(el);
+      }
+    } catch (_2) {
+      const msg = document.createElement("div");
+      msg.className = "px-2 py-2 text-[12px] text-muted";
+      msg.textContent = t3(card._hass, "sheet.load_error");
+      body.appendChild(msg);
+    }
+  }
+  function openSheet(id) {
+    const card = layer.sheets.get(id);
+    if (!card || layer.openId === id)
+      return;
+    layer.opener = deepActiveElement();
+    build();
+    layer.openId = id;
+    layer.host.setAttribute("data-open", "true");
+    lockView(true);
+    renderContent(card);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      layer.host.setAttribute("data-shown", "true");
+      if (layer.panel)
+        layer.panel.focus();
+    }));
+  }
+  function closeSheet() {
+    if (layer.openId == null)
+      return;
+    const id = layer.openId;
+    layer.openId = null;
+    clearTimeout(layer.closeTimer);
+    if (layer.host)
+      layer.host.removeAttribute("data-shown");
+    if (window.location.hash === `#${id}`) {
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+    const finish = () => {
+      if (layer.openId != null)
+        return;
+      if (layer.host)
+        layer.host.removeAttribute("data-open");
+      if (layer.bodyEl)
+        layer.bodyEl.textContent = "";
+      lockView(false);
+      const opener = layer.opener;
+      layer.opener = null;
+      if (opener && opener.focus)
+        opener.focus();
+    };
+    if (reduceMotion())
+      finish();
+    else
+      layer.closeTimer = setTimeout(finish, 300);
+  }
+  function syncFromHash() {
+    const hash = window.location.hash.replace(/^#/, "");
+    if (hash && layer.sheets.has(hash))
+      openSheet(hash);
+    else if (layer.openId != null)
+      closeSheet();
+  }
+  function registerSheet(id, card) {
+    ensureListeners();
+    build();
+    layer.sheets.set(id, card);
+    if (window.location.hash === `#${id}`)
+      openSheet(id);
+  }
+  function unregisterSheet(id, card) {
+    if (layer.sheets.get(id) === card)
+      layer.sheets.delete(id);
+    if (layer.openId === id)
+      closeSheet();
+    if (layer.sheets.size === 0 && layer.host) {
+      clearTimeout(layer.closeTimer);
+      lockView(false);
+      layer.host.remove();
+      layer.built = false;
+      layer.host = null;
+      removeSheetListeners();
+    }
+  }
+  function updateSheetHass(id, hass) {
+    if (layer.openId !== id)
+      return;
+    const card = layer.sheets.get(id);
+    if (card && card._children)
+      card._children.forEach((el) => {
+        el.hass = hass;
+      });
+  }
+  var listenersOn = false;
+  function ensureListeners() {
+    if (listenersOn)
+      return;
+    listenersOn = true;
+    window.addEventListener("hashchange", syncFromHash);
+    window.addEventListener("focusin", onFocusIn);
+    window.addEventListener("keydown", onKeydown);
+  }
+  function removeSheetListeners() {
+    if (!listenersOn)
+      return;
+    listenersOn = false;
+    window.removeEventListener("hashchange", syncFromHash);
+    window.removeEventListener("focusin", onFocusIn);
+    window.removeEventListener("keydown", onKeydown);
+  }
+
+  // src/cards/layout/sheet.js
+  class FibbersSheet extends i4 {
+    static properties = { preview: { type: Boolean, reflect: true } };
+    static styles = [
+      i`
+      :host {
+        display: none;
+      }
+      :host([preview]) {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return {
+        type: "custom:fibbers-sheet",
+        id: "room",
+        title: "Room",
+        icon: "solar:sofa-2-bold-duotone",
+        cards: []
+      };
+    }
+    setConfig(config) {
+      if (!config || !config.id || typeof config.id !== "string") {
+        throw new Error("fibbers-sheet: `id` (a unique string) is required");
+      }
+      if (config.cards != null && !Array.isArray(config.cards)) {
+        throw new Error("fibbers-sheet: `cards` must be a list");
+      }
+      if (this._config && this._config.id !== config.id && this.isConnected && !this.preview) {
+        unregisterSheet(this._config.id, this);
+      }
+      this._config = config;
+      if (this.isConnected && !this.preview)
+        registerSheet(config.id, this);
+    }
+    set hass(hass) {
+      if (this.preview)
+        return;
+      this._hass = hass;
+      if (this._config)
+        updateSheetHass(this._config.id, hass);
+    }
+    connectedCallback() {
+      super.connectedCallback();
+      if (this.preview)
+        return;
+      const cell = this.getRootNode().host;
+      if (cell) {
+        this._cell = cell;
+        cell.style.display = "none";
+      }
+      if (this._config)
+        registerSheet(this._config.id, this);
+    }
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      if (this._cell) {
+        this._cell.style.display = "";
+        this._cell = null;
+      }
+      if (this.preview)
+        return;
+      if (this._config)
+        unregisterSheet(this._config.id, this);
+    }
+    render() {
+      if (!this.preview)
+        return b2``;
+      const c4 = this._config || {};
+      return b2`<div
+      style="display:flex;align-items:center;gap:10px;background:#1d2426;
+             border:1px solid #262f31;border-radius:14px;padding:13px"
+    >
+      <div
+        style="display:flex;width:36px;height:36px;align-items:center;
+               justify-content:center;border-radius:10px;background:#173524"
+      >
+        <fib-icon
+          style="--mdc-icon-size:19px;color:#74b98a"
+          icon=${c4.icon || "solar:widget-bold-duotone"}
+        ></fib-icon>
+      </div>
+      <div style="font:600 13px system-ui;color:#e7ecea">
+        ${c4.title || c4.id || "Sheet"}
+        <div style="font:500 11px system-ui;color:#8b999c">
+          opens on #${c4.id || "id"}
+        </div>
+      </div>
+    </div>`;
+    }
+    getCardSize() {
+      return 1;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: 1, rows: 1, min_columns: 1, min_rows: 1 };
+    }
+  }
+
+  // src/cards/lights/light-group.js
+  var isLight2 = (id) => typeof id === "string" && id.startsWith("light.");
+  var EDITOR_SCHEMA8 = [
     { name: "entity", selector: { entity: { domain: "light" } } },
     { name: "name", selector: { text: {} } },
     { name: "icon", selector: { icon: {} } }
@@ -3804,7 +4683,7 @@ ${BASE_CSS}`);
     }
     static getConfigElement() {
       const el = document.createElement("fibbers-form-editor");
-      el.schema = EDITOR_SCHEMA2;
+      el.schema = EDITOR_SCHEMA8;
       return el;
     }
     setConfig(config) {
@@ -3833,9 +4712,9 @@ ${BASE_CSS}`);
     _members() {
       const cfg = this._config;
       if (Array.isArray(cfg.members))
-        return cfg.members.filter(isLight);
+        return cfg.members.filter(isLight2);
       if (Array.isArray(cfg.entities))
-        return cfg.entities.filter(isLight);
+        return cfg.entities.filter(isLight2);
       const st = cfg.entity && this.hass && this.hass.states[cfg.entity];
       const ids = st && st.attributes && st.attributes.entity_id || [];
       const live = ids.filter((id) => this.hass && this.hass.states[id]);
@@ -4101,8 +4980,8 @@ ${BASE_CSS}`);
     }
   }
 
-  // src/cards/light-row.js
-  var EDITOR_SCHEMA3 = [
+  // src/cards/lights/light-row.js
+  var EDITOR_SCHEMA9 = [
     { name: "entity", selector: { entity: { domain: "light" } } },
     { name: "name", selector: { text: {} } },
     { name: "icon", selector: { icon: {} } }
@@ -4131,7 +5010,7 @@ ${BASE_CSS}`);
     }
     static getConfigElement() {
       const el = document.createElement("fibbers-form-editor");
-      el.schema = EDITOR_SCHEMA3;
+      el.schema = EDITOR_SCHEMA9;
       return el;
     }
     setConfig(config) {
@@ -4326,7 +5205,7 @@ ${BASE_CSS}`);
     }
   }
 
-  // src/cards/media.js
+  // src/cards/media/media.js
   var fmtTime = (s4) => {
     if (!Number.isFinite(s4) || s4 < 0)
       return "0:00";
@@ -4806,517 +5685,7 @@ ${BASE_CSS}`);
     }
   }
 
-  // src/cards/nav.js
-  var EDITOR_SCHEMA4 = [
-    {
-      name: "theme",
-      selector: {
-        select: {
-          mode: "dropdown",
-          options: [
-            { value: "none", label: "None" },
-            { value: "fibbers", label: "Fibbers (dark)" },
-            { value: "fibbers-light", label: "Fibbers Light" },
-            { value: "auto", label: "Auto" }
-          ]
-        }
-      }
-    },
-    { name: "respect_sidebar", selector: { boolean: {} } },
-    { name: "offset_bottom", selector: { number: { min: 0, mode: "box" } } },
-    { name: "extra_bottom", selector: { number: { min: 0, mode: "box" } } }
-  ];
-
-  class FibbersNav extends i4 {
-    static properties = { preview: { type: Boolean, reflect: true } };
-    static styles = [
-      i`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig() {
-      return {
-        type: "custom:fibbers-nav",
-        tabs: [
-          {
-            name: "Home",
-            icon: "solar:home-2-bold-duotone",
-            path: "/lovelace/0"
-          },
-          {
-            name: "Lights",
-            icon: "solar:lightbulb-bolt-bold-duotone",
-            path: "/lovelace/1"
-          }
-        ]
-      };
-    }
-    static getConfigElement() {
-      const el = document.createElement("fibbers-form-editor");
-      el.schema = EDITOR_SCHEMA4;
-      return el;
-    }
-    setConfig(config) {
-      if (!config || !Array.isArray(config.tabs) || !config.tabs.length) {
-        throw new Error("fibbers-nav: `tabs` must be a non-empty list of {name, icon, path}");
-      }
-      config.tabs.forEach((t4, i5) => {
-        if (!t4 || !t4.path)
-          throw new Error(`fibbers-nav: tabs[${i5}] is missing \`path\``);
-      });
-      if (config.offset_bottom != null && !Number.isFinite(Number(config.offset_bottom))) {
-        throw new Error("fibbers-nav: `offset_bottom` must be a number of pixels");
-      }
-      if (config.hide_ha_tabs != null && config.hide_ha_tabs !== true && config.hide_ha_tabs !== false && config.hide_ha_tabs !== "header") {
-        throw new Error('fibbers-nav: `hide_ha_tabs` must be false, true, or "header"');
-      }
-      if (config.respect_sidebar != null && typeof config.respect_sidebar !== "boolean") {
-        throw new Error("fibbers-nav: `respect_sidebar` must be true or false");
-      }
-      if (config.theme != null && !["none", "fibbers", "fibbers-light", "auto"].includes(config.theme)) {
-        throw new Error('fibbers-nav: `theme` must be "fibbers", "fibbers-light", "auto", or "none"');
-      }
-      if (config.reserve != null && !Number.isFinite(Number(config.reserve))) {
-        throw new Error("fibbers-nav: `reserve` must be a number of pixels");
-      }
-      if (config.extra_bottom != null && !Number.isFinite(Number(config.extra_bottom))) {
-        throw new Error("fibbers-nav: `extra_bottom` must be a number of pixels");
-      }
-      this._config = config;
-      if (this.isConnected && !this.preview)
-        attach(this, this._config);
-    }
-    set hass(hass) {
-      if (this.preview)
-        return;
-      nav.hassRef = hass;
-      if (this._config && (this._config.tabs || []).some((t4) => t4.badge))
-        renderBar();
-    }
-    connectedCallback() {
-      super.connectedCallback();
-      if (this.preview)
-        return;
-      const cell = this.getRootNode().host;
-      if (cell) {
-        this._cell = cell;
-        cell.style.display = "none";
-      }
-      if (this._config)
-        attach(this, this._config);
-    }
-    disconnectedCallback() {
-      super.disconnectedCallback();
-      if (this._cell) {
-        this._cell.style.display = "";
-        this._cell = null;
-      }
-      if (!this.preview)
-        detach(this);
-    }
-    render() {
-      if (!this.preview)
-        return b2``;
-      const tabs = this._config && this._config.tabs || [];
-      return b2`<div
-      style="display:flex;gap:2px;background:#1d2426;border:1px solid #262f31;
-             border-radius:12px;padding:7px 6px"
-    >
-      ${tabs.map((tab, i5) => b2`<div
-            style="flex:1;display:flex;flex-direction:column;align-items:center;
-                 gap:3px;font:500 10px system-ui;color:${i5 === 0 ? "#74b98a" : "#8b999c"}"
-          >
-            <fib-icon
-              style="--mdc-icon-size:20px"
-              icon=${tab.icon || "solar:widget-bold-duotone"}
-            ></fib-icon>
-            <span>${tab.name || ""}</span>
-          </div>`)}
-    </div>`;
-    }
-    getCardSize() {
-      return 1;
-    }
-    getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 1 };
-    }
-    getGridOptions() {
-      return { columns: 1, rows: 1, min_columns: 1, min_rows: 1 };
-    }
-  }
-
-  // src/cards/number.js
-  var DOMAINS = ["input_number", "number"];
-  var EDITOR_SCHEMA5 = [
-    { name: "entity", selector: { entity: { domain: DOMAINS } } },
-    { name: "name", selector: { text: {} } },
-    { name: "icon", selector: { icon: {} } },
-    { name: "unit", selector: { text: {} } },
-    { name: "step", selector: { number: {} } },
-    {
-      name: "mode",
-      selector: {
-        select: {
-          mode: "dropdown",
-          options: [
-            { value: "slider", label: "Slider" },
-            { value: "stepper", label: "Stepper" }
-          ]
-        }
-      }
-    }
-  ];
-
-  class FibbersNumber extends i4 {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true },
-      _dragging: { state: true },
-      _dragVal: { state: true }
-    };
-    static styles = [
-      twSheet,
-      i`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig(hass, entities, entitiesFallback) {
-      return {
-        type: "custom:fibbers-number",
-        entity: pickEntity("input_number", entities, entitiesFallback, "input_number.example")
-      };
-    }
-    static getConfigElement() {
-      const el = document.createElement("fibbers-form-editor");
-      el.schema = EDITOR_SCHEMA5;
-      return el;
-    }
-    setConfig(config) {
-      if (!config || !config.entity) {
-        throw new Error("fibbers-number: `entity` is required");
-      }
-      if (!DOMAINS.includes(String(config.entity).split(".")[0])) {
-        throw new Error("fibbers-number: `entity` must be an input_number.* or number.*");
-      }
-      this._config = config;
-      this._dragging = false;
-      this._dragVal = 0;
-      this._debouncedSet = debounce((v2) => this._setValue(v2), 150);
-      if (!this._hold)
-        this._hold = new SliderHold(this, { tolerance: 0.5, timeout: 5000 });
-      else
-        this._hold.clear();
-    }
-    disconnectedCallback() {
-      super.disconnectedCallback();
-      this._debouncedSet.cancel();
-    }
-    _st() {
-      return this.hass && this.hass.states[this._config.entity];
-    }
-    _unavail() {
-      return isUnavail(this._st());
-    }
-    _bounds() {
-      const a3 = this._st() && this._st().attributes || {};
-      const min = Number(a3.min != null ? a3.min : 0);
-      const max = Number(a3.max != null ? a3.max : 100);
-      const raw = Number(this._config.step != null ? this._config.step : a3.step);
-      const step = Number.isFinite(raw) && raw > 0 ? raw : 1;
-      return { min, max: max > min ? max : min + 1, step };
-    }
-    _decimals() {
-      const s4 = this._bounds().step;
-      if (Number.isInteger(s4))
-        return 0;
-      const i5 = String(s4).indexOf(".");
-      return i5 < 0 ? 0 : String(s4).length - i5 - 1;
-    }
-    _value() {
-      const n4 = Number(this._st() && this._st().state);
-      const { min, max, step } = this._bounds();
-      const entityVal = Number.isFinite(n4) ? n4 : min;
-      this._hold.tolerance = Math.max(step / 2, (max - min) / 1000);
-      return this._hold.value(entityVal, {
-        dragging: this._dragging,
-        dragValue: this._dragVal,
-        gone: this._unavail()
-      });
-    }
-    _snap(v2) {
-      const { min, max, step } = this._bounds();
-      const snapped = Math.round((v2 - min) / step) * step + min;
-      return clamp(Number(snapped.toFixed(4)), min, max);
-    }
-    _pct(v2) {
-      const { min, max } = this._bounds();
-      return clamp((v2 - min) / (max - min) * 100, 0, 100);
-    }
-    _valFromX(clientX, track) {
-      const { min, max } = this._bounds();
-      return this._snap(min + pctFromX(clientX, track) / 100 * (max - min));
-    }
-    _setValue(value) {
-      if (!this.hass)
-        return;
-      this._hold.hold(value);
-      const domain = this._config.entity.split(".")[0];
-      const p3 = this.hass.callService(domain, "set_value", {
-        entity_id: this._config.entity,
-        value
-      });
-      Promise.resolve(p3).catch(() => this._hold.clear());
-    }
-    _down(e4) {
-      if (this._unavail())
-        return;
-      const el = e4.currentTarget;
-      this._dragging = true;
-      this._downX = e4.clientX;
-      this._moved = false;
-      el.setPointerCapture && el.setPointerCapture(e4.pointerId);
-      this._dragVal = this._valFromX(e4.clientX, el);
-    }
-    _move(e4) {
-      if (!this._dragging)
-        return;
-      this._dragVal = this._valFromX(e4.clientX, e4.currentTarget);
-      if (!this._moved && Math.abs(e4.clientX - this._downX) < 4)
-        return;
-      this._moved = true;
-      this._debouncedSet(this._dragVal);
-    }
-    _up(e4) {
-      if (!this._dragging)
-        return;
-      const v2 = this._valFromX(e4.clientX, e4.currentTarget);
-      this._dragging = false;
-      this._debouncedSet.cancel();
-      this._setValue(v2);
-    }
-    _cancel() {
-      this._dragging = false;
-      this._debouncedSet.cancel();
-    }
-    _bump(dir) {
-      if (this._unavail())
-        return;
-      this._setValue(this._snap(this._value() + dir * this._bounds().step));
-    }
-    render() {
-      const cfg = this._config;
-      if (!cfg)
-        return b2``;
-      const hl = cfg.language || this.hass;
-      const st = this._st();
-      const unavail = this._unavail();
-      const name = cfg.name || st && st.attributes.friendly_name || cfg.entity;
-      const icon = cfg.icon || st && st.attributes.icon || "solar:tuning-2-bold-duotone";
-      const unit = cfg.unit != null ? cfg.unit : st && st.attributes.unit_of_measurement || "";
-      const v2 = this._value();
-      const val = unavail ? t3(hl, "number.unavailable") : `${fmtNum(this.hass, v2, this._decimals())}${unit ? ` ${unit}` : ""}`;
-      const pct = this._pct(v2);
-      const head = b2`<div class="flex items-center gap-2.5">
-      <div
-        class="flex h-7 w-7 flex-none items-center justify-center rounded-lg
-               ${unavail ? "bg-card2 text-muted" : "bg-accentbg text-accent"}"
-      >
-        <fib-icon
-          class="h-[17px] w-[17px] [--mdc-icon-size:17px]"
-          icon=${icon}
-        ></fib-icon>
-      </div>
-      <span class="flex-1 text-[12px] font-medium text-ink">${name}</span>
-      <span class="whitespace-nowrap text-[11px] font-medium text-muted"
-        >${val}</span
-      >
-    </div>`;
-      if (cfg.mode === "stepper") {
-        return b2`<div
-        class="flex items-center gap-2.5 rounded-[14px] border border-line bg-card p-[13px]
-               ${unavail ? "opacity-50" : ""}"
-      >
-        <div
-          class="flex h-7 w-7 flex-none items-center justify-center rounded-lg
-                 ${unavail ? "bg-card2 text-muted" : "bg-accentbg text-accent"}"
-        >
-          <fib-icon
-            class="h-[17px] w-[17px] [--mdc-icon-size:17px]"
-            icon=${icon}
-          ></fib-icon>
-        </div>
-        <span class="flex-1 text-[12px] font-medium text-ink">${name}</span>
-        ${this._stepBtn("solar:minus-circle-bold-duotone", -1, unavail)}
-        <span
-          class="min-w-[52px] text-center text-[13px] font-semibold text-ink"
-          >${val}</span
-        >
-        ${this._stepBtn("solar:add-circle-bold-duotone", 1, unavail)}
-      </div>`;
-      }
-      return b2`<div
-      class="rounded-[14px] border border-line bg-card p-[13px] ${unavail ? "opacity-50" : ""}"
-    >
-      ${head}
-      ${(() => {
-        const b3 = this._bounds();
-        return sliderTrack({
-          pct,
-          disabled: unavail,
-          cls: "mt-2.5",
-          label: name,
-          value: v2,
-          min: b3.min,
-          max: b3.max,
-          step: b3.step,
-          valueText: val,
-          onInput: (nv) => this._setValue(this._snap(nv)),
-          onDown: this._down,
-          onMove: this._move,
-          onUp: this._up,
-          onCancel: () => this._cancel()
-        });
-      })()}
-    </div>`;
-    }
-    _stepBtn(icon, dir, unavail) {
-      const hl = this._config.language || this.hass;
-      return b2`<button
-      type="button"
-      class="fib-hit flex h-8 w-8 flex-none items-center justify-center rounded-full bg-card2
-             text-accent transition-transform active:scale-90
-             ${unavail ? "pointer-events-none opacity-40" : ""}"
-      aria-label=${dir > 0 ? t3(hl, "number.more") : t3(hl, "number.less")}
-      @click=${() => this._bump(dir)}
-    >
-      <fib-icon
-        class="h-[22px] w-[22px] [--mdc-icon-size:22px]"
-        icon=${icon}
-      ></fib-icon>
-    </button>`;
-    }
-    getCardSize() {
-      return 1;
-    }
-    getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 1 };
-    }
-    getGridOptions() {
-      return { columns: "full", rows: "auto" };
-    }
-  }
-
-  // src/cards/presence.js
-  class FibbersPresence extends i4 {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true }
-    };
-    static styles = [
-      twSheet,
-      i`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig() {
-      return { type: "custom:fibbers-presence" };
-    }
-    setConfig(config) {
-      if (config && config.people != null && !Array.isArray(config.people)) {
-        throw new Error("fibbers-presence: `people` must be a list of entities");
-      }
-      this._config = config || {};
-    }
-    _people() {
-      if (Array.isArray(this._config.people))
-        return this._config.people;
-      if (!this.hass)
-        return [];
-      return Object.keys(this.hass.states).filter((id) => id.startsWith("person.")).sort();
-    }
-    _isHome(st) {
-      return st && st.state === "home";
-    }
-    _stateLabel(st) {
-      const hl = this._config.language || this.hass;
-      if (!st)
-        return "—";
-      if (st.state === "home")
-        return t3(hl, "presence.home");
-      if (st.state === "not_home")
-        return t3(hl, "presence.away");
-      return st.state;
-    }
-    _moreInfo(entity) {
-      moreInfo(this, entity);
-    }
-    render() {
-      const people = this._people();
-      const hl = this._config.language || this.hass;
-      const homeCount = people.filter((id) => this._isHome(this.hass && this.hass.states[id])).length;
-      return b2`<div class="rounded-[14px] border border-line bg-card p-[13px]">
-      <div class="mb-2.5 flex items-baseline justify-between gap-2">
-        ${this._config.title === false ? "" : b2`<span
-                class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-                >${t3(hl, "presence.title")}</span
-              >`}
-        <span
-          class="text-[12px] font-semibold ${homeCount === 0 ? "text-muted" : "text-ink"}"
-          >${homeCount === 0 ? t3(hl, "presence.nobody_home") : t3(hl, "presence.count_home", { n: homeCount })}</span
-        >
-      </div>
-      <div class="flex flex-wrap gap-2">
-        ${people.map((id) => {
-        const st = this.hass && this.hass.states[id];
-        const home = this._isHome(st);
-        const pic = st && st.attributes && st.attributes.entity_picture;
-        return b2`<button
-            type="button"
-            class="flex items-center gap-2 rounded-full border py-[7px] pl-[7px] pr-[11px]
-                   ${home ? "border-accentline bg-accentbg" : "border-line bg-card2"}"
-            @click=${() => this._moreInfo(id)}
-          >
-            <div
-              class="flex h-[26px] w-[26px] flex-none items-center justify-center
-                     overflow-hidden rounded-full bg-card bg-cover bg-center"
-              style=${pic ? `background-image:${cssUrl(pic)}` : ""}
-            >
-              ${pic ? "" : b2`<fib-icon
-                      class="h-[15px] w-[15px] [--mdc-icon-size:15px] ${home ? "text-accent" : "text-muted"}"
-                      icon="solar:user-bold-duotone"
-                    ></fib-icon>`}
-            </div>
-            <div class="flex flex-col leading-[1.25]">
-              <span class="text-[12px] font-semibold text-ink"
-                >${st && st.attributes && st.attributes.friendly_name || id.split(".")[1]}</span
-              >
-              <span class="text-[10px] ${home ? "text-accenttx" : "text-muted"}"
-                >${this._stateLabel(st)}</span
-              >
-            </div>
-          </button>`;
-      })}
-      </div>
-    </div>`;
-    }
-    getCardSize() {
-      return 1;
-    }
-    getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 1 };
-    }
-    getGridOptions() {
-      return { columns: "full", rows: "auto" };
-    }
-  }
-
-  // src/cards/remote.js
+  // src/cards/media/remote.js
   var COMMANDS = {
     appletv: {
       up: "up",
@@ -6083,176 +6452,82 @@ ${BASE_CSS}`);
     }
   }
 
-  // src/cards/room.js
-  var isLight2 = (id) => typeof id === "string" && id.startsWith("light.");
-  var EDITOR_SCHEMA6 = [
-    { name: "name", selector: { text: {} } },
-    { name: "icon", selector: { icon: {} } },
-    {
-      name: "entities",
-      selector: { entity: { domain: "light", multiple: true } }
-    },
-    { name: "area", selector: { area: {} } },
-    { name: "sheet", selector: { text: {} } }
-  ];
+  // src/cards/sensors/alert.js
+  var friendly2 = (s4) => s4.attributes && s4.attributes.friendly_name || s4.entity_id;
+  function compileCheck(check) {
+    if (!check || !check.exclude_pattern)
+      return check;
+    try {
+      return { ...check, _excludeRe: new RegExp(check.exclude_pattern, "i") };
+    } catch (e4) {
+      throw new Error(`fibbers-alert: invalid exclude_pattern "${check.exclude_pattern}" — ${e4.message}`);
+    }
+  }
+  var excludedBy = (re, s4) => re && (re.test(s4.entity_id) || re.test(friendly2(s4)));
+  function runCheck(check, hass, hl) {
+    const states = Object.values(hass.states);
+    const out = [];
+    switch (check.type) {
+      case "unavailable_lights": {
+        const exclude = check.exclude || [];
+        const re = check._excludeRe;
+        const offline = states.filter((s4) => s4.entity_id.startsWith("light.") && !exclude.includes(s4.entity_id) && !excludedBy(re, s4) && isUnavail(s4));
+        if (offline.length)
+          out.push({
+            label: t3(hl, "alert.lights_offline", { count: offline.length }),
+            detail: offline.map(friendly2).join(", "),
+            entity: offline[0].entity_id
+          });
+        break;
+      }
+      case "low_battery": {
+        const below = check.below != null ? check.below : 20;
+        const re = check._excludeRe;
+        states.filter((s4) => (s4.attributes || {}).device_class === "battery" && !isNaN(parseFloat(s4.state)) && parseFloat(s4.state) < below && !excludedBy(re, s4)).forEach((s4) => out.push({
+          label: t3(hl, "alert.low_battery"),
+          detail: `${friendly2(s4)} (${s4.state}%)`,
+          entity: s4.entity_id
+        }));
+        break;
+      }
+      case "updates": {
+        const ups = states.filter((s4) => s4.entity_id.startsWith("update.") && s4.state === "on");
+        if (ups.length)
+          out.push({
+            label: t3(hl, "alert.updates"),
+            detail: t3(hl, "alert.updates_available", {
+              n: ups.length,
+              count: ups.length
+            }),
+            entity: ups[0].entity_id
+          });
+        break;
+      }
+      case "backup_age": {
+        const st = hass.states[check.entity];
+        const max = check.max_hours != null ? check.max_hours : 26;
+        if (st && !isUnavail(st)) {
+          const ts = Date.parse(st.state);
+          if (!isNaN(ts)) {
+            const hours = (Date.now() - ts) / 3600000;
+            if (hours > max)
+              out.push({
+                label: t3(hl, "alert.backup"),
+                detail: t3(hl, "common.hours_ago", { n: Math.round(hours) }),
+                entity: check.entity
+              });
+          }
+        }
+        break;
+      }
+    }
+    return out;
+  }
 
-  class FibbersRoom extends i4 {
+  class FibbersAlert extends i4 {
     static properties = {
       hass: { attribute: false },
       _config: { state: true }
-    };
-    static styles = [
-      twSheet,
-      i`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig(hass, entities, entitiesFallback) {
-      return {
-        type: "custom:fibbers-room",
-        name: "Room",
-        icon: "solar:sofa-2-bold-duotone",
-        entities: [
-          pickEntity("light", entities, entitiesFallback, "light.example")
-        ]
-      };
-    }
-    static getConfigElement() {
-      const el = document.createElement("fibbers-form-editor");
-      el.schema = EDITOR_SCHEMA6;
-      return el;
-    }
-    setConfig(config) {
-      if (!config || !config.name) {
-        throw new Error("fibbers-room: `name` is required");
-      }
-      if (config.entities != null && !Array.isArray(config.entities)) {
-        throw new Error("fibbers-room: `entities` must be a list");
-      }
-      if (config.entities == null && !config.area) {
-        throw new Error("fibbers-room: provide `entities` or an `area`");
-      }
-      this._config = config;
-    }
-    _entities() {
-      const c4 = this._config;
-      if (Array.isArray(c4.entities))
-        return c4.entities;
-      const hass = this.hass;
-      if (!c4.area || !hass || !hass.entities)
-        return [];
-      const devices = hass.devices || {};
-      return Object.values(hass.entities).filter((e4) => {
-        const area = e4.area_id || (devices[e4.device_id] || {}).area_id;
-        return area === c4.area && isLight2(e4.entity_id);
-      }).map((e4) => e4.entity_id);
-    }
-    _lights() {
-      return this._entities().filter(isLight2);
-    }
-    disconnectedCallback() {
-      super.disconnectedCallback();
-      clearTimeout(this._timer);
-    }
-    _state() {
-      const hass = this.hass;
-      const hl = this._config.language || hass;
-      const lights = this._lights();
-      if (!hass || !lights.length)
-        return { label: "—", lit: false, offline: false };
-      let on = 0, avail = 0;
-      lights.forEach((id) => {
-        const st = hass.states[id];
-        if (isUnavail(st))
-          return;
-        avail++;
-        if (st.state === "on")
-          on++;
-      });
-      if (avail === 0)
-        return { label: t3(hl, "room.offline"), lit: false, offline: true };
-      if (on === 0)
-        return { label: t3(hl, "room.off"), lit: false, offline: false };
-      return {
-        label: t3(hl, "room.state_count", { on, total: lights.length }),
-        lit: true,
-        offline: false
-      };
-    }
-    _down() {
-      this._held = false;
-      this._timer = setTimeout(() => {
-        this._held = true;
-        this._moreInfo();
-      }, 500);
-    }
-    _up() {
-      clearTimeout(this._timer);
-    }
-    _click() {
-      if (this._held)
-        return;
-      if (this._config.sheet)
-        window.location.hash = this._config.sheet;
-    }
-    _moreInfo() {
-      moreInfo(this, this._lights()[0] || this._entities()[0]);
-    }
-    render() {
-      if (!this._config)
-        return b2``;
-      const s4 = this._state();
-      return b2`<button
-      type="button"
-      class="block w-full cursor-pointer rounded-[15px] border px-[13px] pb-3 pt-[13px]
-             text-left transition-colors active:translate-y-[0.5px]
-             ${s4.lit ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)]" : "border-line bg-card"}
-             ${s4.offline ? "opacity-[.66]" : ""}"
-      @pointerdown=${this._down}
-      @pointerup=${this._up}
-      @pointercancel=${this._up}
-      @pointerleave=${this._up}
-      @click=${this._click}
-    >
-      <fib-icon
-        class="block h-[19px] w-[19px] [--mdc-icon-size:19px] ${s4.lit ? "text-accent" : "text-muted"}"
-        icon=${this._config.icon || "solar:home-angle-bold-duotone"}
-      ></fib-icon>
-      <div class="mt-2 text-[13px] font-semibold tracking-tight text-ink">
-        ${this._config.name}
-      </div>
-      <div class="mt-0.5 text-[11px] ${s4.offline ? "text-red" : "text-muted"}">
-        ${s4.label}
-      </div>
-    </button>`;
-    }
-    getCardSize() {
-      return 1;
-    }
-    getLayoutOptions() {
-      return { grid_columns: 6, grid_rows: 1 };
-    }
-    getGridOptions() {
-      return { columns: 6, rows: "auto", min_columns: 3 };
-    }
-  }
-
-  // src/cards/scene.js
-  var activatedAt = (st) => {
-    if (!st)
-      return 0;
-    const raw = st.attributes && st.attributes.last_activated || st.state || null;
-    const ts = raw ? Date.parse(raw) : NaN;
-    return isNaN(ts) ? 0 : ts;
-  };
-
-  class FibbersScene extends i4 {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true },
-      _open: { state: true }
     };
     static styles = [
       twSheet,
@@ -6264,212 +6539,64 @@ ${BASE_CSS}`);
     ];
     static getStubConfig() {
       return {
-        type: "custom:fibbers-scene",
-        scenes: [
-          {
-            name: "Evening",
-            icon: "solar:moon-bold-duotone",
-            scene: "scene.example"
-          }
-        ]
+        type: "custom:fibbers-alert",
+        checks: [{ type: "unavailable_lights" }, { type: "updates" }]
       };
     }
     setConfig(config) {
-      if (!config || !Array.isArray(config.scenes) || !config.scenes.length) {
-        throw new Error("fibbers-scene: `scenes` must be a non-empty list");
-      }
-      config.scenes.forEach((s4, i5) => {
-        if (!s4 || !s4.scene)
-          throw new Error(`fibbers-scene: scenes[${i5}] is missing \`scene\``);
-      });
-      if (config.favourites != null && (!Number.isInteger(config.favourites) || config.favourites < 1)) {
-        throw new Error("fibbers-scene: `favourites` must be a positive integer");
+      if (!config || !Array.isArray(config.checks)) {
+        throw new Error("fibbers-alert: `checks` must be a list");
       }
       this._config = config;
-      this._open = false;
+      this._checks = config.checks.map(compileCheck);
     }
-    _fav() {
-      const n4 = this._config.favourites;
-      return n4 && n4 < this._config.scenes.length ? n4 : this._config.scenes.length;
-    }
-    _activeIndex() {
+    _findings() {
       if (!this.hass)
-        return -1;
-      let best = -1, bestT = 0;
-      this._config.scenes.forEach((s4, i5) => {
-        const ts = activatedAt(this.hass.states[s4.scene]);
-        if (ts > bestT) {
-          bestT = ts;
-          best = i5;
-        }
+        return [];
+      const out = [];
+      const hl = this._config.language || this.hass;
+      this._checks.forEach((c4) => {
+        try {
+          out.push(...runCheck(c4, this.hass, hl));
+        } catch (_2) {}
       });
-      return best;
+      return out;
+    }
+    _moreInfo(entity) {
+      moreInfo(this, entity);
     }
     render() {
-      const cfg = this._config;
-      if (!cfg)
+      if (!this._config)
         return b2``;
-      const hl = cfg.language || this.hass;
-      const fav = this._fav();
-      const active = this._activeIndex();
-      const total = cfg.scenes.length;
-      const hidden = total - fav;
-      const tile = (s4, i5) => {
-        const isActive = i5 === active;
-        const show = i5 < fav || this._open;
-        return b2`<button
-        type="button"
-        ?hidden=${!show}
-        class="flex flex-col items-center gap-[7px] rounded-[14px] border p-3.5
-               text-ink2 transition-transform active:scale-[.96]
-               ${isActive ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)] text-accenttx" : "border-line bg-card"}"
-        @click=${() => this.hass && this.hass.callService("scene", "turn_on", { entity_id: s4.scene })}
-      >
+      const findings = this._findings();
+      const hl = this._config.language || this.hass;
+      const alert = findings.length > 0;
+      return b2`<div
+      class="rounded-xl border p-3
+             ${alert ? "border-amberline bg-amberbg" : "border-line bg-card"}"
+    >
+      <div class="flex items-center gap-2">
         <fib-icon
-          class="h-5 w-5 [--mdc-icon-size:20px] ${isActive ? "text-accent" : "text-muted"}"
-          icon=${s4.icon || "solar:palette-bold-duotone"}
-        ></fib-icon>
-        <span class="text-center text-[11px] font-medium"
-          >${s4.name || s4.scene}</span
-        >
-      </button>`;
-      };
-      return b2`
-      <div class="grid grid-cols-[repeat(auto-fit,minmax(84px,1fr))] gap-2">
-        ${cfg.scenes.map(tile)}
-      </div>
-      ${hidden > 0 ? b2`<button
-              type="button"
-              class="mt-2 flex w-full items-center justify-center gap-1.5 rounded-[11px]
-                   border border-line bg-transparent py-[9px] text-[11px] font-medium text-ink2"
-              @click=${() => this._open = !this._open}
-            >
-              <span
-                >${this._open ? t3(hl, "scene.show_less") : t3(hl, "scene.show_all", { n: total })}</span
-              >
-              <fib-icon
-                class="h-[15px] w-[15px] text-muted transition-transform [--mdc-icon-size:15px]
-                     ${this._open ? "rotate-180" : ""}"
-                icon="solar:alt-arrow-down-bold-duotone"
-              ></fib-icon>
-            </button>` : ""}
-    `;
-    }
-    getCardSize() {
-      return 1;
-    }
-    getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 1 };
-    }
-    getGridOptions() {
-      return { columns: "full", rows: "auto" };
-    }
-  }
-
-  // src/cards/scheduler.js
-  var hhmm2 = (s4) => {
-    const m2 = typeof s4 === "string" && s4.match(/^(\d{2}:\d{2})/);
-    return m2 ? m2[1] : "";
-  };
-  var addMinutes = (s4, mins) => {
-    const [h3, m2] = hhmm2(s4).split(":").map(Number);
-    if (!Number.isFinite(h3) || !Number.isFinite(m2))
-      return "";
-    const total = (h3 * 60 + m2 + Math.round(mins)) % (24 * 60);
-    return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
-  };
-
-  class FibbersScheduler extends i4 {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true }
-    };
-    static styles = [
-      twSheet,
-      i`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig(hass, entities, entitiesFallback) {
-      return {
-        type: "custom:fibbers-scheduler",
-        name: "Alarm",
-        time: pickEntity("input_datetime", entities, entitiesFallback, "input_datetime.example"),
-        enable: pickEntity("input_boolean", entities, entitiesFallback, "input_boolean.example")
-      };
-    }
-    setConfig(config) {
-      if (!config || !config.time) {
-        throw new Error("fibbers-scheduler: `time` (an input_datetime) is required");
-      }
-      this._config = config;
-    }
-    _state(id) {
-      return id && this.hass ? this.hass.states[id] : null;
-    }
-    render() {
-      const cfg = this._config;
-      if (!cfg)
-        return b2``;
-      const hl = cfg.language || this.hass;
-      const timeSt = this._state(cfg.time);
-      const time = hhmm2(timeSt && timeSt.state);
-      const enSt = this._state(cfg.enable);
-      const on = enSt ? enSt.state === "on" : true;
-      const durSt = this._state(cfg.duration);
-      const dur = durSt ? Number(durSt.state) : null;
-      const windowEnd = dur ? addMinutes(time, dur) : "";
-      return b2`<div class="rounded-[14px] border border-line bg-card p-[13px]">
-      <div class="mb-2 flex items-center gap-2">
-        <fib-icon
-          class="h-4 w-4 [--mdc-icon-size:16px] ${on ? "text-accent" : "text-muted"}"
-          icon="solar:alarm-bold-duotone"
+          class="h-4 w-4 [--mdc-icon-size:16px] ${alert ? "text-amber" : "text-green"}"
+          icon=${alert ? "solar:danger-triangle-bold-duotone" : "solar:check-circle-bold-duotone"}
         ></fib-icon>
         <span
-          class="flex-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-          >${cfg.name || t3(hl, "scheduler.default_name")}</span
+          class="text-[12px] font-semibold ${alert ? "text-amber" : "text-green"}"
+          >${alert ? t3(hl, "alert.attention_needed") : t3(hl, "alert.all_clear")}</span
         >
-        ${cfg.enable ? pillSwitch({
-        on,
-        label: cfg.name || t3(hl, "scheduler.default_name"),
-        onClick: () => this.hass && this.hass.callService("homeassistant", "toggle", {
-          entity_id: cfg.enable
-        })
-      }) : ""}
       </div>
-
-      <button
-        type="button"
-        class="text-left ${on ? "" : "opacity-50"}"
-        @click=${() => moreInfo(this, cfg.time)}
-      >
-        <span class="text-[30px] font-semibold leading-none text-ink"
-          >${time || "—"}</span
-        >
-        ${windowEnd ? b2`<span class="ml-2 text-[13px] text-muted"
-                >→
-                ${windowEnd}${dur ? b2` · ${t3(hl, "scheduler.duration", { n: dur })}` : ""}</span
-              >` : ""}
-      </button>
-
-      ${Array.isArray(cfg.days) && cfg.days.length ? b2`<div class="mt-3 flex flex-wrap gap-x-2 gap-y-[18px]">
-              ${cfg.days.map((d3) => {
-        const obj = typeof d3 === "object";
-        const st = obj ? this._state(d3.entity) : null;
-        const active = obj ? st && st.state === "on" : true;
-        return b2`<button
-                  type="button"
-                  class="fib-hit rounded-full border px-2.5 py-1 text-[10.5px] font-medium
-                       ${active ? "border-accentline bg-accentbg text-accent" : "border-line bg-card2 text-ink2"}"
-                  @click=${() => obj && this.hass && this.hass.callService("homeassistant", "toggle", {
-          entity_id: d3.entity
-        })}
-                >
-                  ${obj ? d3.name : d3}
-                </button>`;
-      })}
+      ${alert ? b2`<div class="mt-2 flex flex-col gap-[5px]">
+              ${findings.map((f3) => b2`<div
+                    role="button"
+                    tabindex="0"
+                    aria-label=${`${f3.label} — ${t3(hl, "common.more_info")}`}
+                    class="fib-hit cursor-pointer text-[11.5px] leading-[1.42] text-ambertx"
+                    @click=${() => this._moreInfo(f3.entity)}
+                    @keydown=${activateOnKey(() => this._moreInfo(f3.entity))}
+                  >
+                    <b class="font-semibold text-amber">${f3.label}</b> —
+                    ${f3.detail}
+                  </div>`)}
             </div>` : ""}
     </div>`;
     }
@@ -6484,11 +6611,37 @@ ${BASE_CSS}`);
     }
   }
 
-  // src/cards/section.js
-  var EDITOR_SCHEMA7 = [{ name: "label", selector: { text: {} } }];
+  // src/cards/sensors/backup.js
+  function ago(iso, hl) {
+    const time = Date.parse(iso);
+    if (isNaN(time))
+      return { text: String(iso), hours: Infinity };
+    const hours = (Date.now() - time) / 3600000;
+    const mins = Math.round(hours * 60);
+    let text;
+    if (mins < 60)
+      text = t3(hl, "common.minutes_ago", { n: mins });
+    else if (hours < 24)
+      text = t3(hl, "common.hours_ago", { n: Math.round(hours) });
+    else
+      text = t3(hl, "common.days_ago", { n: Math.round(hours / 24) });
+    return { text, hours };
+  }
+  var clock = (iso, lang) => {
+    const time = Date.parse(iso);
+    if (isNaN(time))
+      return String(iso);
+    return new Date(time).toLocaleTimeString(lang || "en", {
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  };
 
-  class FibbersSection extends i4 {
-    static properties = { _config: { state: true } };
+  class FibbersBackup extends i4 {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true }
+    };
     static styles = [
       twSheet,
       i`
@@ -6498,66 +6651,323 @@ ${BASE_CSS}`);
     `
     ];
     static getStubConfig() {
-      return { type: "custom:fibbers-section", label: "Section" };
-    }
-    static getConfigElement() {
-      const el = document.createElement("fibbers-form-editor");
-      el.schema = EDITOR_SCHEMA7;
-      return el;
+      return { type: "custom:fibbers-backup", entity: "sensor.backup_last" };
     }
     setConfig(config) {
-      if (!config || !config.label) {
-        throw new Error("fibbers-section: `label` is required");
+      if (!config || !config.entity) {
+        throw new Error("fibbers-backup: `entity` (last-backup timestamp) is required");
       }
       this._config = config;
     }
-    set hass(_hass) {}
     render() {
-      if (!this._config)
+      const cfg = this._config;
+      if (!cfg)
         return b2``;
+      const hl = cfg.language || this.hass;
+      const st = this.hass && this.hass.states[cfg.entity];
+      let value, sub, warn;
+      if (isUnavail(st)) {
+        value = "—";
+        sub = t3(hl, "backup.none");
+        warn = true;
+      } else {
+        const a3 = ago(st.state, hl);
+        const stale = a3.hours > (cfg.stale_hours != null ? cfg.stale_hours : 26);
+        let failed = false;
+        if (cfg.result) {
+          const r4 = this.hass.states[cfg.result];
+          failed = r4 && ["off", "failed", "error", "false"].includes(String(r4.state));
+        }
+        value = a3.text;
+        const bits = [t3(hl, failed ? "backup.failed" : "backup.succeeded")];
+        if (cfg.next) {
+          const n4 = this.hass.states[cfg.next];
+          if (n4 && !isUnavail(n4))
+            bits.push(t3(hl, "backup.next", { time: clock(n4.state, langOf(hl)) }));
+        }
+        sub = bits.join(" · ");
+        warn = stale || failed;
+      }
       return b2`<div
-      class="px-0.5 pt-0.5 font-mono text-[9.5px] font-medium uppercase tracking-[0.11em] text-muted"
+      class="grid grid-cols-[34px_1fr] items-center gap-x-[11px] gap-y-0.5
+             rounded-[14px] border p-[13px]
+             ${warn ? "border-amberline bg-amberbg" : "border-line bg-card"}"
     >
-      ${this._config.label}
+      <div
+        class="row-span-2 flex h-[34px] w-[34px] items-center justify-center rounded-[10px]
+               ${warn ? "bg-amberbg" : "bg-accentbg"}"
+      >
+        <fib-icon
+          class="h-[19px] w-[19px] [--mdc-icon-size:19px] ${warn ? "text-amber" : "text-accent"}"
+          icon="solar:diskette-bold-duotone"
+        ></fib-icon>
+      </div>
+      <div class="text-[11px] font-medium text-muted">
+        ${cfg.name || t3(hl, "backup.default_name")}
+      </div>
+      <div class="text-[17px] font-semibold leading-[1.15] text-ink">
+        ${value}
+      </div>
+      <div
+        class="col-start-2 text-[10.5px] ${warn ? "text-ambertx" : "text-muted"}"
+      >
+        ${sub}
+      </div>
     </div>`;
     }
     getCardSize() {
       return 1;
     }
     getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 1 };
+      return { grid_columns: 6, grid_rows: 1 };
+    }
+    getGridOptions() {
+      return { columns: 6, rows: "auto", min_columns: 3 };
+    }
+  }
+
+  // src/cards/sensors/entities.js
+  var DOMAIN_ICON = {
+    light: "solar:lightbulb-bold-duotone",
+    switch: "solar:socket-bold-duotone",
+    automation: "solar:bolt-circle-bold-duotone",
+    sensor: "solar:widget-bold-duotone",
+    binary_sensor: "solar:widget-bold-duotone",
+    person: "solar:user-bold-duotone",
+    media_player: "solar:speaker-bold-duotone"
+  };
+  var num = (s4) => parseFloat(String(s4).replace(",", "."));
+  function ago2(iso, hl) {
+    const parsed = Date.parse(iso);
+    if (isNaN(parsed))
+      return "";
+    const mins = Math.max(0, Math.round((Date.now() - parsed) / 60000));
+    if (mins < 60)
+      return t3(hl, "common.minutes_ago", { n: mins });
+    const hrs = Math.round(mins / 60);
+    if (hrs < 24)
+      return t3(hl, "common.hours_ago", { n: hrs });
+    return t3(hl, "common.days_ago", { n: Math.round(hrs / 24) });
+  }
+  function compileFilters(filters, label) {
+    return (filters || []).map((f3) => {
+      if (!f3.entity_id)
+        return f3;
+      try {
+        return { ...f3, _re: new RegExp(f3.entity_id) };
+      } catch (e4) {
+        throw new Error(`fibbers-entities: invalid ${label} entity_id regex "${f3.entity_id}" — ${e4.message}`);
+      }
+    });
+  }
+  function matches(st, f3) {
+    if (f3.domain && !st.entity_id.startsWith(`${f3.domain}.`))
+      return false;
+    if (f3._re && !f3._re.test(st.entity_id))
+      return false;
+    if (f3.state != null) {
+      const want = Array.isArray(f3.state) ? f3.state : [f3.state];
+      if (!want.map(String).includes(String(st.state)))
+        return false;
+    }
+    if (f3.state_not != null) {
+      const no = Array.isArray(f3.state_not) ? f3.state_not : [f3.state_not];
+      if (no.map(String).includes(String(st.state)))
+        return false;
+    }
+    if (f3.attributes) {
+      for (const [k2, v2] of Object.entries(f3.attributes)) {
+        if (String((st.attributes || {})[k2]) !== String(v2))
+          return false;
+      }
+    }
+    if (f3.below != null && !(num(st.state) < f3.below))
+      return false;
+    if (f3.above != null && !(num(st.state) > f3.above))
+      return false;
+    if (f3.stale_hours != null) {
+      const ts = Date.parse(st.last_changed);
+      if (isNaN(ts) || (Date.now() - ts) / 3600000 < f3.stale_hours)
+        return false;
+    }
+    return true;
+  }
+
+  class FibbersEntities extends i4 {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true }
+    };
+    static styles = [
+      twSheet,
+      i`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return {
+        type: "custom:fibbers-entities",
+        title: "Unavailable",
+        filters: [{ domain: "light", state: ["unavailable", "unknown"] }]
+      };
+    }
+    setConfig(config) {
+      if (!config || !Array.isArray(config.filters) || !config.filters.length) {
+        throw new Error("fibbers-entities: `filters` must be a non-empty list");
+      }
+      this._config = config;
+      this._filters = compileFilters(config.filters, "filter");
+      this._exclude = compileFilters(config.exclude, "exclude");
+      this._matchedHass = null;
+      this._matchedCache = null;
+    }
+    _matched() {
+      const hass = this.hass;
+      if (!hass)
+        return [];
+      if (this._matchedHass === hass)
+        return this._matchedCache;
+      const seen = new Set;
+      const out = [];
+      for (const st of Object.values(hass.states)) {
+        if (!this._filters.some((f3) => matches(st, f3)))
+          continue;
+        if (this._exclude.some((f3) => matches(st, f3)))
+          continue;
+        if (seen.has(st.entity_id))
+          continue;
+        seen.add(st.entity_id);
+        out.push(st);
+      }
+      if (this._config.sort === "last_changed") {
+        out.sort((a3, b3) => Date.parse(a3.last_changed) - Date.parse(b3.last_changed));
+      } else {
+        const lang = langOf(this._config.language || this.hass);
+        out.sort((a3, b3) => this._name(a3).localeCompare(this._name(b3), lang));
+      }
+      const max = this._config.max;
+      const rows = max ? out.slice(0, max) : out;
+      this._matchedHass = hass;
+      this._matchedCache = rows;
+      return rows;
+    }
+    _name(st) {
+      return st.attributes && st.attributes.friendly_name || st.entity_id;
+    }
+    _icon(st) {
+      if (st.attributes && st.attributes.icon)
+        return st.attributes.icon;
+      if ((st.attributes || {}).device_class === "battery")
+        return "solar:battery-low-bold-duotone";
+      return DOMAIN_ICON[st.entity_id.split(".")[0]] || "solar:widget-bold-duotone";
+    }
+    _secondary(st) {
+      const hl = this._config.language || this.hass;
+      const s4 = this._config.secondary || "state";
+      if (s4 === "last_changed")
+        return ago2(st.last_changed, hl);
+      if (s4.startsWith("attribute:")) {
+        const k2 = s4.slice("attribute:".length);
+        return String((st.attributes || {})[k2] ?? "");
+      }
+      return fmtState(this.hass, st);
+    }
+    shouldUpdate(changed) {
+      if (!this._config)
+        return false;
+      if (changed.has("_config")) {
+        this._sig = null;
+        return true;
+      }
+      const sig = this._matched().map((st) => `${st.entity_id}=${st.state}|${this._icon(st)}|${this._name(st)}|${this._secondary(st)}`).join(";");
+      if (sig === this._sig)
+        return false;
+      this._sig = sig;
+      return true;
+    }
+    render() {
+      const cfg = this._config;
+      if (!cfg)
+        return b2``;
+      const rows = this._matched();
+      return b2`<div
+      class="rounded-[14px] border border-line bg-card px-1 py-1.5"
+    >
+      ${cfg.title ? b2`<div
+              class="flex items-center gap-[7px] px-2.5 pb-1.5 pt-[7px] text-[10px]
+                   font-semibold uppercase tracking-[0.08em] text-muted"
+            >
+              ${cfg.icon ? b2`<fib-icon
+                      class="h-3.5 w-3.5 [--mdc-icon-size:14px] text-muted"
+                      icon=${cfg.icon}
+                    ></fib-icon>` : ""}
+              <span>${cfg.title}</span>
+            </div>` : ""}
+      ${rows.length ? rows.map((st) => b2`<div
+                  role="button"
+                  tabindex="0"
+                  class="grid cursor-pointer grid-cols-[28px_1fr_auto] items-center gap-x-2.5
+                     rounded-[10px] px-2.5 py-2 hover:bg-card2"
+                  @click=${() => moreInfo(this, st.entity_id)}
+                  @keydown=${activateOnKey(() => moreInfo(this, st.entity_id))}
+                >
+                  <div
+                    class="flex h-7 w-7 items-center justify-center rounded-lg bg-card2"
+                  >
+                    <fib-icon
+                      class="h-4 w-4 [--mdc-icon-size:16px] text-muted"
+                      icon=${this._icon(st)}
+                    ></fib-icon>
+                  </div>
+                  <span
+                    class="overflow-hidden text-ellipsis whitespace-nowrap text-[12px]
+                       font-medium text-ink"
+                    >${this._name(st)}</span
+                  >
+                  <span class="whitespace-nowrap text-[10.5px] text-muted"
+                    >${this._secondary(st)}</span
+                  >
+                </div>`) : cfg.empty ? b2`<div
+                class="flex items-center gap-[7px] px-2.5 py-3 text-[11.5px] text-muted"
+              >
+                <fib-icon
+                  class="h-[15px] w-[15px] [--mdc-icon-size:15px] text-green"
+                  icon="solar:check-circle-bold-duotone"
+                ></fib-icon>
+                <span>${cfg.empty}</span>
+              </div>` : ""}
+    </div>`;
+    }
+    getCardSize() {
+      return 2;
+    }
+    getLayoutOptions() {
+      return { grid_columns: "full", grid_rows: 2 };
     }
     getGridOptions() {
       return { columns: "full", rows: "auto" };
     }
   }
 
-  // src/cards/select.js
-  var DOMAINS2 = ["input_select", "select"];
-  var EDITOR_SCHEMA8 = [
-    { name: "entity", selector: { entity: { domain: DOMAINS2 } } },
-    { name: "name", selector: { text: {} } },
-    { name: "icon", selector: { icon: {} } },
-    {
-      name: "mode",
-      selector: {
-        select: {
-          mode: "dropdown",
-          options: [
-            { value: "chips", label: "Chips" },
-            { value: "dropdown", label: "Dropdown" }
-          ]
-        }
-      }
-    },
-    { name: "chips_max", selector: { number: { min: 1, mode: "box" } } }
-  ];
+  // src/cards/sensors/graph.js
+  var COLORS = ["accent", "amber", "blue", "green", "red"];
+  var STROKE = {
+    accent: "text-accent",
+    amber: "text-amber",
+    blue: "text-blue",
+    green: "text-green",
+    red: "text-red"
+  };
+  var W = 300;
 
-  class FibbersSelect extends i4 {
+  class FibbersGraph extends i4 {
     static properties = {
       hass: { attribute: false },
       _config: { state: true },
-      _open: { state: true }
+      _series: { state: true },
+      _settled: { state: true }
     };
     static styles = [
       twSheet,
@@ -6569,151 +6979,259 @@ ${BASE_CSS}`);
     ];
     static getStubConfig(hass, entities, entitiesFallback) {
       return {
-        type: "custom:fibbers-select",
-        entity: pickEntity("input_select", entities, entitiesFallback, "input_select.example")
+        type: "custom:fibbers-graph",
+        entity: pickEntity("sensor", entities, entitiesFallback, "sensor.example"),
+        hours: 24
       };
-    }
-    static getConfigElement() {
-      const el = document.createElement("fibbers-form-editor");
-      el.schema = EDITOR_SCHEMA8;
-      return el;
     }
     setConfig(config) {
-      if (!config || !config.entity) {
-        throw new Error("fibbers-select: `entity` is required");
+      if (!config || !config.entity && !Array.isArray(config.data)) {
+        throw new Error("fibbers-graph: `entity` or `data` is required");
       }
-      if (!DOMAINS2.includes(String(config.entity).split(".")[0])) {
-        throw new Error("fibbers-select: `entity` must be an input_select.* or select.*");
+      if (config.color != null && !COLORS.includes(config.color)) {
+        throw new Error(`fibbers-graph: \`color\` must be one of ${COLORS.join(", ")}`);
       }
       this._config = config;
-      this._open = false;
+      this._series = Array.isArray(config.data) ? config.data.map(Number).filter(Number.isFinite) : null;
+      this._fetchedFor = null;
+      this._lastTry = 0;
+      this._fetchedAt = 0;
+      this._misses = 0;
+      this._settled = this._series != null;
+      this._gen = (this._gen || 0) + 1;
     }
-    disconnectedCallback() {
-      super.disconnectedCallback();
-      this._removeOutside();
+    updated(changed) {
+      if (changed.has("hass") && this._config.entity && !this._config.data)
+        this._maybeFetch();
     }
-    _st() {
-      return this.hass && this.hass.states[this._config.entity];
-    }
-    _options() {
-      const st = this._st();
-      return st && st.attributes && st.attributes.options || [];
+    async _maybeFetch() {
+      const id = this._config.entity;
+      if (!this.hass || !this.hass.callWS)
+        return;
+      const now = Date.now();
+      const maxAge = Math.max(60000, (this._config.hours || 24) * 3600000 / 20);
+      if (this._fetchedFor === id && now - this._fetchedAt < maxAge)
+        return;
+      const backoff = this._series ? 8000 : Math.min(500 * 2 ** this._misses, 8000);
+      if (this._lastTry && now - this._lastTry < backoff)
+        return;
+      this._lastTry = now;
+      const gen = this._gen += 1;
+      try {
+        const nums = await fetchHistory(this.hass, id, this._config.hours || 24);
+        if (gen !== this._gen)
+          return;
+        if (nums.length) {
+          this._series = nums;
+          this._fetchedFor = id;
+          this._fetchedAt = Date.now();
+          this._misses = 0;
+        } else {
+          this._misses += 1;
+        }
+      } catch (_e) {
+        if (gen === this._gen)
+          this._misses += 1;
+      } finally {
+        if (gen === this._gen)
+          this._settled = true;
+      }
     }
     _current() {
-      const st = this._st();
-      return st ? st.state : "";
-    }
-    _select(opt) {
-      if (this.hass) {
-        const domain = this._config.entity.split(".")[0];
-        this.hass.callService(domain, "select_option", {
-          entity_id: this._config.entity,
-          option: opt
-        });
+      const st = this._config.entity && this.hass && this.hass.states[this._config.entity];
+      if (st && st.state !== "unavailable" && st.state !== "unknown") {
+        const n4 = Number(st.state);
+        if (Number.isFinite(n4))
+          return n4;
       }
-      this._close();
+      return this._series && this._series.length ? this._series[this._series.length - 1] : null;
     }
-    _openMenu() {
-      this._removeOutside();
-      this._open = true;
-      this._outside = (e4) => {
-        if (!e4.composedPath().includes(this))
-          this._close();
-      };
-      setTimeout(() => document.addEventListener("click", this._outside), 0);
-    }
-    _close() {
-      this._open = false;
-      this._removeOutside();
-    }
-    _removeOutside() {
-      if (this._outside) {
-        document.removeEventListener("click", this._outside);
-        this._outside = null;
-      }
+    _unit() {
+      if (this._config.unit != null)
+        return this._config.unit;
+      const st = this._config.entity && this.hass && this.hass.states[this._config.entity];
+      return st && st.attributes.unit_of_measurement || "";
     }
     render() {
       const cfg = this._config;
       if (!cfg)
         return b2``;
+      const st = cfg.entity && this.hass && this.hass.states[cfg.entity];
+      const name = cfg.name || st && st.attributes.friendly_name || cfg.entity;
       const hl = cfg.language || this.hass;
-      const st = this._st();
-      if (!st) {
-        return b2`<div
-        class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
+      const now = this._current();
+      const h3 = cfg.height || 46;
+      const series = this._series;
+      const color = cfg.color || "accent";
+      const colorCls = STROKE[color] || "text-accent";
+      let body;
+      if (!series || series.length < 2) {
+        body = this._settled ? b2`<div
+            class="flex items-center text-[11px] text-muted"
+            style="height:${h3}px"
+          >
+            ${t3(hl, "graph.no_history")}
+          </div>` : b2`<div
+            class="animate-pulse rounded-[6px] bg-card2"
+            style="height:${h3}px"
+          ></div>`;
+      } else {
+        let min = Math.min(...series);
+        let max = Math.max(...series);
+        const pad = (max - min || 1) * 0.12;
+        min -= pad;
+        max += pad;
+        const n4 = series.length;
+        const x2 = (i5) => i5 / (n4 - 1) * W;
+        const y3 = (v2) => h3 - (v2 - min) / (max - min || 1) * h3;
+        const pts = series.map((v2, i5) => `${x2(i5).toFixed(1)},${y3(v2).toFixed(1)}`);
+        const line = `M${pts.join(" L")}`;
+        const area = `M0,${h3} L${pts.join(" L")} L${W},${h3} Z`;
+        body = b2`<svg
+        viewBox="0 0 ${W} ${h3}"
+        preserveAspectRatio="none"
+        class="block w-full ${colorCls}"
+        style="height:${h3}px;overflow:visible"
       >
-        ${t3(hl, "common.not_available")}
-      </div>`;
+        <path
+          d=${area}
+          style="fill:currentColor;opacity:${cfg.fill === false ? 0 : 0.12}"
+        ></path>
+        <path
+          d=${line}
+          style="fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke"
+        ></path>
+      </svg>`;
       }
-      const name = cfg.name || st.attributes.friendly_name || cfg.entity;
-      const icon = cfg.icon || st.attributes.icon || "solar:list-bold-duotone";
-      const options = this._options();
-      const current = this._current();
-      const max = cfg.chips_max != null ? cfg.chips_max : 6;
-      const mode = cfg.mode === "chips" || cfg.mode === "dropdown" ? cfg.mode : options.length <= max ? "chips" : "dropdown";
-      const header = b2`<div class="mb-2 flex items-center gap-2.5">
-      <div
-        class="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-accentbg text-accent"
-      >
-        <fib-icon
-          class="h-[17px] w-[17px] [--mdc-icon-size:17px]"
-          icon=${icon}
-        ></fib-icon>
-      </div>
-      <span class="flex-1 text-[12px] font-medium text-ink">${name}</span>
-    </div>`;
-      const body = mode === "chips" ? b2`<div class="flex flex-wrap gap-x-2 gap-y-[18px]">
-            ${options.map((o5) => {
-        const active = o5 === current;
-        return b2`<button
-                type="button"
-                class="fib-hit rounded-full border px-2.5 py-1 text-[10.5px] font-medium
-                       ${active ? "border-accentline bg-accentbg text-accent" : "border-line bg-card2 text-ink2"}"
-                @click=${() => this._select(o5)}
-              >
-                ${o5}
-              </button>`;
-      })}
-          </div>` : b2`<div class="relative">
-            <button
-              type="button"
-              class="flex w-full items-center justify-between gap-2 rounded-[10px] border border-line
-                     bg-card2 px-3 py-2 text-left text-[12px] font-medium text-ink"
-              aria-haspopup="listbox"
-              aria-expanded=${this._open ? "true" : "false"}
-              @click=${() => this._open ? this._close() : this._openMenu()}
-            >
-              <span class="truncate">${current || "—"}</span>
-              <fib-icon
-                class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-muted transition-transform
-                       ${this._open ? "rotate-180" : ""}"
-                icon="solar:alt-arrow-down-bold-duotone"
-              ></fib-icon>
-            </button>
-            ${this._open ? b2`<div
-                    class="absolute left-0 right-0 top-[calc(100%+4px)] z-10 max-h-[220px] overflow-auto
-                         rounded-[10px] border border-line bg-card p-1 shadow-[0_10px_30px_rgba(0,0,0,.5)]"
-                    role="listbox"
-                  >
-                    ${options.map((o5) => b2`<button
-                          type="button"
-                          role="option"
-                          aria-selected=${o5 === current ? "true" : "false"}
-                          class="flex w-full items-center justify-between gap-2 rounded-[7px] px-2.5 py-2
-                             text-left text-[12px] hover:bg-card2
-                             ${o5 === current ? "text-accent" : "text-ink"}"
-                          @click=${() => this._select(o5)}
-                        >
-                          <span class="truncate">${o5}</span>
-                          ${o5 === current ? b2`<fib-icon
-                                  class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-accent"
-                                  icon="solar:check-circle-bold-duotone"
-                                ></fib-icon>` : ""}
-                        </button>`)}
-                  </div>` : ""}
-          </div>`;
       return b2`<div class="rounded-[14px] border border-line bg-card p-[13px]">
-      ${header}${body}
+      <div class="mb-2 flex items-baseline justify-between gap-2">
+        <span class="text-[11px] font-medium text-muted">${name}</span>
+        <span class="text-[15px] font-semibold text-ink">
+          ${now != null ? fmtNum(this.hass, now, cfg.decimals) : "—"}<span
+            class="ml-0.5 text-[11px] font-medium text-ink2"
+            >${this._unit()}</span
+          >
+        </span>
+      </div>
+      ${body}
+      ${cfg.show_stats && series && series.length >= 2 ? b2`<div
+              class="mt-1.5 flex justify-between text-[9.5px] text-muted"
+            >
+              <span
+                >min
+                ${fmtNum(this.hass, Math.min(...series), cfg.decimals)}</span
+              >
+              <span
+                >max
+                ${fmtNum(this.hass, Math.max(...series), cfg.decimals)}</span
+              >
+            </div>` : ""}
+    </div>`;
+    }
+    getCardSize() {
+      return 2;
+    }
+    getLayoutOptions() {
+      return { grid_columns: 6, grid_rows: 2 };
+    }
+    getGridOptions() {
+      return { columns: 6, rows: "auto", min_columns: 3 };
+    }
+  }
+
+  // src/cards/sensors/presence.js
+  class FibbersPresence extends i4 {
+    static properties = {
+      hass: { attribute: false },
+      _config: { state: true }
+    };
+    static styles = [
+      twSheet,
+      i`
+      :host {
+        display: block;
+      }
+    `
+    ];
+    static getStubConfig() {
+      return { type: "custom:fibbers-presence" };
+    }
+    setConfig(config) {
+      if (config && config.people != null && !Array.isArray(config.people)) {
+        throw new Error("fibbers-presence: `people` must be a list of entities");
+      }
+      this._config = config || {};
+    }
+    _people() {
+      if (Array.isArray(this._config.people))
+        return this._config.people;
+      if (!this.hass)
+        return [];
+      return Object.keys(this.hass.states).filter((id) => id.startsWith("person.")).sort();
+    }
+    _isHome(st) {
+      return st && st.state === "home";
+    }
+    _stateLabel(st) {
+      const hl = this._config.language || this.hass;
+      if (!st)
+        return "—";
+      if (st.state === "home")
+        return t3(hl, "presence.home");
+      if (st.state === "not_home")
+        return t3(hl, "presence.away");
+      return st.state;
+    }
+    _moreInfo(entity) {
+      moreInfo(this, entity);
+    }
+    render() {
+      const people = this._people();
+      const hl = this._config.language || this.hass;
+      const homeCount = people.filter((id) => this._isHome(this.hass && this.hass.states[id])).length;
+      return b2`<div class="rounded-[14px] border border-line bg-card p-[13px]">
+      <div class="mb-2.5 flex items-baseline justify-between gap-2">
+        ${this._config.title === false ? "" : b2`<span
+                class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
+                >${t3(hl, "presence.title")}</span
+              >`}
+        <span
+          class="text-[12px] font-semibold ${homeCount === 0 ? "text-muted" : "text-ink"}"
+          >${homeCount === 0 ? t3(hl, "presence.nobody_home") : t3(hl, "presence.count_home", { n: homeCount })}</span
+        >
+      </div>
+      <div class="flex flex-wrap gap-2">
+        ${people.map((id) => {
+        const st = this.hass && this.hass.states[id];
+        const home = this._isHome(st);
+        const pic = st && st.attributes && st.attributes.entity_picture;
+        return b2`<button
+            type="button"
+            class="flex items-center gap-2 rounded-full border py-[7px] pl-[7px] pr-[11px]
+                   ${home ? "border-accentline bg-accentbg" : "border-line bg-card2"}"
+            @click=${() => this._moreInfo(id)}
+          >
+            <div
+              class="flex h-[26px] w-[26px] flex-none items-center justify-center
+                     overflow-hidden rounded-full bg-card bg-cover bg-center"
+              style=${pic ? `background-image:${cssUrl(pic)}` : ""}
+            >
+              ${pic ? "" : b2`<fib-icon
+                      class="h-[15px] w-[15px] [--mdc-icon-size:15px] ${home ? "text-accent" : "text-muted"}"
+                      icon="solar:user-bold-duotone"
+                    ></fib-icon>`}
+            </div>
+            <div class="flex flex-col leading-[1.25]">
+              <span class="text-[12px] font-semibold text-ink"
+                >${st && st.attributes && st.attributes.friendly_name || id.split(".")[1]}</span
+              >
+              <span class="text-[10px] ${home ? "text-accenttx" : "text-muted"}"
+                >${this._stateLabel(st)}</span
+              >
+            </div>
+          </button>`;
+      })}
+      </div>
     </div>`;
     }
     getCardSize() {
@@ -6727,417 +7245,7 @@ ${BASE_CSS}`);
     }
   }
 
-  // src/body-sheet.js
-  var layer = {
-    host: null,
-    shadow: null,
-    backdrop: null,
-    panel: null,
-    headEl: null,
-    bodyEl: null,
-    sheets: new Map,
-    openId: null,
-    closeTimer: null,
-    drag: null,
-    built: false
-  };
-  var reduceMotion = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  function deepActiveElement() {
-    let el = document.activeElement;
-    while (el && el.shadowRoot && el.shadowRoot.activeElement)
-      el = el.shadowRoot.activeElement;
-    return el;
-  }
-  function onFocusIn(e4) {
-    if (layer.openId == null || !layer.host || !layer.panel)
-      return;
-    const path = e4.composedPath();
-    if (path.includes(layer.host))
-      return;
-    if (path.some((n4) => n4.localName === "ha-dialog" || n4.getAttribute && n4.getAttribute("role") === "dialog"))
-      return;
-    layer.panel.focus();
-  }
-  var onKeydown = (e4) => {
-    if (e4.key === "Escape")
-      closeSheet();
-  };
-  var SHEET_CSS = `
-  :host {
-    position: fixed; inset: 0; z-index: 9; display: none;
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    color: ${T2.ink};
-    -webkit-font-smoothing: antialiased;
-  }
-  :host([data-open="true"]) { display: block; }
-
-  .backdrop {
-    position: absolute; inset: 0;
-    background: rgba(6, 9, 10, .72);
-    -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
-    opacity: 0; transition: opacity .24s ease;
-  }
-  :host([data-shown="true"]) .backdrop { opacity: 1; }
-
-  .sheet {
-    position: absolute; left: 0; right: 0; bottom: 0;
-    max-height: 88vh; display: flex; flex-direction: column;
-    background: ${T2.sheet};
-    border-top: 1px solid ${T2.line};
-    border-radius: 24px 24px 0 0;
-    padding: 8px 16px calc(16px + env(safe-area-inset-bottom, 0px));
-    transform: translateY(100%);
-    transition: transform .28s cubic-bezier(.22, 1, .36, 1);
-  }
-  :host([data-shown="true"]) .sheet { transform: translateY(0); }
-  @media (prefers-reduced-motion: reduce) { .backdrop, .sheet { transition: none; } }
-
-  .grab {
-    width: 34px; height: 4px; border-radius: 2px;
-    background: ${T2.grab};
-    margin: 4px auto 10px; flex: 0 0 auto;
-    touch-action: none; cursor: grab;
-  }
-  .head {
-    display: flex; align-items: center; gap: 10px;
-    padding: 0 2px 12px; flex: 0 0 auto; touch-action: none;
-  }
-  .body {
-    flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch;
-    display: flex; flex-direction: column; gap: 10px; padding-bottom: 6px;
-  }
-
-  @media (min-width: 640px) {
-    .sheet {
-      inset: 0; margin: auto; height: fit-content; max-height: 88vh;
-      width: min(460px, calc(100vw - 32px));
-      border-radius: 24px; border: 1px solid ${T2.line};
-      opacity: 0; transform: translateY(8px);
-      transition: opacity .2s ease, transform .2s ease;
-    }
-    :host([data-shown="true"]) .sheet { transform: translateY(0); opacity: 1; }
-  }
-`;
-  var sheetSheet = new CSSStyleSheet;
-  sheetSheet.replaceSync(SHEET_CSS);
-  function build() {
-    if (layer.built)
-      return;
-    const host = document.createElement("div");
-    host.id = "fibbers-sheet";
-    const shadow = host.attachShadow({ mode: "open" });
-    shadow.adoptedStyleSheets = [twSheet, sheetSheet];
-    const backdrop = document.createElement("div");
-    backdrop.className = "backdrop";
-    const sheet = document.createElement("div");
-    sheet.className = "sheet";
-    sheet.setAttribute("role", "dialog");
-    sheet.setAttribute("aria-modal", "true");
-    sheet.setAttribute("tabindex", "-1");
-    const grab = document.createElement("div");
-    grab.className = "grab";
-    const head = document.createElement("div");
-    head.className = "head";
-    const body = document.createElement("div");
-    body.className = "body";
-    sheet.append(grab, head, body);
-    shadow.append(backdrop, sheet);
-    document.body.appendChild(host);
-    backdrop.addEventListener("click", () => closeSheet());
-    bindDrag(grab, sheet);
-    bindDrag(head, sheet);
-    layer.host = host;
-    layer.shadow = shadow;
-    layer.backdrop = backdrop;
-    layer.panel = sheet;
-    layer.headEl = head;
-    layer.bodyEl = body;
-    layer.built = true;
-  }
-  function bindDrag(handle, sheet) {
-    handle.addEventListener("pointerdown", (e4) => {
-      if (window.innerWidth >= 640)
-        return;
-      layer.drag = { startY: e4.clientY, dy: 0 };
-      sheet.style.transition = "none";
-      handle.setPointerCapture && handle.setPointerCapture(e4.pointerId);
-    });
-    handle.addEventListener("pointermove", (e4) => {
-      if (!layer.drag)
-        return;
-      const dy = Math.max(0, e4.clientY - layer.drag.startY);
-      layer.drag.dy = dy;
-      sheet.style.transform = `translateY(${dy}px)`;
-      if (layer.backdrop)
-        layer.backdrop.style.opacity = String(Math.max(0, 1 - dy / 400));
-    });
-    const end = () => {
-      if (!layer.drag)
-        return;
-      const dy = layer.drag.dy;
-      layer.drag = null;
-      sheet.style.transition = "";
-      sheet.style.transform = "";
-      if (layer.backdrop)
-        layer.backdrop.style.opacity = "";
-      if (dy > 80)
-        closeSheet();
-    };
-    handle.addEventListener("pointerup", end);
-    handle.addEventListener("pointercancel", end);
-  }
-  async function renderContent(card) {
-    const cfg = card._config;
-    if (layer.panel)
-      layer.panel.setAttribute("aria-label", cfg.title || "Dialog");
-    D(b2`
-      ${cfg.icon ? b2`<fib-icon
-              class="h-5 w-5 flex-none [--mdc-icon-size:20px] text-accent"
-              icon=${cfg.icon}
-            ></fib-icon>` : ""}
-      <div class="min-w-0 flex-1">
-        <div class="text-[16px] font-semibold tracking-[-0.015em] text-ink">
-          ${cfg.title || ""}
-        </div>
-        ${cfg.subtitle ? b2`<div class="mt-0.5 text-[11px] text-muted">
-                ${cfg.subtitle}
-              </div>` : ""}
-      </div>
-      <button
-        type="button"
-        aria-label=${t3(card._hass, "sheet.close")}
-        class="fib-hit flex h-[30px] w-[30px] flex-none cursor-pointer items-center justify-center
-               rounded-full border-0 bg-card2 text-[15px] leading-none text-ink2"
-        @click=${() => closeSheet()}
-      >
-        ✕
-      </button>
-    `, layer.headEl);
-    const body = layer.bodyEl;
-    body.textContent = "";
-    card._children = [];
-    const configs = Array.isArray(cfg.cards) ? cfg.cards : [];
-    if (!configs.length)
-      return;
-    try {
-      const helpers = await window.loadCardHelpers();
-      for (const c4 of configs) {
-        const el = helpers.createCardElement(c4);
-        if (card._hass)
-          el.hass = card._hass;
-        card._children.push(el);
-        body.appendChild(el);
-      }
-    } catch (_2) {
-      const msg = document.createElement("div");
-      msg.className = "px-2 py-2 text-[12px] text-muted";
-      msg.textContent = t3(card._hass, "sheet.load_error");
-      body.appendChild(msg);
-    }
-  }
-  function openSheet(id) {
-    const card = layer.sheets.get(id);
-    if (!card || layer.openId === id)
-      return;
-    layer.opener = deepActiveElement();
-    build();
-    layer.openId = id;
-    layer.host.setAttribute("data-open", "true");
-    lockView(true);
-    renderContent(card);
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      layer.host.setAttribute("data-shown", "true");
-      if (layer.panel)
-        layer.panel.focus();
-    }));
-  }
-  function closeSheet() {
-    if (layer.openId == null)
-      return;
-    const id = layer.openId;
-    layer.openId = null;
-    clearTimeout(layer.closeTimer);
-    if (layer.host)
-      layer.host.removeAttribute("data-shown");
-    if (window.location.hash === `#${id}`) {
-      history.replaceState(null, "", window.location.pathname + window.location.search);
-    }
-    const finish = () => {
-      if (layer.openId != null)
-        return;
-      if (layer.host)
-        layer.host.removeAttribute("data-open");
-      if (layer.bodyEl)
-        layer.bodyEl.textContent = "";
-      lockView(false);
-      const opener = layer.opener;
-      layer.opener = null;
-      if (opener && opener.focus)
-        opener.focus();
-    };
-    if (reduceMotion())
-      finish();
-    else
-      layer.closeTimer = setTimeout(finish, 300);
-  }
-  function syncFromHash() {
-    const hash = window.location.hash.replace(/^#/, "");
-    if (hash && layer.sheets.has(hash))
-      openSheet(hash);
-    else if (layer.openId != null)
-      closeSheet();
-  }
-  function registerSheet(id, card) {
-    ensureListeners();
-    build();
-    layer.sheets.set(id, card);
-    if (window.location.hash === `#${id}`)
-      openSheet(id);
-  }
-  function unregisterSheet(id, card) {
-    if (layer.sheets.get(id) === card)
-      layer.sheets.delete(id);
-    if (layer.openId === id)
-      closeSheet();
-    if (layer.sheets.size === 0 && layer.host) {
-      clearTimeout(layer.closeTimer);
-      lockView(false);
-      layer.host.remove();
-      layer.built = false;
-      layer.host = null;
-      removeSheetListeners();
-    }
-  }
-  function updateSheetHass(id, hass) {
-    if (layer.openId !== id)
-      return;
-    const card = layer.sheets.get(id);
-    if (card && card._children)
-      card._children.forEach((el) => {
-        el.hass = hass;
-      });
-  }
-  var listenersOn = false;
-  function ensureListeners() {
-    if (listenersOn)
-      return;
-    listenersOn = true;
-    window.addEventListener("hashchange", syncFromHash);
-    window.addEventListener("focusin", onFocusIn);
-    window.addEventListener("keydown", onKeydown);
-  }
-  function removeSheetListeners() {
-    if (!listenersOn)
-      return;
-    listenersOn = false;
-    window.removeEventListener("hashchange", syncFromHash);
-    window.removeEventListener("focusin", onFocusIn);
-    window.removeEventListener("keydown", onKeydown);
-  }
-
-  // src/cards/sheet.js
-  class FibbersSheet extends i4 {
-    static properties = { preview: { type: Boolean, reflect: true } };
-    static styles = [
-      i`
-      :host {
-        display: none;
-      }
-      :host([preview]) {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig() {
-      return {
-        type: "custom:fibbers-sheet",
-        id: "room",
-        title: "Room",
-        icon: "solar:sofa-2-bold-duotone",
-        cards: []
-      };
-    }
-    setConfig(config) {
-      if (!config || !config.id || typeof config.id !== "string") {
-        throw new Error("fibbers-sheet: `id` (a unique string) is required");
-      }
-      if (config.cards != null && !Array.isArray(config.cards)) {
-        throw new Error("fibbers-sheet: `cards` must be a list");
-      }
-      if (this._config && this._config.id !== config.id && this.isConnected && !this.preview) {
-        unregisterSheet(this._config.id, this);
-      }
-      this._config = config;
-      if (this.isConnected && !this.preview)
-        registerSheet(config.id, this);
-    }
-    set hass(hass) {
-      if (this.preview)
-        return;
-      this._hass = hass;
-      if (this._config)
-        updateSheetHass(this._config.id, hass);
-    }
-    connectedCallback() {
-      super.connectedCallback();
-      if (this.preview)
-        return;
-      const cell = this.getRootNode().host;
-      if (cell) {
-        this._cell = cell;
-        cell.style.display = "none";
-      }
-      if (this._config)
-        registerSheet(this._config.id, this);
-    }
-    disconnectedCallback() {
-      super.disconnectedCallback();
-      if (this._cell) {
-        this._cell.style.display = "";
-        this._cell = null;
-      }
-      if (this.preview)
-        return;
-      if (this._config)
-        unregisterSheet(this._config.id, this);
-    }
-    render() {
-      if (!this.preview)
-        return b2``;
-      const c4 = this._config || {};
-      return b2`<div
-      style="display:flex;align-items:center;gap:10px;background:#1d2426;
-             border:1px solid #262f31;border-radius:14px;padding:13px"
-    >
-      <div
-        style="display:flex;width:36px;height:36px;align-items:center;
-               justify-content:center;border-radius:10px;background:#173524"
-      >
-        <fib-icon
-          style="--mdc-icon-size:19px;color:#74b98a"
-          icon=${c4.icon || "solar:widget-bold-duotone"}
-        ></fib-icon>
-      </div>
-      <div style="font:600 13px system-ui;color:#e7ecea">
-        ${c4.title || c4.id || "Sheet"}
-        <div style="font:500 11px system-ui;color:#8b999c">
-          opens on #${c4.id || "id"}
-        </div>
-      </div>
-    </div>`;
-    }
-    getCardSize() {
-      return 1;
-    }
-    getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 1 };
-    }
-    getGridOptions() {
-      return { columns: 1, rows: 1, min_columns: 1, min_rows: 1 };
-    }
-  }
-
-  // src/cards/stat.js
+  // src/cards/sensors/stat.js
   var COLORS2 = ["accent", "amber", "blue", "green", "red"];
   var IC = {
     accent: "bg-accentbg text-accent",
@@ -7150,7 +7258,7 @@ ${BASE_CSS}`);
     const n4 = Number(String(raw).replace(",", "."));
     return Number.isFinite(n4) ? fmtNum(hass, n4, decimals) : String(raw);
   };
-  var EDITOR_SCHEMA9 = [
+  var EDITOR_SCHEMA10 = [
     { name: "entity", selector: { entity: {} } },
     { name: "name", selector: { text: {} } },
     { name: "icon", selector: { icon: {} } },
@@ -7188,7 +7296,7 @@ ${BASE_CSS}`);
     }
     static getConfigElement() {
       const el = document.createElement("fibbers-form-editor");
-      el.schema = EDITOR_SCHEMA9;
+      el.schema = EDITOR_SCHEMA10;
       return el;
     }
     setConfig(config) {
@@ -7299,7 +7407,7 @@ ${BASE_CSS}`);
     }
   }
 
-  // src/cards/sysmon.js
+  // src/cards/sensors/sysmon.js
   var W2 = 300;
 
   class FibbersSysmon extends i4 {
@@ -7464,115 +7572,7 @@ ${BASE_CSS}`);
     }
   }
 
-  // src/cards/toggle.js
-  var EDITOR_SCHEMA10 = [
-    { name: "entity", selector: { entity: {} } },
-    { name: "name", selector: { text: {} } },
-    { name: "icon", selector: { icon: {} } },
-    { name: "secondary", selector: { text: {} } },
-    { name: "secondary_entity", selector: { entity: {} } },
-    { name: "confirm", selector: { boolean: {} } }
-  ];
-
-  class FibbersToggle extends i4 {
-    static properties = {
-      hass: { attribute: false },
-      _config: { state: true }
-    };
-    static styles = [
-      twSheet,
-      i`
-      :host {
-        display: block;
-      }
-    `
-    ];
-    static getStubConfig(hass, entities, entitiesFallback) {
-      return {
-        type: "custom:fibbers-toggle",
-        entity: pickEntity("input_boolean", entities, entitiesFallback, "input_boolean.example")
-      };
-    }
-    static getConfigElement() {
-      const el = document.createElement("fibbers-form-editor");
-      el.schema = EDITOR_SCHEMA10;
-      return el;
-    }
-    setConfig(config) {
-      if (!config || !config.entity) {
-        throw new Error("fibbers-toggle: `entity` is required");
-      }
-      this._config = config;
-    }
-    _st() {
-      return this.hass && this.hass.states[this._config.entity];
-    }
-    _toggle() {
-      if (!this.hass)
-        return;
-      const cfg = this._config;
-      if (cfg.confirm && !window.confirm(`${cfg.name || cfg.entity}?`))
-        return;
-      this.hass.callService("homeassistant", "toggle", { entity_id: cfg.entity });
-    }
-    _secondary() {
-      const cfg = this._config;
-      if (cfg.secondary)
-        return cfg.secondary;
-      if (cfg.secondary_entity) {
-        const s4 = this.hass && this.hass.states[cfg.secondary_entity];
-        return s4 ? fmtState(this.hass, s4) : "";
-      }
-      return "";
-    }
-    render() {
-      const cfg = this._config;
-      if (!cfg)
-        return b2``;
-      const hl = cfg.language || this.hass;
-      const st = this._st();
-      if (!st) {
-        return b2`<div
-        class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
-      >
-        ${t3(hl, "common.not_available")}
-      </div>`;
-      }
-      const on = st.state === "on";
-      const name = cfg.name || st.attributes.friendly_name || cfg.entity;
-      const icon = cfg.icon || st.attributes.icon || "solar:power-bold-duotone";
-      const sub = this._secondary();
-      return b2`<div
-      class="flex items-center gap-2.5 rounded-[14px] border border-line bg-card p-[13px]"
-    >
-      <div
-        class="flex h-8 w-8 flex-none items-center justify-center rounded-lg
-               ${on ? "bg-accentbg text-accent" : "bg-card2 text-muted"}"
-      >
-        <fib-icon
-          class="h-[18px] w-[18px] [--mdc-icon-size:18px]"
-          icon=${icon}
-        ></fib-icon>
-      </div>
-      <div class="min-w-0 flex-1">
-        <div class="truncate text-[12px] font-medium text-ink">${name}</div>
-        ${sub ? b2`<div class="truncate text-[10.5px] text-muted">${sub}</div>` : ""}
-      </div>
-      ${pillSwitch({ on, onClick: () => this._toggle(), label: name })}
-    </div>`;
-    }
-    getCardSize() {
-      return 1;
-    }
-    getLayoutOptions() {
-      return { grid_columns: "full", grid_rows: 1 };
-    }
-    getGridOptions() {
-      return { columns: "full", rows: "auto" };
-    }
-  }
-
-  // src/cards/weather.js
+  // src/cards/sensors/weather.js
   var COND_ICON = {
     "clear-night": "solar:moon-bold-duotone",
     sunny: "solar:sun-bold-duotone",

@@ -1,6 +1,6 @@
 /**
  * check-icons.mjs — fail the build if the repo references a `solar:` icon that
- * isn't in the eager core set (src/icons.core.gen.js).
+ * isn't in the eager core set (src/generated/icons.core.gen.js).
  *
  * The core set is what ships statically; anything else is fetched lazily from
  * dist/icons.full.json at runtime. This guard keeps that split honest: a name used
@@ -12,12 +12,12 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join, relative } from "node:path";
-import { ICONS } from "../src/icons.core.gen.js";
+import { ICONS } from "../src/generated/icons.core.gen.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..");
 const roots = [join(root, "src"), join(root, "storybook/stories")];
-const skip = join(root, "src/icons.core.gen.js");
+const skip = join(root, "src/generated/icons.core.gen.js");
 
 function jsFiles(dir) {
   const out = [];
@@ -48,7 +48,7 @@ for (const base of roots) {
 if (missing.size) {
   console.error(
     "check-icons: these `solar:` names are used in src/ but missing from the core " +
-      "set (src/icons.core.gen.js) — run `bun run gen-icons`:",
+      "set (src/generated/icons.core.gen.js) — run `bun run gen-icons`:",
   );
   for (const [name, files] of missing)
     console.error(`  ${name}  (${files.join(", ")})`);

@@ -305,17 +305,23 @@ and draws a placeholder glyph instead of a silent blank. `bun run check` fails i
 ## Development
 
 Built with **Lit** (web components) + **Tailwind CSS v4**, bundled by **Bun** into a single
-IIFE at `dist/fibbers.js` — still one file HACS serves, no external fetch. Two generated files
-are committed so the bundle is reproducible: Tailwind is compiled from `styles/tailwind.css`
-(`@theme` maps the Fibbers palette) into `src/tailwind.gen.js`, then `src/tw.js` builds one
-shared adopted stylesheet for every card’s shadow root (hoisting Tailwind v4’s `@property` rules
-to the document so shadow-DOM `box-shadow` works); the full Solar bold-duotone style is inlined
-into `src/icons.gen.js`.
+IIFE at `dist/fibbers.js` — still one file HACS serves. Two generated files under
+`src/generated/` are committed so the bundle is reproducible: Tailwind is compiled from
+`styles/tailwind.css` (`@theme` maps the Fibbers palette) into `src/generated/tailwind.gen.js`,
+then `src/shared/tw.js` builds one shared adopted stylesheet for every card’s shadow root
+(hoisting Tailwind v4’s `@property` rules to the document so shadow-DOM `box-shadow` works); the
+Solar icons the code references are inlined into `src/generated/icons.core.gen.js`, and the rest
+of the bold-duotone style is fetched on demand from `dist/icons.full.json`.
+
+`src/` is organised as `index.js` (the registry), `cards/<domain>/` (cards grouped by domain —
+`lights`, `media`, `climate`, `sensors`, `inputs`, `layout`), `core/` (the body-portal singletons,
+theming and navigation), `shared/` (widgets and helpers cards import), `generated/`, and
+`translations/`.
 
 ```bash
 bun install         # runtime: lit · dev: tailwindcss, prettier, eslint, @iconify-json/solar
-bun run gen-tw      # styles/tailwind.css -> src/tailwind.gen.js   (build runs this too)
-bun run gen-icons   # @iconify-json/solar -> src/icons.gen.js      (full bold-duotone style)
+bun run gen-tw      # styles/tailwind.css -> src/generated/tailwind.gen.js   (build runs this too)
+bun run gen-icons   # @iconify-json/solar -> src/generated/icons.core.gen.js + dist/icons.full.json
 bun run build       # gen-tw + src/ -> dist/fibbers.js  (single IIFE)
 bun run watch       # rebuild on change
 bun run lint        # eslint (flat config: @eslint/js + curated Airbnb rules + lit/wc)
