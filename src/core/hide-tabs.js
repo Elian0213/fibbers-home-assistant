@@ -1,22 +1,21 @@
 /* ================================================================== *
  * HIDE HA TABS — suppress HA's top tab strip so a bottom-nav dashboard can drop
- * kiosk-mode. It lives inside hui-root's shadow root (verified on HA 2026.8.x),
- * so we inject a <style> there, the way card-mod does.
- * Modes: false = untouched; true = hide ha-tab-group; "header" = hide .header.
+ * kiosk-mode. Injects a scoped <style> into hui-root's shadow root (the way
+ * card-mod does) through the shared hui-inject machine.
+ * Modes: false = untouched; true = hide the tab strip; "header" = hide .header.
  * ================================================================== */
-import { deepFind } from "../shared/util.js";
+import { injectStyle, removeStyle, findHuiRoot } from "./hui-inject.js";
 
 const STYLE_ID = "fibbers-hide-tabs";
+// Cover the tab strip across HA versions: the modern ha-tab-group and the older
+// ha-tabs/paper-tabs/sl-tab-group, so a version bump doesn't silently no-op.
+const TAB_SEL = "ha-tab-group, ha-tabs, paper-tabs, sl-tab-group";
 const CSS = {
-  true: `ha-tab-group { display: none !important; }`,
+  true: `${TAB_SEL} { display: none !important; }`,
   header: `.header { display: none !important; }`,
 };
 
-const state = {
-  mode: false, // false | true | "header"
-  observer: null,
-  scheduled: false,
-};
+const state = { mode: false };
 
 // Escape hatches (global flag or ?disable_km) so a stuck dashboard is always
 // recoverable — never leave the user without HA's tabs and no way back.
@@ -29,84 +28,40 @@ function suppressed() {
   }
 }
 
-/** Locate HA's hui-root — the shadow host we inject the hide-tabs style into. */
-export const findHuiRoot = () => deepFind("hui-root");
-
-// The panel wrapper we observe for re-renders.
-const findResolvedPanel = () => deepFind("partial-panel-resolver");
-
-// Append or update the single injected style inside hui-root.shadowRoot.
-function paint() {
-  if (!state.mode || suppressed()) return removeStyle();
-  const root = findHuiRoot();
-  if (!root || !root.shadowRoot) {
-    console.debug("fibbers: hui-root not found; leaving HA tabs untouched");
-    return;
-  }
-  const css = CSS[state.mode];
-  if (!css) return;
-  let style = root.shadowRoot.getElementById(STYLE_ID);
-  if (style) {
-    if (style.textContent !== css) style.textContent = css; // idempotent update
-    return;
-  }
-  style = document.createElement("style");
-  style.id = STYLE_ID;
-  style.textContent = css;
-  root.shadowRoot.appendChild(style);
+function computeCss() {
+  if (!state.mode || suppressed()) return "";
+  return CSS[state.mode] || "";
 }
 
-// Remove the injected style if present.
-function removeStyle() {
-  const root = findHuiRoot();
-  const style =
-    root && root.shadowRoot && root.shadowRoot.getElementById(STYLE_ID);
-  if (style) style.remove();
-}
-
-// Debounced re-apply — the MutationObserver on the panel fires very often.
-function schedulePaint() {
-  if (state.scheduled) return;
-  state.scheduled = true;
+// Once, after HA has had time to render: if the tab selectors matched nothing, the
+// strip has a different shape on this version — say so instead of silently failing.
+function diagnose() {
+  if (state.mode !== true) return;
   setTimeout(() => {
-    state.scheduled = false;
-    paint();
-  }, 60);
-}
-
-function startObserver() {
-  if (state.observer) return;
-  const panel = findResolvedPanel() || document.body;
-  try {
-    state.observer = new MutationObserver(schedulePaint);
-    state.observer.observe(panel, { childList: true, subtree: true });
-  } catch (_) {
-    /* MutationObserver unavailable — location-changed still re-applies */
-  }
-}
-
-function stopObserver() {
-  if (state.observer) {
-    state.observer.disconnect();
-    state.observer = null;
-  }
+    const root = findHuiRoot();
+    if (root && root.shadowRoot && !root.shadowRoot.querySelector(TAB_SEL))
+      console.debug(
+        "fibbers: hide_ha_tabs matched no tab strip " +
+          `(${TAB_SEL}) in hui-root — the selector may be stale for this HA version`,
+      );
+  }, 1000);
 }
 
 /**
- * Set the tab-hiding mode from the bar singleton's attach(). `true` hides
- * ha-tab-group, `"header"` hides the whole header; `false`/undefined tears down.
+ * Set the tab-hiding mode from the bar singleton's attach(). `true` hides the tab
+ * strip, `"header"` hides the whole header; `false`/undefined tears down.
  * @param {boolean|"header"} mode
  */
 export function setTabHiding(mode) {
   const normalized = mode === true || mode === "header" ? mode : false;
+  const changed = state.mode !== normalized;
   state.mode = normalized;
   if (!normalized) {
     removeTabHiding();
     return;
   }
-  paint();
-  startObserver();
-  startNavListeners();
+  injectStyle(STYLE_ID, computeCss);
+  if (changed) diagnose();
 }
 
 /**
@@ -115,24 +70,5 @@ export function setTabHiding(mode) {
  */
 export function removeTabHiding() {
   state.mode = false;
-  stopObserver();
-  stopNavListeners();
-  removeStyle();
-}
-
-// Re-apply after HA swaps hui-root / rebuilds the toolbar on navigation — bound
-// only while tabs are actually being hidden, so an unthemed dashboard doesn't run
-// a repaint on every navigation.
-let navBound = false;
-function startNavListeners() {
-  if (navBound) return;
-  navBound = true;
-  window.addEventListener("location-changed", schedulePaint);
-  window.addEventListener("popstate", schedulePaint);
-}
-function stopNavListeners() {
-  if (!navBound) return;
-  navBound = false;
-  window.removeEventListener("location-changed", schedulePaint);
-  window.removeEventListener("popstate", schedulePaint);
+  removeStyle(STYLE_ID);
 }

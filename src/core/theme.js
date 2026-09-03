@@ -12,9 +12,8 @@
  *   theme: fibbers-light  — a light palette derived for legibility (not inverted)
  *   theme: auto           — follow prefers-color-scheme
  * ================================================================== */
-import { deepFind } from "../shared/util.js";
-
 import { DARK_VARS } from "./global-css.js";
+import { injectStyle, removeStyle } from "./hui-inject.js";
 
 const STYLE_ID = "fibbers-theme";
 
@@ -72,10 +71,7 @@ const LIGHT_VARS = {
   "--paper-slider-container-color": "#D8DDDA",
 };
 
-const state = { mode: "none", scheduled: false, observer: null, mql: null };
-
-const findHuiRoot = () => deepFind("hui-root");
-const findResolvedPanel = () => deepFind("partial-panel-resolver");
+const state = { mode: "none", mql: null };
 
 // Which palette the current mode resolves to (null = inject nothing).
 function palette() {
@@ -109,60 +105,15 @@ function cssFor(vars) {
   return `:host {\n${decls}\n}`;
 }
 
-function paint() {
+// The style the shared injector re-applies on every HA re-render ("" → removed).
+function computeCss() {
   const vars = palette();
-  if (!vars) return removeStyle();
-  const root = findHuiRoot();
-  if (!root || !root.shadowRoot) return;
-  const css = cssFor(vars);
-  let style = root.shadowRoot.getElementById(STYLE_ID);
-  if (style) {
-    if (style.textContent !== css) style.textContent = css; // idempotent update
-    return;
-  }
-  style = document.createElement("style");
-  style.id = STYLE_ID;
-  style.textContent = css;
-  root.shadowRoot.appendChild(style);
-}
-
-function removeStyle() {
-  const root = findHuiRoot();
-  const style =
-    root && root.shadowRoot && root.shadowRoot.getElementById(STYLE_ID);
-  if (style) style.remove();
-}
-
-// HA re-renders the panel often; debounce like hide-tabs does.
-function schedulePaint() {
-  if (state.scheduled) return;
-  state.scheduled = true;
-  setTimeout(() => {
-    state.scheduled = false;
-    paint();
-  }, 60);
-}
-
-function startObserver() {
-  if (state.observer) return;
-  const panel = findResolvedPanel() || document.body;
-  try {
-    state.observer = new MutationObserver(schedulePaint);
-    state.observer.observe(panel, { childList: true, subtree: true });
-  } catch (_) {
-    /* MutationObserver unavailable — location-changed still re-applies */
-  }
-}
-
-function stopObserver() {
-  if (state.observer) {
-    state.observer.disconnect();
-    state.observer = null;
-  }
+  return vars ? cssFor(vars) : "";
 }
 
 const onScheme = () => {
-  if (state.mode === "auto") schedulePaint();
+  // In `auto`, a colour-scheme flip changes which palette computeCss() returns.
+  if (state.mode === "auto") injectStyle(STYLE_ID, computeCss);
 };
 
 function watchScheme() {
@@ -200,38 +151,17 @@ export function applyTheme(mode) {
     removeTheme();
     return;
   }
-  paint();
-  startObserver();
-  startNavListeners();
+  injectStyle(STYLE_ID, computeCss);
   if (normalized === "auto") watchScheme();
   else unwatchScheme();
 }
 
 /**
- * Full teardown — drop the injected style, observer, nav listeners, and scheme
- * watcher. Called from detach() when the last fibbers-nav unmounts.
+ * Full teardown — drop the injected style and the scheme watcher. Called from
+ * detach() when the last fibbers-nav unmounts.
  */
 export function removeTheme() {
   state.mode = "none";
-  stopObserver();
-  stopNavListeners();
   unwatchScheme();
-  removeStyle();
-}
-
-// Re-apply after HA swaps hui-root / rebuilds the view on navigation — but only
-// bind these while a theme is actually active, so a dashboard with `theme: none`
-// (the default) doesn't run a repaint on every navigation.
-let navBound = false;
-function startNavListeners() {
-  if (navBound) return;
-  navBound = true;
-  window.addEventListener("location-changed", schedulePaint);
-  window.addEventListener("popstate", schedulePaint);
-}
-function stopNavListeners() {
-  if (!navBound) return;
-  navBound = false;
-  window.removeEventListener("location-changed", schedulePaint);
-  window.removeEventListener("popstate", schedulePaint);
+  removeStyle(STYLE_ID);
 }

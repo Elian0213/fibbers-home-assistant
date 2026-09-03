@@ -3216,17 +3216,110 @@ ${BASE_CSS}`);
   }`;
   }
 
+  // src/core/hui-inject.js
+  function findHuiRoot() {
+    return deepFind("hui-root");
+  }
+  var findPanel = () => deepFind("partial-panel-resolver");
+  var subs = new Map;
+  var state = {
+    observer: null,
+    scheduled: false,
+    navBound: false,
+    warned: false
+  };
+  function paintOne(root, id, css) {
+    const existing = root.shadowRoot.getElementById(id);
+    if (!css) {
+      if (existing)
+        existing.remove();
+      return;
+    }
+    if (existing) {
+      if (existing.textContent !== css)
+        existing.textContent = css;
+      return;
+    }
+    const style = document.createElement("style");
+    style.id = id;
+    style.textContent = css;
+    root.shadowRoot.appendChild(style);
+  }
+  function paintAll() {
+    const root = findHuiRoot();
+    if (!root || !root.shadowRoot) {
+      if (!state.warned) {
+        state.warned = true;
+        console.debug("fibbers: hui-root not found; scoped styles not applied yet");
+      }
+      return;
+    }
+    state.warned = false;
+    for (const [id, compute] of subs)
+      paintOne(root, id, compute());
+  }
+  function schedule() {
+    if (state.scheduled)
+      return;
+    state.scheduled = true;
+    setTimeout(() => {
+      state.scheduled = false;
+      paintAll();
+    }, 60);
+  }
+  function startShared() {
+    if (!state.observer && window.MutationObserver) {
+      try {
+        state.observer = new MutationObserver(schedule);
+        state.observer.observe(findPanel() || document.body, {
+          childList: true,
+          subtree: true
+        });
+      } catch (_2) {}
+    }
+    if (!state.navBound) {
+      state.navBound = true;
+      window.addEventListener("location-changed", schedule);
+      window.addEventListener("popstate", schedule);
+    }
+  }
+  function stopShared() {
+    if (subs.size)
+      return;
+    if (state.observer) {
+      state.observer.disconnect();
+      state.observer = null;
+    }
+    if (state.navBound) {
+      state.navBound = false;
+      window.removeEventListener("location-changed", schedule);
+      window.removeEventListener("popstate", schedule);
+    }
+  }
+  function injectStyle(id, computeCss) {
+    const first = subs.size === 0;
+    subs.set(id, computeCss);
+    if (first)
+      startShared();
+    paintAll();
+  }
+  function removeStyle(id) {
+    subs.delete(id);
+    const root = findHuiRoot();
+    const existing = root && root.shadowRoot && root.shadowRoot.getElementById(id);
+    if (existing)
+      existing.remove();
+    stopShared();
+  }
+
   // src/core/hide-tabs.js
   var STYLE_ID = "fibbers-hide-tabs";
+  var TAB_SEL = "ha-tab-group, ha-tabs, paper-tabs, sl-tab-group";
   var CSS = {
-    true: `ha-tab-group { display: none !important; }`,
+    true: `${TAB_SEL} { display: none !important; }`,
     header: `.header { display: none !important; }`
   };
-  var state = {
-    mode: false,
-    observer: null,
-    scheduled: false
-  };
+  var state2 = { mode: false };
   function suppressed() {
     if (window.FIBBERS_SHOW_TABS === true)
       return true;
@@ -3236,91 +3329,35 @@ ${BASE_CSS}`);
       return false;
     }
   }
-  var findHuiRoot = () => deepFind("hui-root");
-  var findResolvedPanel = () => deepFind("partial-panel-resolver");
-  function paint() {
-    if (!state.mode || suppressed())
-      return removeStyle();
-    const root = findHuiRoot();
-    if (!root || !root.shadowRoot) {
-      console.debug("fibbers: hui-root not found; leaving HA tabs untouched");
-      return;
-    }
-    const css = CSS[state.mode];
-    if (!css)
-      return;
-    let style = root.shadowRoot.getElementById(STYLE_ID);
-    if (style) {
-      if (style.textContent !== css)
-        style.textContent = css;
-      return;
-    }
-    style = document.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = css;
-    root.shadowRoot.appendChild(style);
+  function computeCss() {
+    if (!state2.mode || suppressed())
+      return "";
+    return CSS[state2.mode] || "";
   }
-  function removeStyle() {
-    const root = findHuiRoot();
-    const style = root && root.shadowRoot && root.shadowRoot.getElementById(STYLE_ID);
-    if (style)
-      style.remove();
-  }
-  function schedulePaint() {
-    if (state.scheduled)
+  function diagnose() {
+    if (state2.mode !== true)
       return;
-    state.scheduled = true;
     setTimeout(() => {
-      state.scheduled = false;
-      paint();
-    }, 60);
-  }
-  function startObserver() {
-    if (state.observer)
-      return;
-    const panel = findResolvedPanel() || document.body;
-    try {
-      state.observer = new MutationObserver(schedulePaint);
-      state.observer.observe(panel, { childList: true, subtree: true });
-    } catch (_2) {}
-  }
-  function stopObserver() {
-    if (state.observer) {
-      state.observer.disconnect();
-      state.observer = null;
-    }
+      const root = findHuiRoot();
+      if (root && root.shadowRoot && !root.shadowRoot.querySelector(TAB_SEL))
+        console.debug("fibbers: hide_ha_tabs matched no tab strip " + `(${TAB_SEL}) in hui-root — the selector may be stale for this HA version`);
+    }, 1000);
   }
   function setTabHiding(mode) {
     const normalized = mode === true || mode === "header" ? mode : false;
-    state.mode = normalized;
+    const changed = state2.mode !== normalized;
+    state2.mode = normalized;
     if (!normalized) {
       removeTabHiding();
       return;
     }
-    paint();
-    startObserver();
-    startNavListeners();
+    injectStyle(STYLE_ID, computeCss);
+    if (changed)
+      diagnose();
   }
   function removeTabHiding() {
-    state.mode = false;
-    stopObserver();
-    stopNavListeners();
-    removeStyle();
-  }
-  var navBound = false;
-  function startNavListeners() {
-    if (navBound)
-      return;
-    navBound = true;
-    window.addEventListener("location-changed", schedulePaint);
-    window.addEventListener("popstate", schedulePaint);
-  }
-  function stopNavListeners() {
-    if (!navBound)
-      return;
-    navBound = false;
-    window.removeEventListener("location-changed", schedulePaint);
-    window.removeEventListener("popstate", schedulePaint);
+    state2.mode = false;
+    removeStyle(STYLE_ID);
   }
 
   // src/core/global-css.js
@@ -3430,15 +3467,13 @@ ${decls}
     "--paper-slider-knob-color": "#2F6B45",
     "--paper-slider-container-color": "#D8DDDA"
   };
-  var state2 = { mode: "none", scheduled: false, observer: null, mql: null };
-  var findHuiRoot2 = () => deepFind("hui-root");
-  var findResolvedPanel2 = () => deepFind("partial-panel-resolver");
+  var state3 = { mode: "none", mql: null };
   function palette() {
-    if (state2.mode === "fibbers")
+    if (state3.mode === "fibbers")
       return DARK_VARS;
-    if (state2.mode === "fibbers-light")
+    if (state3.mode === "fibbers-light")
       return LIGHT_VARS;
-    if (state2.mode === "auto") {
+    if (state3.mode === "auto") {
       const dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
       return dark ? DARK_VARS : LIGHT_VARS;
     }
@@ -3452,149 +3487,62 @@ ${decls}
 ${decls}
 }`;
   }
-  function paint2() {
+  function computeCss2() {
     const vars = palette();
-    if (!vars)
-      return removeStyle2();
-    const root = findHuiRoot2();
-    if (!root || !root.shadowRoot)
-      return;
-    const css = cssFor(vars);
-    let style = root.shadowRoot.getElementById(STYLE_ID3);
-    if (style) {
-      if (style.textContent !== css)
-        style.textContent = css;
-      return;
-    }
-    style = document.createElement("style");
-    style.id = STYLE_ID3;
-    style.textContent = css;
-    root.shadowRoot.appendChild(style);
-  }
-  function removeStyle2() {
-    const root = findHuiRoot2();
-    const style = root && root.shadowRoot && root.shadowRoot.getElementById(STYLE_ID3);
-    if (style)
-      style.remove();
-  }
-  function schedulePaint2() {
-    if (state2.scheduled)
-      return;
-    state2.scheduled = true;
-    setTimeout(() => {
-      state2.scheduled = false;
-      paint2();
-    }, 60);
-  }
-  function startObserver2() {
-    if (state2.observer)
-      return;
-    const panel = findResolvedPanel2() || document.body;
-    try {
-      state2.observer = new MutationObserver(schedulePaint2);
-      state2.observer.observe(panel, { childList: true, subtree: true });
-    } catch (_2) {}
-  }
-  function stopObserver2() {
-    if (state2.observer) {
-      state2.observer.disconnect();
-      state2.observer = null;
-    }
+    return vars ? cssFor(vars) : "";
   }
   var onScheme = () => {
-    if (state2.mode === "auto")
-      schedulePaint2();
+    if (state3.mode === "auto")
+      injectStyle(STYLE_ID3, computeCss2);
   };
   function watchScheme() {
-    if (state2.mql || !window.matchMedia)
+    if (state3.mql || !window.matchMedia)
       return;
-    state2.mql = window.matchMedia("(prefers-color-scheme: dark)");
+    state3.mql = window.matchMedia("(prefers-color-scheme: dark)");
     try {
-      state2.mql.addEventListener("change", onScheme);
+      state3.mql.addEventListener("change", onScheme);
     } catch (_2) {
-      state2.mql.addListener(onScheme);
+      state3.mql.addListener(onScheme);
     }
   }
   function unwatchScheme() {
-    if (!state2.mql)
+    if (!state3.mql)
       return;
     try {
-      state2.mql.removeEventListener("change", onScheme);
+      state3.mql.removeEventListener("change", onScheme);
     } catch (_2) {
-      state2.mql.removeListener(onScheme);
+      state3.mql.removeListener(onScheme);
     }
-    state2.mql = null;
+    state3.mql = null;
   }
   function applyTheme(mode) {
     const normalized = ["fibbers", "fibbers-light", "auto"].includes(mode) ? mode : "none";
-    state2.mode = normalized;
+    state3.mode = normalized;
     if (normalized === "none") {
       removeTheme();
       return;
     }
-    paint2();
-    startObserver2();
-    startNavListeners2();
+    injectStyle(STYLE_ID3, computeCss2);
     if (normalized === "auto")
       watchScheme();
     else
       unwatchScheme();
   }
   function removeTheme() {
-    state2.mode = "none";
-    stopObserver2();
-    stopNavListeners2();
+    state3.mode = "none";
     unwatchScheme();
-    removeStyle2();
-  }
-  var navBound2 = false;
-  function startNavListeners2() {
-    if (navBound2)
-      return;
-    navBound2 = true;
-    window.addEventListener("location-changed", schedulePaint2);
-    window.addEventListener("popstate", schedulePaint2);
-  }
-  function stopNavListeners2() {
-    if (!navBound2)
-      return;
-    navBound2 = false;
-    window.removeEventListener("location-changed", schedulePaint2);
-    window.removeEventListener("popstate", schedulePaint2);
+    removeStyle(STYLE_ID3);
   }
 
   // src/core/view-reserve.js
   var STYLE_ID4 = "fibbers-view-reserve";
-  var state3 = { px: 0, scheduled: false, observer: null };
-  var findHuiRoot3 = () => deepFind("hui-root");
-  var findResolvedPanel3 = () => deepFind("partial-panel-resolver");
-  function paint3() {
-    if (!state3.px)
-      return removeStyle3();
-    const root = findHuiRoot3();
-    if (!root || !root.shadowRoot)
-      return;
-    const css = `#view { padding-bottom: ${state3.px}px !important; }`;
-    let style = root.shadowRoot.getElementById(STYLE_ID4);
-    if (style) {
-      if (style.textContent !== css)
-        style.textContent = css;
-      return;
-    }
-    style = document.createElement("style");
-    style.id = STYLE_ID4;
-    style.textContent = css;
-    root.shadowRoot.appendChild(style);
-  }
-  function removeStyle3() {
-    const root = findHuiRoot3();
-    const style = root && root.shadowRoot && root.shadowRoot.getElementById(STYLE_ID4);
-    if (style)
-      style.remove();
+  var state4 = { px: 0 };
+  function computeCss3() {
+    return state4.px ? `#view { padding-bottom: ${state4.px}px !important; }` : "";
   }
   var LOCK_ID = "fibbers-view-lock";
   function lockView(on) {
-    const root = findHuiRoot3();
+    const root = findHuiRoot();
     if (!root || !root.shadowRoot)
       return;
     const existing = root.shadowRoot.getElementById(LOCK_ID);
@@ -3609,65 +3557,17 @@ ${decls}
       existing.remove();
     }
   }
-  function schedulePaint3() {
-    if (state3.scheduled)
-      return;
-    state3.scheduled = true;
-    setTimeout(() => {
-      state3.scheduled = false;
-      paint3();
-    }, 60);
-  }
-  function startObserver3() {
-    if (state3.observer)
-      return;
-    const panel = findResolvedPanel3() || document.body;
-    try {
-      state3.observer = new MutationObserver(schedulePaint3);
-      state3.observer.observe(panel, { childList: true, subtree: true });
-    } catch (_2) {}
-  }
-  function stopObserver3() {
-    if (state3.observer) {
-      state3.observer.disconnect();
-      state3.observer = null;
-    }
-  }
   function setViewReserve(px) {
-    const next = Math.max(0, Math.round(px || 0));
-    if (next === state3.px && state3.observer) {
-      paint3();
-      return;
-    }
-    state3.px = next;
-    if (!next) {
+    state4.px = Math.max(0, Math.round(px || 0));
+    if (!state4.px) {
       removeViewReserve();
       return;
     }
-    paint3();
-    startObserver3();
-    startNavListeners3();
+    injectStyle(STYLE_ID4, computeCss3);
   }
   function removeViewReserve() {
-    state3.px = 0;
-    stopObserver3();
-    stopNavListeners3();
-    removeStyle3();
-  }
-  var navBound3 = false;
-  function startNavListeners3() {
-    if (navBound3)
-      return;
-    navBound3 = true;
-    window.addEventListener("location-changed", schedulePaint3);
-    window.addEventListener("popstate", schedulePaint3);
-  }
-  function stopNavListeners3() {
-    if (!navBound3)
-      return;
-    navBound3 = false;
-    window.removeEventListener("location-changed", schedulePaint3);
-    window.removeEventListener("popstate", schedulePaint3);
+    state4.px = 0;
+    removeStyle(STYLE_ID4);
   }
 
   // src/core/body-layer.js
