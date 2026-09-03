@@ -10,11 +10,14 @@ import { activateOnKey } from "../../shared/ui.js";
 import { moreInfo, isUnavail } from "../../shared/util.js";
 import "../../shared/icon.js";
 
+/** Display name for a state — friendly_name, falling back to the entity_id. */
 const friendly = (s) =>
   (s.attributes && s.attributes.friendly_name) || s.entity_id;
 
-// Precompile a check's `exclude_pattern` once (case-insensitive) and validate it
-// in setConfig, so a bad pattern is a clear config error, not a per-render throw.
+/**
+ * Precompile a check's `exclude_pattern` once (case-insensitive) and validate it
+ * in setConfig, so a bad pattern is a clear config error, not a per-render throw.
+ */
 function compileCheck(check) {
   if (!check || !check.exclude_pattern) return check;
   try {
@@ -26,10 +29,11 @@ function compileCheck(check) {
   }
 }
 
-// The pattern is written from what's on screen, so match id AND friendly name.
+/** True when a compiled exclude regex hits the state — matches id AND friendly name, since the pattern is written from what's on screen. */
 const excludedBy = (re, s) =>
   re && (re.test(s.entity_id) || re.test(friendly(s)));
 
+/** Run one check against all states, returning `{label, detail, entity}` findings (empty when clear). */
 function runCheck(check, hass, hl) {
   const states = Object.values(hass.states);
   const out = [];
@@ -108,6 +112,10 @@ function runCheck(check, hass, hl) {
   return out;
 }
 
+/**
+ * fibbers-alert — an "attention needed" card from real checks (offline lights,
+ * low batteries, updates, stale backups). Green tick when everything's clear.
+ */
 export class FibbersAlert extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -122,6 +130,7 @@ export class FibbersAlert extends LitElement {
     `,
   ];
 
+  /** Seed config for the card picker — offline-lights and updates checks. */
   static getStubConfig() {
     return {
       type: "custom:fibbers-alert",
@@ -129,6 +138,7 @@ export class FibbersAlert extends LitElement {
     };
   }
 
+  /** Validate + store the config and precompile each check's exclude regex; throws when `checks` isn't a list so the editor surfaces it. */
   setConfig(config) {
     if (!config || !Array.isArray(config.checks)) {
       throw new Error("fibbers-alert: `checks` must be a list");
@@ -155,6 +165,7 @@ export class FibbersAlert extends LitElement {
     moreInfo(this, entity);
   }
 
+  /** Render the all-clear tick or the amber findings list, each row tapping through to more-info. */
   render() {
     if (!this._config) return html``;
     const findings = this._findings();
@@ -205,12 +216,15 @@ export class FibbersAlert extends LitElement {
     </div>`;
   }
 
+  /** Masonry height in rows. */
   getCardSize() {
     return 2;
   }
+  /** Legacy sections-view sizing (grid_columns/grid_rows). */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 2 };
   }
+  /** Current sections-view sizing — full width, auto height. */
   getGridOptions() {
     return { columns: "full", rows: "auto" };
   }

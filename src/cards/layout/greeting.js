@@ -27,6 +27,11 @@ function joinNames(names, and) {
   return `${names.slice(0, -1).join(", ")} ${and} ${names[names.length - 1]}`;
 }
 
+/**
+ * fibbers-greeting — time-of-day header plus a lights/presence/sensor subline
+ * ("4 of 7 lights on · 2 offline · Elian home · 19.2 °C"). Light groups expand to
+ * members; offline lights are counted separately.
+ */
 export class FibbersGreeting extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -42,6 +47,7 @@ export class FibbersGreeting extends LitElement {
     `,
   ];
 
+  /** Starter config for the picker; seeds a light from the dashboard's entities. */
   static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-greeting",
@@ -49,6 +55,7 @@ export class FibbersGreeting extends LitElement {
     };
   }
 
+  /** Store the config (all fields optional beyond its presence). */
   setConfig(config) {
     if (!config) throw new Error("fibbers-greeting: config required");
     this._config = config;
@@ -124,6 +131,7 @@ export class FibbersGreeting extends LitElement {
     return parts.join(" · ");
   }
 
+  /** Period icon + greeting title (optionally ", <name>") over the live subline. */
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
@@ -150,12 +158,15 @@ export class FibbersGreeting extends LitElement {
     </div>`;
   }
 
+  /** One masonry row. */
   getCardSize() {
     return 1;
   }
+  /** Full-width, single-row footprint in the sections/grid layout. */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 1 };
   }
+  /** Span the full grid width; height follows content. */
   getGridOptions() {
     return { columns: "full", rows: "auto" };
   }

@@ -25,7 +25,11 @@ const BASE_CSS = `:host{--fib-hit:44px}
 .fib-hit{position:relative}
 .fib-hit::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:var(--fib-hit);min-height:var(--fib-hit);width:100%;height:100%}`;
 
-/** The shared utility sheet, ready to drop into a Lit card's `static styles`. */
+/**
+ * The shared utility + baseline-a11y stylesheet, ready to drop into a Lit card's
+ * `static styles`. A constructable CSSStyleSheet where supported, else a Lit
+ * `unsafeCSS` result for very old engines.
+ */
 export let twSheet;
 
 if (supportsAdopt) {

@@ -7,6 +7,7 @@ import { twSheet } from "../../shared/tw.js";
 
 const EDITOR_SCHEMA = [{ name: "label", selector: { text: {} } }];
 
+/** fibbers-section — uppercase mono divider label between stacks of cards. */
 export class FibbersSection extends LitElement {
   static properties = { _config: { state: true } };
   static styles = [
@@ -18,16 +19,19 @@ export class FibbersSection extends LitElement {
     `,
   ];
 
+  /** Starter config for the card picker. */
   static getStubConfig() {
     return { type: "custom:fibbers-section", label: "Section" };
   }
 
+  /** Return the shared form editor, wired to this card's schema. */
   static getConfigElement() {
     const el = document.createElement("fibbers-form-editor");
     el.schema = EDITOR_SCHEMA;
     return el;
   }
 
+  /** Require a `label` and store the config. */
   setConfig(config) {
     if (!config || !config.label) {
       throw new Error("fibbers-section: `label` is required");
@@ -35,8 +39,10 @@ export class FibbersSection extends LitElement {
     this._config = config;
   }
 
+  /** No-op — a static label needs no state. */
   set hass(_hass) {}
 
+  /** The uppercase mono label. */
   render() {
     if (!this._config) return html``;
     return html`<div
@@ -46,12 +52,15 @@ export class FibbersSection extends LitElement {
     </div>`;
   }
 
+  /** One masonry row. */
   getCardSize() {
     return 1;
   }
+  /** Full-width, single-row footprint in the sections/grid layout. */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 1 };
   }
+  /** Span the full grid width; height follows content. */
   getGridOptions() {
     return { columns: "full", rows: "auto" };
   }

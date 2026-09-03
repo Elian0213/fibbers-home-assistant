@@ -20,8 +20,10 @@ const DOMAIN_ICON = {
   media_player: "solar:speaker-bold-duotone",
 };
 
+/** Parse a locale-decimal state string (comma or dot) to a float. */
 const num = (s) => parseFloat(String(s).replace(",", "."));
 
+/** Relative "N minutes/hours/days ago" for a timestamp, localised via `t(hl, …)`; "" on a non-timestamp. */
 function ago(iso, hl) {
   const parsed = Date.parse(iso);
   if (isNaN(parsed)) return "";
@@ -32,8 +34,11 @@ function ago(iso, hl) {
   return t(hl, "common.days_ago", { n: Math.round(hrs / 24) });
 }
 
-// Precompile each filter's `entity_id` regex once (in setConfig), validating it
-// there so a bad pattern is a clear config error instead of a per-render throw.
+/**
+ * Precompile each filter's `entity_id` regex once (in setConfig), validating it
+ * there so a bad pattern is a clear config error instead of a per-render throw.
+ * @param label — used in the error message so the editor names the offending list.
+ */
 function compileFilters(filters, label) {
   return (filters || []).map((f) => {
     if (!f.entity_id) return f;
@@ -47,6 +52,7 @@ function compileFilters(filters, label) {
   });
 }
 
+/** True when a state passes a single compiled filter (domain/regex/state/attr/threshold/staleness — all AND-ed). */
 function matches(st, f) {
   if (f.domain && !st.entity_id.startsWith(`${f.domain}.`)) return false;
   if (f._re && !f._re.test(st.entity_id)) return false;
@@ -72,6 +78,10 @@ function matches(st, f) {
   return true;
 }
 
+/**
+ * fibbers-entities — the auto-entities replacement: a list filled from `filters`
+ * (domain/state/attribute/entity_id regex/threshold/staleness). Row → more-info.
+ */
 export class FibbersEntities extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -86,6 +96,7 @@ export class FibbersEntities extends LitElement {
     `,
   ];
 
+  /** Seed config for the card picker — an "unavailable lights" example filter. */
   static getStubConfig() {
     return {
       type: "custom:fibbers-entities",
@@ -94,6 +105,7 @@ export class FibbersEntities extends LitElement {
     };
   }
 
+  /** Validate + store the config and precompile the `filters`/`exclude` regexes; throws on an empty list or a bad pattern so the editor surfaces it. */
   setConfig(config) {
     if (!config || !Array.isArray(config.filters) || !config.filters.length) {
       throw new Error("fibbers-entities: `filters` must be a non-empty list");
@@ -160,8 +172,10 @@ export class FibbersEntities extends LitElement {
     return fmtState(this.hass, st);
   }
 
-  // Only re-render when a matched row's visible content actually changed — a card
-  // filled from all of hass.states would otherwise re-render on every state push.
+  /**
+   * Gate renders on a content signature of the matched rows — a card filled from
+   * all of hass.states would otherwise re-render on every state push.
+   */
   shouldUpdate(changed) {
     if (!this._config) return false;
     if (changed.has("_config")) {
@@ -178,6 +192,7 @@ export class FibbersEntities extends LitElement {
     this._sig = sig;
     return true;
   }
+  /** Render the row list (optional title, per-row icon/name/secondary) or the `empty` all-clear line. */
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
@@ -248,12 +263,15 @@ export class FibbersEntities extends LitElement {
     </div>`;
   }
 
+  /** Masonry height in rows. */
   getCardSize() {
     return 2;
   }
+  /** Legacy sections-view sizing (grid_columns/grid_rows). */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 2 };
   }
+  /** Current sections-view sizing — full width, auto height. */
   getGridOptions() {
     return { columns: "full", rows: "auto" };
   }

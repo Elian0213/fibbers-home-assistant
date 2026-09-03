@@ -103,6 +103,11 @@ const DPAD_MODES = ["swipe", "buttons", "both", "grid"];
 // Every button/target is at least the shared --fib-hit (44px) square.
 const BTN = "h-[var(--fib-hit)] w-[var(--fib-hit)]";
 
+/**
+ * fibbers-remote — a TV/speaker remote over `remote.send_command` with per-platform
+ * command names derived from the entity's integration; holds several `devices:` and
+ * switches between them with a segmented tablist.
+ */
 export class FibbersRemote extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -140,6 +145,7 @@ export class FibbersRemote extends LitElement {
     `,
   ];
 
+  /** HA calls this to seed a fresh card — pick a real remote so the default isn't empty. */
   static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-remote",
@@ -152,6 +158,10 @@ export class FibbersRemote extends LitElement {
     };
   }
 
+  /**
+   * Validate + normalise the config into a device list; throws on a bad device so
+   * the editor surfaces it. Also restores the remembered device selection.
+   */
   setConfig(config) {
     if (!config) throw new Error("fibbers-remote: config is required");
     // Normalise to a device list: `devices:` if given, else the legacy flat config
@@ -232,6 +242,7 @@ export class FibbersRemote extends LitElement {
     return `fibbers:remote:${ids.join("|")}`;
   }
 
+  /** Release a held button when the tab hides, so a long-press can't keep firing in the background. */
   connectedCallback() {
     super.connectedCallback();
     this._onHidden = () => {
@@ -239,6 +250,7 @@ export class FibbersRemote extends LitElement {
     };
     document.addEventListener("visibilitychange", this._onHidden);
   }
+  /** Tear down the repeat timer, flash timer and visibility listener on unmount. */
   disconnectedCallback() {
     super.disconnectedCallback();
     this._release(); // a held button must not keep firing after unmount
@@ -246,6 +258,7 @@ export class FibbersRemote extends LitElement {
     document.removeEventListener("visibilitychange", this._onHidden);
   }
 
+  /** Re-resolve the platform when hass/device changes, and apply one-shot `auto_select: playing`. */
   updated(changed) {
     if (changed.has("hass") || changed.has("_sel")) this._resolvePlatform();
     // `auto_select: playing` applies once on mount — never mid-session, which would
@@ -989,6 +1002,7 @@ export class FibbersRemote extends LitElement {
     </div>`;
   }
 
+  /** Draw the card: optional device switcher, header, d-pad, transport, volume and source chips. */
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
@@ -1039,15 +1053,18 @@ export class FibbersRemote extends LitElement {
     // A device with a remote entity gets a d-pad; speaker-only devices don't.
     return !!(this._devices && this._devices.some((d) => d.entity));
   }
+  /** Masonry height hint — d-pad + transport + volume ≈ 4 rows. */
   getCardSize() {
     return 4;
   }
+  /** Sections-view layout: full-width when there's a d-pad, else a narrow speaker column. */
   getLayoutOptions() {
     return {
       grid_columns: this._needsDpad() ? "full" : 6,
       grid_rows: "auto",
     };
   }
+  /** Grid-view sizing: wide for a d-pad, narrower for a speaker-only remote. */
   getGridOptions() {
     return this._needsDpad()
       ? { columns: 12, rows: "auto", min_columns: 6 }

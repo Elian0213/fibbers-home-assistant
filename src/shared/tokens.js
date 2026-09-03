@@ -1,6 +1,10 @@
 /* ================================================================== *
- * TOKENS
+ * TOKENS — the Fibbers palette, one source of truth. `T.x` is the raw hex/rgba
+ * for interpolation; `styleBlock()` emits the same values as `--fib-*` custom
+ * properties so cards can `var(--fib-x)` instead.
  * ================================================================== */
+
+/** The Fibbers colour palette — raw hex/rgba values, keyed by role. */
 export const T = {
   bg: "#111516",
   card: "#1D2426",

@@ -3802,8 +3802,8 @@ ${decls}
         navigate(tab.path);
       }}
       >
-        <!-- the highlight is capped to content width so it doesn't become a
-             290px slab in a wide flex cell on desktop; the button stays the tap target -->
+        <!-- highlight capped to content width so it isn't a 290px slab in a wide
+             flex cell on desktop; the button stays the full tap target -->
         <span
           class="pointer-events-none mx-auto flex w-full max-w-[96px] flex-col items-center
                  gap-[3px] rounded-[9px] px-3 py-1 text-[9.5px] font-medium leading-[1.1]
@@ -7742,9 +7742,10 @@ ${decls}
 
   // src/index.js
   /*!
-   * Fibbers — custom cards + dark theming for Home Assistant.
-   * Registers ~25 cards (see the CARDS table below) plus the body-appended nav bar
-   * and modal sheet, then injects the theme. Edit src/, run `bun run build`.
+   * Fibbers — entry point + card registry for the Home Assistant plugin.
+   * Imports every card for its side effects, then the CARDS table defines each
+   * custom element and registers it with HA's card picker (window.customCards).
+   * The `/*!` banner is kept verbatim by the minifier. Edit src/, run `bun run build`.
    */
   var VERSION = "0.7.4";
   var CARDS = [

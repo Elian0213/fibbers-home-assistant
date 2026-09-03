@@ -9,6 +9,10 @@ import { twSheet } from "../../shared/tw.js";
 import { moreInfo, cssUrl } from "../../shared/util.js";
 import "../../shared/icon.js";
 
+/**
+ * fibbers-presence — "who's home" summary over person tiles (home/away, green
+ * when home). `people` lists them, or it auto-collects every `person.*`.
+ */
 export class FibbersPresence extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -23,10 +27,12 @@ export class FibbersPresence extends LitElement {
     `,
   ];
 
+  /** Seed config for the card picker — no config needed, it auto-collects people. */
   static getStubConfig() {
     return { type: "custom:fibbers-presence" };
   }
 
+  /** Store the config; throws when `people` is present but not a list so the editor surfaces it. */
   setConfig(config) {
     if (config && config.people != null && !Array.isArray(config.people)) {
       throw new Error("fibbers-presence: `people` must be a list of entities");
@@ -55,6 +61,7 @@ export class FibbersPresence extends LitElement {
     moreInfo(this, entity);
   }
 
+  /** Render the home-count header and a wrapped row of tappable person tiles. */
   render() {
     const people = this._people();
     const hl = this._config.language || this.hass;
@@ -127,12 +134,15 @@ export class FibbersPresence extends LitElement {
     </div>`;
   }
 
+  /** Masonry height in rows. */
   getCardSize() {
     return 1;
   }
+  /** Legacy sections-view sizing (grid_columns/grid_rows). */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 1 };
   }
+  /** Current sections-view sizing — full width, auto height. */
   getGridOptions() {
     return { columns: "full", rows: "auto" };
   }

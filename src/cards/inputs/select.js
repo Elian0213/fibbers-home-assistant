@@ -30,6 +30,10 @@ const EDITOR_SCHEMA = [
   { name: "chips_max", selector: { number: { min: 1, mode: "box" } } },
 ];
 
+/**
+ * fibbers-select — option picker for input_select/select: a chip row for few
+ * options, else a self-styled dropdown (never ha-select). Closes on outside-click.
+ */
 export class FibbersSelect extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -46,6 +50,7 @@ export class FibbersSelect extends LitElement {
     `,
   ];
 
+  /** Seed config for the picker — an input_select entity from the dashboard, or a placeholder. */
   static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-select",
@@ -58,12 +63,14 @@ export class FibbersSelect extends LitElement {
     };
   }
 
+  /** Build the shared form editor bound to this card's schema. */
   static getConfigElement() {
     const el = document.createElement("fibbers-form-editor");
     el.schema = EDITOR_SCHEMA;
     return el;
   }
 
+  /** Validate + store the config; throws when the entity isn't an input_select/select. */
   setConfig(config) {
     if (!config || !config.entity) {
       throw new Error("fibbers-select: `entity` is required");
@@ -77,6 +84,7 @@ export class FibbersSelect extends LitElement {
     this._open = false;
   }
 
+  /** Drop the document-level outside-click listener so a closed menu can't leak it. */
   disconnectedCallback() {
     super.disconnectedCallback();
     this._removeOutside();
@@ -124,6 +132,7 @@ export class FibbersSelect extends LitElement {
     }
   }
 
+  /** Render chips or dropdown per `mode` (auto: chips when options ≤ chips_max). */
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
@@ -234,12 +243,15 @@ export class FibbersSelect extends LitElement {
     </div>`;
   }
 
+  /** One masonry row tall. */
   getCardSize() {
     return 1;
   }
+  /** Sections view: full width, one row. */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 1 };
   }
+  /** Grid layout: full width, auto height. */
   getGridOptions() {
     return { columns: "full", rows: "auto" };
   }

@@ -1,17 +1,18 @@
 /* ================================================================== *
- * UI — shared lit-html widget templates (pillSwitch, sliderTrack).
- * One source for each control's look; import what you need.
+ * UI — shared lit-html widget templates + keyboard/slider helpers.
+ * One source for each control's look; import what you need. Templates are
+ * presentational — the caller always owns the value mapping and service call.
  * ================================================================== */
 import { html, nothing } from "lit";
 
 import { t } from "./i18n.js";
 
-// Arrow/Home/End/PageUp-Down → a new value, clamped to [min,max]. Shared by every
-// slider so keyboard behaviour is identical. PageUp/Down jump by a tenth of the
-// range (or one step, whichever is larger). Returns null when the key isn't one
-// we handle, so the caller can ignore it.
-// Enter/Space → activate, for elements that carry role="button" instead of being
-// a real <button> (a native button gets this for free). Pair with tabindex="0".
+/**
+ * Enter/Space → activate, for elements carrying role="button" instead of a real
+ * <button> (native buttons get this free). Pair with tabindex="0".
+ * @param {Function} fn — invoked with the keyboard event
+ * @returns {Function} keydown handler
+ */
 export function activateOnKey(fn) {
   return (e) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -33,6 +34,7 @@ export function activateOnKey(fn) {
  *   this._hold.value(hassPct, { dragging, dragValue, gone }) // when computing the display
  */
 export class SliderHold {
+  /** @param {object} host — the Lit host to attach the controller to. @param {object} [opts] — `{ tolerance, timeout }`. */
   constructor(host, { tolerance = 2, timeout = 2000 } = {}) {
     this.host = host;
     host.addController(this);
@@ -42,6 +44,7 @@ export class SliderHold {
     this._timer = null;
   }
 
+  /** Hold `value` on screen and start the release timer. @param {number} value */
   hold(value) {
     this._pending = value;
     clearTimeout(this._timer);
@@ -52,9 +55,14 @@ export class SliderHold {
     }, this.timeout);
   }
 
-  // drag value while dragging; else the held value until the entity lands (or
-  // vanishes); else the entity value. Never compares for equality — `tolerance`
-  // absorbs brightness_pct↔0-255 rounding and seek drift.
+  /**
+   * The value to display: drag value while dragging → held value until the entity
+   * lands (or vanishes) → the entity value. Never compares for equality —
+   * `tolerance` absorbs brightness_pct↔0-255 rounding and seek drift.
+   * @param {number} entityValue
+   * @param {object} [opts] — `{ dragging, dragValue, gone }`
+   * @returns {number} the value to render
+   */
   value(entityValue, { dragging, dragValue, gone } = {}) {
     if (dragging) return dragValue;
     if (this._pending == null) return entityValue;
@@ -71,9 +79,11 @@ export class SliderHold {
     return this._pending;
   }
 
-  // Drop a pending hold without waiting for the entity to land — call from a
-  // failed commit (`.catch`) so a service error doesn't freeze the display on the
-  // optimistic value until the timeout.
+  /**
+   * Drop a pending hold without waiting for the entity to land — call from a failed
+   * commit (`.catch`) so a service error doesn't freeze the display on the
+   * optimistic value until the timeout.
+   */
   clear() {
     if (this._pending == null && this._timer == null) return;
     this._pending = null;
@@ -82,6 +92,7 @@ export class SliderHold {
     this.host.requestUpdate();
   }
 
+  /** ReactiveController teardown — cancel the timer so a detached host never re-renders. */
   hostDisconnected() {
     this._pending = null;
     clearTimeout(this._timer);
@@ -89,6 +100,15 @@ export class SliderHold {
   }
 }
 
+/**
+ * Arrow/Home/End/PageUp-Down → a new value, clamped to [min,max]. Shared by every
+ * slider so keyboard behaviour is identical. PageUp/Down jump by a tenth of the
+ * range (or one step, whichever is larger). Returns null for keys we don't handle,
+ * so the caller can ignore them.
+ * @param {string} key — KeyboardEvent.key
+ * @param {object} range — `{ value, min, max, step }`
+ * @returns {number|null} clamped next value, or null
+ */
 export function stepFromKey(key, { value, min, max, step }) {
   const big = Math.max(step, (max - min) / 10);
   let next;
@@ -120,15 +140,13 @@ export function stepFromKey(key, { value, min, max, step }) {
 }
 
 /**
- * The pill toggle (as first grown inside fibbers-scheduler): a 36×20 track with
- * an animated 16px thumb. `on` drives the colour + thumb position; `onClick` is
- * the click handler. Purely presentational — the caller owns the service call.
- */
-/**
  * The 6px drag track shared by the brightness / number / volume sliders: an
  * accent fill and knob positioned at `pct` (0-100), with pointer handlers wired
  * by the caller. Purely presentational — the caller owns pct↔value mapping and
- * the service call. `onCancel` defaults to `onUp` so a cancelled drag settles.
+ * the service call. Passing the value-space (value/min/max/step) + onInput
+ * upgrades it to a keyboard-driven role="slider".
+ * @param {object} opts — see destructured params
+ * @returns {object} lit-html template
  */
 export function sliderTrack({
   pct,
@@ -200,8 +218,13 @@ export function sliderTrack({
   </div>`;
 }
 
-// Arrow keys move focus between the chips; Escape runs onClose (used to shut a
-// drawer). composedPath() finds the focused chip across the shadow boundary.
+/**
+ * Roving-focus keyboard nav for a chip row: arrows move focus between chips,
+ * Escape runs `onClose` (shuts a drawer). composedPath() finds the focused chip
+ * across the shadow boundary.
+ * @param {KeyboardEvent} e
+ * @param {Function} [onClose]
+ */
 export function chipKeyNav(e, onClose) {
   if (e.key === "Escape") {
     if (onClose) onClose();
@@ -223,6 +246,8 @@ export function chipKeyNav(e, onClose) {
  * wording — that reveals `all`. The active chip is highlighted the same way
  * fibbers-scene marks the active scene. `collapsed` = null shows everything with
  * no drawer. Items are `{ name, source?, icon? }`; `onSelect(item)` is the caller's.
+ * @param {object} opts — see destructured params
+ * @returns {object} lit-html template
  */
 export function overflowChips({
   hl,
@@ -295,6 +320,13 @@ export function overflowChips({
   </div>`;
 }
 
+/**
+ * The pill toggle (first grown inside fibbers-scheduler): a 36×20 track with an
+ * animated 16px thumb. `on` drives colour + thumb position. Purely presentational
+ * — the caller owns the service call.
+ * @param {object} opts — `{ on, onClick, label }`
+ * @returns {object} lit-html template
+ */
 export function pillSwitch({ on, onClick, label = "" }) {
   return html`<button
     type="button"

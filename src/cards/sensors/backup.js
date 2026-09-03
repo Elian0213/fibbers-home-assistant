@@ -9,6 +9,7 @@ import { twSheet } from "../../shared/tw.js";
 import { isUnavail } from "../../shared/util.js";
 import "../../shared/icon.js";
 
+/** Relative "N ago" text plus raw `hours` for a timestamp; a non-timestamp reports Infinity hours so the caller can warn. */
 function ago(iso, hl) {
   const time = Date.parse(iso);
   // A non-timestamp state (a broken sensor) counts as infinitely stale so the
@@ -23,6 +24,7 @@ function ago(iso, hl) {
   else text = t(hl, "common.days_ago", { n: Math.round(hours / 24) });
   return { text, hours };
 }
+/** Localised HH:MM for a timestamp; echoes the raw string when it isn't one. */
 const clock = (iso, lang) => {
   const time = Date.parse(iso);
   if (isNaN(time)) return String(iso);
@@ -32,6 +34,10 @@ const clock = (iso, lang) => {
   });
 };
 
+/**
+ * fibbers-backup — last/next backup and result; amber when stale
+ * (> `stale_hours`) or the `result` entity reports a failure.
+ */
 export class FibbersBackup extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -46,10 +52,12 @@ export class FibbersBackup extends LitElement {
     `,
   ];
 
+  /** Seed config for the card picker — a placeholder last-backup sensor. */
   static getStubConfig() {
     return { type: "custom:fibbers-backup", entity: "sensor.backup_last" };
   }
 
+  /** Validate + store the config; throws when the last-backup `entity` is missing so the editor surfaces it. */
   setConfig(config) {
     if (!config || !config.entity) {
       throw new Error(
@@ -59,6 +67,7 @@ export class FibbersBackup extends LitElement {
     this._config = config;
   }
 
+  /** Render the tile — computes staleness/failure and paints amber when either trips. */
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
@@ -120,12 +129,15 @@ export class FibbersBackup extends LitElement {
     </div>`;
   }
 
+  /** Masonry height in rows. */
   getCardSize() {
     return 1;
   }
+  /** Legacy sections-view sizing (grid_columns/grid_rows). */
   getLayoutOptions() {
     return { grid_columns: 6, grid_rows: 1 };
   }
+  /** Current sections-view sizing — half-width, auto height, min 3 columns. */
   getGridOptions() {
     return { columns: 6, rows: "auto", min_columns: 3 };
   }

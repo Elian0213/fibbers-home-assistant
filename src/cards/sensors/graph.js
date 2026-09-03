@@ -9,8 +9,8 @@ import { twSheet } from "../../shared/tw.js";
 import { fmtNum, fetchHistory, pickEntity } from "../../shared/util.js";
 
 const COLORS = ["accent", "amber", "blue", "green", "red"];
-/* full class strings so Tailwind's scanner emits every one (a dynamic
-   `text-${color}` would purge the colours not used literally elsewhere). */
+/* Full class strings so Tailwind's scanner emits every one — a dynamic
+   `text-${color}` would purge the colours not used literally elsewhere. */
 const STROKE = {
   accent: "text-accent",
   amber: "text-amber",
@@ -20,6 +20,10 @@ const STROKE = {
 };
 const W = 300;
 
+/**
+ * fibbers-graph — single-entity history sparkline with min/max labels. History
+ * is fetched over the last `hours`; a literal `data: [numbers]` overrides it.
+ */
 export class FibbersGraph extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -36,6 +40,7 @@ export class FibbersGraph extends LitElement {
     `,
   ];
 
+  /** Seed config for the card picker — picks a real sensor if one exists, defaults to 24h. */
   static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-graph",
@@ -49,6 +54,7 @@ export class FibbersGraph extends LitElement {
     };
   }
 
+  /** Validate + store the config, resetting fetch bookkeeping; throws on a missing source or bad `color` so the editor surfaces it. */
   setConfig(config) {
     if (!config || (!config.entity && !Array.isArray(config.data))) {
       throw new Error("fibbers-graph: `entity` or `data` is required");
@@ -70,6 +76,7 @@ export class FibbersGraph extends LitElement {
     this._gen = (this._gen || 0) + 1; // discard any in-flight fetch for the old config
   }
 
+  /** On each hass push, refresh the history series (skipped for literal `data:`). */
   updated(changed) {
     if (changed.has("hass") && this._config.entity && !this._config.data)
       this._maybeFetch();
@@ -127,6 +134,7 @@ export class FibbersGraph extends LitElement {
     return (st && st.attributes.unit_of_measurement) || "";
   }
 
+  /** Render the sparkline (or a loading skeleton / no-history line) plus header and optional min/max. */
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
@@ -213,12 +221,15 @@ export class FibbersGraph extends LitElement {
     </div>`;
   }
 
+  /** Masonry height in rows. */
   getCardSize() {
     return 2;
   }
+  /** Legacy sections-view sizing (grid_columns/grid_rows). */
   getLayoutOptions() {
     return { grid_columns: 6, grid_rows: 2 };
   }
+  /** Current sections-view sizing — half-width, auto height, min 3 columns. */
   getGridOptions() {
     return { columns: 6, rows: "auto", min_columns: 3 };
   }

@@ -6,6 +6,10 @@ import { store, norm, here, navigate } from "../shared/util.js";
 
 const NAV_KEY = "fibbers:navstack";
 
+/**
+ * The shared nav state — the set of tab (root) paths, the persisted history
+ * stack, route-change listeners, and a live hass reference for badge/inset checks.
+ */
 export const nav = {
   tabs: new Set(),
   stack: store.get(NAV_KEY, []),
@@ -13,10 +17,25 @@ export const nav = {
   hassRef: null,
 };
 
+/**
+ * Register tab paths as stack roots so navigating to one resets the back stack.
+ * @param {string[]} paths
+ */
 export const registerTabs = (paths) =>
   paths.forEach((p) => nav.tabs.add(norm(p)));
+
+/**
+ * True if `path` is a registered tab root (and so should reset the stack).
+ * @param {string} path
+ * @returns {boolean}
+ */
 export const isTab = (path) => nav.tabs.has(norm(path));
 
+/**
+ * Fold the current route into the stack — reset at a tab, pop on back-navigation,
+ * else push — then persist (capped) and fire listeners. Wired to HA's route
+ * events; a throwing listener can't stop the rest.
+ */
 export function onRouteChange() {
   const path = here();
   const s = nav.stack;
@@ -40,10 +59,18 @@ export function onRouteChange() {
   });
 }
 
-/** Where a back control would go, or null if there is nowhere to return to. */
+/**
+ * The path a back control would return to, or null if there's nowhere to go back.
+ * @returns {string|null}
+ */
 export const previous = () =>
   nav.stack.length >= 2 ? nav.stack[nav.stack.length - 2] : null;
 
+/**
+ * Navigate back — to the previous stacked view, else to `fallback`, else HA's
+ * browser history. Pops the stack when it drives the navigation itself.
+ * @param {string} [fallback] — path to use when the stack has no previous entry
+ */
 export function goBack(fallback) {
   const prev = previous();
   if (prev) {

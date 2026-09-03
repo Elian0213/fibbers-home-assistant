@@ -15,6 +15,10 @@ import "../../shared/icon.js";
 
 const W = 300;
 
+/**
+ * fibbers-sysmon — host telemetry tiles (cpu/temp/disk/ram/…) plus an optional
+ * history sparkline (`graph` over `graph_hours`).
+ */
 export class FibbersSysmon extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -31,6 +35,7 @@ export class FibbersSysmon extends LitElement {
     `,
   ];
 
+  /** Seed config for the card picker — two example metrics. */
   static getStubConfig() {
     return {
       type: "custom:fibbers-sysmon",
@@ -42,6 +47,7 @@ export class FibbersSysmon extends LitElement {
     };
   }
 
+  /** Validate + store the config, resetting fetch bookkeeping; throws on an empty `metrics` list so the editor surfaces it. */
   setConfig(config) {
     if (!config || !Array.isArray(config.metrics) || !config.metrics.length) {
       throw new Error("fibbers-sysmon: `metrics` must be a non-empty list");
@@ -56,6 +62,7 @@ export class FibbersSysmon extends LitElement {
     this._gen = (this._gen || 0) + 1; // discard any in-flight fetch for the old config
   }
 
+  /** On each hass push, refresh the sparkline history (only when `graph` is set). */
   updated(changed) {
     if (changed.has("hass") && this._config.graph) this._maybeFetch();
   }
@@ -147,6 +154,7 @@ export class FibbersSysmon extends LitElement {
     </svg>`;
   }
 
+  /** Render the metric grid and, if configured, the history sparkline below it. */
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
@@ -185,12 +193,15 @@ export class FibbersSysmon extends LitElement {
     </div>`;
   }
 
+  /** Masonry height in rows. */
   getCardSize() {
     return 3;
   }
+  /** Legacy sections-view sizing (grid_columns/grid_rows). */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 3 };
   }
+  /** Current sections-view sizing — full width, auto height. */
   getGridOptions() {
     return { columns: "full", rows: "auto" };
   }

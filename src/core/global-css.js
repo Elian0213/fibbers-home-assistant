@@ -13,6 +13,11 @@ import { T } from "../shared/tokens.js";
 
 const STYLE_ID = "fibbers-global";
 
+/**
+ * The dark forest-green palette as HA theme-var declarations. Shared surface —
+ * global-css sets these on <html>; theme.js reuses the same object scoped to one
+ * dashboard's hui-root.
+ */
 export const DARK_VARS = {
   // grounds & surfaces
   "--primary-background-color": T.bg,
@@ -64,6 +69,11 @@ export const DARK_VARS = {
   "--paper-slider-container-color": "#2C3639",
 };
 
+/**
+ * Opt-in "repaint all of Home Assistant" — set DARK_VARS on <html> with
+ * !important so they inherit into shadow DOM (more-info dialogs included).
+ * Idempotent; skipped when FIBBERS_DISABLE_GLOBAL_CSS is set. Not called on load.
+ */
 export function injectGlobalCss() {
   if (window.FIBBERS_DISABLE_GLOBAL_CSS) return;
   if (document.getElementById(STYLE_ID)) return; // idempotent

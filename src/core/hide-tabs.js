@@ -18,7 +18,8 @@ const state = {
   scheduled: false,
 };
 
-/** Escape hatches so a stuck dashboard is always recoverable. */
+// Escape hatches (global flag or ?disable_km) so a stuck dashboard is always
+// recoverable — never leave the user without HA's tabs and no way back.
 function suppressed() {
   if (window.FIBBERS_SHOW_TABS === true) return true;
   try {
@@ -28,12 +29,13 @@ function suppressed() {
   }
 }
 
+/** Locate HA's hui-root — the shadow host we inject the hide-tabs style into. */
 export const findHuiRoot = () => deepFind("hui-root");
 
-/** The panel wrapper we observe for re-renders. */
+// The panel wrapper we observe for re-renders.
 const findResolvedPanel = () => deepFind("partial-panel-resolver");
 
-/** Append or update the single injected style inside hui-root.shadowRoot. */
+// Append or update the single injected style inside hui-root.shadowRoot.
 function paint() {
   if (!state.mode || suppressed()) return removeStyle();
   const root = findHuiRoot();
@@ -54,7 +56,7 @@ function paint() {
   root.shadowRoot.appendChild(style);
 }
 
-/** Remove the injected style everywhere it might live. */
+// Remove the injected style if present.
 function removeStyle() {
   const root = findHuiRoot();
   const style =
@@ -62,7 +64,7 @@ function removeStyle() {
   if (style) style.remove();
 }
 
-/** Debounced re-apply — MutationObserver on the panel fires very often. */
+// Debounced re-apply — the MutationObserver on the panel fires very often.
 function schedulePaint() {
   if (state.scheduled) return;
   state.scheduled = true;
@@ -91,8 +93,9 @@ function stopObserver() {
 }
 
 /**
- * Set the hiding mode. Called from the bar singleton's attach() with the
- * current config. `false`/undefined tears everything down.
+ * Set the tab-hiding mode from the bar singleton's attach(). `true` hides
+ * ha-tab-group, `"header"` hides the whole header; `false`/undefined tears down.
+ * @param {boolean|"header"} mode
  */
 export function setTabHiding(mode) {
   const normalized = mode === true || mode === "header" ? mode : false;

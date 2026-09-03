@@ -23,6 +23,10 @@ const addMinutes = (s, mins) => {
   return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 };
 
+/**
+ * fibbers-scheduler — wake control over input_datetime/boolean/number helpers:
+ * big time (tap → more-info), enable toggle, fade window, weekday chips.
+ */
 export class FibbersScheduler extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -37,6 +41,7 @@ export class FibbersScheduler extends LitElement {
     `,
   ];
 
+  /** Seed config — a time (input_datetime) and enable (input_boolean) pulled from the dashboard, or placeholders. */
   static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-scheduler",
@@ -56,6 +61,7 @@ export class FibbersScheduler extends LitElement {
     };
   }
 
+  /** Validate + store the config; throws when the required `time` entity is missing. */
   setConfig(config) {
     if (!config || !config.time) {
       throw new Error(
@@ -69,6 +75,7 @@ export class FibbersScheduler extends LitElement {
     return id && this.hass ? this.hass.states[id] : null;
   }
 
+  /** Render the big time, enable pill, optional fade window, and weekday chips. */
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
@@ -155,12 +162,15 @@ export class FibbersScheduler extends LitElement {
     </div>`;
   }
 
+  /** Two masonry rows tall — the big time needs the extra height. */
   getCardSize() {
     return 2;
   }
+  /** Sections view: full width, two rows. */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 2 };
   }
+  /** Grid layout: full width, auto height. */
   getGridOptions() {
     return { columns: "full", rows: "auto" };
   }

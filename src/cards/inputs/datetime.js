@@ -21,6 +21,10 @@ const EDITOR_SCHEMA = [
   { name: "icon", selector: { icon: {} } },
 ];
 
+/**
+ * fibbers-datetime — input_datetime shown big and legible (not an ISO string);
+ * handles has_date/has_time. Tap opens more-info to edit (no custom picker).
+ */
 export class FibbersDateTime extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -36,6 +40,7 @@ export class FibbersDateTime extends LitElement {
     `,
   ];
 
+  /** Seed config for the picker — an input_datetime entity from the dashboard, or a placeholder. */
   static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-datetime",
@@ -48,12 +53,14 @@ export class FibbersDateTime extends LitElement {
     };
   }
 
+  /** Build the shared form editor bound to this card's schema. */
   static getConfigElement() {
     const el = document.createElement("fibbers-form-editor");
     el.schema = EDITOR_SCHEMA;
     return el;
   }
 
+  /** Validate + store the config; throws when `entity` is missing. */
   setConfig(config) {
     if (!config || !config.entity) {
       throw new Error("fibbers-datetime: `entity` is required");
@@ -71,6 +78,7 @@ export class FibbersDateTime extends LitElement {
     return fmtState(this.hass, st) || st.state || "—";
   }
 
+  /** Render the label and the big tappable value that opens more-info. */
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
@@ -115,12 +123,15 @@ export class FibbersDateTime extends LitElement {
     </div>`;
   }
 
+  /** One masonry row tall. */
   getCardSize() {
     return 1;
   }
+  /** Sections view: full width, one row. */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 1 };
   }
+  /** Grid layout: full width, auto height. */
   getGridOptions() {
     return { columns: "full", rows: "auto" };
   }

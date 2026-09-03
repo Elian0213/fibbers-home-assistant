@@ -12,7 +12,7 @@ import "../../shared/icon.js"; // registers <fib-icon>
 
 const COLORS = ["accent", "amber", "blue", "green", "red"];
 
-/** icon-box background + foreground per colour (full strings so Tailwind sees them) */
+/** Icon-box background + foreground per colour — full class strings so Tailwind's scanner keeps them. */
 const IC = {
   accent: "bg-accentbg text-accent",
   amber: "bg-amberbg text-amber",
@@ -28,7 +28,7 @@ const fmt = (hass, raw, decimals) => {
 };
 
 // ha-form schema for the visual editor (getConfigElement). Unlisted keys (value,
-// sub, trend, tap_action) pass through untouched, so a YAML config round-trips.
+// sub, trend, tap_action) pass through untouched — a YAML config round-trips.
 const EDITOR_SCHEMA = [
   { name: "entity", selector: { entity: {} } },
   { name: "name", selector: { text: {} } },
@@ -46,6 +46,10 @@ const EDITOR_SCHEMA = [
   { name: "decimals", selector: { number: { min: 0, max: 4, mode: "box" } } },
 ];
 
+/**
+ * fibbers-stat — value tile: icon, label, value + unit, optional trend. Reads
+ * `entity` or a literal `value`; tap runs `tap_action` (default more-info).
+ */
 export class FibbersStat extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -61,6 +65,7 @@ export class FibbersStat extends LitElement {
     `,
   ];
 
+  /** Seed config for the card picker — picks a real sensor if one exists. */
   static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-stat",
@@ -73,12 +78,14 @@ export class FibbersStat extends LitElement {
     };
   }
 
+  /** Visual editor element, wired to EDITOR_SCHEMA. */
   static getConfigElement() {
     const el = document.createElement("fibbers-form-editor");
     el.schema = EDITOR_SCHEMA;
     return el;
   }
 
+  /** Validate + store the config; throws when neither `entity` nor `value` is set, or `color` is out of range, so the editor surfaces it. */
   setConfig(config) {
     if (!config || (!config.entity && config.value == null)) {
       throw new Error("fibbers-stat: `entity` or `value` is required");
@@ -109,6 +116,7 @@ export class FibbersStat extends LitElement {
       runAction(tap, this.hass, this, cfg.entity);
   }
 
+  /** Render the tile — resolves value/unit/trend from config or entity state. */
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
@@ -123,8 +131,8 @@ export class FibbersStat extends LitElement {
     // A literal `value` is kept verbatim through `fmt`. A timestamp entity renders
     // relative ("2 days ago", live-updating) so an absolute date can't overflow the
     // tile — `absolute_time: true` opts back into the full value. Numeric states go
-    // through the locale-aware formatter; anything else (motion, enum) is handed to
-    // HA's own localiser instead of printing the raw slug.
+    // through the locale-aware formatter; anything else (motion, enum) → HA's own
+    // localiser instead of printing the raw slug.
     const deviceClass = st && st.attributes && st.attributes.device_class;
     let value;
     let valueTpl = null;
@@ -217,13 +225,16 @@ export class FibbersStat extends LitElement {
     `;
   }
 
+  /** Masonry height in rows — one line, so 1. */
   getCardSize() {
     return 1;
   }
 
+  /** Legacy sections-view sizing (grid_columns/grid_rows). */
   getLayoutOptions() {
     return { grid_columns: 6, grid_rows: 1 };
   }
+  /** Current sections-view sizing — half-width, auto height, min 3 columns. */
   getGridOptions() {
     return { columns: 6, rows: "auto", min_columns: 3 };
   }

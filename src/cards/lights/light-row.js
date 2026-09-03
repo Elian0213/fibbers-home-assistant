@@ -27,6 +27,10 @@ const EDITOR_SCHEMA = [
   { name: "icon", selector: { icon: {} } },
 ];
 
+/**
+ * fibbers-light-row — the light row for sheets: icon, name, live value
+ * (`Warm · 70%`), and a drag slider bound to brightness_pct.
+ */
 export class FibbersLightRow extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -44,6 +48,7 @@ export class FibbersLightRow extends LitElement {
     `,
   ];
 
+  /** HA calls this to seed a fresh card — pick a real light so the default isn't empty. */
   static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-light-row",
@@ -51,12 +56,14 @@ export class FibbersLightRow extends LitElement {
     };
   }
 
+  /** The visual editor: hand HA a shared form-editor driven by this card's schema. */
   static getConfigElement() {
     const el = document.createElement("fibbers-form-editor");
     el.schema = EDITOR_SCHEMA;
     return el;
   }
 
+  /** Validate + store the config; throws on a missing entity / malformed action so the editor surfaces it. */
   setConfig(config) {
     if (!config || !config.entity) {
       throw new Error("fibbers-light-row: `entity` is required");
@@ -173,6 +180,7 @@ export class FibbersLightRow extends LitElement {
     moreInfo(this, this._config.entity);
   }
 
+  /** Draw the row: icon action, name → more-info, and a dimmer slider or plain toggle. */
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
@@ -274,12 +282,15 @@ export class FibbersLightRow extends LitElement {
     `;
   }
 
+  /** Masonry height hint — a single-line row. */
   getCardSize() {
     return 1;
   }
+  /** Sections-view layout: full-width, one row tall. */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 1 };
   }
+  /** Grid-view sizing: full-width, auto height. */
   getGridOptions() {
     return { columns: "full", rows: "auto" };
   }

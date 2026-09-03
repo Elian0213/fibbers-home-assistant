@@ -37,6 +37,11 @@ const MF = {
   PLAY: 16384,
 };
 
+/**
+ * fibbers-media — a media_player card: drift-corrected seek bar, transport, volume,
+ * source chips, optional speaker `group:` (join/unjoin) and `favourites:`
+ * (play_media). `compact: true` renders the tight now-playing row.
+ */
 export class FibbersMedia extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -56,6 +61,7 @@ export class FibbersMedia extends LitElement {
     `,
   ];
 
+  /** HA calls this to seed a fresh card — pick a real media_player so the default isn't empty. */
   static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-media",
@@ -68,6 +74,7 @@ export class FibbersMedia extends LitElement {
     };
   }
 
+  /** Validate + store the config; throws on a bad entity/sources/group so the editor surfaces it. */
   setConfig(config) {
     if (!config || !config.entity) {
       throw new Error("fibbers-media: `entity` (a media_player.*) is required");
@@ -105,8 +112,10 @@ export class FibbersMedia extends LitElement {
     this._seekInput = debounce((v) => this._seek(v), 150);
   }
 
-  // A seek bar showing live elapsed time needs its own 1s tick while playing —
-  // hass only pushes a new media_position occasionally.
+  /**
+   * Drive the 1s seek tick and clear stale seek/hold state — hass only pushes a
+   * new media_position occasionally, so a live elapsed bar needs its own clock.
+   */
   updated() {
     if (!this._config) return;
     const p = this._pos();
@@ -135,6 +144,7 @@ export class FibbersMedia extends LitElement {
       this._tick = null;
     }
   }
+  /** Stop the tick and drop trailing debounced writes on unmount. */
   disconnectedCallback() {
     super.disconnectedCallback();
     this._stopTick();
@@ -364,6 +374,7 @@ export class FibbersMedia extends LitElement {
     </div>`;
   }
 
+  /** Draw the card — the compact now-playing row, or the full art/seek/transport/volume/sources stack. */
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
@@ -611,12 +622,15 @@ export class FibbersMedia extends LitElement {
     </div>`;
   }
 
+  /** Masonry height hint — art + transport + volume ≈ 3 rows. */
   getCardSize() {
     return 3;
   }
+  /** Sections-view layout: full-width, three rows tall. */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 3 };
   }
+  /** Grid-view sizing: full-width, auto height. */
   getGridOptions() {
     return { columns: "full", rows: "auto" };
   }

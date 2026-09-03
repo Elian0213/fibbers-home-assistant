@@ -27,9 +27,12 @@ const COND_ICON = {
   "windy-variant": "solar:cloud-bold-duotone",
   exceptional: "solar:cloud-bold-duotone",
 };
+/** Solar icon for an HA condition slug, with a cloud fallback for anything unmapped. */
 const iconFor = (c) => COND_ICON[c] || "solar:cloud-bold-duotone";
+/** Round to a whole number, or null for a non-numeric input (so callers can show "—"). */
 const round = (n) =>
   Number.isFinite(Number(n)) ? Math.round(Number(n)) : null;
+/** Localised short weekday for a forecast datetime (trailing "." stripped); "" on a bad date. */
 const dayNl = (iso, lang) => {
   const parsed = Date.parse(iso);
   if (isNaN(parsed)) return "";
@@ -38,6 +41,11 @@ const dayNl = (iso, lang) => {
     .replace(".", "");
 };
 
+/**
+ * fibbers-weather — current temp + condition and a short forecast strip from a
+ * `weather.*` entity. Subscribes to weather/subscribe_forecast (the `forecast`
+ * state attribute was deprecated in 2023.9, removed in HA 2024.4).
+ */
 export class FibbersWeather extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -53,6 +61,7 @@ export class FibbersWeather extends LitElement {
     `,
   ];
 
+  /** Seed config for the card picker — picks a real weather entity if one exists. */
   static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-weather",
@@ -65,6 +74,7 @@ export class FibbersWeather extends LitElement {
     };
   }
 
+  /** Validate + store the config and clear any prior forecast; throws when the `weather.*` `entity` is missing so the editor surfaces it. */
   setConfig(config) {
     if (!config || !config.entity) {
       throw new Error(
@@ -75,6 +85,7 @@ export class FibbersWeather extends LitElement {
     this._forecast = null;
   }
 
+  /** On each hass push, (re)subscribe to the forecast feed for the current entity. */
   updated(changed) {
     if (changed.has("hass")) this._maybeSubscribe();
   }
@@ -119,12 +130,14 @@ export class FibbersWeather extends LitElement {
       this._unsubFn = null;
     }
   }
+  /** Tear down the forecast subscription when the card leaves the DOM. */
   disconnectedCallback() {
     super.disconnectedCallback();
     this._unsub();
     this._subFor = null;
   }
 
+  /** Render current conditions plus the (up to `days`) forecast strip; a placeholder line until the entity exists. */
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
@@ -203,12 +216,15 @@ export class FibbersWeather extends LitElement {
     </div>`;
   }
 
+  /** Masonry height in rows. */
   getCardSize() {
     return 2;
   }
+  /** Legacy sections-view sizing (grid_columns/grid_rows). */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 2 };
   }
+  /** Current sections-view sizing — full width, auto height. */
   getGridOptions() {
     return { columns: "full", rows: "auto" };
   }

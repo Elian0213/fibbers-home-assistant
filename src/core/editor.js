@@ -16,6 +16,12 @@
  * ================================================================== */
 import { LitElement, html } from "lit";
 
+/**
+ * Shared visual config editor for cards that ship a form — renders HA's own
+ * <ha-form> from a per-card `schema`, so validation/theming/i18n come for free and
+ * saving with no edits round-trips the YAML byte-identical. A card sets `.schema`
+ * (and optional `.labels`) in its static getConfigElement().
+ */
 export class FibbersFormEditor extends LitElement {
   static properties = {
     hass: { attribute: false },

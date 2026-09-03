@@ -4,6 +4,15 @@
  * ================================================================== */
 import { navigate, moreInfo } from "./util.js";
 
+/**
+ * Run a standard HA action object (navigate / url / toggle / more-info /
+ * call-service). Absent or unknown actions are a no-op. `fallbackEntity` fills the
+ * target for toggle/more-info when the action omits its own entity.
+ * @param {object} action — an HA action config
+ * @param {object} hass
+ * @param {Element} host — element the more-info dialog dispatches from
+ * @param {string} [fallbackEntity]
+ */
 export function runAction(action, hass, host, fallbackEntity) {
   const a = action || { action: "none" };
   switch (a.action) {

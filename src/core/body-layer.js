@@ -1,7 +1,7 @@
 /* ================================================================== *
- * BODY LAYER — the singleton nav bar.
- * Rendered into document.body so position:fixed pins to the viewport (not
- * Lovelace's transformed container). The iOS-tuned container CSS is load-bearing.
+ * BODY LAYER — the singleton bottom nav bar (reference-counted across cards).
+ * Rendered into document.body so position:fixed pins to the viewport, not
+ * Lovelace's transformed container. The iOS-tuned container CSS is load-bearing.
  * ================================================================== */
 import { render, html, nothing } from "lit";
 
@@ -15,6 +15,10 @@ import { applyTheme, removeTheme } from "./theme.js";
 import { setViewReserve, removeViewReserve } from "./view-reserve.js";
 import "../shared/icon.js";
 
+/**
+ * Shared mutable state for the one nav bar — the body-portal host, the set of
+ * card owners keeping it alive, current config, and auto-hide scroll bookkeeping.
+ */
 export const bar = {
   host: null,
   owners: new Set(),
@@ -50,6 +54,10 @@ const HOST_CSS = `
 const hostSheet = new CSSStyleSheet();
 hostSheet.replaceSync(HOST_CSS);
 
+/**
+ * Re-measure the bar's rendered height and re-reserve view space when it changes.
+ * The 0.5px threshold avoids thrashing the reserve on sub-pixel layout jitter.
+ */
 export function measureBar() {
   if (!bar.host) return;
   const div = bar.host.shadowRoot.querySelector(".bar");
@@ -187,6 +195,11 @@ const press = (e, on) =>
     ? e.currentTarget.setAttribute("data-pressed", "true")
     : e.currentTarget.removeAttribute("data-pressed");
 
+/**
+ * Render (or re-render) the tab buttons into the host from the current config —
+ * the render target for nav-stack listeners and hashchange, so the active tab and
+ * badges track the route.
+ */
 export function renderBar() {
   if (!bar.host || !bar.config) return;
   const div = bar.host.shadowRoot.querySelector(".bar");
@@ -211,8 +224,8 @@ export function renderBar() {
           navigate(tab.path);
         }}
       >
-        <!-- the highlight is capped to content width so it doesn't become a
-             290px slab in a wide flex cell on desktop; the button stays the tap target -->
+        <!-- highlight capped to content width so it isn't a 290px slab in a wide
+             flex cell on desktop; the button stays the full tap target -->
         <span
           class="pointer-events-none mx-auto flex w-full max-w-[96px] flex-col items-center
                  gap-[3px] rounded-[9px] px-3 py-1 text-[9.5px] font-medium leading-[1.1]
@@ -269,6 +282,13 @@ function disableAutoHide() {
   document.removeEventListener("scroll", onScrollHide, AUTO_HIDE_OPTS);
 }
 
+/**
+ * Attach the singleton bar for one nav card (reference-counted — many card
+ * instances, one bar). Builds the body-portal host on first attach, then applies
+ * this card's config: offset, reserve, sidebar inset, auto-hide, tab-hiding, theme.
+ * @param {LitElement} owner — the card instance keeping the bar alive
+ * @param {object} config — the nav card's config (tabs, offsets, theme, …)
+ */
 export function attach(owner, config) {
   bar.owners.add(owner);
   bar.config = config;
@@ -286,11 +306,17 @@ export function attach(owner, config) {
   applyTheme(config.theme);
 }
 
+/**
+ * Release one owner. On the last detach, tear the whole bar down — host, window
+ * listeners, observers, and every injected side effect (tabs, theme, reserve) —
+ * so a dashboard with no nav card is left untouched.
+ * @param {LitElement} owner
+ */
 export function detach(owner) {
   bar.owners.delete(owner);
   if (bar.owners.size === 0 && bar.host) {
-    // The window listeners were added in buildBar; tear them down with the host
-    // so nothing keeps firing against a removed bar.
+    // Window listeners were added in buildBar; tear them down with the host so
+    // nothing keeps firing against a removed bar.
     window.removeEventListener("orientationchange", onOrientationChange);
     window.removeEventListener("resize", measureBar);
     window.removeEventListener("resize", onResizeInset);

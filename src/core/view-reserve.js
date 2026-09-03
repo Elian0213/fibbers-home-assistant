@@ -18,7 +18,7 @@ const state = { px: 0, scheduled: false, observer: null };
 const findHuiRoot = () => deepFind("hui-root");
 const findResolvedPanel = () => deepFind("partial-panel-resolver");
 
-/** Append or update the single injected style inside hui-root.shadowRoot. */
+// Append or update the single injected reserve style inside hui-root.shadowRoot.
 function paint() {
   if (!state.px) return removeStyle();
   const root = findHuiRoot();
@@ -44,11 +44,13 @@ function removeStyle() {
   if (style) style.remove();
 }
 
-// Lock HA's real scroll container (#view inside hui-root) while a modal sheet is
-// open — locking <body> instead would set position:fixed and stop HA's own
-// dialogs (children of <home-assistant> inside that body) from laying out. A
-// separate style so it's independent of the nav reserve above.
 const LOCK_ID = "fibbers-view-lock";
+/**
+ * Freeze/unfreeze HA's real scroll container (#view) while a modal sheet is open.
+ * Locks #view — not <body> — so HA's own dialogs (children of <home-assistant>)
+ * still lay out. Separate style from the nav reserve so the two are independent.
+ * @param {boolean} on — true to lock, false to release
+ */
 export function lockView(on) {
   const root = findHuiRoot();
   if (!root || !root.shadowRoot) return;
@@ -92,7 +94,12 @@ function stopObserver() {
   }
 }
 
-/** Reserve `px` at the bottom of the view. 0/undefined tears the style down. */
+/**
+ * Reserve `px` at the bottom of the view so the pinned bar can't cover the last
+ * card. Re-asserts on the same value (HA may have swapped the view); 0/undefined
+ * tears the style + observers down.
+ * @param {number} px
+ */
 export function setViewReserve(px) {
   const next = Math.max(0, Math.round(px || 0));
   if (next === state.px && state.observer) {
@@ -109,7 +116,10 @@ export function setViewReserve(px) {
   startNavListeners();
 }
 
-/** Full teardown — called from detach() when the last fibbers-nav unmounts. */
+/**
+ * Full teardown — drop the reserve, observer, and nav listeners. Called from
+ * detach() when the last fibbers-nav unmounts.
+ */
 export function removeViewReserve() {
   state.px = 0;
   stopObserver();

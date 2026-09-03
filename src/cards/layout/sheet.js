@@ -11,6 +11,10 @@ import {
 } from "../../core/body-sheet.js";
 import "../../shared/icon.js";
 
+/**
+ * fibbers-sheet — invisible card that registers {id, title, cards[]} with the
+ * sheet layer (core/body-sheet.js), which opens on hash `#<id>`.
+ */
 export class FibbersSheet extends LitElement {
   static properties = { preview: { type: Boolean, reflect: true } };
   static styles = [
@@ -24,6 +28,7 @@ export class FibbersSheet extends LitElement {
     `,
   ];
 
+  /** Minimal room-sheet starter config for the card picker. */
   static getStubConfig() {
     return {
       type: "custom:fibbers-sheet",
@@ -34,6 +39,7 @@ export class FibbersSheet extends LitElement {
     };
   }
 
+  /** Validate config; re-register under the new id when it changes on a live card. */
   setConfig(config) {
     if (!config || !config.id || typeof config.id !== "string") {
       throw new Error("fibbers-sheet: `id` (a unique string) is required");
@@ -53,18 +59,20 @@ export class FibbersSheet extends LitElement {
     if (this.isConnected && !this.preview) registerSheet(config.id, this);
   }
 
+  /** Forward hass to the registered sheet so its lazy-built cards stay live. */
   set hass(hass) {
     if (this.preview) return; // card picker: never touch the sheet singleton
     this._hass = hass;
     if (this._config) updateSheetHass(this._config.id, hass);
   }
 
+  /** Collapse the invisible card's <hui-card> wrapper and register with the sheet layer. */
   connectedCallback() {
     super.connectedCallback();
-    // Card picker: HA sets `preview` — don't register with the sheet singleton.
+    // Card picker sets `preview` — don't register with the sheet singleton.
     if (this.preview) return;
-    // The sheet is invisible (display:none); collapse the <hui-card> wrapper so it
-    // doesn't reserve an empty grid row.
+    // Card is display:none — collapse the <hui-card> wrapper so it doesn't
+    // reserve an empty grid row.
     const cell = this.getRootNode().host;
     if (cell) {
       this._cell = cell;
@@ -72,6 +80,7 @@ export class FibbersSheet extends LitElement {
     }
     if (this._config) registerSheet(this._config.id, this);
   }
+  /** Restore the collapsed wrapper and unregister from the sheet layer. */
   disconnectedCallback() {
     super.disconnectedCallback();
     if (this._cell) {
@@ -82,10 +91,11 @@ export class FibbersSheet extends LitElement {
     if (this._config) unregisterSheet(this._config.id, this);
   }
 
+  /** Nothing in normal use (hash-routed sheet); an inert summary tile in the picker. */
   render() {
     if (!this.preview) return html``;
-    // This card is invisible in normal use (it just registers a hash-routed
-    // sheet), so the picker gets an inert inline mock of what it defines.
+    // Invisible in normal use (it just registers a hash-routed sheet), so the
+    // picker gets an inert inline mock of what it defines.
     const c = this._config || {};
     return html`<div
       style="display:flex;align-items:center;gap:10px;background:#1d2426;
@@ -109,12 +119,15 @@ export class FibbersSheet extends LitElement {
     </div>`;
   }
 
+  /** One masonry row — the collapsed wrapper takes no visible space. */
   getCardSize() {
     return 1;
   }
+  /** Full-width, single-row footprint in the sections/grid layout. */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 1 };
   }
+  /** Pin to a 1×1 minimum so the invisible card never stretches the grid. */
   getGridOptions() {
     return { columns: 1, rows: 1, min_columns: 1, min_rows: 1 };
   }

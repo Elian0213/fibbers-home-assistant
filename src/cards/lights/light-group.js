@@ -25,6 +25,10 @@ const EDITOR_SCHEMA = [
   { name: "icon", selector: { icon: {} } },
 ];
 
+/**
+ * fibbers-light-group — a master light control, heavier than a row: card surface,
+ * room icon, a taller master slider, and members that expand as nested light rows.
+ */
 export class FibbersLightGroup extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -43,6 +47,7 @@ export class FibbersLightGroup extends LitElement {
     `,
   ];
 
+  /** HA calls this to seed a fresh card — pick a real light so the default isn't empty. */
   static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-light-group",
@@ -53,12 +58,14 @@ export class FibbersLightGroup extends LitElement {
     };
   }
 
+  /** The visual editor: hand HA a shared form-editor driven by this card's schema. */
   static getConfigElement() {
     const el = document.createElement("fibbers-form-editor");
     el.schema = EDITOR_SCHEMA;
     return el;
   }
 
+  /** Validate + store the config; throws on a missing group/entities so the editor surfaces it. */
   setConfig(config) {
     if (!config || (!config.entity && !Array.isArray(config.entities))) {
       throw new Error(
@@ -224,6 +231,7 @@ export class FibbersLightGroup extends LitElement {
     this._debouncedCommit.cancel();
   }
 
+  /** Drop the trailing debounced commit on unmount so a stale value never fires. */
   disconnectedCallback() {
     super.disconnectedCallback();
     this._debouncedCommit.cancel();
@@ -267,6 +275,7 @@ export class FibbersLightGroup extends LitElement {
     return el;
   }
 
+  /** Draw the header, master slider, and (when open) the expanded member rows. */
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
@@ -404,12 +413,15 @@ export class FibbersLightGroup extends LitElement {
     </div>`;
   }
 
+  /** Masonry height hint (header + slider ≈ 2 rows). */
   getCardSize() {
     return 2;
   }
+  /** Sections-view layout: full-width, two rows tall. */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 2 };
   }
+  /** Grid-view sizing: full-width, auto height (grows when expanded). */
   getGridOptions() {
     return { columns: "full", rows: "auto" };
   }

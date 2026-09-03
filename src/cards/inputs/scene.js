@@ -16,6 +16,10 @@ const activatedAt = (st) => {
   return isNaN(ts) ? 0 : ts;
 };
 
+/**
+ * fibbers-scene — scene tiles; the most-recently-applied one is highlighted.
+ * `favourites: N` shows the first N and collapses the rest behind a drawer.
+ */
 export class FibbersScene extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -31,6 +35,7 @@ export class FibbersScene extends LitElement {
     `,
   ];
 
+  /** Seed config with one example scene — this card takes a list, not a single entity. */
   static getStubConfig() {
     return {
       type: "custom:fibbers-scene",
@@ -44,6 +49,7 @@ export class FibbersScene extends LitElement {
     };
   }
 
+  /** Validate + store the config; throws on an empty `scenes` list, a scene missing `scene`, or a bad `favourites`. */
   setConfig(config) {
     if (!config || !Array.isArray(config.scenes) || !config.scenes.length) {
       throw new Error("fibbers-scene: `scenes` must be a non-empty list");
@@ -81,6 +87,7 @@ export class FibbersScene extends LitElement {
     return best;
   }
 
+  /** Render the scene tile grid plus a show-more toggle when favourites hide some. */
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
@@ -149,12 +156,15 @@ export class FibbersScene extends LitElement {
     `;
   }
 
+  /** One masonry row tall. */
   getCardSize() {
     return 1;
   }
+  /** Sections view: full width, one row. */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 1 };
   }
+  /** Grid layout: full width, auto height. */
   getGridOptions() {
     return { columns: "full", rows: "auto" };
   }

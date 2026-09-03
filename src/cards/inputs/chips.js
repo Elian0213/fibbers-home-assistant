@@ -8,6 +8,10 @@ import { runAction } from "../../shared/actions.js";
 import { twSheet } from "../../shared/tw.js";
 import "../../shared/icon.js";
 
+/**
+ * fibbers-chips — a pill row; each chip runs an HA action, with an optional
+ * `active_when: {entity, state}` blue tint.
+ */
 export class FibbersChips extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -22,6 +26,7 @@ export class FibbersChips extends LitElement {
     `,
   ];
 
+  /** Seed config with one example chip — this card takes an action list, not a single entity. */
   static getStubConfig() {
     return {
       type: "custom:fibbers-chips",
@@ -35,6 +40,7 @@ export class FibbersChips extends LitElement {
     };
   }
 
+  /** Validate + store the config; throws when `chips` isn't a list. */
   setConfig(config) {
     if (!config || !Array.isArray(config.chips)) {
       throw new Error("fibbers-chips: `chips` must be a list");
@@ -51,6 +57,7 @@ export class FibbersChips extends LitElement {
     );
   }
 
+  /** Render the chip row; each chip tints when its `active_when` matches. */
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
@@ -90,12 +97,15 @@ export class FibbersChips extends LitElement {
     </div>`;
   }
 
+  /** One masonry row tall. */
   getCardSize() {
     return 1;
   }
+  /** Sections view: full width, one row. */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 1 };
   }
+  /** Grid layout: full width, auto height. */
   getGridOptions() {
     return { columns: "full", rows: "auto" };
   }

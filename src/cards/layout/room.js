@@ -9,6 +9,7 @@ import { twSheet } from "../../shared/tw.js";
 import { moreInfo, isUnavail, pickEntity } from "../../shared/util.js";
 import "../../shared/icon.js";
 
+// True for `light.*` entity ids — string guard so a stray non-string can't throw.
 const isLight = (id) => typeof id === "string" && id.startsWith("light.");
 
 const EDITOR_SCHEMA = [
@@ -22,6 +23,10 @@ const EDITOR_SCHEMA = [
   { name: "sheet", selector: { text: {} } },
 ];
 
+/**
+ * fibbers-room — room tile that computes its own light state (off / N of M on /
+ * offline, green glow when lit). Tap → sheet, hold → more-info.
+ */
 export class FibbersRoom extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -36,6 +41,7 @@ export class FibbersRoom extends LitElement {
     `,
   ];
 
+  /** Starter config for the picker; seeds one light from the dashboard's entities. */
   static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-room",
@@ -47,12 +53,14 @@ export class FibbersRoom extends LitElement {
     };
   }
 
+  /** Return the shared form editor, wired to this card's schema. */
   static getConfigElement() {
     const el = document.createElement("fibbers-form-editor");
     el.schema = EDITOR_SCHEMA;
     return el;
   }
 
+  /** Require a `name` and either explicit `entities` or an `area`; store the config. */
   setConfig(config) {
     if (!config || !config.name) {
       throw new Error("fibbers-room: `name` is required");
@@ -83,6 +91,7 @@ export class FibbersRoom extends LitElement {
     return this._entities().filter(isLight);
   }
 
+  /** Cancel any pending long-press so it can't fire more-info after unmount. */
   disconnectedCallback() {
     super.disconnectedCallback();
     clearTimeout(this._timer); // don't let a pending long-press fire after unmount
@@ -132,6 +141,7 @@ export class FibbersRoom extends LitElement {
     moreInfo(this, this._lights()[0] || this._entities()[0]);
   }
 
+  /** The tile — icon, name, and computed light-state subline; glows when lit. */
   render() {
     if (!this._config) return html``;
     const s = this._state();
@@ -166,12 +176,15 @@ export class FibbersRoom extends LitElement {
     </button>`;
   }
 
+  /** One masonry row. */
   getCardSize() {
     return 1;
   }
+  /** Half-width (6-of-12) single-row footprint — two rooms per row. */
   getLayoutOptions() {
     return { grid_columns: 6, grid_rows: 1 };
   }
+  /** Half-width by default, down to a quarter (min 3) when the grid is tight. */
   getGridOptions() {
     return { columns: 6, rows: "auto", min_columns: 3 };
   }

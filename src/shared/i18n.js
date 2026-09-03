@@ -18,7 +18,12 @@ function catalog(lang) {
   return CATALOGS[l] || CATALOGS[l.split("-")[0]] || en;
 }
 
-// Accepts a hass object, a language string, or a per-card override string.
+/**
+ * Resolve a language tag from a hass object, a bare language string, or a per-card
+ * override string — so callers can pass `hass` or a raw `language:` straight in.
+ * @param {object|string} hl
+ * @returns {string} language tag, or "en"
+ */
 export function langOf(hl) {
   if (!hl) return "en";
   if (typeof hl === "string") return hl;
@@ -37,6 +42,15 @@ function interpolate(str, vars) {
   );
 }
 
+/**
+ * Resolve a dotted `key` against the caller's language, interpolate `{vars}`, and
+ * pick a `<key>_one` sibling when `vars.count === 1`. Never returns the raw key on
+ * a real path — a missing translation falls back to English.
+ * @param {object|string} hl — hass, language string, or per-card override
+ * @param {string} key — dotted catalog key
+ * @param {object} [vars] — interpolation values; `count` drives pluralisation
+ * @returns {string}
+ */
 export function t(hl, key, vars) {
   const cat = catalog(langOf(hl));
   const plural = vars && Number(vars.count) === 1 ? `${key}_one` : null;

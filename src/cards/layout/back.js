@@ -9,6 +9,10 @@ import { twSheet } from "../../shared/tw.js";
 import { norm } from "../../shared/util.js";
 import "../../shared/icon.js";
 
+/**
+ * fibbers-back — "Back to X" button driven by the nav stack; falls back to
+ * `fallback` on a cold deep-link where there's no history to pop.
+ */
 export class FibbersBack extends LitElement {
   static properties = {
     _config: { state: true },
@@ -23,23 +27,28 @@ export class FibbersBack extends LitElement {
     `,
   ];
 
+  /** Starter config for the card picker. */
   static getStubConfig() {
     return { type: "custom:fibbers-back", fallback: "/lovelace/0" };
   }
 
+  /** Store config and recompute the label. */
   setConfig(config) {
     this._config = config || {};
     this._compute();
   }
 
+  /** No-op — the label comes from the nav stack, not hass. */
   set hass(_hass) {}
 
+  /** Subscribe to nav-stack changes so the label tracks the current previous page. */
   connectedCallback() {
     super.connectedCallback();
     this._onRoute = () => this._compute();
     nav.listeners.add(this._onRoute);
     this._compute();
   }
+  /** Drop the nav-stack subscription. */
   disconnectedCallback() {
     super.disconnectedCallback();
     if (this._onRoute) nav.listeners.delete(this._onRoute);
@@ -58,6 +67,7 @@ export class FibbersBack extends LitElement {
     this._label = name ? t(hl, "back.back_to", { name }) : t(hl, "back.back");
   }
 
+  /** Full-width back button; tap pops the nav stack (or routes to `fallback`). */
   render() {
     const c = this._config || {};
     return html`<button
@@ -74,12 +84,15 @@ export class FibbersBack extends LitElement {
     </button>`;
   }
 
+  /** One masonry row. */
   getCardSize() {
     return 1;
   }
+  /** Full-width, single-row footprint in the sections/grid layout. */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 1 };
   }
+  /** Span the full grid width; height follows content. */
   getGridOptions() {
     return { columns: "full", rows: "auto" };
   }

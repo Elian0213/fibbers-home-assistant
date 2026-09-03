@@ -39,6 +39,10 @@ const EDITOR_SCHEMA = [
   },
 ];
 
+/**
+ * fibbers-number — slider/stepper for input_number & number.*, with drag UI and
+ * debounced writes; respects the entity min/max/step.
+ */
 export class FibbersNumber extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -56,6 +60,7 @@ export class FibbersNumber extends LitElement {
     `,
   ];
 
+  /** Seed config for the picker — an input_number entity from the dashboard, or a placeholder. */
   static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-number",
@@ -68,12 +73,14 @@ export class FibbersNumber extends LitElement {
     };
   }
 
+  /** Build the shared form editor bound to this card's schema. */
   static getConfigElement() {
     const el = document.createElement("fibbers-form-editor");
     el.schema = EDITOR_SCHEMA;
     return el;
   }
 
+  /** Validate + store the config; throws when the entity isn't an input_number/number. */
   setConfig(config) {
     if (!config || !config.entity) {
       throw new Error("fibbers-number: `entity` is required");
@@ -94,6 +101,7 @@ export class FibbersNumber extends LitElement {
     else this._hold.clear();
   }
 
+  /** Cancel the pending debounced write so a torn-down card can't fire late. */
   disconnectedCallback() {
     super.disconnectedCallback();
     this._debouncedSet.cancel();
@@ -191,6 +199,7 @@ export class FibbersNumber extends LitElement {
     this._setValue(this._snap(this._value() + dir * this._bounds().step));
   }
 
+  /** Render the header plus either the stepper buttons or the drag slider per `mode`. */
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
@@ -295,12 +304,15 @@ export class FibbersNumber extends LitElement {
     </button>`;
   }
 
+  /** One masonry row tall. */
   getCardSize() {
     return 1;
   }
+  /** Sections view: full width, one row. */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 1 };
   }
+  /** Grid layout: full width, auto height. */
   getGridOptions() {
     return { columns: "full", rows: "auto" };
   }

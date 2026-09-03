@@ -186,8 +186,10 @@ function unwatchScheme() {
 }
 
 /**
- * Apply the dashboard theme. Called from the bar singleton's attach() with the
- * nav config. `none`/undefined tears the injected style down.
+ * Apply the scoped dashboard theme from the bar singleton's attach() — injects
+ * the palette vars into hui-root's shadow root so only this dashboard is themed.
+ * `none`/undefined tears the injected style down.
+ * @param {"fibbers"|"fibbers-light"|"auto"|"none"} mode
  */
 export function applyTheme(mode) {
   const normalized = ["fibbers", "fibbers-light", "auto"].includes(mode)
@@ -205,7 +207,10 @@ export function applyTheme(mode) {
   else unwatchScheme();
 }
 
-/** Full teardown — called from detach() when the last fibbers-nav unmounts. */
+/**
+ * Full teardown — drop the injected style, observer, nav listeners, and scheme
+ * watcher. Called from detach() when the last fibbers-nav unmounts.
+ */
 export function removeTheme() {
   state.mode = "none";
   stopObserver();

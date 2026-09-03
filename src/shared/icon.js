@@ -53,16 +53,29 @@ function loadFull() {
   return fullPromise;
 }
 
+/**
+ * Build the inline `<svg>` string for a Solar icon `name` from the core or
+ * lazily-fetched full map, painting with currentColor so the duotone tint tracks.
+ * Returns null when the name isn't in either map — the caller decides the fallback.
+ * @param {string} name
+ * @returns {string|null} svg markup, or null
+ */
 export function iconSvg(name) {
   const ic = name && (ICONS[name] || (FULL && FULL[name]));
   if (!ic) return null;
   return `<svg viewBox="${ic.vb}" fill="currentColor" style="width:100%;height:100%;display:block" aria-hidden="true">${ic.body}</svg>`;
 }
 
+/**
+ * <fib-icon> — renders a bundled Solar duotone SVG for a `solar:` name, else
+ * delegates to HA's <ha-icon>. A plain custom element (no shadow root) so it
+ * inherits colour/size from the light DOM.
+ */
 class FibIcon extends HTMLElement {
   static get observedAttributes() {
     return ["icon"];
   }
+  /** Lock in the flex/decorative styling, then paint. */
   connectedCallback() {
     this.style.display = "inline-flex";
     this.style.alignItems = "center";
@@ -70,6 +83,7 @@ class FibIcon extends HTMLElement {
     this.style.pointerEvents = "none"; // decorative glyph — never its own hit target
     this._render();
   }
+  /** Re-paint when `icon` changes — but only once connected (attrs can be set pre-mount). */
   attributeChangedCallback() {
     if (this.isConnected) this._render();
   }

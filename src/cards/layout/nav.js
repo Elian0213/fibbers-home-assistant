@@ -28,6 +28,10 @@ const EDITOR_SCHEMA = [
   { name: "extra_bottom", selector: { number: { min: 0, mode: "box" } } },
 ];
 
+/**
+ * fibbers-nav — thin controller for the singleton bottom bar (core/body-layer.js);
+ * no UI of its own, it just attaches/detaches the body-portal bar.
+ */
 export class FibbersNav extends LitElement {
   static properties = { preview: { type: Boolean, reflect: true } };
   static styles = [
@@ -38,6 +42,7 @@ export class FibbersNav extends LitElement {
     `,
   ];
 
+  /** Two-tab starter config for the card picker. */
   static getStubConfig() {
     return {
       type: "custom:fibbers-nav",
@@ -56,12 +61,14 @@ export class FibbersNav extends LitElement {
     };
   }
 
+  /** Return the shared form editor, wired to this card's schema. */
   static getConfigElement() {
     const el = document.createElement("fibbers-form-editor");
     el.schema = EDITOR_SCHEMA;
     return el;
   }
 
+  /** Validate config, stash it, and (re)attach the bar when already live and not previewing. */
   setConfig(config) {
     if (!config || !Array.isArray(config.tabs) || !config.tabs.length) {
       throw new Error(
@@ -117,6 +124,7 @@ export class FibbersNav extends LitElement {
     if (this.isConnected && !this.preview) attach(this, this._config);
   }
 
+  /** Feed hass to the nav stack; only re-render the bar when a tab carries a live badge. */
   set hass(hass) {
     if (this.preview) return; // card picker: never touch the nav singleton
     nav.hassRef = hass;
@@ -124,12 +132,13 @@ export class FibbersNav extends LitElement {
       renderBar();
   }
 
+  /** Collapse the empty <hui-card> wrapper (bar lives in document.body) and attach the bar. */
   connectedCallback() {
     super.connectedCallback();
-    // In the card picker HA sets `preview` — never spawn the real body-portal bar.
+    // Card picker sets `preview` — never spawn the real body-portal bar.
     if (this.preview) return;
-    // This card renders into document.body, so its grid cell is empty; collapse
-    // the <hui-card> wrapper so it doesn't reserve a 56px row.
+    // Bar renders into document.body, so this grid cell is empty — collapse the
+    // <hui-card> wrapper so it doesn't reserve a 56px row.
     const cell = this.getRootNode().host;
     if (cell) {
       this._cell = cell;
@@ -137,6 +146,7 @@ export class FibbersNav extends LitElement {
     }
     if (this._config) attach(this, this._config);
   }
+  /** Restore the collapsed wrapper and detach the singleton bar. */
   disconnectedCallback() {
     super.disconnectedCallback();
     if (this._cell) {
@@ -146,6 +156,7 @@ export class FibbersNav extends LitElement {
     if (!this.preview) detach(this);
   }
 
+  /** Nothing in normal use (bar is a body portal); an inert mock bar in the picker. */
   render() {
     if (!this.preview) return html``;
     // Inert inline mock for the card picker — a static bar, no body portal, no
@@ -174,12 +185,15 @@ export class FibbersNav extends LitElement {
     </div>`;
   }
 
+  /** One masonry row — the collapsed wrapper takes no visible space. */
   getCardSize() {
     return 1;
   }
+  /** Full-width, single-row footprint in the sections/grid layout. */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 1 };
   }
+  /** Pin to a 1×1 minimum so the invisible controller never stretches the grid. */
   getGridOptions() {
     return { columns: 1, rows: 1, min_columns: 1, min_rows: 1 };
   }

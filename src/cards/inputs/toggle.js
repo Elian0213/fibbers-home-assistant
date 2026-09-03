@@ -19,6 +19,10 @@ const EDITOR_SCHEMA = [
   { name: "confirm", selector: { boolean: {} } },
 ];
 
+/**
+ * fibbers-toggle — switch row for input_boolean/switch/automation on a shared pill.
+ * Optional `secondary`/`secondary_entity` subline and a `confirm` guard.
+ */
 export class FibbersToggle extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -34,6 +38,7 @@ export class FibbersToggle extends LitElement {
     `,
   ];
 
+  /** Seed config for the picker — an input_boolean entity from the dashboard, or a placeholder. */
   static getStubConfig(hass, entities, entitiesFallback) {
     return {
       type: "custom:fibbers-toggle",
@@ -46,12 +51,14 @@ export class FibbersToggle extends LitElement {
     };
   }
 
+  /** Build the shared form editor bound to this card's schema. */
   static getConfigElement() {
     const el = document.createElement("fibbers-form-editor");
     el.schema = EDITOR_SCHEMA;
     return el;
   }
 
+  /** Validate + store the config; throws when `entity` is missing (any domain is accepted). */
   setConfig(config) {
     if (!config || !config.entity) {
       throw new Error("fibbers-toggle: `entity` is required");
@@ -78,6 +85,7 @@ export class FibbersToggle extends LitElement {
     return "";
   }
 
+  /** Render the icon, name, optional subline, and the toggle pill. */
   render() {
     const cfg = this._config;
     if (!cfg) return html``;
@@ -119,12 +127,15 @@ export class FibbersToggle extends LitElement {
     </div>`;
   }
 
+  /** One masonry row tall. */
   getCardSize() {
     return 1;
   }
+  /** Sections view: full width, one row. */
   getLayoutOptions() {
     return { grid_columns: "full", grid_rows: 1 };
   }
+  /** Grid layout: full width, auto height. */
   getGridOptions() {
     return { columns: "full", rows: "auto" };
   }

@@ -1,7 +1,8 @@
 /*!
- * Fibbers — custom cards + dark theming for Home Assistant.
- * Registers ~25 cards (see the CARDS table below) plus the body-appended nav bar
- * and modal sheet, then injects the theme. Edit src/, run `bun run build`.
+ * Fibbers — entry point + card registry for the Home Assistant plugin.
+ * Imports every card for its side effects, then the CARDS table defines each
+ * custom element and registers it with HA's card picker (window.customCards).
+ * The `/*!` banner is kept verbatim by the minifier. Edit src/, run `bun run build`.
  */
 import "./shared/icon.js"; // registers <fib-icon>
 import "./core/editor.js"; // registers <fibbers-form-editor> for getConfigElement()
@@ -40,7 +41,8 @@ import { navigate } from "./shared/util.js";
 const VERSION = "0.7.4";
 
 /* ================================================================== *
- * REGISTRY
+ * REGISTRY — `[tag, class, name, description]` per card. The forEach below
+ * defines the elements; a second pass feeds name/description to the card picker.
  * ================================================================== */
 const CARDS = [
   [

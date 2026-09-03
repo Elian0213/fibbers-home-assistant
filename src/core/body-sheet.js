@@ -249,6 +249,12 @@ async function renderContent(card) {
   }
 }
 
+/**
+ * Open the registered sheet `id` — builds the host on first use, locks the view,
+ * renders the child cards, then plays the reveal on the next frame. No-op if the
+ * id is unknown or already open.
+ * @param {string} id — the sheet's hash id
+ */
 export function openSheet(id) {
   const card = layer.sheets.get(id);
   if (!card || layer.openId === id) return;
@@ -266,6 +272,12 @@ export function openSheet(id) {
   );
 }
 
+/**
+ * Close the open sheet — plays the exit, clears the hash, then (after the
+ * transition, unless reduced-motion) unlocks the view and returns focus to the
+ * opener. The deferred finish is guarded by a cancellation token so it can't run
+ * against a sheet that was unregistered mid-animation.
+ */
 export function closeSheet() {
   if (layer.openId == null) return;
   const id = layer.openId;
@@ -300,6 +312,12 @@ function syncFromHash() {
   else if (layer.openId != null) closeSheet();
 }
 
+/**
+ * Register a fibbers-sheet card under `id` (reference-counts the shared host) and
+ * open it immediately if the URL already points at it (deep-link / reload).
+ * @param {string} id — the sheet's hash id
+ * @param {LitElement} card — the sheet card supplying config + hass
+ */
 export function registerSheet(id, card) {
   ensureListeners();
   build();
@@ -307,6 +325,13 @@ export function registerSheet(id, card) {
   if (window.location.hash === `#${id}`) openSheet(id);
 }
 
+/**
+ * Unregister a sheet card. Closes it if open; on the last unregister, cancels any
+ * queued close and tears the shared host + listeners down so nothing leaks onto
+ * the next page. Guarded by identity so a stale card can't drop a live one.
+ * @param {string} id
+ * @param {LitElement} card
+ */
 export function unregisterSheet(id, card) {
   if (layer.sheets.get(id) === card) layer.sheets.delete(id);
   if (layer.openId === id) closeSheet();
@@ -320,6 +345,12 @@ export function unregisterSheet(id, card) {
   }
 }
 
+/**
+ * Push a fresh hass onto the open sheet's live child cards so they stay reactive
+ * while open. No-op unless `id` is the currently open sheet.
+ * @param {string} id
+ * @param {object} hass — Home Assistant state object
+ */
 export function updateSheetHass(id, hass) {
   if (layer.openId !== id) return;
   const card = layer.sheets.get(id);
