@@ -34,7 +34,9 @@ const MF = {
   VOLUME_SET: 4,
   PREV: 16,
   NEXT: 32,
+  SELECT_SOURCE: 2048,
   PLAY: 16384,
+  GROUPING: 524288,
 };
 
 /**
@@ -249,16 +251,26 @@ export class FibbersMedia extends LitElement {
     );
   }
 
+  // Fire-and-forget media_player call — swallow the rejection so a call HA refuses
+  // (an ungated control the player can't actually run) isn't an unhandled rejection.
+  _do(service, data) {
+    this._svc(service, data).catch(() => {});
+  }
+
   _join(entityId) {
-    if (this.hass)
-      this.hass.callService("media_player", "join", {
+    if (!this.hass) return;
+    this.hass
+      .callService("media_player", "join", {
         entity_id: this._config.entity,
         group_members: [entityId],
-      });
+      })
+      .catch(() => {});
   }
   _unjoin(entityId) {
-    if (this.hass)
-      this.hass.callService("media_player", "unjoin", { entity_id: entityId });
+    if (!this.hass) return;
+    this.hass
+      .callService("media_player", "unjoin", { entity_id: entityId })
+      .catch(() => {});
   }
 
   _down(e) {
@@ -311,7 +323,7 @@ export class FibbersMedia extends LitElement {
       class="fib-hit flex ${big ? "h-11 w-11" : "h-9 w-9"} items-center justify-center rounded-full
              ${opts.accent ? "bg-accentbg text-accent" : "bg-card2 text-ink"}
              transition-transform active:scale-90"
-      @click=${() => this._svc(service)}
+      @click=${() => this._do(service)}
     >
       <fib-icon
         class="${
@@ -324,7 +336,7 @@ export class FibbersMedia extends LitElement {
     </button>`;
   }
 
-  _seekBar() {
+  _seekBar(hl) {
     const p = this._pos();
     if (!p || !p.dur) return "";
     const pos = this._seekHold.value(p.pos, {
@@ -356,13 +368,19 @@ export class FibbersMedia extends LitElement {
     return html`<div class="mb-3">
       ${sliderTrack({
         pct,
-        label: "Seek",
+        label: t(hl, "media.seek"),
         value: Math.round(pos),
         min: 0,
         max: Math.round(p.dur),
         step: 10,
         valueText: fmtTime(pos),
-        onInput: (v) => this._seekInput(v),
+        // Arm the hold optimistically so repeated key presses advance the bar —
+        // otherwise `value` is read back from the (unchanged) entity each keydown
+        // and the debounce discards all but the last: one step per HA round trip.
+        onInput: (v) => {
+          this._seekHold.hold(v);
+          this._seekInput(v);
+        },
         onDown: this._seekDown,
         onMove: this._seekMove,
         onUp: this._seekUp,
@@ -393,7 +411,10 @@ export class FibbersMedia extends LitElement {
     const canPlay = this._supports(MF.PLAY) || this._supports(MF.PAUSE);
     const canPrev = this._supports(MF.PREV);
     const canNext = this._supports(MF.NEXT);
-    const canVol = this._supports(MF.VOLUME_SET);
+    // A player can advertise VOLUME_SET yet never report a level (CEC, androidtv
+    // volume-only, Chromecast before it connects) — the slider would sit at 0% and
+    // re-snap there after every hold. Gate on the actual level, not just the bit.
+    const canVol = this._supports(MF.VOLUME_SET) && a.volume_level != null;
 
     const artBox = html`<div
       class="flex ${cfg.compact ? "h-11 w-11" : "h-14 w-14"} flex-none items-center
@@ -457,7 +478,7 @@ export class FibbersMedia extends LitElement {
         </div>
       </div>
 
-      ${this._seekBar()}
+      ${this._seekBar(hl)}
       ${
         canPrev || canPlay || canNext
           ? html`<div class="mb-3 flex items-center justify-center gap-4">
@@ -498,13 +519,17 @@ export class FibbersMedia extends LitElement {
               ${sliderTrack({
                 pct: this._vol(),
                 cls: "flex-1",
-                label: "Volume",
+                label: t(hl, "media.volume"),
                 value: this._vol(),
                 min: 0,
                 max: 100,
                 step: 5,
                 valueText: `${this._vol()}%`,
-                onInput: (v) => this._volInput(v),
+                // Arm the hold so keyboard steps accumulate (see the seek bar).
+                onInput: (v) => {
+                  this._volHold.hold(v);
+                  this._volInput(v);
+                },
                 onDown: this._down,
                 onMove: this._move,
                 onUp: this._up,
@@ -520,8 +545,10 @@ export class FibbersMedia extends LitElement {
           : ""
       }
       ${(() => {
+        // Gate on SELECT_SOURCE: a player that lists sources it can't switch to
+        // shouldn't render chips whose calls HA rejects.
         const all = this._allSources();
-        if (!all.length) return "";
+        if (!all.length || !this._supports(MF.SELECT_SOURCE)) return "";
         const collapsed = all.length > 8 ? all.slice(0, 8) : null;
         return html`<div class="mt-3">
           ${overflowChips({
@@ -534,7 +561,7 @@ export class FibbersMedia extends LitElement {
               this._srcOpen = !this._srcOpen;
             },
             onSelect: (s) =>
-              this._svc("select_source", { source: s.source || s.name }),
+              this._do("select_source", { source: s.source || s.name }),
           })}
         </div>`;
       })()}
@@ -544,7 +571,13 @@ export class FibbersMedia extends LitElement {
 
   _groupRow(a) {
     const cfg = this._config;
-    if (!Array.isArray(cfg.group) || !cfg.group.length) return "";
+    // Gate on GROUPING — a `group:` list on a player that can't join does nothing.
+    if (
+      !Array.isArray(cfg.group) ||
+      !cfg.group.length ||
+      !this._supports(MF.GROUPING)
+    )
+      return "";
     const hl = cfg.language || this.hass;
     const members = a.group_members || [];
     return html`<div class="mt-3">
@@ -597,7 +630,7 @@ export class FibbersMedia extends LitElement {
             aria-label=${f.name || f.media_content_id}
             class="flex flex-col items-center gap-1 text-[10px] text-ink2"
             @click=${() =>
-              this._svc("play_media", {
+              this._do("play_media", {
                 media_content_id: f.media_content_id,
                 media_content_type: f.media_content_type || "music",
               })}

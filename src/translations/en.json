@@ -136,7 +136,9 @@
   "media": {
     "default_name": "Media",
     "idle": "Nothing playing",
-    "speakers": "Speakers"
+    "speakers": "Speakers",
+    "seek": "Seek",
+    "volume": "Volume"
   },
   "graph": {
     "no_history": "No history"
