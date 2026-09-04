@@ -94,7 +94,14 @@ export class FibbersLightDetail extends LitElement {
     }
     const s = { dragging: false, dragPct: 0 };
     s.hold = new SliderHold(this, { tolerance: 2, timeout: 2500 });
-    s.debounced = debounce(commit, 120);
+    // Arm the hold on every commit so the control shows the committed value until the
+    // light reports it. Without this the drag-release path never held (unlike the
+    // light-row committer) and the colour/brightness sliders snapped back to the
+    // stale entity value for the whole service round-trip.
+    s.debounced = debounce((v) => {
+      s.hold.hold(v);
+      commit(v);
+    }, 120);
     s.drag = sliderDrag({
       guard: () => this._unavail(),
       read: (e) => Math.round(pctFromX(e.clientX, e.currentTarget)),

@@ -5093,7 +5093,10 @@ ${decls}
       }
       const s4 = { dragging: false, dragPct: 0 };
       s4.hold = new SliderHold(this, { tolerance: 2, timeout: 2500 });
-      s4.debounced = debounce(commit, 120);
+      s4.debounced = debounce((v2) => {
+        s4.hold.hold(v2);
+        commit(v2);
+      }, 120);
       s4.drag = sliderDrag({
         guard: () => this._unavail(),
         read: (e4) => Math.round(pctFromX(e4.clientX, e4.currentTarget)),
