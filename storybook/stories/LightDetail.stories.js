@@ -5,12 +5,26 @@ export default {
   tags: ["autodocs"],
 };
 
-/** A colour + colour-temperature light: brightness, a warm→cool temperature slider,
- * a draggable colour wheel (hue = angle, saturation = radius) with hue/saturation
- * sliders beneath, and quick swatches. */
+/** A single colour light: brightness, a draggable colour wheel (hue = angle,
+ * saturation = radius) and quick swatches. */
 export const Colour = story({
   type: "custom:fibbers-light-detail",
   entity: "light.tv_led_strip",
+});
+
+/** Opened from a room/group: a Philips-Hue-style picker. The Colour wheel (and the
+ * Warm strip) carry one draggable dot per lamp — drag a dot onto another to snap
+ * them to the same colour — with the lamps listed below for brightness and on/off. */
+export const Room = story({
+  type: "custom:fibbers-light-detail",
+  entity: "light.tv_led_strip",
+  groupName: "Woonkamer",
+  siblings: [
+    "light.tv_led_strip",
+    "light.kitchen_lsc_led_strip",
+    "light.kitchen",
+    "light.woonkamer_computer",
+  ],
 });
 
 /** A colour-temperature-only light — brightness + a warmth slider + white swatches,

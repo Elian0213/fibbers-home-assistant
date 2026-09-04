@@ -35,7 +35,9 @@
     "warm": "Warm",
     "neutral": "Neutraal",
     "cool": "Koel",
-    "lights": "Lampen"
+    "lights": "Lampen",
+    "white": "Wit",
+    "on_count": "{on} van {total} aan"
   },
   "light_group": {
     "default_name": "Lampen",

@@ -35,6 +35,11 @@ export function makeHass(flags = {}) {
   add("light.kitchen_lsc_led_strip", "on", {
     friendly_name: "Keuken LED",
     brightness: 120,
+    color_mode: "hs",
+    hs_color: [140, 75],
+    supported_color_modes: ["hs", "color_temp"],
+    min_color_temp_kelvin: 2000,
+    max_color_temp_kelvin: 6535,
   });
   add("light.hue_go_1", f.hueGo ? "off" : "unavailable", {
     friendly_name: "Slaapkamerlamp",

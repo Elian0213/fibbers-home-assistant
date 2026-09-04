@@ -35,7 +35,9 @@
     "warm": "Warm",
     "neutral": "Neutral",
     "cool": "Cool",
-    "lights": "Lights"
+    "lights": "Lights",
+    "white": "White",
+    "on_count": "{on} of {total} on"
   },
   "light_group": {
     "default_name": "Lights",

@@ -1102,7 +1102,9 @@
       warm: "Warm",
       neutral: "Neutral",
       cool: "Cool",
-      lights: "Lights"
+      lights: "Lights",
+      white: "White",
+      on_count: "{on} of {total} on"
     },
     light_group: {
       default_name: "Lights",
@@ -1268,7 +1270,9 @@
       warm: "Warm",
       neutral: "Neutraal",
       cool: "Koel",
-      lights: "Lampen"
+      lights: "Lampen",
+      white: "Wit",
+      on_count: "{on} van {total} aan"
     },
     light_group: {
       default_name: "Lampen",
@@ -1431,7 +1435,7 @@
 
   // src/generated/tailwind.gen.js
   var TW_CSS = `/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */
-@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-translate-x:0;--tw-translate-y:0;--tw-translate-z:0;--tw-scale-x:1;--tw-scale-y:1;--tw-scale-z:1;--tw-rotate-x:initial;--tw-rotate-y:initial;--tw-rotate-z:initial;--tw-skew-x:initial;--tw-skew-y:initial;--tw-pan-x:initial;--tw-pan-y:initial;--tw-pinch-zoom:initial;--tw-border-style:solid;--tw-leading:initial;--tw-font-weight:initial;--tw-tracking:initial;--tw-ordinal:initial;--tw-slashed-zero:initial;--tw-numeric-figure:initial;--tw-numeric-spacing:initial;--tw-numeric-fraction:initial;--tw-shadow:0 0 #0000;--tw-shadow-color:initial;--tw-shadow-alpha:100%;--tw-inset-shadow:0 0 #0000;--tw-inset-shadow-color:initial;--tw-inset-shadow-alpha:100%;--tw-ring-color:initial;--tw-ring-shadow:0 0 #0000;--tw-inset-ring-color:initial;--tw-inset-ring-shadow:0 0 #0000;--tw-ring-inset:initial;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-offset-shadow:0 0 #0000;--tw-outline-style:solid;--tw-blur:initial;--tw-brightness:initial;--tw-contrast:initial;--tw-grayscale:initial;--tw-hue-rotate:initial;--tw-invert:initial;--tw-opacity:initial;--tw-saturate:initial;--tw-sepia:initial;--tw-drop-shadow:initial;--tw-drop-shadow-color:initial;--tw-drop-shadow-alpha:100%;--tw-drop-shadow-size:initial;--tw-backdrop-blur:initial;--tw-backdrop-brightness:initial;--tw-backdrop-contrast:initial;--tw-backdrop-grayscale:initial;--tw-backdrop-hue-rotate:initial;--tw-backdrop-invert:initial;--tw-backdrop-opacity:initial;--tw-backdrop-saturate:initial;--tw-backdrop-sepia:initial;--tw-duration:initial}}}@layer theme{:root,:host{--font-sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";--font-mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;--color-white:#fff;--spacing:.25rem;--font-weight-medium:500;--font-weight-semibold:600;--tracking-tight:-.025em;--leading-tight:1.25;--radius-md:.375rem;--radius-lg:.5rem;--radius-xl:.75rem;--animate-pulse:pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;--default-transition-duration:.15s;--default-transition-timing-function:cubic-bezier(.4, 0, .2, 1);--default-font-family:var(--font-sans);--default-mono-font-family:var(--font-mono);--color-card:#1d2426;--color-card2:#262f31;--color-line:#333e41;--color-ink:#edf1f1;--color-ink2:#a9b6b9;--color-muted:#7d8b8e;--color-accent:#74b98a;--color-accentbg:#17281c;--color-accentline:#2b4a34;--color-accenttx:#cfe6d5;--color-amber:#e8a33d;--color-amberbg:#3a2b12;--color-amberline:#4e3a18;--color-ambertx:#ebd9bc;--color-blue:#5aafd6;--color-bluebg:#152b36;--color-blueline:#2c5a70;--color-blueink:#9bd2ea;--color-green:#63c295;--color-red:#ec8377}}@layer base{*,:after,:before,::backdrop{box-sizing:border-box;border:0 solid;margin:0;padding:0}::file-selector-button{box-sizing:border-box;border:0 solid;margin:0;padding:0}html,:host{-webkit-text-size-adjust:100%;tab-size:4;line-height:1.5;font-family:var(--default-font-family,-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");font-feature-settings:var(--default-font-feature-settings,normal);font-variation-settings:var(--default-font-variation-settings,normal);-webkit-tap-highlight-color:transparent}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,samp,pre{font-family:var(--default-mono-font-family,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);font-feature-settings:var(--default-mono-font-feature-settings,normal);font-variation-settings:var(--default-mono-font-variation-settings,normal);font-size:1em}small{font-size:80%}sub,sup{vertical-align:baseline;font-size:75%;line-height:0;position:relative}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}:-moz-focusring:where(:not(iframe)){outline:auto}progress{vertical-align:baseline}summary{display:list-item}ol,ul,menu{list-style:none}img,svg,video,canvas,audio,iframe,embed,object{vertical-align:middle;display:block}img,video{max-width:100%;height:auto}button,input,select,optgroup,textarea{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}::file-selector-button{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}:where(select:is([multiple],[size])) optgroup{font-weight:bolder}:where(select:is([multiple],[size])) optgroup option{padding-inline-start:20px}::file-selector-button{margin-inline-end:4px}::placeholder{opacity:1}@supports (not ((-webkit-appearance:-apple-pay-button))) or (contain-intrinsic-size:1px){::placeholder{color:currentColor}@supports (color:color-mix(in lab, red, red)){::placeholder{color:color-mix(in oklab, currentcolor 50%, transparent)}}}textarea{resize:vertical}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-date-and-time-value{min-height:1lh;text-align:inherit}::-webkit-datetime-edit{display:inline-flex}::-webkit-datetime-edit-fields-wrapper{padding:0}::-webkit-datetime-edit{padding-block:0}::-webkit-datetime-edit-year-field{padding-block:0}::-webkit-datetime-edit-month-field{padding-block:0}::-webkit-datetime-edit-day-field{padding-block:0}::-webkit-datetime-edit-hour-field{padding-block:0}::-webkit-datetime-edit-minute-field{padding-block:0}::-webkit-datetime-edit-second-field{padding-block:0}::-webkit-datetime-edit-millisecond-field{padding-block:0}::-webkit-datetime-edit-meridiem-field{padding-block:0}::-webkit-calendar-picker-indicator{line-height:1}:-moz-ui-invalid{box-shadow:none}button,input:where([type=button],[type=reset],[type=submit]){appearance:button}::file-selector-button{appearance:button}::-webkit-inner-spin-button{height:auto}::-webkit-outer-spin-button{height:auto}[hidden]:where(:not([hidden=until-found])){display:none!important}}@layer components;@layer utilities{.\\@container{container-type:inline-size}.pointer-events-none{pointer-events:none}.collapse{visibility:collapse}.invisible{visibility:hidden}.visible{visibility:visible}.absolute{position:absolute}.fixed{position:fixed}.relative{position:relative}.static{position:static}.top-0{top:0}.top-0\\.5{top:calc(var(--spacing) * .5)}.top-1{top:var(--spacing)}.top-1\\/2{top:50%}.top-2{top:calc(var(--spacing) * 2)}.top-\\[calc\\(100\\%\\+4px\\)\\]{top:calc(100% + 4px)}.right-0{right:0}.right-1{right:var(--spacing)}.right-2{right:calc(var(--spacing) * 2)}.bottom-0{bottom:0}.bottom-1{bottom:var(--spacing)}.bottom-2{bottom:calc(var(--spacing) * 2)}.bottom-full{bottom:100%}.left-0{left:0}.left-0\\.5{left:calc(var(--spacing) * .5)}.left-1{left:var(--spacing)}.left-1\\/2{left:50%}.left-2{left:calc(var(--spacing) * 2)}.left-\\[18px\\]{left:18px}.z-10{z-index:10}.col-start-2{grid-column-start:2}.row-span-2{grid-row:span 2/span 2}.container{width:100%}@media (min-width:40rem){.container{max-width:40rem}}@media (min-width:48rem){.container{max-width:48rem}}@media (min-width:64rem){.container{max-width:64rem}}@media (min-width:80rem){.container{max-width:80rem}}@media (min-width:96rem){.container{max-width:96rem}}.-mx-1{margin-inline:calc(var(--spacing) * -1)}.mx-0{margin-inline:0}.mx-auto{margin-inline:auto}.mt-0{margin-top:0}.mt-0\\.5{margin-top:calc(var(--spacing) * .5)}.mt-1{margin-top:var(--spacing)}.mt-1\\.5{margin-top:calc(var(--spacing) * 1.5)}.mt-2{margin-top:calc(var(--spacing) * 2)}.mt-2\\.5{margin-top:calc(var(--spacing) * 2.5)}.mt-3{margin-top:calc(var(--spacing) * 3)}.mb-1{margin-bottom:var(--spacing)}.mb-1\\.5{margin-bottom:calc(var(--spacing) * 1.5)}.mb-2{margin-bottom:calc(var(--spacing) * 2)}.mb-2\\.5{margin-bottom:calc(var(--spacing) * 2.5)}.mb-3{margin-bottom:calc(var(--spacing) * 3)}.ml-0{margin-left:0}.ml-0\\.5{margin-left:calc(var(--spacing) * .5)}.ml-2{margin-left:calc(var(--spacing) * 2)}.ml-\\[7px\\]{margin-left:7px}.ml-\\[18px\\]{margin-left:18px}.ml-auto{margin-left:auto}.block{display:block}.contents{display:contents}.flex{display:flex}.grid{display:grid}.hidden{display:none}.inline{display:inline}.inline-flex{display:inline-flex}.table{display:table}.aspect-square{aspect-ratio:1}.h-1{height:var(--spacing)}.h-1\\.5{height:calc(var(--spacing) * 1.5)}.h-2{height:calc(var(--spacing) * 2)}.h-2\\.5{height:calc(var(--spacing) * 2.5)}.h-3{height:calc(var(--spacing) * 3)}.h-3\\.5{height:calc(var(--spacing) * 3.5)}.h-4{height:calc(var(--spacing) * 4)}.h-5{height:calc(var(--spacing) * 5)}.h-6{height:calc(var(--spacing) * 6)}.h-7{height:calc(var(--spacing) * 7)}.h-8{height:calc(var(--spacing) * 8)}.h-9{height:calc(var(--spacing) * 9)}.h-10{height:calc(var(--spacing) * 10)}.h-11{height:calc(var(--spacing) * 11)}.h-12{height:calc(var(--spacing) * 12)}.h-14{height:calc(var(--spacing) * 14)}.h-20{height:calc(var(--spacing) * 20)}.h-\\[5px\\]{height:5px}.h-\\[13px\\]{height:13px}.h-\\[15px\\]{height:15px}.h-\\[17px\\]{height:17px}.h-\\[18px\\]{height:18px}.h-\\[19px\\]{height:19px}.h-\\[20px\\]{height:20px}.h-\\[22px\\]{height:22px}.h-\\[26px\\]{height:26px}.h-\\[30px\\]{height:30px}.h-\\[34px\\]{height:34px}.h-\\[42px\\]{height:42px}.h-\\[var\\(--fib-hit\\)\\]{height:var(--fib-hit)}.h-full{height:100%}.max-h-\\[220px\\]{max-height:220px}.min-h-11{min-height:calc(var(--spacing) * 11)}.min-h-\\[26px\\]{min-height:26px}.min-h-\\[var\\(--fib-hit\\)\\]{min-height:var(--fib-hit)}.w-1{width:var(--spacing)}.w-1\\.5{width:calc(var(--spacing) * 1.5)}.w-3{width:calc(var(--spacing) * 3)}.w-3\\.5{width:calc(var(--spacing) * 3.5)}.w-4{width:calc(var(--spacing) * 4)}.w-5{width:calc(var(--spacing) * 5)}.w-6{width:calc(var(--spacing) * 6)}.w-7{width:calc(var(--spacing) * 7)}.w-8{width:calc(var(--spacing) * 8)}.w-9{width:calc(var(--spacing) * 9)}.w-10{width:calc(var(--spacing) * 10)}.w-11{width:calc(var(--spacing) * 11)}.w-12{width:calc(var(--spacing) * 12)}.w-14{width:calc(var(--spacing) * 14)}.w-20{width:calc(var(--spacing) * 20)}.w-\\[5px\\]{width:5px}.w-\\[13px\\]{width:13px}.w-\\[15px\\]{width:15px}.w-\\[17px\\]{width:17px}.w-\\[18px\\]{width:18px}.w-\\[19px\\]{width:19px}.w-\\[20px\\]{width:20px}.w-\\[22px\\]{width:22px}.w-\\[26px\\]{width:26px}.w-\\[30px\\]{width:30px}.w-\\[34px\\]{width:34px}.w-\\[42px\\]{width:42px}.w-full{width:100%}.w-px{width:1px}.max-w-\\[96px\\]{max-width:96px}.max-w-\\[220px\\]{max-width:220px}.min-w-0{min-width:0}.min-w-\\[52px\\]{min-width:52px}.min-w-\\[68px\\]{min-width:68px}.flex-1{flex:1}.flex-none{flex:none}.shrink{flex-shrink:1}.grow{flex-grow:1}.-translate-x-1{--tw-translate-x:calc(var(--spacing) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-x-1\\/2{--tw-translate-x:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1{--tw-translate-y:calc(var(--spacing) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1\\/2{--tw-translate-y:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.scale-90{--tw-scale-x:90%;--tw-scale-y:90%;--tw-scale-z:90%;scale:var(--tw-scale-x) var(--tw-scale-y)}.scale-100{--tw-scale-x:100%;--tw-scale-y:100%;--tw-scale-z:100%;scale:var(--tw-scale-x) var(--tw-scale-y)}.rotate-180{rotate:180deg}.transform{transform:var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,)}.animate-pulse{animation:var(--animate-pulse)}.cursor-pointer{cursor:pointer}.touch-pan-y{--tw-pan-y:pan-y;touch-action:var(--tw-pan-x,) var(--tw-pan-y,) var(--tw-pinch-zoom,)}.touch-none{touch-action:none}.resize{resize:both}.auto-cols-fr{grid-auto-columns:minmax(0,1fr)}.grid-flow-col{grid-auto-flow:column}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.grid-cols-\\[28px_1fr\\]{grid-template-columns:28px 1fr}.grid-cols-\\[28px_1fr_auto\\]{grid-template-columns:28px 1fr auto}.grid-cols-\\[34px_1fr\\]{grid-template-columns:34px 1fr}.grid-cols-\\[repeat\\(auto-fit\\,minmax\\(84px\\,1fr\\)\\)\\]{grid-template-columns:repeat(auto-fit,minmax(84px,1fr))}.grid-rows-\\[auto_auto\\]{grid-template-rows:auto auto}.flex-col{flex-direction:column}.flex-nowrap{flex-wrap:nowrap}.flex-wrap{flex-wrap:wrap}.items-baseline{align-items:baseline}.items-center{align-items:center}.justify-between{justify-content:space-between}.justify-center{justify-content:center}.gap-1{gap:var(--spacing)}.gap-1\\.5{gap:calc(var(--spacing) * 1.5)}.gap-2{gap:calc(var(--spacing) * 2)}.gap-2\\.5{gap:calc(var(--spacing) * 2.5)}.gap-3{gap:calc(var(--spacing) * 3)}.gap-4{gap:calc(var(--spacing) * 4)}.gap-\\[3px\\]{gap:3px}.gap-\\[5px\\]{gap:5px}.gap-\\[7px\\]{gap:7px}.gap-x-1{column-gap:var(--spacing)}.gap-x-1\\.5{column-gap:calc(var(--spacing) * 1.5)}.gap-x-2{column-gap:calc(var(--spacing) * 2)}.gap-x-2\\.5{column-gap:calc(var(--spacing) * 2.5)}.gap-x-3{column-gap:calc(var(--spacing) * 3)}.gap-x-4{column-gap:calc(var(--spacing) * 4)}.gap-x-\\[11px\\]{column-gap:11px}.gap-y-0{row-gap:0}.gap-y-0\\.5{row-gap:calc(var(--spacing) * .5)}.gap-y-2{row-gap:calc(var(--spacing) * 2)}.gap-y-\\[18px\\]{row-gap:18px}.truncate{text-overflow:ellipsis;white-space:nowrap;overflow:hidden}.overflow-auto{overflow:auto}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overscroll-contain{overscroll-behavior:contain}.rounded{border-radius:.25rem}.rounded-\\[3px\\]{border-radius:3px}.rounded-\\[6px\\]{border-radius:6px}.rounded-\\[7px\\]{border-radius:7px}.rounded-\\[9px\\]{border-radius:9px}.rounded-\\[10px\\]{border-radius:10px}.rounded-\\[11px\\]{border-radius:11px}.rounded-\\[14px\\]{border-radius:14px}.rounded-\\[15px\\]{border-radius:15px}.rounded-full{border-radius:3.40282e38px}.rounded-lg{border-radius:var(--radius-lg)}.rounded-md{border-radius:var(--radius-md)}.rounded-xl{border-radius:var(--radius-xl)}.border{border-style:var(--tw-border-style);border-width:1px}.border-0{border-style:var(--tw-border-style);border-width:0}.border-2{border-style:var(--tw-border-style);border-width:2px}.border-l{border-left-style:var(--tw-border-style);border-left-width:1px}.border-\\[\\#2E5238\\]{border-color:#2e5238}.border-\\[rgba\\(0\\,0\\,0\\,\\.45\\)\\]{border-color:#00000073}.border-\\[rgba\\(255\\,255\\,255\\,\\.15\\)\\]{border-color:#ffffff26}.border-accent{border-color:var(--color-accent)}.border-accentline{border-color:var(--color-accentline)}.border-amberline{border-color:var(--color-amberline)}.border-blueline{border-color:var(--color-blueline)}.border-card2{border-color:var(--color-card2)}.border-line{border-color:var(--color-line)}.border-white{border-color:var(--color-white)}.bg-\\[\\#2C3639\\]{background-color:#2c3639}.bg-\\[rgba\\(116\\,185\\,138\\,0\\.10\\)\\]{background-color:#74b98a1a}.bg-accent{background-color:var(--color-accent)}.bg-accentbg{background-color:var(--color-accentbg)}.bg-amberbg{background-color:var(--color-amberbg)}.bg-bluebg{background-color:var(--color-bluebg)}.bg-card{background-color:var(--color-card)}.bg-card2{background-color:var(--color-card2)}.bg-line{background-color:var(--color-line)}.bg-muted{background-color:var(--color-muted)}.bg-transparent{background-color:#0000}.bg-white{background-color:var(--color-white)}.bg-\\[linear-gradient\\(145deg\\,\\#1E3427\\,\\#132016\\)\\]{background-image:linear-gradient(145deg,#1e3427,#132016)}.bg-cover{background-size:cover}.bg-center{background-position:50%}.p-1{padding:var(--spacing)}.p-3{padding:calc(var(--spacing) * 3)}.p-3\\.5{padding:calc(var(--spacing) * 3.5)}.p-\\[13px\\]{padding:13px}.p-\\[15px\\]{padding:15px}.px-0{padding-inline:0}.px-0\\.5{padding-inline:calc(var(--spacing) * .5)}.px-1{padding-inline:var(--spacing)}.px-2{padding-inline:calc(var(--spacing) * 2)}.px-2\\.5{padding-inline:calc(var(--spacing) * 2.5)}.px-3{padding-inline:calc(var(--spacing) * 3)}.px-3\\.5{padding-inline:calc(var(--spacing) * 3.5)}.px-\\[13px\\]{padding-inline:13px}.py-0{padding-block:0}.py-0\\.5{padding-block:calc(var(--spacing) * .5)}.py-1{padding-block:var(--spacing)}.py-1\\.5{padding-block:calc(var(--spacing) * 1.5)}.py-2{padding-block:calc(var(--spacing) * 2)}.py-3{padding-block:calc(var(--spacing) * 3)}.py-\\[5px\\]{padding-block:5px}.py-\\[7px\\]{padding-block:7px}.py-\\[9px\\]{padding-block:9px}.pt-0{padding-top:0}.pt-0\\.5{padding-top:calc(var(--spacing) * .5)}.pt-\\[5px\\]{padding-top:5px}.pt-\\[7px\\]{padding-top:7px}.pt-\\[13px\\]{padding-top:13px}.pr-\\[11px\\]{padding-right:11px}.pb-0{padding-bottom:0}.pb-0\\.5{padding-bottom:calc(var(--spacing) * .5)}.pb-1{padding-bottom:var(--spacing)}.pb-1\\.5{padding-bottom:calc(var(--spacing) * 1.5)}.pb-3{padding-bottom:calc(var(--spacing) * 3)}.pb-\\[3px\\]{padding-bottom:3px}.pl-3{padding-left:calc(var(--spacing) * 3)}.pl-\\[7px\\]{padding-left:7px}.text-center{text-align:center}.text-left{text-align:left}.text-right{text-align:right}.font-mono{font-family:var(--font-mono)}.text-\\[9\\.5px\\]{font-size:9.5px}.text-\\[10\\.5px\\]{font-size:10.5px}.text-\\[10px\\]{font-size:10px}.text-\\[11\\.5px\\]{font-size:11.5px}.text-\\[11px\\]{font-size:11px}.text-\\[12\\.5px\\]{font-size:12.5px}.text-\\[12px\\]{font-size:12px}.text-\\[13px\\]{font-size:13px}.text-\\[14px\\]{font-size:14px}.text-\\[15px\\]{font-size:15px}.text-\\[16px\\]{font-size:16px}.text-\\[17px\\]{font-size:17px}.text-\\[20px\\]{font-size:20px}.text-\\[22px\\]{font-size:22px}.text-\\[24px\\]{font-size:24px}.text-\\[26px\\]{font-size:26px}.text-\\[30px\\]{font-size:30px}.leading-\\[1\\.1\\]{--tw-leading:1.1;line-height:1.1}.leading-\\[1\\.15\\]{--tw-leading:1.15;line-height:1.15}.leading-\\[1\\.25\\]{--tw-leading:1.25;line-height:1.25}.leading-\\[1\\.42\\]{--tw-leading:1.42;line-height:1.42}.leading-none{--tw-leading:1;line-height:1}.leading-tight{--tw-leading:var(--leading-tight);line-height:var(--leading-tight)}.font-medium{--tw-font-weight:var(--font-weight-medium);font-weight:var(--font-weight-medium)}.font-semibold{--tw-font-weight:var(--font-weight-semibold);font-weight:var(--font-weight-semibold)}.tracking-\\[-0\\.015em\\]{--tw-tracking:-.015em;letter-spacing:-.015em}.tracking-\\[0\\.01em\\]{--tw-tracking:.01em;letter-spacing:.01em}.tracking-\\[0\\.1em\\]{--tw-tracking:.1em;letter-spacing:.1em}.tracking-\\[0\\.06em\\]{--tw-tracking:.06em;letter-spacing:.06em}.tracking-\\[0\\.08em\\]{--tw-tracking:.08em;letter-spacing:.08em}.tracking-\\[0\\.11em\\]{--tw-tracking:.11em;letter-spacing:.11em}.tracking-tight{--tw-tracking:var(--tracking-tight);letter-spacing:var(--tracking-tight)}.text-ellipsis{text-overflow:ellipsis}.whitespace-nowrap{white-space:nowrap}.text-accent{color:var(--color-accent)}.text-accenttx{color:var(--color-accenttx)}.text-amber{color:var(--color-amber)}.text-ambertx{color:var(--color-ambertx)}.text-blue{color:var(--color-blue)}.text-blueink{color:var(--color-blueink)}.text-green{color:var(--color-green)}.text-ink{color:var(--color-ink)}.text-ink2{color:var(--color-ink2)}.text-muted{color:var(--color-muted)}.text-red{color:var(--color-red)}.capitalize{text-transform:capitalize}.lowercase{text-transform:lowercase}.uppercase{text-transform:uppercase}.tabular-nums{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,)}.opacity-0{opacity:0}.opacity-40{opacity:.4}.opacity-50{opacity:.5}.opacity-60{opacity:.6}.opacity-100{opacity:1}.opacity-\\[\\.66\\]{opacity:.66}.shadow{--tw-shadow:0 1px 3px 0 var(--tw-shadow-color,#0000001a), 0 1px 2px -1px var(--tw-shadow-color,#0000001a);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_3px_rgba\\(0\\,0\\,0\\,\\.4\\)\\]{--tw-shadow:0 1px 3px var(--tw-shadow-color,#0006);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_3px_rgba\\(0\\,0\\,0\\,\\.35\\)\\]{--tw-shadow:0 1px 3px var(--tw-shadow-color,#00000059);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_4px_rgba\\(0\\,0\\,0\\,\\.5\\)\\]{--tw-shadow:0 1px 4px var(--tw-shadow-color,#00000080);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_4px_rgba\\(0\\,0\\,0\\,\\.55\\)\\]{--tw-shadow:0 1px 4px var(--tw-shadow-color,#0000008c);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_5px_rgba\\(0\\,0\\,0\\,\\.6\\)\\]{--tw-shadow:0 1px 5px var(--tw-shadow-color,#0009);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_2px_10px_rgba\\(0\\,0\\,0\\,\\.5\\)\\]{--tw-shadow:0 2px 10px var(--tw-shadow-color,#00000080);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_10px_30px_rgba\\(0\\,0\\,0\\,\\.5\\)\\]{--tw-shadow:0 10px 30px var(--tw-shadow-color,#00000080);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.ring{--tw-ring-shadow:var(--tw-ring-inset,) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color,currentcolor);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.outline{outline-style:var(--tw-outline-style);outline-width:1px}.invert{--tw-invert:invert(100%);filter:var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)}.filter{filter:var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)}.backdrop-filter{-webkit-backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,)}.transition{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to,opacity,box-shadow,transform,translate,scale,rotate,filter,-webkit-backdrop-filter,backdrop-filter,display,content-visibility,overlay,pointer-events;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-\\[opacity\\,transform\\]{transition-property:opacity,transform;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-\\[width\\,height\\]{transition-property:width,height;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-all{transition-property:all;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-colors{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-transform{transition-property:transform,translate,scale,rotate;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.duration-100{--tw-duration:.1s;transition-duration:.1s}.select-none{-webkit-user-select:none;user-select:none}.\\[--mdc-icon-size\\:12px\\]{--mdc-icon-size:12px}.\\[--mdc-icon-size\\:13px\\]{--mdc-icon-size:13px}.\\[--mdc-icon-size\\:14px\\]{--mdc-icon-size:14px}.\\[--mdc-icon-size\\:15px\\]{--mdc-icon-size:15px}.\\[--mdc-icon-size\\:16px\\]{--mdc-icon-size:16px}.\\[--mdc-icon-size\\:17px\\]{--mdc-icon-size:17px}.\\[--mdc-icon-size\\:18px\\]{--mdc-icon-size:18px}.\\[--mdc-icon-size\\:19px\\]{--mdc-icon-size:19px}.\\[--mdc-icon-size\\:20px\\]{--mdc-icon-size:20px}.\\[--mdc-icon-size\\:22px\\]{--mdc-icon-size:22px}.\\[--mdc-icon-size\\:24px\\]{--mdc-icon-size:24px}.\\[--mdc-icon-size\\:28px\\]{--mdc-icon-size:28px}.\\[--mdc-icon-size\\:34px\\]{--mdc-icon-size:34px}.group-focus-visible\\:scale-100:is(:where(.group):focus-visible *){--tw-scale-x:100%;--tw-scale-y:100%;--tw-scale-z:100%;scale:var(--tw-scale-x) var(--tw-scale-y)}.group-focus-visible\\:opacity-100:is(:where(.group):focus-visible *){opacity:1}.group-data-\\[pressed\\=true\\]\\:bg-\\[rgba\\(255\\,255\\,255\\,0\\.06\\)\\]:is(:where(.group)[data-pressed=true] *){background-color:#ffffff0f}@media (hover:hover){.hover\\:bg-card2:hover{background-color:var(--color-card2)}}.focus-visible\\:outline:focus-visible{outline-style:var(--tw-outline-style);outline-width:1px}.focus-visible\\:outline-2:focus-visible{outline-style:var(--tw-outline-style);outline-width:2px}.focus-visible\\:\\[outline-offset\\:-2px\\]:focus-visible{outline-offset:-2px}.focus-visible\\:outline-accent:focus-visible{outline-color:var(--color-accent)}.active\\:translate-y-\\[0\\.5px\\]:active{--tw-translate-y:.5px;translate:var(--tw-translate-x) var(--tw-translate-y)}.active\\:scale-90:active{--tw-scale-x:90%;--tw-scale-y:90%;--tw-scale-z:90%;scale:var(--tw-scale-x) var(--tw-scale-y)}.active\\:scale-\\[\\.96\\]:active{scale:.96}.active\\:bg-card2:active{background-color:var(--color-card2)}}@property --tw-translate-x{syntax:"*";inherits:false;initial-value:0}@property --tw-translate-y{syntax:"*";inherits:false;initial-value:0}@property --tw-translate-z{syntax:"*";inherits:false;initial-value:0}@property --tw-scale-x{syntax:"*";inherits:false;initial-value:1}@property --tw-scale-y{syntax:"*";inherits:false;initial-value:1}@property --tw-scale-z{syntax:"*";inherits:false;initial-value:1}@property --tw-rotate-x{syntax:"*";inherits:false}@property --tw-rotate-y{syntax:"*";inherits:false}@property --tw-rotate-z{syntax:"*";inherits:false}@property --tw-skew-x{syntax:"*";inherits:false}@property --tw-skew-y{syntax:"*";inherits:false}@property --tw-pan-x{syntax:"*";inherits:false}@property --tw-pan-y{syntax:"*";inherits:false}@property --tw-pinch-zoom{syntax:"*";inherits:false}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-leading{syntax:"*";inherits:false}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-tracking{syntax:"*";inherits:false}@property --tw-ordinal{syntax:"*";inherits:false}@property --tw-slashed-zero{syntax:"*";inherits:false}@property --tw-numeric-figure{syntax:"*";inherits:false}@property --tw-numeric-spacing{syntax:"*";inherits:false}@property --tw-numeric-fraction{syntax:"*";inherits:false}@property --tw-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-shadow-color{syntax:"*";inherits:false}@property --tw-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-inset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-shadow-color{syntax:"*";inherits:false}@property --tw-inset-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-ring-color{syntax:"*";inherits:false}@property --tw-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-ring-color{syntax:"*";inherits:false}@property --tw-inset-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-ring-inset{syntax:"*";inherits:false}@property --tw-ring-offset-width{syntax:"<length>";inherits:false;initial-value:0}@property --tw-ring-offset-color{syntax:"*";inherits:false;initial-value:#fff}@property --tw-ring-offset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-outline-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-blur{syntax:"*";inherits:false}@property --tw-brightness{syntax:"*";inherits:false}@property --tw-contrast{syntax:"*";inherits:false}@property --tw-grayscale{syntax:"*";inherits:false}@property --tw-hue-rotate{syntax:"*";inherits:false}@property --tw-invert{syntax:"*";inherits:false}@property --tw-opacity{syntax:"*";inherits:false}@property --tw-saturate{syntax:"*";inherits:false}@property --tw-sepia{syntax:"*";inherits:false}@property --tw-drop-shadow{syntax:"*";inherits:false}@property --tw-drop-shadow-color{syntax:"*";inherits:false}@property --tw-drop-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-drop-shadow-size{syntax:"*";inherits:false}@property --tw-backdrop-blur{syntax:"*";inherits:false}@property --tw-backdrop-brightness{syntax:"*";inherits:false}@property --tw-backdrop-contrast{syntax:"*";inherits:false}@property --tw-backdrop-grayscale{syntax:"*";inherits:false}@property --tw-backdrop-hue-rotate{syntax:"*";inherits:false}@property --tw-backdrop-invert{syntax:"*";inherits:false}@property --tw-backdrop-opacity{syntax:"*";inherits:false}@property --tw-backdrop-saturate{syntax:"*";inherits:false}@property --tw-backdrop-sepia{syntax:"*";inherits:false}@property --tw-duration{syntax:"*";inherits:false}@keyframes pulse{50%{opacity:.5}}`;
+@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-translate-x:0;--tw-translate-y:0;--tw-translate-z:0;--tw-scale-x:1;--tw-scale-y:1;--tw-scale-z:1;--tw-rotate-x:initial;--tw-rotate-y:initial;--tw-rotate-z:initial;--tw-skew-x:initial;--tw-skew-y:initial;--tw-pan-x:initial;--tw-pan-y:initial;--tw-pinch-zoom:initial;--tw-border-style:solid;--tw-leading:initial;--tw-font-weight:initial;--tw-tracking:initial;--tw-ordinal:initial;--tw-slashed-zero:initial;--tw-numeric-figure:initial;--tw-numeric-spacing:initial;--tw-numeric-fraction:initial;--tw-shadow:0 0 #0000;--tw-shadow-color:initial;--tw-shadow-alpha:100%;--tw-inset-shadow:0 0 #0000;--tw-inset-shadow-color:initial;--tw-inset-shadow-alpha:100%;--tw-ring-color:initial;--tw-ring-shadow:0 0 #0000;--tw-inset-ring-color:initial;--tw-inset-ring-shadow:0 0 #0000;--tw-ring-inset:initial;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-offset-shadow:0 0 #0000;--tw-outline-style:solid;--tw-blur:initial;--tw-brightness:initial;--tw-contrast:initial;--tw-grayscale:initial;--tw-hue-rotate:initial;--tw-invert:initial;--tw-opacity:initial;--tw-saturate:initial;--tw-sepia:initial;--tw-drop-shadow:initial;--tw-drop-shadow-color:initial;--tw-drop-shadow-alpha:100%;--tw-drop-shadow-size:initial;--tw-backdrop-blur:initial;--tw-backdrop-brightness:initial;--tw-backdrop-contrast:initial;--tw-backdrop-grayscale:initial;--tw-backdrop-hue-rotate:initial;--tw-backdrop-invert:initial;--tw-backdrop-opacity:initial;--tw-backdrop-saturate:initial;--tw-backdrop-sepia:initial;--tw-duration:initial}}}@layer theme{:root,:host{--font-sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";--font-mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;--color-white:#fff;--spacing:.25rem;--font-weight-medium:500;--font-weight-semibold:600;--tracking-tight:-.025em;--leading-tight:1.25;--radius-md:.375rem;--radius-lg:.5rem;--radius-xl:.75rem;--animate-pulse:pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;--default-transition-duration:.15s;--default-transition-timing-function:cubic-bezier(.4, 0, .2, 1);--default-font-family:var(--font-sans);--default-mono-font-family:var(--font-mono);--color-card:#1d2426;--color-card2:#262f31;--color-line:#333e41;--color-ink:#edf1f1;--color-ink2:#a9b6b9;--color-muted:#7d8b8e;--color-accent:#74b98a;--color-accentbg:#17281c;--color-accentline:#2b4a34;--color-accenttx:#cfe6d5;--color-amber:#e8a33d;--color-amberbg:#3a2b12;--color-amberline:#4e3a18;--color-ambertx:#ebd9bc;--color-blue:#5aafd6;--color-bluebg:#152b36;--color-blueline:#2c5a70;--color-blueink:#9bd2ea;--color-green:#63c295;--color-red:#ec8377}}@layer base{*,:after,:before,::backdrop{box-sizing:border-box;border:0 solid;margin:0;padding:0}::file-selector-button{box-sizing:border-box;border:0 solid;margin:0;padding:0}html,:host{-webkit-text-size-adjust:100%;tab-size:4;line-height:1.5;font-family:var(--default-font-family,-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");font-feature-settings:var(--default-font-feature-settings,normal);font-variation-settings:var(--default-font-variation-settings,normal);-webkit-tap-highlight-color:transparent}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,samp,pre{font-family:var(--default-mono-font-family,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);font-feature-settings:var(--default-mono-font-feature-settings,normal);font-variation-settings:var(--default-mono-font-variation-settings,normal);font-size:1em}small{font-size:80%}sub,sup{vertical-align:baseline;font-size:75%;line-height:0;position:relative}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}:-moz-focusring:where(:not(iframe)){outline:auto}progress{vertical-align:baseline}summary{display:list-item}ol,ul,menu{list-style:none}img,svg,video,canvas,audio,iframe,embed,object{vertical-align:middle;display:block}img,video{max-width:100%;height:auto}button,input,select,optgroup,textarea{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}::file-selector-button{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}:where(select:is([multiple],[size])) optgroup{font-weight:bolder}:where(select:is([multiple],[size])) optgroup option{padding-inline-start:20px}::file-selector-button{margin-inline-end:4px}::placeholder{opacity:1}@supports (not ((-webkit-appearance:-apple-pay-button))) or (contain-intrinsic-size:1px){::placeholder{color:currentColor}@supports (color:color-mix(in lab, red, red)){::placeholder{color:color-mix(in oklab, currentcolor 50%, transparent)}}}textarea{resize:vertical}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-date-and-time-value{min-height:1lh;text-align:inherit}::-webkit-datetime-edit{display:inline-flex}::-webkit-datetime-edit-fields-wrapper{padding:0}::-webkit-datetime-edit{padding-block:0}::-webkit-datetime-edit-year-field{padding-block:0}::-webkit-datetime-edit-month-field{padding-block:0}::-webkit-datetime-edit-day-field{padding-block:0}::-webkit-datetime-edit-hour-field{padding-block:0}::-webkit-datetime-edit-minute-field{padding-block:0}::-webkit-datetime-edit-second-field{padding-block:0}::-webkit-datetime-edit-millisecond-field{padding-block:0}::-webkit-datetime-edit-meridiem-field{padding-block:0}::-webkit-calendar-picker-indicator{line-height:1}:-moz-ui-invalid{box-shadow:none}button,input:where([type=button],[type=reset],[type=submit]){appearance:button}::file-selector-button{appearance:button}::-webkit-inner-spin-button{height:auto}::-webkit-outer-spin-button{height:auto}[hidden]:where(:not([hidden=until-found])){display:none!important}}@layer components;@layer utilities{.\\@container{container-type:inline-size}.pointer-events-none{pointer-events:none}.collapse{visibility:collapse}.invisible{visibility:hidden}.visible{visibility:visible}.absolute{position:absolute}.fixed{position:fixed}.relative{position:relative}.static{position:static}.inset-x-0{inset-inline:0}.top-0{top:0}.top-0\\.5{top:calc(var(--spacing) * .5)}.top-1{top:var(--spacing)}.top-1\\/2{top:50%}.top-2{top:calc(var(--spacing) * 2)}.top-\\[calc\\(100\\%\\+4px\\)\\]{top:calc(100% + 4px)}.right-0{right:0}.right-1{right:var(--spacing)}.right-2{right:calc(var(--spacing) * 2)}.bottom-0{bottom:0}.bottom-1{bottom:var(--spacing)}.bottom-2{bottom:calc(var(--spacing) * 2)}.bottom-full{bottom:100%}.left-0{left:0}.left-0\\.5{left:calc(var(--spacing) * .5)}.left-1{left:var(--spacing)}.left-1\\/2{left:50%}.left-2{left:calc(var(--spacing) * 2)}.left-\\[18px\\]{left:18px}.z-10{z-index:10}.col-start-2{grid-column-start:2}.row-span-2{grid-row:span 2/span 2}.container{width:100%}@media (min-width:40rem){.container{max-width:40rem}}@media (min-width:48rem){.container{max-width:48rem}}@media (min-width:64rem){.container{max-width:64rem}}@media (min-width:80rem){.container{max-width:80rem}}@media (min-width:96rem){.container{max-width:96rem}}.-mx-1{margin-inline:calc(var(--spacing) * -1)}.mx-0{margin-inline:0}.mx-auto{margin-inline:auto}.mt-0{margin-top:0}.mt-0\\.5{margin-top:calc(var(--spacing) * .5)}.mt-1{margin-top:var(--spacing)}.mt-1\\.5{margin-top:calc(var(--spacing) * 1.5)}.mt-2{margin-top:calc(var(--spacing) * 2)}.mt-2\\.5{margin-top:calc(var(--spacing) * 2.5)}.mt-3{margin-top:calc(var(--spacing) * 3)}.mb-1{margin-bottom:var(--spacing)}.mb-1\\.5{margin-bottom:calc(var(--spacing) * 1.5)}.mb-2{margin-bottom:calc(var(--spacing) * 2)}.mb-2\\.5{margin-bottom:calc(var(--spacing) * 2.5)}.mb-3{margin-bottom:calc(var(--spacing) * 3)}.ml-0{margin-left:0}.ml-0\\.5{margin-left:calc(var(--spacing) * .5)}.ml-2{margin-left:calc(var(--spacing) * 2)}.ml-\\[7px\\]{margin-left:7px}.ml-\\[18px\\]{margin-left:18px}.ml-auto{margin-left:auto}.block{display:block}.contents{display:contents}.flex{display:flex}.grid{display:grid}.hidden{display:none}.inline{display:inline}.inline-flex{display:inline-flex}.table{display:table}.aspect-square{aspect-ratio:1}.h-1{height:var(--spacing)}.h-1\\.5{height:calc(var(--spacing) * 1.5)}.h-2{height:calc(var(--spacing) * 2)}.h-2\\.5{height:calc(var(--spacing) * 2.5)}.h-3{height:calc(var(--spacing) * 3)}.h-3\\.5{height:calc(var(--spacing) * 3.5)}.h-4{height:calc(var(--spacing) * 4)}.h-5{height:calc(var(--spacing) * 5)}.h-6{height:calc(var(--spacing) * 6)}.h-7{height:calc(var(--spacing) * 7)}.h-8{height:calc(var(--spacing) * 8)}.h-9{height:calc(var(--spacing) * 9)}.h-10{height:calc(var(--spacing) * 10)}.h-11{height:calc(var(--spacing) * 11)}.h-12{height:calc(var(--spacing) * 12)}.h-14{height:calc(var(--spacing) * 14)}.h-20{height:calc(var(--spacing) * 20)}.h-\\[5px\\]{height:5px}.h-\\[13px\\]{height:13px}.h-\\[15px\\]{height:15px}.h-\\[17px\\]{height:17px}.h-\\[18px\\]{height:18px}.h-\\[19px\\]{height:19px}.h-\\[20px\\]{height:20px}.h-\\[22px\\]{height:22px}.h-\\[26px\\]{height:26px}.h-\\[30px\\]{height:30px}.h-\\[34px\\]{height:34px}.h-\\[42px\\]{height:42px}.h-\\[var\\(--fib-hit\\)\\]{height:var(--fib-hit)}.h-full{height:100%}.max-h-\\[220px\\]{max-height:220px}.min-h-11{min-height:calc(var(--spacing) * 11)}.min-h-\\[26px\\]{min-height:26px}.min-h-\\[var\\(--fib-hit\\)\\]{min-height:var(--fib-hit)}.w-1{width:var(--spacing)}.w-2{width:calc(var(--spacing) * 2)}.w-2\\.5{width:calc(var(--spacing) * 2.5)}.w-3{width:calc(var(--spacing) * 3)}.w-3\\.5{width:calc(var(--spacing) * 3.5)}.w-4{width:calc(var(--spacing) * 4)}.w-5{width:calc(var(--spacing) * 5)}.w-6{width:calc(var(--spacing) * 6)}.w-7{width:calc(var(--spacing) * 7)}.w-8{width:calc(var(--spacing) * 8)}.w-9{width:calc(var(--spacing) * 9)}.w-10{width:calc(var(--spacing) * 10)}.w-11{width:calc(var(--spacing) * 11)}.w-12{width:calc(var(--spacing) * 12)}.w-14{width:calc(var(--spacing) * 14)}.w-20{width:calc(var(--spacing) * 20)}.w-\\[5px\\]{width:5px}.w-\\[13px\\]{width:13px}.w-\\[15px\\]{width:15px}.w-\\[17px\\]{width:17px}.w-\\[18px\\]{width:18px}.w-\\[19px\\]{width:19px}.w-\\[20px\\]{width:20px}.w-\\[22px\\]{width:22px}.w-\\[26px\\]{width:26px}.w-\\[30px\\]{width:30px}.w-\\[34px\\]{width:34px}.w-\\[42px\\]{width:42px}.w-full{width:100%}.w-px{width:1px}.max-w-\\[96px\\]{max-width:96px}.max-w-\\[240px\\]{max-width:240px}.min-w-0{min-width:0}.min-w-\\[52px\\]{min-width:52px}.min-w-\\[68px\\]{min-width:68px}.flex-1{flex:1}.flex-none{flex:none}.shrink{flex-shrink:1}.grow{flex-grow:1}.-translate-x-1{--tw-translate-x:calc(var(--spacing) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-x-1\\/2{--tw-translate-x:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1{--tw-translate-y:calc(var(--spacing) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1\\/2{--tw-translate-y:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.scale-90{--tw-scale-x:90%;--tw-scale-y:90%;--tw-scale-z:90%;scale:var(--tw-scale-x) var(--tw-scale-y)}.scale-100{--tw-scale-x:100%;--tw-scale-y:100%;--tw-scale-z:100%;scale:var(--tw-scale-x) var(--tw-scale-y)}.rotate-180{rotate:180deg}.transform{transform:var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,)}.animate-pulse{animation:var(--animate-pulse)}.cursor-pointer{cursor:pointer}.touch-pan-y{--tw-pan-y:pan-y;touch-action:var(--tw-pan-x,) var(--tw-pan-y,) var(--tw-pinch-zoom,)}.touch-none{touch-action:none}.resize{resize:both}.auto-cols-fr{grid-auto-columns:minmax(0,1fr)}.grid-flow-col{grid-auto-flow:column}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.grid-cols-\\[28px_1fr\\]{grid-template-columns:28px 1fr}.grid-cols-\\[28px_1fr_auto\\]{grid-template-columns:28px 1fr auto}.grid-cols-\\[34px_1fr\\]{grid-template-columns:34px 1fr}.grid-cols-\\[repeat\\(auto-fit\\,minmax\\(84px\\,1fr\\)\\)\\]{grid-template-columns:repeat(auto-fit,minmax(84px,1fr))}.grid-rows-\\[auto_auto\\]{grid-template-rows:auto auto}.flex-col{flex-direction:column}.flex-nowrap{flex-wrap:nowrap}.flex-wrap{flex-wrap:wrap}.items-baseline{align-items:baseline}.items-center{align-items:center}.justify-between{justify-content:space-between}.justify-center{justify-content:center}.gap-0{gap:0}.gap-0\\.5{gap:calc(var(--spacing) * .5)}.gap-1{gap:var(--spacing)}.gap-1\\.5{gap:calc(var(--spacing) * 1.5)}.gap-2{gap:calc(var(--spacing) * 2)}.gap-2\\.5{gap:calc(var(--spacing) * 2.5)}.gap-3{gap:calc(var(--spacing) * 3)}.gap-4{gap:calc(var(--spacing) * 4)}.gap-\\[3px\\]{gap:3px}.gap-\\[5px\\]{gap:5px}.gap-\\[7px\\]{gap:7px}.gap-x-1{column-gap:var(--spacing)}.gap-x-1\\.5{column-gap:calc(var(--spacing) * 1.5)}.gap-x-2{column-gap:calc(var(--spacing) * 2)}.gap-x-2\\.5{column-gap:calc(var(--spacing) * 2.5)}.gap-x-3{column-gap:calc(var(--spacing) * 3)}.gap-x-4{column-gap:calc(var(--spacing) * 4)}.gap-x-\\[11px\\]{column-gap:11px}.gap-y-0{row-gap:0}.gap-y-0\\.5{row-gap:calc(var(--spacing) * .5)}.gap-y-2{row-gap:calc(var(--spacing) * 2)}.gap-y-\\[18px\\]{row-gap:18px}.truncate{text-overflow:ellipsis;white-space:nowrap;overflow:hidden}.overflow-auto{overflow:auto}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overscroll-contain{overscroll-behavior:contain}.rounded{border-radius:.25rem}.rounded-\\[3px\\]{border-radius:3px}.rounded-\\[6px\\]{border-radius:6px}.rounded-\\[7px\\]{border-radius:7px}.rounded-\\[9px\\]{border-radius:9px}.rounded-\\[10px\\]{border-radius:10px}.rounded-\\[11px\\]{border-radius:11px}.rounded-\\[14px\\]{border-radius:14px}.rounded-\\[15px\\]{border-radius:15px}.rounded-full{border-radius:3.40282e38px}.rounded-lg{border-radius:var(--radius-lg)}.rounded-md{border-radius:var(--radius-md)}.rounded-xl{border-radius:var(--radius-xl)}.border{border-style:var(--tw-border-style);border-width:1px}.border-0{border-style:var(--tw-border-style);border-width:0}.border-2{border-style:var(--tw-border-style);border-width:2px}.border-l{border-left-style:var(--tw-border-style);border-left-width:1px}.border-\\[\\#2E5238\\]{border-color:#2e5238}.border-\\[rgba\\(0\\,0\\,0\\,\\.45\\)\\]{border-color:#00000073}.border-\\[rgba\\(255\\,255\\,255\\,\\.15\\)\\]{border-color:#ffffff26}.border-accent{border-color:var(--color-accent)}.border-accentline{border-color:var(--color-accentline)}.border-amberline{border-color:var(--color-amberline)}.border-blueline{border-color:var(--color-blueline)}.border-card2{border-color:var(--color-card2)}.border-line{border-color:var(--color-line)}.border-white{border-color:var(--color-white)}.bg-\\[\\#2C3639\\]{background-color:#2c3639}.bg-\\[rgba\\(116\\,185\\,138\\,0\\.10\\)\\]{background-color:#74b98a1a}.bg-accent{background-color:var(--color-accent)}.bg-accentbg{background-color:var(--color-accentbg)}.bg-amberbg{background-color:var(--color-amberbg)}.bg-bluebg{background-color:var(--color-bluebg)}.bg-card{background-color:var(--color-card)}.bg-card2{background-color:var(--color-card2)}.bg-line{background-color:var(--color-line)}.bg-muted{background-color:var(--color-muted)}.bg-transparent{background-color:#0000}.bg-white{background-color:var(--color-white)}.bg-\\[linear-gradient\\(145deg\\,\\#1E3427\\,\\#132016\\)\\]{background-image:linear-gradient(145deg,#1e3427,#132016)}.bg-cover{background-size:cover}.bg-center{background-position:50%}.p-1{padding:var(--spacing)}.p-3{padding:calc(var(--spacing) * 3)}.p-3\\.5{padding:calc(var(--spacing) * 3.5)}.p-\\[13px\\]{padding:13px}.p-\\[15px\\]{padding:15px}.px-0{padding-inline:0}.px-0\\.5{padding-inline:calc(var(--spacing) * .5)}.px-1{padding-inline:var(--spacing)}.px-2{padding-inline:calc(var(--spacing) * 2)}.px-2\\.5{padding-inline:calc(var(--spacing) * 2.5)}.px-3{padding-inline:calc(var(--spacing) * 3)}.px-3\\.5{padding-inline:calc(var(--spacing) * 3.5)}.px-\\[13px\\]{padding-inline:13px}.py-0{padding-block:0}.py-0\\.5{padding-block:calc(var(--spacing) * .5)}.py-1{padding-block:var(--spacing)}.py-1\\.5{padding-block:calc(var(--spacing) * 1.5)}.py-2{padding-block:calc(var(--spacing) * 2)}.py-3{padding-block:calc(var(--spacing) * 3)}.py-\\[5px\\]{padding-block:5px}.py-\\[7px\\]{padding-block:7px}.py-\\[9px\\]{padding-block:9px}.pt-0{padding-top:0}.pt-0\\.5{padding-top:calc(var(--spacing) * .5)}.pt-\\[5px\\]{padding-top:5px}.pt-\\[7px\\]{padding-top:7px}.pt-\\[13px\\]{padding-top:13px}.pr-\\[11px\\]{padding-right:11px}.pb-0{padding-bottom:0}.pb-1{padding-bottom:var(--spacing)}.pb-1\\.5{padding-bottom:calc(var(--spacing) * 1.5)}.pb-3{padding-bottom:calc(var(--spacing) * 3)}.pb-\\[3px\\]{padding-bottom:3px}.pl-3{padding-left:calc(var(--spacing) * 3)}.pl-\\[7px\\]{padding-left:7px}.text-center{text-align:center}.text-left{text-align:left}.text-right{text-align:right}.font-mono{font-family:var(--font-mono)}.text-\\[9\\.5px\\]{font-size:9.5px}.text-\\[10\\.5px\\]{font-size:10.5px}.text-\\[10px\\]{font-size:10px}.text-\\[11\\.5px\\]{font-size:11.5px}.text-\\[11px\\]{font-size:11px}.text-\\[12\\.5px\\]{font-size:12.5px}.text-\\[12px\\]{font-size:12px}.text-\\[13px\\]{font-size:13px}.text-\\[14px\\]{font-size:14px}.text-\\[15px\\]{font-size:15px}.text-\\[16px\\]{font-size:16px}.text-\\[17px\\]{font-size:17px}.text-\\[20px\\]{font-size:20px}.text-\\[22px\\]{font-size:22px}.text-\\[24px\\]{font-size:24px}.text-\\[26px\\]{font-size:26px}.text-\\[30px\\]{font-size:30px}.leading-\\[1\\.1\\]{--tw-leading:1.1;line-height:1.1}.leading-\\[1\\.15\\]{--tw-leading:1.15;line-height:1.15}.leading-\\[1\\.25\\]{--tw-leading:1.25;line-height:1.25}.leading-\\[1\\.42\\]{--tw-leading:1.42;line-height:1.42}.leading-none{--tw-leading:1;line-height:1}.leading-tight{--tw-leading:var(--leading-tight);line-height:var(--leading-tight)}.font-medium{--tw-font-weight:var(--font-weight-medium);font-weight:var(--font-weight-medium)}.font-semibold{--tw-font-weight:var(--font-weight-semibold);font-weight:var(--font-weight-semibold)}.tracking-\\[-0\\.015em\\]{--tw-tracking:-.015em;letter-spacing:-.015em}.tracking-\\[0\\.01em\\]{--tw-tracking:.01em;letter-spacing:.01em}.tracking-\\[0\\.1em\\]{--tw-tracking:.1em;letter-spacing:.1em}.tracking-\\[0\\.06em\\]{--tw-tracking:.06em;letter-spacing:.06em}.tracking-\\[0\\.08em\\]{--tw-tracking:.08em;letter-spacing:.08em}.tracking-\\[0\\.11em\\]{--tw-tracking:.11em;letter-spacing:.11em}.tracking-tight{--tw-tracking:var(--tracking-tight);letter-spacing:var(--tracking-tight)}.text-ellipsis{text-overflow:ellipsis}.whitespace-nowrap{white-space:nowrap}.text-\\[\\#0c1510\\]{color:#0c1510}.text-accent{color:var(--color-accent)}.text-accenttx{color:var(--color-accenttx)}.text-amber{color:var(--color-amber)}.text-ambertx{color:var(--color-ambertx)}.text-blue{color:var(--color-blue)}.text-blueink{color:var(--color-blueink)}.text-green{color:var(--color-green)}.text-ink{color:var(--color-ink)}.text-ink2{color:var(--color-ink2)}.text-muted{color:var(--color-muted)}.text-red{color:var(--color-red)}.capitalize{text-transform:capitalize}.lowercase{text-transform:lowercase}.uppercase{text-transform:uppercase}.tabular-nums{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,)}.opacity-0{opacity:0}.opacity-40{opacity:.4}.opacity-50{opacity:.5}.opacity-60{opacity:.6}.opacity-100{opacity:1}.opacity-\\[\\.66\\]{opacity:.66}.shadow{--tw-shadow:0 1px 3px 0 var(--tw-shadow-color,#0000001a), 0 1px 2px -1px var(--tw-shadow-color,#0000001a);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_3px_rgba\\(0\\,0\\,0\\,\\.4\\)\\]{--tw-shadow:0 1px 3px var(--tw-shadow-color,#0006);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_3px_rgba\\(0\\,0\\,0\\,\\.35\\)\\]{--tw-shadow:0 1px 3px var(--tw-shadow-color,#00000059);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_4px_rgba\\(0\\,0\\,0\\,\\.5\\)\\]{--tw-shadow:0 1px 4px var(--tw-shadow-color,#00000080);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_4px_rgba\\(0\\,0\\,0\\,\\.55\\)\\]{--tw-shadow:0 1px 4px var(--tw-shadow-color,#0000008c);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_5px_rgba\\(0\\,0\\,0\\,\\.6\\)\\]{--tw-shadow:0 1px 5px var(--tw-shadow-color,#0009);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_2px_10px_rgba\\(0\\,0\\,0\\,\\.5\\)\\]{--tw-shadow:0 2px 10px var(--tw-shadow-color,#00000080);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_10px_30px_rgba\\(0\\,0\\,0\\,\\.5\\)\\]{--tw-shadow:0 10px 30px var(--tw-shadow-color,#00000080);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.ring{--tw-ring-shadow:var(--tw-ring-inset,) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color,currentcolor);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.ring-2{--tw-ring-shadow:var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color,currentcolor);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.ring-white{--tw-ring-color:var(--color-white)}.ring-white\\/60{--tw-ring-color:#fff9}@supports (color:color-mix(in lab, red, red)){.ring-white\\/60{--tw-ring-color:color-mix(in oklab, var(--color-white) 60%, transparent)}}.outline{outline-style:var(--tw-outline-style);outline-width:1px}.invert{--tw-invert:invert(100%);filter:var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)}.filter{filter:var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)}.backdrop-filter{-webkit-backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,)}.transition{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to,opacity,box-shadow,transform,translate,scale,rotate,filter,-webkit-backdrop-filter,backdrop-filter,display,content-visibility,overlay,pointer-events;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-\\[opacity\\,transform\\]{transition-property:opacity,transform;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-\\[width\\,height\\]{transition-property:width,height;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-all{transition-property:all;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-colors{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-transform{transition-property:transform,translate,scale,rotate;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.duration-100{--tw-duration:.1s;transition-duration:.1s}.select-none{-webkit-user-select:none;user-select:none}.\\[--mdc-icon-size\\:12px\\]{--mdc-icon-size:12px}.\\[--mdc-icon-size\\:13px\\]{--mdc-icon-size:13px}.\\[--mdc-icon-size\\:14px\\]{--mdc-icon-size:14px}.\\[--mdc-icon-size\\:15px\\]{--mdc-icon-size:15px}.\\[--mdc-icon-size\\:16px\\]{--mdc-icon-size:16px}.\\[--mdc-icon-size\\:17px\\]{--mdc-icon-size:17px}.\\[--mdc-icon-size\\:18px\\]{--mdc-icon-size:18px}.\\[--mdc-icon-size\\:19px\\]{--mdc-icon-size:19px}.\\[--mdc-icon-size\\:20px\\]{--mdc-icon-size:20px}.\\[--mdc-icon-size\\:22px\\]{--mdc-icon-size:22px}.\\[--mdc-icon-size\\:24px\\]{--mdc-icon-size:24px}.\\[--mdc-icon-size\\:28px\\]{--mdc-icon-size:28px}.\\[--mdc-icon-size\\:34px\\]{--mdc-icon-size:34px}.group-focus-visible\\:scale-100:is(:where(.group):focus-visible *){--tw-scale-x:100%;--tw-scale-y:100%;--tw-scale-z:100%;scale:var(--tw-scale-x) var(--tw-scale-y)}.group-focus-visible\\:opacity-100:is(:where(.group):focus-visible *){opacity:1}.group-data-\\[pressed\\=true\\]\\:bg-\\[rgba\\(255\\,255\\,255\\,0\\.06\\)\\]:is(:where(.group)[data-pressed=true] *){background-color:#ffffff0f}@media (hover:hover){.hover\\:bg-card2:hover{background-color:var(--color-card2)}}.focus-visible\\:outline:focus-visible{outline-style:var(--tw-outline-style);outline-width:1px}.focus-visible\\:outline-2:focus-visible{outline-style:var(--tw-outline-style);outline-width:2px}.focus-visible\\:\\[outline-offset\\:-2px\\]:focus-visible{outline-offset:-2px}.focus-visible\\:outline-accent:focus-visible{outline-color:var(--color-accent)}.active\\:translate-y-\\[0\\.5px\\]:active{--tw-translate-y:.5px;translate:var(--tw-translate-x) var(--tw-translate-y)}.active\\:scale-90:active{--tw-scale-x:90%;--tw-scale-y:90%;--tw-scale-z:90%;scale:var(--tw-scale-x) var(--tw-scale-y)}.active\\:scale-\\[\\.96\\]:active{scale:.96}.active\\:bg-card2:active{background-color:var(--color-card2)}}@property --tw-translate-x{syntax:"*";inherits:false;initial-value:0}@property --tw-translate-y{syntax:"*";inherits:false;initial-value:0}@property --tw-translate-z{syntax:"*";inherits:false;initial-value:0}@property --tw-scale-x{syntax:"*";inherits:false;initial-value:1}@property --tw-scale-y{syntax:"*";inherits:false;initial-value:1}@property --tw-scale-z{syntax:"*";inherits:false;initial-value:1}@property --tw-rotate-x{syntax:"*";inherits:false}@property --tw-rotate-y{syntax:"*";inherits:false}@property --tw-rotate-z{syntax:"*";inherits:false}@property --tw-skew-x{syntax:"*";inherits:false}@property --tw-skew-y{syntax:"*";inherits:false}@property --tw-pan-x{syntax:"*";inherits:false}@property --tw-pan-y{syntax:"*";inherits:false}@property --tw-pinch-zoom{syntax:"*";inherits:false}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-leading{syntax:"*";inherits:false}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-tracking{syntax:"*";inherits:false}@property --tw-ordinal{syntax:"*";inherits:false}@property --tw-slashed-zero{syntax:"*";inherits:false}@property --tw-numeric-figure{syntax:"*";inherits:false}@property --tw-numeric-spacing{syntax:"*";inherits:false}@property --tw-numeric-fraction{syntax:"*";inherits:false}@property --tw-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-shadow-color{syntax:"*";inherits:false}@property --tw-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-inset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-shadow-color{syntax:"*";inherits:false}@property --tw-inset-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-ring-color{syntax:"*";inherits:false}@property --tw-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-ring-color{syntax:"*";inherits:false}@property --tw-inset-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-ring-inset{syntax:"*";inherits:false}@property --tw-ring-offset-width{syntax:"<length>";inherits:false;initial-value:0}@property --tw-ring-offset-color{syntax:"*";inherits:false;initial-value:#fff}@property --tw-ring-offset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-outline-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-blur{syntax:"*";inherits:false}@property --tw-brightness{syntax:"*";inherits:false}@property --tw-contrast{syntax:"*";inherits:false}@property --tw-grayscale{syntax:"*";inherits:false}@property --tw-hue-rotate{syntax:"*";inherits:false}@property --tw-invert{syntax:"*";inherits:false}@property --tw-opacity{syntax:"*";inherits:false}@property --tw-saturate{syntax:"*";inherits:false}@property --tw-sepia{syntax:"*";inherits:false}@property --tw-drop-shadow{syntax:"*";inherits:false}@property --tw-drop-shadow-color{syntax:"*";inherits:false}@property --tw-drop-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-drop-shadow-size{syntax:"*";inherits:false}@property --tw-backdrop-blur{syntax:"*";inherits:false}@property --tw-backdrop-brightness{syntax:"*";inherits:false}@property --tw-backdrop-contrast{syntax:"*";inherits:false}@property --tw-backdrop-grayscale{syntax:"*";inherits:false}@property --tw-backdrop-hue-rotate{syntax:"*";inherits:false}@property --tw-backdrop-invert{syntax:"*";inherits:false}@property --tw-backdrop-opacity{syntax:"*";inherits:false}@property --tw-backdrop-saturate{syntax:"*";inherits:false}@property --tw-backdrop-sepia{syntax:"*";inherits:false}@property --tw-duration{syntax:"*";inherits:false}@keyframes pulse{50%{opacity:.5}}`;
 
   // src/shared/tw.js
   var supportsAdopt = "adoptedStyleSheets" in Document.prototype && "replaceSync" in CSSStyleSheet.prototype;
@@ -5048,11 +5052,15 @@ ${decls}
     { key: "cool", k: 6500, css: "#dce8ff" }
   ];
   var HUES = [0, 30, 60, 120, 200, 260, 300];
+  var STRIP_LO = 2000;
+  var STRIP_HI = 6535;
+  var SNAP_PX = 18;
 
   class FibbersLightDetail extends i4 {
     static properties = {
       hass: { attribute: false },
       _config: { state: true },
+      _tab: { state: true },
       _v: { state: true }
     };
     static styles = [
@@ -5075,6 +5083,8 @@ ${decls}
       }
       this._config = config;
       this._v = 0;
+      if (this._tab == null)
+        this._tab = "colour";
       this._sl = this._sl || {};
       this._mk("bri", (pct) => this._call({ brightness_pct: Math.round(pct) }));
       this._mk("temp", (pct) => {
@@ -5083,20 +5093,13 @@ ${decls}
           color_temp_kelvin: Math.round(lo + pct / 100 * (hi - lo))
         });
       });
-      this._mk("hue", (pct) => this._call({ hs_color: [Math.round(pct / 100 * 360), this._hs()[1]] }));
-      this._mk("sat", (pct) => this._call({ hs_color: [this._hs()[0], Math.round(pct)] }));
-      this._wheel = this._wheel || {
-        active: false,
-        dragging: false,
-        hue: 0,
-        sat: 0
-      };
-      if (!this._colorCommit)
-        this._colorCommit = debounce((hs) => {
-          this._sl.hue.hold.hold(hs[0] / 360 * 100);
-          this._sl.sat.hold.hold(hs[1]);
-          this._call({ hs_color: [Math.round(hs[0]), Math.round(hs[1])] });
-        }, 120);
+      this._wheel = this._wheel || { mode: null, lampId: null, dragging: false };
+      this._cHold = this._cHold || new Map;
+      this._kHold = this._kHold || new Map;
+      if (!this._colourCommit)
+        this._colourCommit = debounce((a3) => this._call({ hs_color: [Math.round(a3.h), Math.round(a3.s)] }, a3.id), 110);
+      if (!this._warmCommit)
+        this._warmCommit = debounce((a3) => this._call({ color_temp_kelvin: Math.round(a3.k) }, a3.id), 110);
     }
     _mk(key, commit) {
       if (this._sl[key]) {
@@ -5131,38 +5134,152 @@ ${decls}
     disconnectedCallback() {
       super.disconnectedCallback();
       Object.values(this._sl || {}).forEach((s4) => s4.debounced.cancel());
+      if (this._colourCommit)
+        this._colourCommit.cancel();
+      if (this._warmCommit)
+        this._warmCommit.cancel();
     }
-    _st() {
-      return this.hass && this.hass.states[this._config.entity];
+    _lSt(id) {
+      return this.hass && this.hass.states[id];
     }
-    _unavail() {
-      return isUnavail(this._st());
-    }
-    _on() {
-      const st = this._st();
+    _lOn(id) {
+      const st = this._lSt(id);
       return !!st && st.state === "on";
     }
-    _attr(k2) {
-      const st = this._st();
+    _lUnavail(id) {
+      return isUnavail(this._lSt(id));
+    }
+    _lAttr(id, k2) {
+      const st = this._lSt(id);
       return st && st.attributes ? st.attributes[k2] : undefined;
     }
-    _modes() {
-      return this._attr("supported_color_modes") || [];
+    _lModes(id) {
+      return this._lAttr(id, "supported_color_modes") || [];
     }
-    _hasTemp() {
-      return this._modes().includes("color_temp");
+    _lHasColor(id) {
+      return this._lModes(id).some((m2) => COLOR_MODES.includes(m2));
     }
-    _hasColor() {
-      return this._modes().some((m2) => COLOR_MODES.includes(m2));
+    _lHasTemp(id) {
+      return this._lModes(id).includes("color_temp");
     }
-    _kRange() {
-      const lo = Number(this._attr("min_color_temp_kelvin")) || 2000;
-      const hi = Number(this._attr("max_color_temp_kelvin")) || 6535;
+    _lHs(id) {
+      const hs = this._lAttr(id, "hs_color");
+      return Array.isArray(hs) ? hs : [0, 0];
+    }
+    _lKRange(id) {
+      const lo = Number(this._lAttr(id, "min_color_temp_kelvin")) || STRIP_LO;
+      const hi = Number(this._lAttr(id, "max_color_temp_kelvin")) || STRIP_HI;
       return [lo, hi > lo ? hi : lo + 1];
     }
-    _hs() {
-      const hs = this._attr("hs_color");
-      return Array.isArray(hs) ? hs : [0, 0];
+    _lKelvin(id) {
+      const k2 = Number(this._lAttr(id, "color_temp_kelvin"));
+      return Number.isFinite(k2) ? k2 : null;
+    }
+    _st() {
+      return this._lSt(this._config.entity);
+    }
+    _unavail() {
+      return this._lUnavail(this._config.entity);
+    }
+    _on() {
+      return this._lOn(this._config.entity);
+    }
+    _attr(k2) {
+      return this._lAttr(this._config.entity, k2);
+    }
+    _hasTemp() {
+      return this._lHasTemp(this._config.entity);
+    }
+    _hasColor() {
+      return this._lHasColor(this._config.entity);
+    }
+    _kRange() {
+      return this._lKRange(this._config.entity);
+    }
+    _lamps() {
+      const ids = this._config.siblings;
+      const live = Array.isArray(ids) ? ids.filter((id) => this._lSt(id)) : [this._config.entity];
+      return live.length ? live : [this._config.entity];
+    }
+    _room() {
+      return this._lamps().length > 1;
+    }
+    _colourLamps() {
+      return this._lamps().filter((id) => this._lOn(id) && this._lHasColor(id));
+    }
+    _warmLamps() {
+      return this._lamps().filter((id) => this._lOn(id) && this._lHasTemp(id));
+    }
+    _hueDiff(a3, b3) {
+      const d3 = Math.abs(a3 - b3) % 360;
+      return d3 > 180 ? 360 - d3 : d3;
+    }
+    _dispHs(id) {
+      if (this._wheel.dragging && this._wheel.lampId === id && this._wheel.mode === "colour")
+        return [this._wheel.hue, this._wheel.sat];
+      const held = this._cHold.get(id);
+      const hs = this._lHs(id);
+      if (held) {
+        const landed = this._hueDiff(hs[0], held.h) <= 4 && Math.abs(hs[1] - held.s) <= 4;
+        if (landed || Date.now() > held.exp)
+          this._cHold.delete(id);
+        else
+          return [held.h, held.s];
+      }
+      return hs;
+    }
+    _dispK(id) {
+      if (this._wheel.dragging && this._wheel.lampId === id && this._wheel.mode === "warm")
+        return this._wheel.k;
+      const held = this._kHold.get(id);
+      const k2 = this._lKelvin(id);
+      if (held) {
+        if (k2 != null && Math.abs(k2 - held.k) <= 60 || Date.now() > held.exp)
+          this._kHold.delete(id);
+        else
+          return held.k;
+      }
+      const [lo, hi] = this._lKRange(id);
+      return k2 != null ? k2 : Math.round((lo + hi) / 2);
+    }
+    _call(data, id) {
+      if (!this.hass)
+        return;
+      const entity_id = id || this._config.entity;
+      Promise.resolve(this.hass.callService("light", "turn_on", { entity_id, ...data })).catch(() => {});
+    }
+    _setColour(id, h3, s4, flush) {
+      this._cHold.set(id, { h: h3, s: s4, exp: Date.now() + 2500 });
+      this._colourCommit({ id, h: h3, s: s4 });
+      if (flush)
+        this._colourCommit.flush();
+    }
+    _setKelvin(id, k2, flush) {
+      const [lo, hi] = this._lKRange(id);
+      const v2 = clamp(k2, lo, hi);
+      this._kHold.set(id, { k: v2, exp: Date.now() + 2500 });
+      this._warmCommit({ id, k: v2 });
+      if (flush)
+        this._warmCommit.flush();
+    }
+    _applyAll(data) {
+      if (this._room())
+        this._lamps().forEach((id) => this._call(data, id));
+      else
+        this._call(data);
+    }
+    _toggle(id) {
+      const target = id || this._config.entity;
+      if (!this.hass || this._lUnavail(target))
+        return;
+      this.hass.callService("light", "toggle", { entity_id: target });
+    }
+    _selectActive(id) {
+      if (!id || id === this._config.entity)
+        return;
+      Object.values(this._sl || {}).forEach((s4) => s4.hold.clear());
+      this._config = { ...this._config, entity: id };
+      this._v++;
     }
     _pct(key) {
       const s4 = this._sl[key];
@@ -5173,95 +5290,12 @@ ${decls}
         const [lo, hi] = this._kRange();
         const k2 = Number(this._attr("color_temp_kelvin"));
         raw = Number.isFinite(k2) ? clamp((k2 - lo) / (hi - lo) * 100, 0, 100) : 50;
-      } else if (key === "hue")
-        raw = clamp(this._hs()[0] / 360 * 100, 0, 100);
-      else if (key === "sat")
-        raw = clamp(this._hs()[1], 0, 100);
+      }
       return Math.round(s4.hold.value(raw, {
         dragging: s4.dragging,
         dragValue: s4.dragPct,
         gone: this._unavail() || !this._on()
       }));
-    }
-    _call(data) {
-      if (!this.hass)
-        return;
-      const entity_id = this._config.entity;
-      Promise.resolve(this.hass.callService("light", "turn_on", { entity_id, ...data })).catch(() => {});
-    }
-    _toggle() {
-      if (!this.hass || this._unavail())
-        return;
-      this.hass.callService("light", "toggle", {
-        entity_id: this._config.entity
-      });
-    }
-    _siblings() {
-      const ids = this._config.siblings;
-      return Array.isArray(ids) ? ids.filter((id) => this.hass && this.hass.states[id]) : [];
-    }
-    _switchTo(id) {
-      if (!id || id === this._config.entity)
-        return;
-      Object.values(this._sl || {}).forEach((s4) => s4.hold.clear());
-      this._config = { ...this._config, entity: id };
-      this._v++;
-    }
-    _switcherKey(e4) {
-      const ids = this._siblings();
-      if (!ids.length)
-        return;
-      const cur = ids.indexOf(this._config.entity);
-      const delta = { ArrowLeft: -1, ArrowRight: 1 };
-      let next;
-      if (e4.key in delta)
-        next = (cur + delta[e4.key] + ids.length) % ids.length;
-      else if (e4.key === "Home")
-        next = 0;
-      else if (e4.key === "End")
-        next = ids.length - 1;
-      else
-        return;
-      e4.preventDefault();
-      this._switchTo(ids[next]);
-      this.updateComplete.then(() => {
-        const tab = this.renderRoot.querySelector('[role="tab"][aria-selected="true"]');
-        if (tab)
-          tab.focus();
-      });
-    }
-    _switcher(hl) {
-      const ids = this._siblings();
-      if (ids.length <= 1)
-        return "";
-      return b2`<div
-      role="tablist"
-      aria-label=${t3(hl, "light_detail.lights")}
-      class="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5"
-      @keydown=${this._switcherKey}
-    >
-      ${ids.map((id) => {
-        const sel = id === this._config.entity;
-        const st = this.hass && this.hass.states[id];
-        const on = !!st && st.state === "on";
-        const nm = st && st.attributes.friendly_name || id;
-        return b2`<button
-          type="button"
-          role="tab"
-          aria-selected=${sel ? "true" : "false"}
-          tabindex=${sel ? 0 : -1}
-          class="fib-hit flex flex-none items-center gap-1.5 whitespace-nowrap rounded-full
-                 border px-3 py-1 text-[11px] font-medium transition-colors
-                 ${sel ? "border-accent bg-accentbg text-accent" : "border-line bg-card2 text-ink2"}"
-          @click=${() => this._switchTo(id)}
-        >
-          <span
-            class="h-1.5 w-1.5 flex-none rounded-full ${on ? "bg-accent" : "bg-muted"}"
-          ></span>
-          ${nm}
-        </button>`;
-      })}
-    </div>`;
     }
     _slider(key, label, valueText, opts = {}) {
       const s4 = this._sl[key];
@@ -5306,68 +5340,97 @@ ${decls}
         style="background:${bg}"
         @click=${onClick}
       ></button>`;
+      const anyTemp = this._lamps().some((id) => this._lHasTemp(id));
+      const anyColour = this._lamps().some((id) => this._lHasColor(id));
       return b2`<div class="flex flex-wrap gap-2">
-      ${this._hasTemp() ? WHITES.map((w2) => btn(w2.css, `${t3(hl, "light_detail." + w2.key)} (${w2.k}K)`, () => this._call({ color_temp_kelvin: w2.k }))) : ""}
-      ${this._hasColor() ? HUES.map((h3) => btn(`hsl(${h3} 90% 55%)`, `${t3(hl, "light_detail.colour")} ${h3}°`, () => this._call({ hs_color: [h3, 90] }))) : ""}
+      ${anyTemp ? WHITES.map((w2) => btn(w2.css, `${t3(hl, "light_detail." + w2.key)} (${w2.k}K)`, () => this._applyAll({ color_temp_kelvin: w2.k }))) : ""}
+      ${anyColour ? HUES.map((h3) => btn(`hsl(${h3} 90% 55%)`, `${t3(hl, "light_detail.colour")} ${h3}°`, () => this._applyAll({ hs_color: [h3, 90] }))) : ""}
     </div>`;
     }
-    _wheelDisabled() {
-      return this._unavail() || !this._on();
+    _colourXY(id) {
+      const [h3, s4] = this._dispHs(id);
+      const rad = h3 * Math.PI / 180;
+      return {
+        x: 50 + s4 / 100 * 50 * Math.sin(rad),
+        y: 50 - s4 / 100 * 50 * Math.cos(rad)
+      };
     }
-    _wheelHue() {
-      return this._wheel.dragging ? this._wheel.hue : this._pct("hue") / 100 * 360;
-    }
-    _wheelSat() {
-      return this._wheel.dragging ? this._wheel.sat : this._pct("sat");
-    }
-    _wheelTo(e4, final) {
+    _colourAt(e4, R2) {
       const r4 = e4.currentTarget.getBoundingClientRect();
-      const R2 = r4.width / 2;
-      if (R2 <= 0)
-        return;
       const dx = e4.clientX - (r4.left + R2);
       const dy = e4.clientY - (r4.top + R2);
-      let phi = Math.atan2(dx, -dy) * 180 / Math.PI;
-      if (phi < 0)
-        phi += 360;
-      const hue = phi;
-      const sat = clamp(Math.hypot(dx, dy) / R2 * 100, 0, 100);
-      this._wheel.dragging = true;
+      let hue = Math.atan2(dx, -dy) * 180 / Math.PI;
+      if (hue < 0)
+        hue += 360;
+      let sat = clamp(Math.hypot(dx, dy) / R2 * 100, 0, 100);
+      const mx = sat / 100 * R2 * Math.sin(hue * Math.PI / 180);
+      const my = -(sat / 100) * R2 * Math.cos(hue * Math.PI / 180);
+      for (const other of this._colourLamps()) {
+        if (other === this._wheel.lampId)
+          continue;
+        const [oh, os] = this._dispHs(other);
+        const ox = os / 100 * R2 * Math.sin(oh * Math.PI / 180);
+        const oy = -(os / 100) * R2 * Math.cos(oh * Math.PI / 180);
+        if (Math.hypot(mx - ox, my - oy) <= SNAP_PX) {
+          hue = oh;
+          sat = os;
+          break;
+        }
+      }
+      return [hue, sat];
+    }
+    _colourDown(e4) {
+      const lamps = this._colourLamps();
+      if (!lamps.length)
+        return;
+      const r4 = e4.currentTarget.getBoundingClientRect();
+      let best = null;
+      let bestD = Infinity;
+      for (const id of lamps) {
+        const p3 = this._colourXY(id);
+        const d3 = Math.hypot(e4.clientX - (r4.left + p3.x / 100 * r4.width), e4.clientY - (r4.top + p3.y / 100 * r4.height));
+        if (d3 < bestD) {
+          bestD = d3;
+          best = id;
+        }
+      }
+      capturePointer(e4.currentTarget, e4.pointerId);
+      this._wheel = {
+        mode: "colour",
+        lampId: best,
+        dragging: true,
+        hue: 0,
+        sat: 0
+      };
+      this._selectActive(best);
+      this._colourMove(e4);
+    }
+    _colourMove(e4, final) {
+      if (!this._wheel.dragging || this._wheel.mode !== "colour")
+        return;
+      const R2 = e4.currentTarget.getBoundingClientRect().width / 2;
+      if (R2 <= 0)
+        return;
+      const [hue, sat] = this._colourAt(e4, R2);
       this._wheel.hue = hue;
       this._wheel.sat = sat;
-      this._sl.hue.hold.hold(hue / 360 * 100);
-      this._sl.sat.hold.hold(sat);
       this._v++;
-      this._colorCommit([hue, sat]);
-      if (final)
-        this._colorCommit.flush();
+      this._setColour(this._wheel.lampId, hue, sat, final);
     }
-    _wheelDown(e4) {
-      if (this._wheelDisabled())
+    _colourUp(e4) {
+      if (!this._wheel.dragging || this._wheel.mode !== "colour")
         return;
-      capturePointer(e4.currentTarget, e4.pointerId);
-      this._wheel.active = true;
-      this._wheelTo(e4);
-    }
-    _wheelMove(e4) {
-      if (this._wheel.active)
-        this._wheelTo(e4);
-    }
-    _wheelUp(e4) {
-      if (!this._wheel.active)
-        return;
-      this._wheel.active = false;
-      this._wheelTo(e4, true);
+      this._colourMove(e4, true);
       this._wheel.dragging = false;
       this._v++;
     }
-    _wheelCancel() {
-      this._wheel.active = false;
+    _dragCancel() {
       this._wheel.dragging = false;
       this._v++;
     }
-    _wheelKey(e4) {
-      if (this._wheelDisabled())
+    _colourKey(e4) {
+      const id = this._config.entity;
+      if (!this._lOn(id) || !this._lHasColor(id))
         return;
       const d3 = {
         ArrowLeft: [-1, 0],
@@ -5379,42 +5442,205 @@ ${decls}
         return;
       e4.preventDefault();
       const step = e4.shiftKey ? 10 : 2;
-      const hue = ((this._wheelHue() + d3[0] * step) % 360 + 360) % 360;
-      const sat = clamp(this._wheelSat() + d3[1] * step, 0, 100);
-      this._colorCommit([hue, sat]);
-      this._colorCommit.flush();
+      const [ch, cs] = this._dispHs(id);
+      const hue = ((ch + d3[0] * step) % 360 + 360) % 360;
+      const sat = clamp(cs + d3[1] * step, 0, 100);
+      this._setColour(id, hue, sat, true);
       this._v++;
     }
-    _wheelDisc(hl) {
-      const disabled = this._wheelDisabled();
-      const hue = this._wheelHue();
-      const sat = this._wheelSat();
-      const rad = hue * Math.PI / 180;
-      const px = 50 + sat / 100 * 50 * Math.sin(rad);
-      const py = 50 - sat / 100 * 50 * Math.cos(rad);
+    _colourWheel(hl) {
+      const lamps = this._colourLamps();
+      const disabled = !lamps.length;
+      const active = this._config.entity;
+      const [ah, as] = this._dispHs(active);
       return b2`<div
-      class="relative mx-auto aspect-square w-full max-w-[220px] touch-none select-none
-             rounded-full ${disabled ? "pointer-events-none opacity-40" : "cursor-pointer"}"
+      class="relative mx-auto aspect-square w-full max-w-[240px] touch-none select-none
+             rounded-full ${disabled ? "opacity-40" : "cursor-pointer"}"
       style="background:radial-gradient(circle at center,#fff 0%,rgba(255,255,255,0) 100%),
              conic-gradient(from 0deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)"
       role="slider"
       tabindex=${disabled ? -1 : 0}
       aria-label=${t3(hl, "light_detail.colour")}
-      aria-valuetext=${`${Math.round(hue)}°, ${Math.round(sat)}%`}
+      aria-valuetext=${`${Math.round(ah)}°, ${Math.round(as)}%`}
       aria-disabled=${disabled ? "true" : "false"}
-      @pointerdown=${this._wheelDown}
-      @pointermove=${this._wheelMove}
-      @pointerup=${this._wheelUp}
-      @pointercancel=${this._wheelCancel}
-      @lostpointercapture=${this._wheelCancel}
-      @keydown=${this._wheelKey}
+      @pointerdown=${this._colourDown}
+      @pointermove=${this._colourMove}
+      @pointerup=${this._colourUp}
+      @pointercancel=${this._dragCancel}
+      @lostpointercapture=${this._dragCancel}
+      @keydown=${this._colourKey}
     >
-      ${disabled ? "" : b2`<div
-              class="pointer-events-none absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2
-                     rounded-full border-2 border-white shadow-[0_1px_5px_rgba(0,0,0,.6)]"
-              style="left:${px}%;top:${py}%;background:hsl(${Math.round(hue)} 90% 50%)"
-            ></div>`}
+      ${lamps.map((id) => {
+        const p3 = this._colourXY(id);
+        const [h3] = this._dispHs(id);
+        const isActive = id === active;
+        return b2`<div
+          class="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full
+                 border-2 border-white shadow-[0_1px_5px_rgba(0,0,0,.6)]
+                 ${isActive ? "h-6 w-6 ring-2 ring-white/60" : "h-[18px] w-[18px]"}"
+          style="left:${p3.x}%;top:${p3.y}%;background:hsl(${Math.round(h3)} 90% 50%)"
+        ></div>`;
+      })}
     </div>`;
+    }
+    _warmFrac(id) {
+      return clamp((this._dispK(id) - STRIP_LO) / (STRIP_HI - STRIP_LO), 0, 1);
+    }
+    _warmDown(e4) {
+      const lamps = this._warmLamps();
+      if (!lamps.length)
+        return;
+      const r4 = e4.currentTarget.getBoundingClientRect();
+      let best = null;
+      let bestD = Infinity;
+      for (const id of lamps) {
+        const d3 = Math.abs(e4.clientX - (r4.left + this._warmFrac(id) * r4.width));
+        if (d3 < bestD) {
+          bestD = d3;
+          best = id;
+        }
+      }
+      capturePointer(e4.currentTarget, e4.pointerId);
+      this._wheel = {
+        mode: "warm",
+        lampId: best,
+        dragging: true,
+        k: this._dispK(best)
+      };
+      this._selectActive(best);
+      this._warmMove(e4);
+    }
+    _warmMove(e4, final) {
+      if (!this._wheel.dragging || this._wheel.mode !== "warm")
+        return;
+      const r4 = e4.currentTarget.getBoundingClientRect();
+      if (r4.width <= 0)
+        return;
+      const frac = clamp((e4.clientX - r4.left) / r4.width, 0, 1);
+      const k2 = Math.round(STRIP_LO + frac * (STRIP_HI - STRIP_LO));
+      this._wheel.k = k2;
+      this._v++;
+      this._setKelvin(this._wheel.lampId, k2, final);
+    }
+    _warmUp(e4) {
+      if (!this._wheel.dragging || this._wheel.mode !== "warm")
+        return;
+      this._warmMove(e4, true);
+      this._wheel.dragging = false;
+      this._v++;
+    }
+    _warmStripEl(hl) {
+      const lamps = this._warmLamps();
+      const disabled = !lamps.length;
+      return b2`<div
+      class="relative h-[var(--fib-hit)] w-full touch-none select-none
+             ${disabled ? "opacity-40" : "cursor-pointer"}"
+      role="group"
+      aria-label=${t3(hl, "light_detail.temperature")}
+      @pointerdown=${this._warmDown}
+      @pointermove=${this._warmMove}
+      @pointerup=${this._warmUp}
+      @pointercancel=${this._dragCancel}
+      @lostpointercapture=${this._dragCancel}
+    >
+      <div
+        class="pointer-events-none absolute inset-x-0 top-1/2 h-3 -translate-y-1/2 rounded-full"
+        style="background:linear-gradient(90deg,#ff9838,#ffd9a0,#fff6ea,#e6efff,#bcd2ff)"
+      ></div>
+      ${lamps.map((id) => {
+        const isActive = id === this._config.entity;
+        return b2`<div
+          class="pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full
+                 border-2 border-white bg-white shadow-[0_1px_5px_rgba(0,0,0,.6)]
+                 ${isActive ? "h-6 w-6 ring-2 ring-white/60" : "h-[18px] w-[18px]"}"
+          style="left:${this._warmFrac(id) * 100}%"
+        ></div>`;
+      })}
+    </div>`;
+    }
+    _tabs(hl) {
+      const tab = (key, label) => b2`<button
+        type="button"
+        role="tab"
+        aria-selected=${this._tab === key ? "true" : "false"}
+        class="fib-hit flex-1 rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors
+             ${this._tab === key ? "bg-accent text-[#0c1510]" : "text-ink2"}"
+        @click=${() => {
+        this._tab = key;
+      }}
+      >
+        ${label}
+      </button>`;
+      return b2`<div
+      role="tablist"
+      class="flex gap-1 rounded-full border border-line bg-card2 p-1"
+      aria-label=${t3(hl, "light_detail.colour")}
+    >
+      ${tab("colour", t3(hl, "light_detail.colour"))}
+      ${tab("warm", t3(hl, "light_detail.white"))}
+    </div>`;
+    }
+    _lampList(hl) {
+      const active = this._config.entity;
+      return b2`<div class="grid gap-0.5">
+      ${this._lamps().map((id) => {
+        const on = this._lOn(id);
+        const unavail = this._lUnavail(id);
+        const nm = this._lAttr(id, "friendly_name") || id;
+        const isActive = id === active;
+        let dot = "#3a4446";
+        if (on && this._lHasColor(id)) {
+          const [h3, s4] = this._dispHs(id);
+          dot = `hsl(${Math.round(h3)} ${Math.round(clamp(s4, 15, 90))}% 55%)`;
+        } else if (on)
+          dot = "#ffd9a0";
+        return b2`<div
+          class="flex items-center gap-2 rounded-lg px-2 py-1.5
+                 ${isActive ? "bg-card2" : ""} ${unavail ? "opacity-50" : ""}"
+        >
+          <button
+            type="button"
+            class="flex min-w-0 flex-1 items-center gap-2 text-left"
+            aria-pressed=${isActive ? "true" : "false"}
+            @click=${() => this._selectActive(id)}
+          >
+            <span
+              class="h-2.5 w-2.5 flex-none rounded-full"
+              style="background:${dot}"
+            ></span>
+            <span
+              class="truncate text-[12px] ${isActive ? "font-medium text-ink" : "text-ink2"}"
+              >${nm}</span
+            >
+          </button>
+          ${unavail ? b2`<span class="text-[10.5px] text-muted"
+                  >${t3(hl, "light_detail.offline")}</span
+                >` : pillSwitch({ on, label: nm, onClick: () => this._toggle(id) })}
+        </div>`;
+      })}
+    </div>`;
+    }
+    _roomPicker(hl) {
+      return b2`
+      ${this._tabs(hl)}
+      ${this._tab === "warm" ? this._warmStripEl(hl) : this._colourWheel(hl)}
+      ${this._slider("bri", `${t3(hl, "light_detail.brightness")} · ${this._lAttr(this._config.entity, "friendly_name") || ""}`, `${this._pct("bri")}%`, { needsOn: true })}
+      ${this._swatches(hl)} ${this._lampList(hl)}
+    `;
+    }
+    _singleControls(hl) {
+      const [lo, hi] = this._kRange();
+      const curK = Math.round(lo + this._pct("temp") / 100 * (hi - lo));
+      return b2`
+      ${this._slider("bri", t3(hl, "light_detail.brightness"), `${this._pct("bri")}%`, {
+        needsOn: true
+      })}
+      ${this._hasColor() ? this._colourWheel(hl) : this._hasTemp() ? this._slider("temp", t3(hl, "light_detail.temperature"), `${curK} K`, {
+        needsOn: true,
+        gradient: "linear-gradient(90deg,#ff9838,#ffd9a0,#fff6ea,#e6efff,#bcd2ff)"
+      }) : ""}
+      ${this._hasTemp() || this._hasColor() ? this._swatches(hl) : ""}
+    `;
     }
     render() {
       const cfg = this._config;
@@ -5424,63 +5650,46 @@ ${decls}
       const st = this._st();
       const unavail = this._unavail();
       const on = this._on();
-      const name = cfg.name || st && st.attributes.friendly_name || cfg.entity;
+      const room = this._room();
+      const title = room ? cfg.groupName || cfg.title || t3(hl, "light_detail.lights") : cfg.name || st && st.attributes.friendly_name || cfg.entity;
       const icon = cfg.icon || st && st.attributes.icon || "solar:lightbulb-bold-duotone";
-      const [lo, hi] = this._kRange();
-      const curK = Math.round(lo + this._pct("temp") / 100 * (hi - lo));
+      const lampsOn = this._lamps().filter((id) => this._lOn(id)).length;
+      const subtitle = room ? t3(hl, "light_detail.on_count", {
+        on: lampsOn,
+        total: this._lamps().length
+      }) : unavail ? t3(hl, "light_detail.offline") : on ? t3(hl, "light_detail.on") : t3(hl, "light_detail.off");
       return b2`<div
       class="grid gap-4 rounded-[14px] border border-line bg-card p-[15px]
-             ${unavail ? "opacity-60" : ""}"
+             ${!room && unavail ? "opacity-60" : ""}"
     >
-      ${this._switcher(hl)}
       <div class="flex items-center gap-3">
         <div
           class="flex h-9 w-9 flex-none items-center justify-center rounded-xl
-                 ${on ? "bg-accentbg text-accent" : "bg-card2 text-muted"}"
+                 ${on || room ? "bg-accentbg text-accent" : "bg-card2 text-muted"}"
         >
           <fib-icon
             class="h-[20px] w-[20px] [--mdc-icon-size:20px]"
-            icon=${icon}
+            icon=${room ? "solar:lightbulb-bolt-bold-duotone" : icon}
           ></fib-icon>
         </div>
         <div class="min-w-0 flex-1">
-          <div class="truncate text-[14px] font-semibold text-ink">${name}</div>
-          <div class="text-[11px] text-muted">
-            ${unavail ? t3(hl, "light_detail.offline") : on ? t3(hl, "light_detail.on") : t3(hl, "light_detail.off")}
+          <div class="truncate text-[14px] font-semibold text-ink">
+            ${title}
           </div>
+          <div class="text-[11px] text-muted">${subtitle}</div>
         </div>
-        ${pillSwitch({
+        ${room ? "" : pillSwitch({
         on,
         label: t3(hl, "light_detail.power"),
         onClick: () => this._toggle()
       })}
       </div>
 
-      ${unavail ? "" : b2`
-              ${this._slider("bri", t3(hl, "light_detail.brightness"), `${this._pct("bri")}%`, {
-        needsOn: true
-      })}
-              ${this._hasTemp() ? this._slider("temp", t3(hl, "light_detail.temperature"), `${curK} K`, {
-        needsOn: true,
-        gradient: "linear-gradient(90deg,#ff9838,#ffd9a0,#fff6ea,#e6efff,#bcd2ff)"
-      }) : ""}
-              ${this._hasColor() ? b2`
-                      ${this._wheelDisc(hl)}
-                      ${this._slider("hue", t3(hl, "light_detail.hue"), `${Math.round(this._pct("hue") / 100 * 360)}°`, {
-        needsOn: true,
-        gradient: "linear-gradient(90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)"
-      })}
-                      ${this._slider("sat", t3(hl, "light_detail.saturation"), `${this._pct("sat")}%`, {
-        needsOn: true,
-        gradient: `linear-gradient(90deg,#8a9599,hsl(${Math.round(this._pct("hue") / 100 * 360)} 90% 55%))`
-      })}
-                    ` : ""}
-              ${this._hasTemp() || this._hasColor() ? this._swatches(hl) : ""}
-            `}
+      ${room ? this._roomPicker(hl) : unavail ? "" : this._singleControls(hl)}
     </div>`;
     }
     getCardSize() {
-      return 4;
+      return 5;
     }
     getLayoutOptions() {
       return { grid_columns: "full", grid_rows: "auto" };
