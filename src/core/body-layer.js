@@ -12,6 +12,7 @@ import { norm, here, navigate, deepFind } from "../shared/util.js";
 import { setTabHiding, removeTabHiding } from "./hide-tabs.js";
 import { nav, registerTabs, startNav, stopNav } from "./nav-stack.js";
 import { applyTheme, removeTheme } from "./theme.js";
+import { enableMoreInfo, disableMoreInfo } from "./more-info.js";
 import { setViewReserve, removeViewReserve } from "./view-reserve.js";
 import "../shared/icon.js";
 
@@ -314,6 +315,8 @@ export function attach(owner, config) {
   if (config.auto_hide) enableAutoHide();
   setTabHiding(config.hide_ha_tabs);
   applyTheme(config.theme);
+  if (config.more_info) enableMoreInfo();
+  else disableMoreInfo();
 }
 
 /**
@@ -357,5 +360,6 @@ export function detach(owner) {
     removeTabHiding();
     removeTheme();
     removeViewReserve();
+    disableMoreInfo();
   }
 }

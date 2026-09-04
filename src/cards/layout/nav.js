@@ -6,6 +6,7 @@ import { LitElement, html, css } from "lit";
 
 import { attach, detach, renderBar } from "../../core/body-layer.js";
 import { nav } from "../../core/nav-stack.js";
+import { updateOpenModalHass } from "../../core/body-sheet.js";
 import "../../shared/icon.js";
 
 const EDITOR_SCHEMA = [
@@ -26,6 +27,7 @@ const EDITOR_SCHEMA = [
     },
   },
   { name: "respect_sidebar", selector: { boolean: {} } },
+  { name: "more_info", selector: { boolean: {} } },
   { name: "offset_bottom", selector: { number: { min: 0, mode: "box" } } },
   { name: "extra_bottom", selector: { number: { min: 0, mode: "box" } } },
 ];
@@ -105,6 +107,9 @@ export class FibbersNav extends LitElement {
     ) {
       throw new Error("fibbers-nav: `respect_sidebar` must be true or false");
     }
+    if (config.more_info != null && typeof config.more_info !== "boolean") {
+      throw new Error("fibbers-nav: `more_info` must be true or false");
+    }
     if (
       config.theme != null &&
       ![
@@ -138,6 +143,7 @@ export class FibbersNav extends LitElement {
   set hass(hass) {
     if (this.preview) return; // card picker: never touch the nav singleton
     nav.hassRef = hass;
+    updateOpenModalHass(hass); // keep an open Fibbers more-info modal live
     if (this._config && (this._config.tabs || []).some((t) => t.badge))
       renderBar();
   }

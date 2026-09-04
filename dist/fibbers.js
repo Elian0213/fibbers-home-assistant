@@ -127,6 +127,10 @@
       body: '<g fill="currentColor"><path d="M10.6669 6.13443L10.165 5.77922C9.44862 5.27225 8.59264 5 7.71504 5H7.10257C6.69838 5 6.29009 5.02549 5.90915 5.16059C3.52645 6.00566 1.88749 9.09504 2.00604 16.1026C2.02992 17.5145 2.3603 19.075 3.63423 19.6842C4.03121 19.8741 4.49667 20 5.02671 20C5.66273 20 6.1678 19.8187 6.55763 19.5632C6.96641 19.2953 7.32633 18.9471 7.68612 18.599L7.68612 18.599C8.13071 18.1688 8.57511 17.7389 9.11125 17.4609C9.69519 17.1581 10.3434 17 11.0011 17H12.9989C13.6566 17 14.3048 17.1581 14.8888 17.4609C15.4249 17.7389 15.8693 18.1688 16.3139 18.599L16.3139 18.599C16.6737 18.9471 17.0336 19.2953 17.4424 19.5632C17.8322 19.8187 18.3373 20 18.9733 20C19.5033 20 19.9688 19.8741 20.3658 19.6842C21.6397 19.075 21.9701 17.5145 21.994 16.1026C22.1125 9.09503 20.4735 6.00566 18.0908 5.16059C17.7099 5.02549 17.3016 5 16.8974 5H16.2849C15.4074 5 14.5514 5.27225 13.8351 5.77922L13.3332 6.13441C12.9434 6.41029 12.4776 6.55844 12 6.55844C11.5225 6.55844 11.0567 6.41029 10.6669 6.13443Z" opacity=".5"/><path d="M16.75 9C17.1642 9 17.5 9.33579 17.5 9.75C17.5 10.1642 17.1642 10.5 16.75 10.5C16.3358 10.5 16 10.1642 16 9.75C16 9.33579 16.3358 9 16.75 9Z"/><path d="M7.5 9.25C7.91421 9.25 8.25 9.58579 8.25 10V10.75H9C9.41421 10.75 9.75 11.0858 9.75 11.5C9.75 11.9142 9.41421 12.25 9 12.25H8.25V13C8.25 13.4142 7.91421 13.75 7.5 13.75C7.08579 13.75 6.75 13.4142 6.75 13V12.25H6C5.58579 12.25 5.25 11.9142 5.25 11.5C5.25 11.0858 5.58579 10.75 6 10.75H6.75V10C6.75 9.58579 7.08579 9.25 7.5 9.25Z"/><path d="M19 11.25C19 11.6642 18.6642 12 18.25 12C17.8358 12 17.5 11.6642 17.5 11.25C17.5 10.8358 17.8358 10.5 18.25 10.5C18.6642 10.5 19 10.8358 19 11.25Z"/><path d="M15.25 12C15.6642 12 16 11.6642 16 11.25C16 10.8358 15.6642 10.5 15.25 10.5C14.8358 10.5 14.5 10.8358 14.5 11.25C14.5 11.6642 14.8358 12 15.25 12Z"/><path d="M17.5 12.75C17.5 12.3358 17.1642 12 16.75 12C16.3358 12 16 12.3358 16 12.75C16 13.1642 16.3358 13.5 16.75 13.5C17.1642 13.5 17.5 13.1642 17.5 12.75Z"/></g>',
       vb: "0 0 24 24"
     },
+    "solar:graph-new-bold-duotone": {
+      body: '<g fill="currentColor"><path d="M2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C22 4.92893 22 7.28595 22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12Z" opacity=".5"/><path d="M17.5762 10.4802C17.8414 10.1619 17.7984 9.68903 17.4802 9.42385C17.1619 9.15868 16.689 9.20167 16.4239 9.51988L14.627 11.6761C14.2562 12.1211 14.0285 12.3915 13.8409 12.5609C13.7539 12.6395 13.7023 12.6708 13.6776 12.6827C13.6725 12.6852 13.6689 12.6866 13.6667 12.6875C13.6667 12.6875 13.6624 12.6858 13.659 12.6843L13.6558 12.6827C13.6311 12.6708 13.5795 12.6395 13.4925 12.5609C13.3049 12.3915 13.0772 12.1211 12.7064 11.6761L12.414 11.3253C12.0855 10.931 11.7894 10.5756 11.5128 10.3259C11.2119 10.0541 10.8328 9.81207 10.3334 9.81207C9.83386 9.81207 9.4548 10.0541 9.15386 10.3259C8.87727 10.5756 8.58115 10.931 8.25269 11.3253L6.42385 13.5199C6.15868 13.8381 6.20167 14.311 6.51988 14.5762C6.83809 14.8414 7.31101 14.7984 7.57619 14.4802L9.37308 12.3239C9.74387 11.8789 9.97157 11.6085 10.1592 11.4391C10.2461 11.3606 10.2978 11.3293 10.3225 11.3173L10.3292 11.3142L10.3334 11.3126C10.3356 11.3134 10.3392 11.3149 10.3442 11.3173C10.369 11.3293 10.4206 11.3606 10.5076 11.4391C10.6951 11.6085 10.9228 11.8789 11.2936 12.3239L11.586 12.6748L11.586 12.6748C11.9145 13.069 12.2106 13.4244 12.4872 13.6742C12.7881 13.9459 13.1672 14.188 13.6667 14.188C14.1662 14.188 14.5452 13.9459 14.8462 13.6742C15.1228 13.4244 15.4189 13.069 15.7473 12.6748L17.5762 10.4802Z"/><path d="M22 5C22 6.65685 20.6569 8 19 8C17.3431 8 16 6.65685 16 5C16 3.34315 17.3431 2 19 2C20.6569 2 22 3.34315 22 5Z"/></g>',
+      vb: "0 0 24 24"
+    },
     "solar:headphones-round-bold-duotone": {
       body: '<g fill="currentColor"><path fill-rule="evenodd" d="M2.25 12C2.25 6.61522 6.61522 2.25 12 2.25C17.3848 2.25 21.75 6.61522 21.75 12V14.7927C21.8282 14.765 21.9123 14.75 22 14.75C22.4142 14.75 22.75 15.0858 22.75 15.5V17.5C22.75 17.9142 22.4142 18.25 22 18.25C21.5858 18.25 21.25 17.9142 21.25 17.5V17H20.25V12C20.25 7.44365 16.5563 3.75 12 3.75C7.44365 3.75 3.75 7.44365 3.75 12V17H2.75V17.5C2.75 17.9142 2.41421 18.25 2 18.25C1.58579 18.25 1.25 17.9142 1.25 17.5V15.5C1.25 15.0858 1.58579 14.75 2 14.75C2.08766 14.75 2.17181 14.765 2.25 14.7927V12Z" clip-rule="evenodd" opacity=".5"/><path d="M8 14.0496C8 13.2003 8 12.7756 7.79032 12.4803C7.6848 12.3317 7.54473 12.2089 7.38127 12.1217C7.05645 11.9484 6.61775 11.9884 5.74033 12.0685C4.26185 12.2035 3.5226 12.271 2.99285 12.6405C2.72473 12.8275 2.49965 13.0659 2.33175 13.3408C2 13.8839 2 14.5995 2 16.0307V17.7703C2 19.1872 2 19.8957 2.33837 20.4428C2.46502 20.6476 2.62377 20.8323 2.80899 20.9904C3.30383 21.4126 4.02613 21.5445 5.47073 21.8083C6.48732 21.9939 6.99562 22.0867 7.37077 21.8912C7.5092 21.8191 7.63155 21.7214 7.73086 21.6038C8 21.285 8 20.7864 8 19.7893V14.0496Z"/><path d="M16 14.0496C16 13.2003 16 12.7756 16.2097 12.4803C16.3152 12.3317 16.4553 12.2089 16.6187 12.1217C16.9435 11.9484 17.3823 11.9884 18.2597 12.0685C19.7382 12.2035 20.4774 12.271 21.0072 12.6405C21.2753 12.8275 21.5003 13.0659 21.6682 13.3408C22 13.8839 22 14.5995 22 16.0307V17.7703C22 19.1872 22 19.8957 21.6616 20.4428C21.535 20.6476 21.3762 20.8323 21.191 20.9904C20.6962 21.4126 19.9739 21.5445 18.5293 21.8083C17.5127 21.9939 17.0044 22.0867 16.6292 21.8912C16.4908 21.8191 16.3685 21.7214 16.2691 21.6038C16 21.285 16 20.7864 16 19.7893V14.0496Z"/></g>',
       vb: "0 0 24 24"
@@ -289,6 +293,10 @@
     },
     "solar:temperature-bold-duotone": {
       body: '<g fill="currentColor"><path d="M17.5 16.5C17.5 19.5376 15.0376 22 12 22C8.96243 22 6.5 19.5376 6.5 16.5C6.5 14.7636 7.30465 13.2152 8.56141 12.2072C8.82505 11.9957 9 11.6857 9 11.3477V5C9 3.34315 10.3431 2 12 2C13.6569 2 15 3.34315 15 5V11.3477C15 11.6857 15.1749 11.9957 15.4386 12.2072C16.6954 13.2152 17.5 14.7636 17.5 16.5Z" opacity=".5"/><path d="M12.75 5C12.75 4.58579 12.4142 4.25 12 4.25C11.5858 4.25 11.25 4.58579 11.25 5V13.3804C11.25 13.8172 10.9527 14.1876 10.592 14.4339C9.93273 14.8841 9.5 15.6415 9.5 16.5C9.5 17.8807 10.6193 19 12 19C13.3807 19 14.5 17.8807 14.5 16.5C14.5 15.6415 14.0673 14.8841 13.408 14.4339C13.0473 14.1876 12.75 13.8172 12.75 13.3804V5Z"/></g>',
+      vb: "0 0 24 24"
+    },
+    "solar:thermometer-bold-duotone": {
+      body: '<g fill="currentColor"><path d="M5.96229 20.1739L5.57866 20.5576C4.98875 21.1475 4.03233 21.1475 3.44243 20.5576C2.85252 19.9677 2.85252 19.0112 3.44243 18.4213L3.82606 18.0377C4.25869 17.6051 4.47121 16.9992 4.40364 16.3911L4.31485 15.592C4.2135 14.6799 4.53228 13.7711 5.18123 13.1222L14.1236 4.17981C15.6967 2.60673 18.2471 2.60673 19.8202 4.17981C21.3933 5.75288 21.3933 8.30334 19.8202 9.87642L10.8778 18.8188C10.2289 19.4677 9.32013 19.7865 8.40799 19.6851L7.60886 19.5964C7.00076 19.5288 6.39492 19.7413 5.96229 20.1739Z" opacity=".5"/><path d="M12.5176 17.1791L11.4569 18.2397C11.4569 18.2397 11.4569 18.2398 11.4569 18.2397L10.1562 16.939C9.8633 16.6461 9.8633 16.1713 10.1562 15.8784C10.4491 15.5855 10.924 15.5855 11.2169 15.8784L12.5176 17.1791C12.5176 17.1791 12.5175 17.179 12.5176 17.1791Z"/><path d="M15.7268 13.9698L14.6662 15.0305C14.6661 15.0304 14.6662 15.0305 14.6662 15.0305L13.3655 13.7298C13.0726 13.4369 13.0726 12.962 13.3655 12.6691C13.6584 12.3762 14.1332 12.3762 14.4261 12.6691L15.7268 13.9698C15.7269 13.9698 15.7268 13.9698 15.7268 13.9698Z"/><path d="M18.9262 10.7704L17.8656 11.831C17.8655 11.831 17.8656 11.8311 17.8656 11.831L16.5649 10.5303C16.272 10.2374 16.272 9.76256 16.5649 9.46967C16.8578 9.17678 17.3327 9.17678 17.6255 9.46967L18.9262 10.7704C18.9263 10.7704 18.9262 10.7703 18.9262 10.7704Z"/><path fill-rule="evenodd" d="M16.0303 7.96967C16.3232 8.26256 16.3232 8.73744 16.0303 9.03033L9.53033 15.5303C9.23744 15.8232 8.76256 15.8232 8.46967 15.5303C8.17678 15.2374 8.17678 14.7626 8.46967 14.4697L14.9697 7.96967C15.2626 7.67678 15.7374 7.67678 16.0303 7.96967Z" clip-rule="evenodd"/></g>',
       vb: "0 0 24 24"
     },
     "solar:tuning-2-bold-duotone": {
@@ -3727,6 +3735,459 @@ ${decls}
     removeStyle(STYLE_ID4);
   }
 
+  // src/core/body-sheet.js
+  var layer = {
+    host: null,
+    shadow: null,
+    backdrop: null,
+    panel: null,
+    headEl: null,
+    bodyEl: null,
+    sheets: new Map,
+    openId: null,
+    modalCard: null,
+    closeTimer: null,
+    drag: null,
+    built: false
+  };
+  var MODAL_ID = "\x00fib-modal";
+  var reduceMotion = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function deepActiveElement() {
+    let el = document.activeElement;
+    while (el && el.shadowRoot && el.shadowRoot.activeElement)
+      el = el.shadowRoot.activeElement;
+    return el;
+  }
+  function isDialogNode(n4) {
+    const name = n4.localName;
+    return name === "ha-dialog" || name === "ha-md-dialog" || name === "md-dialog" || name === "dialog" || n4.getAttribute && n4.getAttribute("role") === "dialog";
+  }
+  function onFocusIn(e4) {
+    if (layer.openId == null || !layer.host || !layer.panel)
+      return;
+    const path = e4.composedPath();
+    if (path.includes(layer.host))
+      return;
+    if (path.some(isDialogNode))
+      return;
+    layer.panel.focus();
+  }
+  var onKeydown = (e4) => {
+    if (e4.key !== "Escape" || e4.defaultPrevented)
+      return;
+    if (e4.composedPath().some(isDialogNode))
+      return;
+    closeSheet();
+  };
+  var SHEET_CSS = `
+  :host {
+    position: fixed; inset: 0; z-index: 9; display: none;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: ${T2.ink};
+    -webkit-font-smoothing: antialiased;
+  }
+  :host([data-open="true"]) { display: block; }
+
+  .backdrop {
+    position: absolute; inset: 0;
+    background: rgba(6, 9, 10, .72);
+    -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+    opacity: 0; transition: opacity .24s ease;
+  }
+  :host([data-shown="true"]) .backdrop { opacity: 1; }
+
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    max-height: 88vh; display: flex; flex-direction: column;
+    background: ${T2.sheet};
+    border-top: 1px solid ${T2.line};
+    border-radius: 24px 24px 0 0;
+    padding: 8px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    transform: translateY(100%);
+    transition: transform .28s cubic-bezier(.22, 1, .36, 1);
+  }
+  :host([data-shown="true"]) .sheet { transform: translateY(0); }
+  @media (prefers-reduced-motion: reduce) { .backdrop, .sheet { transition: none; } }
+
+  .grab {
+    width: 34px; height: 4px; border-radius: 2px;
+    background: ${T2.grab};
+    margin: 4px auto 10px; flex: 0 0 auto;
+    touch-action: none; cursor: grab;
+  }
+  .head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 2px 12px; flex: 0 0 auto; touch-action: none;
+  }
+  .body {
+    flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    display: flex; flex-direction: column; gap: 10px; padding-bottom: 6px;
+  }
+
+  @media (min-width: 640px) {
+    .sheet {
+      inset: 0; margin: auto; height: fit-content; max-height: 88vh;
+      width: min(460px, calc(100vw - 32px));
+      border-radius: 24px; border: 1px solid ${T2.line};
+      opacity: 0; transform: translateY(8px);
+      transition: opacity .2s ease, transform .2s ease;
+    }
+    :host([data-shown="true"]) .sheet { transform: translateY(0); opacity: 1; }
+  }
+`;
+  var sheetSheet = new CSSStyleSheet;
+  sheetSheet.replaceSync(SHEET_CSS);
+  function build() {
+    if (layer.built)
+      return;
+    const host = document.createElement("div");
+    host.id = "fibbers-sheet";
+    const shadow = host.attachShadow({ mode: "open" });
+    shadow.adoptedStyleSheets = [twSheet, sheetSheet];
+    const backdrop = document.createElement("div");
+    backdrop.className = "backdrop";
+    const sheet = document.createElement("div");
+    sheet.className = "sheet";
+    sheet.setAttribute("role", "dialog");
+    sheet.setAttribute("aria-modal", "true");
+    sheet.setAttribute("tabindex", "-1");
+    const grab = document.createElement("div");
+    grab.className = "grab";
+    const head = document.createElement("div");
+    head.className = "head";
+    const body = document.createElement("div");
+    body.className = "body";
+    sheet.append(grab, head, body);
+    shadow.append(backdrop, sheet);
+    document.body.appendChild(host);
+    backdrop.addEventListener("click", () => closeSheet());
+    bindDrag(grab, sheet);
+    bindDrag(head, sheet);
+    layer.host = host;
+    layer.shadow = shadow;
+    layer.backdrop = backdrop;
+    layer.panel = sheet;
+    layer.headEl = head;
+    layer.bodyEl = body;
+    layer.built = true;
+  }
+  function bindDrag(handle, sheet) {
+    handle.addEventListener("pointerdown", (e4) => {
+      if (window.innerWidth >= 640)
+        return;
+      layer.drag = { startY: e4.clientY, dy: 0 };
+      sheet.style.transition = "none";
+      handle.setPointerCapture && handle.setPointerCapture(e4.pointerId);
+    });
+    handle.addEventListener("pointermove", (e4) => {
+      if (!layer.drag)
+        return;
+      const dy = Math.max(0, e4.clientY - layer.drag.startY);
+      layer.drag.dy = dy;
+      sheet.style.transform = `translateY(${dy}px)`;
+      if (layer.backdrop)
+        layer.backdrop.style.opacity = String(Math.max(0, 1 - dy / 400));
+    });
+    const end = () => {
+      if (!layer.drag)
+        return;
+      const dy = layer.drag.dy;
+      layer.drag = null;
+      sheet.style.transition = "";
+      sheet.style.transform = "";
+      if (layer.backdrop)
+        layer.backdrop.style.opacity = "";
+      if (dy > 80)
+        closeSheet();
+    };
+    handle.addEventListener("pointerup", end);
+    handle.addEventListener("pointercancel", end);
+  }
+  async function renderContent(card) {
+    const cfg = card._config;
+    if (layer.panel)
+      layer.panel.setAttribute("aria-label", cfg.title || "Dialog");
+    D(b2`
+      ${cfg.icon ? b2`<fib-icon
+              class="h-5 w-5 flex-none [--mdc-icon-size:20px] text-accent"
+              icon=${cfg.icon}
+            ></fib-icon>` : ""}
+      <div class="min-w-0 flex-1">
+        <div class="text-[16px] font-semibold tracking-[-0.015em] text-ink">
+          ${cfg.title || ""}
+        </div>
+        ${cfg.subtitle ? b2`<div class="mt-0.5 text-[11px] text-muted">
+                ${cfg.subtitle}
+              </div>` : ""}
+      </div>
+      <button
+        type="button"
+        aria-label=${t3(card._hass, "sheet.close")}
+        class="fib-hit flex h-[30px] w-[30px] flex-none cursor-pointer items-center justify-center
+               rounded-full border-0 bg-card2 text-[15px] leading-none text-ink2"
+        @click=${() => closeSheet()}
+      >
+        ✕
+      </button>
+    `, layer.headEl);
+    const body = layer.bodyEl;
+    body.textContent = "";
+    card._children = [];
+    const configs = Array.isArray(cfg.cards) ? cfg.cards : [];
+    if (!configs.length)
+      return;
+    try {
+      const gen = layer.openId;
+      const helpers = await window.loadCardHelpers();
+      if (layer.openId !== gen)
+        return;
+      for (const c4 of configs) {
+        const el = helpers.createCardElement(c4);
+        if (card._hass)
+          el.hass = card._hass;
+        card._children.push(el);
+        body.appendChild(el);
+      }
+    } catch (_2) {
+      const msg = document.createElement("div");
+      msg.className = "px-2 py-2 text-[12px] text-muted";
+      msg.textContent = t3(card._hass, "sheet.load_error");
+      body.appendChild(msg);
+    }
+  }
+  function openSheet(id) {
+    const card = layer.sheets.get(id);
+    if (!card || layer.openId === id)
+      return;
+    if (layer.openId != null)
+      closeSheet();
+    const active = deepActiveElement();
+    if (!layer.shadow || !layer.shadow.contains(active))
+      layer.opener = active;
+    build();
+    layer.openId = id;
+    layer.host.setAttribute("data-open", "true");
+    lockView(true);
+    renderContent(card);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      layer.host.setAttribute("data-shown", "true");
+      if (layer.panel)
+        layer.panel.focus();
+    }));
+  }
+  function openModal({ title, icon, subtitle, cards, hass }) {
+    ensureListeners();
+    build();
+    if (layer.openId != null)
+      closeSheet();
+    const active = deepActiveElement();
+    if (!layer.shadow || !layer.shadow.contains(active))
+      layer.opener = active;
+    const card = {
+      _config: { title, icon, subtitle, cards },
+      _hass: hass,
+      _children: []
+    };
+    layer.modalCard = card;
+    layer.openId = MODAL_ID;
+    layer.host.setAttribute("data-open", "true");
+    lockView(true);
+    renderContent(card);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      layer.host.setAttribute("data-shown", "true");
+      if (layer.panel)
+        layer.panel.focus();
+    }));
+  }
+  function updateOpenModalHass(hass) {
+    if (layer.openId !== MODAL_ID || !layer.modalCard)
+      return;
+    layer.modalCard._hass = hass;
+    (layer.modalCard._children || []).forEach((el) => {
+      el.hass = hass;
+    });
+  }
+  function closeModal() {
+    if (layer.openId === MODAL_ID)
+      closeSheet();
+  }
+  function teardownIfIdle() {
+    if (layer.sheets.size !== 0 || layer.openId != null || !layer.host)
+      return;
+    clearTimeout(layer.closeTimer);
+    finishClose();
+    layer.host.remove();
+    layer.built = false;
+    layer.host = null;
+    layer.shadow = null;
+    layer.backdrop = null;
+    layer.panel = null;
+    layer.headEl = null;
+    layer.bodyEl = null;
+    removeSheetListeners();
+  }
+  function finishClose() {
+    if (layer.openId != null)
+      return;
+    if (layer.host)
+      layer.host.removeAttribute("data-open");
+    if (layer.bodyEl)
+      layer.bodyEl.textContent = "";
+    layer.modalCard = null;
+    lockView(false);
+    const opener = layer.opener;
+    layer.opener = null;
+    if (opener && opener.focus)
+      opener.focus();
+  }
+  function closeSheet() {
+    if (layer.openId == null)
+      return;
+    const id = layer.openId;
+    layer.openId = null;
+    clearTimeout(layer.closeTimer);
+    if (layer.host)
+      layer.host.removeAttribute("data-shown");
+    if (window.location.hash === `#${id}`) {
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+    if (reduceMotion())
+      finishClose();
+    else
+      layer.closeTimer = setTimeout(finishClose, 300);
+  }
+  function syncFromHash() {
+    const hash = window.location.hash.replace(/^#/, "");
+    if (hash && layer.sheets.has(hash))
+      openSheet(hash);
+    else if (layer.openId != null)
+      closeSheet();
+  }
+  function registerSheet(id, card) {
+    ensureListeners();
+    build();
+    layer.sheets.set(id, card);
+    if (window.location.hash === `#${id}`)
+      openSheet(id);
+  }
+  function unregisterSheet(id, card) {
+    if (layer.sheets.get(id) === card)
+      layer.sheets.delete(id);
+    if (layer.openId === id)
+      closeSheet();
+    if (layer.sheets.size === 0 && layer.host) {
+      clearTimeout(layer.closeTimer);
+      finishClose();
+      layer.host.remove();
+      layer.built = false;
+      layer.host = null;
+      layer.shadow = null;
+      layer.backdrop = null;
+      layer.panel = null;
+      layer.headEl = null;
+      layer.bodyEl = null;
+      removeSheetListeners();
+    }
+  }
+  function updateSheetHass(id, hass) {
+    if (layer.openId !== id)
+      return;
+    const card = layer.sheets.get(id);
+    if (card && card._children)
+      card._children.forEach((el) => {
+        el.hass = hass;
+      });
+  }
+  var listenersOn = false;
+  function ensureListeners() {
+    if (listenersOn)
+      return;
+    listenersOn = true;
+    window.addEventListener("hashchange", syncFromHash);
+    window.addEventListener("focusin", onFocusIn);
+    window.addEventListener("keydown", onKeydown);
+  }
+  function removeSheetListeners() {
+    if (!listenersOn)
+      return;
+    listenersOn = false;
+    window.removeEventListener("hashchange", syncFromHash);
+    window.removeEventListener("focusin", onFocusIn);
+    window.removeEventListener("keydown", onKeydown);
+  }
+
+  // src/core/more-info.js
+  var DOMAIN_CARDS = {
+    media_player: (id) => [{ type: "custom:fibbers-media", entity: id }],
+    climate: (id) => [{ type: "custom:fibbers-climate", entity: id }],
+    light: (id) => [{ type: "custom:fibbers-light-group", entities: [id] }]
+  };
+  var sensorCards = (id) => [
+    { type: "custom:fibbers-stat", entity: id },
+    {
+      type: "custom:fibbers-graph",
+      entity: id,
+      hours: 24,
+      show_stats: true,
+      height: 120
+    }
+  ];
+  var DOMAIN_ICON = {
+    media_player: "solar:soundwave-bold-duotone",
+    climate: "solar:thermometer-bold-duotone",
+    light: "solar:lightbulb-bolt-bold-duotone",
+    sensor: "solar:graph-new-bold-duotone"
+  };
+  var currentHass = () => nav.hassRef || document.querySelector("home-assistant") && document.querySelector("home-assistant").hass || null;
+  function cardsFor(hass, id) {
+    const domain = id.split(".")[0];
+    if (DOMAIN_CARDS[domain])
+      return DOMAIN_CARDS[domain](id);
+    if (domain === "sensor") {
+      const st = hass.states[id];
+      if (st && Number.isFinite(Number(st.state)))
+        return sensorCards(id);
+    }
+    return null;
+  }
+  function handle(e4) {
+    const id = e4.detail && e4.detail.entityId;
+    if (!id)
+      return;
+    const hass = currentHass();
+    if (!hass || !hass.states[id])
+      return;
+    const cards = cardsFor(hass, id);
+    if (!cards)
+      return;
+    e4.stopImmediatePropagation();
+    const st = hass.states[id];
+    const a3 = st && st.attributes || {};
+    openModal({
+      title: a3.friendly_name || id,
+      icon: a3.icon || DOMAIN_ICON[id.split(".")[0]],
+      cards,
+      hass
+    });
+  }
+  var state5 = { on: false, fn: null };
+  function enableMoreInfo() {
+    if (state5.on)
+      return;
+    state5.on = true;
+    state5.fn = handle;
+    window.addEventListener("hass-more-info", state5.fn, true);
+  }
+  function disableMoreInfo() {
+    if (!state5.on)
+      return;
+    state5.on = false;
+    window.removeEventListener("hass-more-info", state5.fn, true);
+    state5.fn = null;
+    closeModal();
+    teardownIfIdle();
+  }
+
   // src/core/body-layer.js
   var bar = {
     host: null,
@@ -3970,6 +4431,10 @@ ${decls}
       enableAutoHide();
     setTabHiding(config.hide_ha_tabs);
     applyTheme(config.theme);
+    if (config.more_info)
+      enableMoreInfo();
+    else
+      disableMoreInfo();
   }
   function detach(owner) {
     bar.owners.delete(owner);
@@ -4002,6 +4467,7 @@ ${decls}
       removeTabHiding();
       removeTheme();
       removeViewReserve();
+      disableMoreInfo();
     }
   }
 
@@ -4024,6 +4490,7 @@ ${decls}
       }
     },
     { name: "respect_sidebar", selector: { boolean: {} } },
+    { name: "more_info", selector: { boolean: {} } },
     { name: "offset_bottom", selector: { number: { min: 0, mode: "box" } } },
     { name: "extra_bottom", selector: { number: { min: 0, mode: "box" } } }
   ];
@@ -4076,6 +4543,9 @@ ${decls}
       if (config.respect_sidebar != null && typeof config.respect_sidebar !== "boolean") {
         throw new Error("fibbers-nav: `respect_sidebar` must be true or false");
       }
+      if (config.more_info != null && typeof config.more_info !== "boolean") {
+        throw new Error("fibbers-nav: `more_info` must be true or false");
+      }
       if (config.theme != null && ![
         "none",
         "fibbers",
@@ -4100,6 +4570,7 @@ ${decls}
       if (this.preview)
         return;
       nav.hassRef = hass;
+      updateOpenModalHass(hass);
       if (this._config && (this._config.tabs || []).some((t4) => t4.badge))
         renderBar();
     }
@@ -4357,333 +4828,6 @@ ${decls}
     getGridOptions() {
       return { columns: "full", rows: "auto" };
     }
-  }
-
-  // src/core/body-sheet.js
-  var layer = {
-    host: null,
-    shadow: null,
-    backdrop: null,
-    panel: null,
-    headEl: null,
-    bodyEl: null,
-    sheets: new Map,
-    openId: null,
-    closeTimer: null,
-    drag: null,
-    built: false
-  };
-  var reduceMotion = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  function deepActiveElement() {
-    let el = document.activeElement;
-    while (el && el.shadowRoot && el.shadowRoot.activeElement)
-      el = el.shadowRoot.activeElement;
-    return el;
-  }
-  function isDialogNode(n4) {
-    const name = n4.localName;
-    return name === "ha-dialog" || name === "ha-md-dialog" || name === "md-dialog" || name === "dialog" || n4.getAttribute && n4.getAttribute("role") === "dialog";
-  }
-  function onFocusIn(e4) {
-    if (layer.openId == null || !layer.host || !layer.panel)
-      return;
-    const path = e4.composedPath();
-    if (path.includes(layer.host))
-      return;
-    if (path.some(isDialogNode))
-      return;
-    layer.panel.focus();
-  }
-  var onKeydown = (e4) => {
-    if (e4.key !== "Escape" || e4.defaultPrevented)
-      return;
-    if (e4.composedPath().some(isDialogNode))
-      return;
-    closeSheet();
-  };
-  var SHEET_CSS = `
-  :host {
-    position: fixed; inset: 0; z-index: 9; display: none;
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    color: ${T2.ink};
-    -webkit-font-smoothing: antialiased;
-  }
-  :host([data-open="true"]) { display: block; }
-
-  .backdrop {
-    position: absolute; inset: 0;
-    background: rgba(6, 9, 10, .72);
-    -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
-    opacity: 0; transition: opacity .24s ease;
-  }
-  :host([data-shown="true"]) .backdrop { opacity: 1; }
-
-  .sheet {
-    position: absolute; left: 0; right: 0; bottom: 0;
-    max-height: 88vh; display: flex; flex-direction: column;
-    background: ${T2.sheet};
-    border-top: 1px solid ${T2.line};
-    border-radius: 24px 24px 0 0;
-    padding: 8px 16px calc(16px + env(safe-area-inset-bottom, 0px));
-    transform: translateY(100%);
-    transition: transform .28s cubic-bezier(.22, 1, .36, 1);
-  }
-  :host([data-shown="true"]) .sheet { transform: translateY(0); }
-  @media (prefers-reduced-motion: reduce) { .backdrop, .sheet { transition: none; } }
-
-  .grab {
-    width: 34px; height: 4px; border-radius: 2px;
-    background: ${T2.grab};
-    margin: 4px auto 10px; flex: 0 0 auto;
-    touch-action: none; cursor: grab;
-  }
-  .head {
-    display: flex; align-items: center; gap: 10px;
-    padding: 0 2px 12px; flex: 0 0 auto; touch-action: none;
-  }
-  .body {
-    flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch;
-    display: flex; flex-direction: column; gap: 10px; padding-bottom: 6px;
-  }
-
-  @media (min-width: 640px) {
-    .sheet {
-      inset: 0; margin: auto; height: fit-content; max-height: 88vh;
-      width: min(460px, calc(100vw - 32px));
-      border-radius: 24px; border: 1px solid ${T2.line};
-      opacity: 0; transform: translateY(8px);
-      transition: opacity .2s ease, transform .2s ease;
-    }
-    :host([data-shown="true"]) .sheet { transform: translateY(0); opacity: 1; }
-  }
-`;
-  var sheetSheet = new CSSStyleSheet;
-  sheetSheet.replaceSync(SHEET_CSS);
-  function build() {
-    if (layer.built)
-      return;
-    const host = document.createElement("div");
-    host.id = "fibbers-sheet";
-    const shadow = host.attachShadow({ mode: "open" });
-    shadow.adoptedStyleSheets = [twSheet, sheetSheet];
-    const backdrop = document.createElement("div");
-    backdrop.className = "backdrop";
-    const sheet = document.createElement("div");
-    sheet.className = "sheet";
-    sheet.setAttribute("role", "dialog");
-    sheet.setAttribute("aria-modal", "true");
-    sheet.setAttribute("tabindex", "-1");
-    const grab = document.createElement("div");
-    grab.className = "grab";
-    const head = document.createElement("div");
-    head.className = "head";
-    const body = document.createElement("div");
-    body.className = "body";
-    sheet.append(grab, head, body);
-    shadow.append(backdrop, sheet);
-    document.body.appendChild(host);
-    backdrop.addEventListener("click", () => closeSheet());
-    bindDrag(grab, sheet);
-    bindDrag(head, sheet);
-    layer.host = host;
-    layer.shadow = shadow;
-    layer.backdrop = backdrop;
-    layer.panel = sheet;
-    layer.headEl = head;
-    layer.bodyEl = body;
-    layer.built = true;
-  }
-  function bindDrag(handle, sheet) {
-    handle.addEventListener("pointerdown", (e4) => {
-      if (window.innerWidth >= 640)
-        return;
-      layer.drag = { startY: e4.clientY, dy: 0 };
-      sheet.style.transition = "none";
-      handle.setPointerCapture && handle.setPointerCapture(e4.pointerId);
-    });
-    handle.addEventListener("pointermove", (e4) => {
-      if (!layer.drag)
-        return;
-      const dy = Math.max(0, e4.clientY - layer.drag.startY);
-      layer.drag.dy = dy;
-      sheet.style.transform = `translateY(${dy}px)`;
-      if (layer.backdrop)
-        layer.backdrop.style.opacity = String(Math.max(0, 1 - dy / 400));
-    });
-    const end = () => {
-      if (!layer.drag)
-        return;
-      const dy = layer.drag.dy;
-      layer.drag = null;
-      sheet.style.transition = "";
-      sheet.style.transform = "";
-      if (layer.backdrop)
-        layer.backdrop.style.opacity = "";
-      if (dy > 80)
-        closeSheet();
-    };
-    handle.addEventListener("pointerup", end);
-    handle.addEventListener("pointercancel", end);
-  }
-  async function renderContent(card) {
-    const cfg = card._config;
-    if (layer.panel)
-      layer.panel.setAttribute("aria-label", cfg.title || "Dialog");
-    D(b2`
-      ${cfg.icon ? b2`<fib-icon
-              class="h-5 w-5 flex-none [--mdc-icon-size:20px] text-accent"
-              icon=${cfg.icon}
-            ></fib-icon>` : ""}
-      <div class="min-w-0 flex-1">
-        <div class="text-[16px] font-semibold tracking-[-0.015em] text-ink">
-          ${cfg.title || ""}
-        </div>
-        ${cfg.subtitle ? b2`<div class="mt-0.5 text-[11px] text-muted">
-                ${cfg.subtitle}
-              </div>` : ""}
-      </div>
-      <button
-        type="button"
-        aria-label=${t3(card._hass, "sheet.close")}
-        class="fib-hit flex h-[30px] w-[30px] flex-none cursor-pointer items-center justify-center
-               rounded-full border-0 bg-card2 text-[15px] leading-none text-ink2"
-        @click=${() => closeSheet()}
-      >
-        ✕
-      </button>
-    `, layer.headEl);
-    const body = layer.bodyEl;
-    body.textContent = "";
-    card._children = [];
-    const configs = Array.isArray(cfg.cards) ? cfg.cards : [];
-    if (!configs.length)
-      return;
-    try {
-      const gen = layer.openId;
-      const helpers = await window.loadCardHelpers();
-      if (layer.openId !== gen)
-        return;
-      for (const c4 of configs) {
-        const el = helpers.createCardElement(c4);
-        if (card._hass)
-          el.hass = card._hass;
-        card._children.push(el);
-        body.appendChild(el);
-      }
-    } catch (_2) {
-      const msg = document.createElement("div");
-      msg.className = "px-2 py-2 text-[12px] text-muted";
-      msg.textContent = t3(card._hass, "sheet.load_error");
-      body.appendChild(msg);
-    }
-  }
-  function openSheet(id) {
-    const card = layer.sheets.get(id);
-    if (!card || layer.openId === id)
-      return;
-    if (layer.openId != null)
-      closeSheet();
-    const active = deepActiveElement();
-    if (!layer.shadow || !layer.shadow.contains(active))
-      layer.opener = active;
-    build();
-    layer.openId = id;
-    layer.host.setAttribute("data-open", "true");
-    lockView(true);
-    renderContent(card);
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      layer.host.setAttribute("data-shown", "true");
-      if (layer.panel)
-        layer.panel.focus();
-    }));
-  }
-  function finishClose() {
-    if (layer.openId != null)
-      return;
-    if (layer.host)
-      layer.host.removeAttribute("data-open");
-    if (layer.bodyEl)
-      layer.bodyEl.textContent = "";
-    lockView(false);
-    const opener = layer.opener;
-    layer.opener = null;
-    if (opener && opener.focus)
-      opener.focus();
-  }
-  function closeSheet() {
-    if (layer.openId == null)
-      return;
-    const id = layer.openId;
-    layer.openId = null;
-    clearTimeout(layer.closeTimer);
-    if (layer.host)
-      layer.host.removeAttribute("data-shown");
-    if (window.location.hash === `#${id}`) {
-      history.replaceState(null, "", window.location.pathname + window.location.search);
-    }
-    if (reduceMotion())
-      finishClose();
-    else
-      layer.closeTimer = setTimeout(finishClose, 300);
-  }
-  function syncFromHash() {
-    const hash = window.location.hash.replace(/^#/, "");
-    if (hash && layer.sheets.has(hash))
-      openSheet(hash);
-    else if (layer.openId != null)
-      closeSheet();
-  }
-  function registerSheet(id, card) {
-    ensureListeners();
-    build();
-    layer.sheets.set(id, card);
-    if (window.location.hash === `#${id}`)
-      openSheet(id);
-  }
-  function unregisterSheet(id, card) {
-    if (layer.sheets.get(id) === card)
-      layer.sheets.delete(id);
-    if (layer.openId === id)
-      closeSheet();
-    if (layer.sheets.size === 0 && layer.host) {
-      clearTimeout(layer.closeTimer);
-      finishClose();
-      layer.host.remove();
-      layer.built = false;
-      layer.host = null;
-      layer.shadow = null;
-      layer.backdrop = null;
-      layer.panel = null;
-      layer.headEl = null;
-      layer.bodyEl = null;
-      removeSheetListeners();
-    }
-  }
-  function updateSheetHass(id, hass) {
-    if (layer.openId !== id)
-      return;
-    const card = layer.sheets.get(id);
-    if (card && card._children)
-      card._children.forEach((el) => {
-        el.hass = hass;
-      });
-  }
-  var listenersOn = false;
-  function ensureListeners() {
-    if (listenersOn)
-      return;
-    listenersOn = true;
-    window.addEventListener("hashchange", syncFromHash);
-    window.addEventListener("focusin", onFocusIn);
-    window.addEventListener("keydown", onKeydown);
-  }
-  function removeSheetListeners() {
-    if (!listenersOn)
-      return;
-    listenersOn = false;
-    window.removeEventListener("hashchange", syncFromHash);
-    window.removeEventListener("focusin", onFocusIn);
-    window.removeEventListener("keydown", onKeydown);
   }
 
   // src/cards/layout/sheet.js
@@ -7745,7 +7889,7 @@ ${decls}
   }
 
   // src/cards/sensors/entities.js
-  var DOMAIN_ICON = {
+  var DOMAIN_ICON2 = {
     light: "solar:lightbulb-bold-duotone",
     switch: "solar:socket-bold-duotone",
     automation: "solar:bolt-circle-bold-duotone",
@@ -7879,7 +8023,7 @@ ${decls}
         return st.attributes.icon;
       if ((st.attributes || {}).device_class === "battery")
         return "solar:battery-low-bold-duotone";
-      return DOMAIN_ICON[st.entity_id.split(".")[0]] || "solar:widget-bold-duotone";
+      return DOMAIN_ICON2[st.entity_id.split(".")[0]] || "solar:widget-bold-duotone";
     }
     _secondary(st) {
       const hl = this._config.language || this.hass;
