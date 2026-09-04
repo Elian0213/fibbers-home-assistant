@@ -4853,7 +4853,7 @@ ${decls}
     }
     _moreInfo() {
       const lights = this._lights();
-      const id = lights[0] || this._entities()[0];
+      const id = lights.find((l3) => this.hass?.states?.[l3]?.state === "on") || lights[0] || this._entities()[0];
       if (!id)
         return;
       moreInfo(this, id, { siblings: lights, groupName: this._config.name });

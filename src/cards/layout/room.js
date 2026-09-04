@@ -139,7 +139,12 @@ export class FibbersRoom extends LitElement {
   }
   _moreInfo() {
     const lights = this._lights();
-    const id = lights[0] || this._entities()[0];
+    // Open focused on a lamp that is actually on ("N of M on" leads the user to
+    // expect a live lamp), falling back to the first configured light.
+    const id =
+      lights.find((l) => this.hass?.states?.[l]?.state === "on") ||
+      lights[0] ||
+      this._entities()[0];
     if (!id) return;
     // Hand the modal the whole room so the light-detail card can switch between
     // this room's lamps in place instead of close/reopen per light.
