@@ -22,6 +22,20 @@
     "neutral": "Neutraal",
     "cool": "Koel"
   },
+  "light_detail": {
+    "on": "Aan",
+    "off": "Uit",
+    "offline": "Offline",
+    "power": "Aan/uit",
+    "brightness": "Helderheid",
+    "temperature": "Temperatuur",
+    "hue": "Kleurtoon",
+    "saturation": "Verzadiging",
+    "colour": "Kleur",
+    "warm": "Warm",
+    "neutral": "Neutraal",
+    "cool": "Koel"
+  },
   "light_group": {
     "default_name": "Lampen",
     "off": "Uit",

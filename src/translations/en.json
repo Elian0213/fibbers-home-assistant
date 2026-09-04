@@ -22,6 +22,20 @@
     "neutral": "Neutral",
     "cool": "Cool"
   },
+  "light_detail": {
+    "on": "On",
+    "off": "Off",
+    "offline": "Offline",
+    "power": "Power",
+    "brightness": "Brightness",
+    "temperature": "Temperature",
+    "hue": "Hue",
+    "saturation": "Saturation",
+    "colour": "Colour",
+    "warm": "Warm",
+    "neutral": "Neutral",
+    "cool": "Cool"
+  },
   "light_group": {
     "default_name": "Lights",
     "off": "Off",

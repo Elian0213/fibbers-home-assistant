@@ -229,6 +229,10 @@ export function sliderTrack({
   onUp,
   onCancel,
   dragging = false,
+  // A CSS background (e.g. a warm→cool or rainbow gradient) paints the whole track
+  // instead of the accent fill — for colour-temperature / hue sliders. The knob
+  // turns white-with-ring so it reads on any colour.
+  gradient,
   // Accessibility (optional but recommended). Give the value-space (value/min/max/
   // step) + onInput(newValue) and the track becomes a real, keyboard-driven
   // role="slider"; label/valueText feed the screen-reader announcement.
@@ -277,15 +281,21 @@ export function sliderTrack({
     @keydown=${keydown}
   >
     <div
-      class="pointer-events-none relative h-1.5 w-full rounded-[3px] bg-[#2C3639]"
+      class="pointer-events-none relative w-full rounded-[3px]
+             ${gradient ? "h-2.5" : "h-1.5 bg-[#2C3639]"}"
+      style=${gradient ? `background:${gradient}` : nothing}
     >
       ${
         disabled
           ? ""
-          : html`<div
-                class="absolute bottom-0 left-0 top-0 rounded-[3px] bg-accent"
-                style="width:${pct}%"
-              ></div>
+          : html`${
+                gradient
+                  ? ""
+                  : html`<div
+                      class="absolute bottom-0 left-0 top-0 rounded-[3px] bg-accent"
+                      style="width:${pct}%"
+                    ></div>`
+              }
               <!-- live value bubble above the knob: visible while dragging or on
                    keyboard focus, tabular so digits don't jitter. -->
               <div
@@ -302,8 +312,9 @@ export function sliderTrack({
               </div>
               <div
                 class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full
-                       bg-accent shadow-[0_1px_4px_rgba(0,0,0,.5)]
-                       transition-[width,height] duration-100
+                       shadow-[0_1px_4px_rgba(0,0,0,.55)] transition-[width,height]
+                       duration-100
+                       ${gradient ? "border-2 border-[rgba(0,0,0,.45)] bg-white" : "bg-accent"}
                        ${dragging ? "h-[22px] w-[22px]" : "h-[18px] w-[18px]"}"
                 style="left:${pct}%"
               ></div>`

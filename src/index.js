@@ -20,6 +20,7 @@ import { FibbersNav } from "./cards/layout/nav.js";
 import { FibbersRoom } from "./cards/layout/room.js";
 import { FibbersSection } from "./cards/layout/section.js";
 import { FibbersSheet } from "./cards/layout/sheet.js";
+import { FibbersLightDetail } from "./cards/lights/light-detail.js";
 import { FibbersLightGroup } from "./cards/lights/light-group.js";
 import { FibbersLightRow } from "./cards/lights/light-row.js";
 import { FibbersMedia } from "./cards/media/media.js";
@@ -86,6 +87,12 @@ const CARDS = [
     FibbersLightRow,
     "Fibbers Light Row",
     "Light row with a brightness slider, for sheets.",
+  ],
+  [
+    "fibbers-light-detail",
+    FibbersLightDetail,
+    "Fibbers Light Detail",
+    "Full single-light control — brightness, colour temperature and colour.",
   ],
   [
     "fibbers-alert",

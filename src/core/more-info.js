@@ -21,7 +21,7 @@ import { nav } from "./nav-stack.js";
 const DOMAIN_CARDS = {
   media_player: (id) => [{ type: "custom:fibbers-media", entity: id }],
   climate: (id) => [{ type: "custom:fibbers-climate", entity: id }],
-  light: (id) => [{ type: "custom:fibbers-light-group", entities: [id] }],
+  light: (id) => [{ type: "custom:fibbers-light-detail", entity: id }],
 };
 
 // A numeric sensor → current value + a 24h history graph with min/max/change.
