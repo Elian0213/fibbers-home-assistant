@@ -21,6 +21,7 @@ import {
   debounce,
   clamp,
   pickEntity,
+  capturePointer,
 } from "../../shared/util.js";
 import "../../shared/icon.js";
 
@@ -85,6 +86,20 @@ export class FibbersLightDetail extends LitElement {
     this._mk("sat", (pct) =>
       this._call({ hs_color: [this._hs()[0], Math.round(pct)] }),
     );
+    // The colour wheel drives hue AND saturation together, so it commits one
+    // hs_color and arms both per-attribute holds (reused for display + the sliders).
+    this._wheel = this._wheel || {
+      active: false,
+      dragging: false,
+      hue: 0,
+      sat: 0,
+    };
+    if (!this._colorCommit)
+      this._colorCommit = debounce((hs) => {
+        this._sl.hue.hold.hold((hs[0] / 360) * 100);
+        this._sl.sat.hold.hold(hs[1]);
+        this._call({ hs_color: [Math.round(hs[0]), Math.round(hs[1])] });
+      }, 120);
   }
 
   _mk(key, commit) {
@@ -344,6 +359,122 @@ export class FibbersLightDetail extends LitElement {
     </div>`;
   }
 
+  // --- colour wheel (hue = angle clockwise from top, saturation = radius) --------
+
+  // Pointer/keyboard enabled only when the light is on and reachable.
+  _wheelDisabled() {
+    return this._unavail() || !this._on();
+  }
+
+  // Current hue°/sat% for display — the live drag values while dragging, else the
+  // held/entity values (so the puck holds its spot until the light reports back).
+  _wheelHue() {
+    return this._wheel.dragging
+      ? this._wheel.hue
+      : (this._pct("hue") / 100) * 360;
+  }
+  _wheelSat() {
+    return this._wheel.dragging ? this._wheel.sat : this._pct("sat");
+  }
+
+  // Map a pointer event on the disc to hue°/sat%, arm the holds, and commit.
+  _wheelTo(e, final) {
+    const r = e.currentTarget.getBoundingClientRect();
+    const R = r.width / 2;
+    if (R <= 0) return;
+    const dx = e.clientX - (r.left + R);
+    const dy = e.clientY - (r.top + R);
+    let phi = (Math.atan2(dx, -dy) * 180) / Math.PI; // clockwise from top (12 o'clock)
+    if (phi < 0) phi += 360;
+    const hue = phi;
+    const sat = clamp((Math.hypot(dx, dy) / R) * 100, 0, 100);
+    this._wheel.dragging = true;
+    this._wheel.hue = hue;
+    this._wheel.sat = sat;
+    // Arm the holds live so the sliders below track the wheel too.
+    this._sl.hue.hold.hold((hue / 360) * 100);
+    this._sl.sat.hold.hold(sat);
+    this._v++;
+    this._colorCommit([hue, sat]);
+    if (final) this._colorCommit.flush();
+  }
+  _wheelDown(e) {
+    if (this._wheelDisabled()) return;
+    capturePointer(e.currentTarget, e.pointerId);
+    this._wheel.active = true;
+    this._wheelTo(e);
+  }
+  _wheelMove(e) {
+    if (this._wheel.active) this._wheelTo(e);
+  }
+  _wheelUp(e) {
+    if (!this._wheel.active) return;
+    this._wheel.active = false;
+    this._wheelTo(e, true);
+    this._wheel.dragging = false;
+    this._v++;
+  }
+  _wheelCancel() {
+    this._wheel.active = false;
+    this._wheel.dragging = false;
+    this._v++;
+  }
+  // Arrows nudge hue (Left/Right) and saturation (Up/Down); Shift = coarse.
+  _wheelKey(e) {
+    if (this._wheelDisabled()) return;
+    const d = {
+      ArrowLeft: [-1, 0],
+      ArrowRight: [1, 0],
+      ArrowUp: [0, 1],
+      ArrowDown: [0, -1],
+    }[e.key];
+    if (!d) return;
+    e.preventDefault();
+    const step = e.shiftKey ? 10 : 2;
+    const hue = (((this._wheelHue() + d[0] * step) % 360) + 360) % 360;
+    const sat = clamp(this._wheelSat() + d[1] * step, 0, 100);
+    this._colorCommit([hue, sat]);
+    this._colorCommit.flush();
+    this._v++;
+  }
+
+  // The disc: a conic hue ring desaturated toward the centre, with a draggable puck.
+  _wheelDisc(hl) {
+    const disabled = this._wheelDisabled();
+    const hue = this._wheelHue();
+    const sat = this._wheelSat();
+    const rad = (hue * Math.PI) / 180;
+    const px = 50 + (sat / 100) * 50 * Math.sin(rad);
+    const py = 50 - (sat / 100) * 50 * Math.cos(rad);
+    return html`<div
+      class="relative mx-auto aspect-square w-full max-w-[220px] touch-none select-none
+             rounded-full ${disabled ? "pointer-events-none opacity-40" : "cursor-pointer"}"
+      style="background:radial-gradient(circle at center,#fff 0%,rgba(255,255,255,0) 100%),
+             conic-gradient(from 0deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)"
+      role="slider"
+      tabindex=${disabled ? -1 : 0}
+      aria-label=${t(hl, "light_detail.colour")}
+      aria-valuetext=${`${Math.round(hue)}°, ${Math.round(sat)}%`}
+      aria-disabled=${disabled ? "true" : "false"}
+      @pointerdown=${this._wheelDown}
+      @pointermove=${this._wheelMove}
+      @pointerup=${this._wheelUp}
+      @pointercancel=${this._wheelCancel}
+      @lostpointercapture=${this._wheelCancel}
+      @keydown=${this._wheelKey}
+    >
+      ${
+        disabled
+          ? ""
+          : html`<div
+              class="pointer-events-none absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2
+                     rounded-full border-2 border-white shadow-[0_1px_5px_rgba(0,0,0,.6)]"
+              style="left:${px}%;top:${py}%;background:hsl(${Math.round(hue)} 90% 50%)"
+            ></div>`
+      }
+    </div>`;
+  }
+
   /** Header (icon + name + power) then brightness, temperature, colour, swatches. */
   render() {
     const cfg = this._config;
@@ -422,6 +553,7 @@ export class FibbersLightDetail extends LitElement {
               ${
                 this._hasColor()
                   ? html`
+                      ${this._wheelDisc(hl)}
                       ${this._slider(
                         "hue",
                         t(hl, "light_detail.hue"),

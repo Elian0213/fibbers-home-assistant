@@ -6,7 +6,8 @@ export default {
 };
 
 /** A colour + colour-temperature light: brightness, a warm→cool temperature slider,
- * hue and saturation sliders (gradient tracks), and quick swatches. */
+ * a draggable colour wheel (hue = angle, saturation = radius) with hue/saturation
+ * sliders beneath, and quick swatches. */
 export const Colour = story({
   type: "custom:fibbers-light-detail",
   entity: "light.tv_led_strip",

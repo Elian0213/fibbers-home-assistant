@@ -27,6 +27,7 @@ export function makeHass(flags = {}) {
     friendly_name: "TV LED",
     brightness: f.tvLed ? 204 : 0,
     color_mode: f.tvLed ? "hs" : null,
+    hs_color: f.tvLed ? [280, 72] : null,
     supported_color_modes: ["hs", "color_temp"],
   });
   add("light.kitchen", "on", { friendly_name: "Gitaarlamp", brightness: 178 });
