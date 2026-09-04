@@ -1530,10 +1530,10 @@ ${BASE_CSS}`);
     let lastArgs = null;
     let firedKey;
     let firedAt = 0;
-    const fire = (args) => {
+    const fire = (args, force) => {
       const key = args[0];
       const now = Date.now();
-      if (key === firedKey && now - firedAt < 800)
+      if (!force && key === firedKey && now - firedAt < 800)
         return;
       firedKey = key;
       firedAt = now;
@@ -1556,7 +1556,7 @@ ${BASE_CSS}`);
         return;
       clearTimeout(t4);
       t4 = null;
-      fire(lastArgs);
+      fire(lastArgs, true);
     };
     return wrapped;
   }
@@ -5434,12 +5434,22 @@ ${decls}
       if (!this.hass)
         return;
       this._hold.hold(pct);
+      this._rowCache.forEach((row) => {
+        if (row && typeof row.holdDisplay === "function")
+          row.holdDisplay(pct);
+      });
       const entity_id = this._config.entity || this._members();
       const p3 = pct <= 0 ? this.hass.callService("light", "turn_off", { entity_id }) : this.hass.callService("light", "turn_on", {
         entity_id,
         brightness_pct: pct
       });
-      Promise.resolve(p3).catch(() => this._hold.clear());
+      Promise.resolve(p3).catch(() => {
+        this._hold.clear();
+        this._rowCache.forEach((row) => {
+          if (row && typeof row.clearDisplay === "function")
+            row.clearDisplay();
+        });
+      });
     }
     disconnectedCallback() {
       super.disconnectedCallback();
@@ -5693,6 +5703,16 @@ ${decls}
       super.disconnectedCallback();
       if (this._debouncedCommit)
         this._debouncedCommit.cancel();
+    }
+    holdDisplay(pct) {
+      if (!this._hold)
+        return;
+      this._hold.hold(pct);
+      this.requestUpdate();
+    }
+    clearDisplay() {
+      if (this._hold)
+        this._hold.clear();
     }
     _dimmable() {
       const st = this._st();

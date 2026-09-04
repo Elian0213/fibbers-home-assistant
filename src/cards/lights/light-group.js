@@ -201,6 +201,12 @@ export class FibbersLightGroup extends LitElement {
   _commit(pct) {
     if (!this.hass) return;
     this._hold.hold(pct); // show the committed value until the group catches up
+    // Optimistically hold each expanded member row at the same target so their
+    // sliders move with the master immediately instead of lagging HA's per-member
+    // state push and then jumping ("teleport").
+    this._rowCache.forEach((row) => {
+      if (row && typeof row.holdDisplay === "function") row.holdDisplay(pct);
+    });
     const entity_id = this._config.entity || this._members();
     const p =
       pct <= 0
@@ -209,7 +215,12 @@ export class FibbersLightGroup extends LitElement {
             entity_id,
             brightness_pct: pct,
           });
-    Promise.resolve(p).catch(() => this._hold.clear());
+    Promise.resolve(p).catch(() => {
+      this._hold.clear();
+      this._rowCache.forEach((row) => {
+        if (row && typeof row.clearDisplay === "function") row.clearDisplay();
+      });
+    });
   }
 
   /** Drop the trailing debounced commit on unmount so a stale value never fires. */

@@ -159,14 +159,16 @@ export function debounce(fn, ms) {
   let lastArgs = null;
   let firedKey;
   let firedAt = 0;
-  // Fire, but skip a call whose first arg equals one fired in the last ~0.8s — the
-  // slider committers all take a single value, and this kills the "commit the final
-  // value mid-drag, then commit it again on release" double without ever blocking a
-  // genuine later repeat of the same value.
-  const fire = (args) => {
+  // Fire, but on the high-frequency LIVE path skip a call whose first arg equals one
+  // fired in the last ~0.8s — the slider committers all take a single value, so this
+  // trims duplicate mid-drag commits. `force` (a flush on release) bypasses the skip:
+  // the release must always commit, because the committer also arms the SliderHold,
+  // and a dedup-skipped release left the hold un-re-armed → it expired mid-flight and
+  // the slider snapped back to the stale entity value.
+  const fire = (args, force) => {
     const key = args[0];
     const now = Date.now();
-    if (key === firedKey && now - firedAt < 800) return;
+    if (!force && key === firedKey && now - firedAt < 800) return;
     firedKey = key;
     firedAt = now;
     fn(...args);
@@ -184,12 +186,13 @@ export function debounce(fn, ms) {
     t = null;
   };
   // Fire the pending call immediately (once), if any — used on drag release so the
-  // final value lands now instead of after the debounce window.
+  // final value lands now instead of after the debounce window. Always fires (force),
+  // so the release re-arms the hold even when it repeats a recent mid-drag value.
   wrapped.flush = () => {
     if (t == null) return;
     clearTimeout(t);
     t = null;
-    fire(lastArgs);
+    fire(lastArgs, true);
   };
   return wrapped;
 }

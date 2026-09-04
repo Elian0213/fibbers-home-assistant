@@ -112,6 +112,23 @@ export class FibbersLightRow extends LitElement {
     if (this._debouncedCommit) this._debouncedCommit.cancel();
   }
 
+  /**
+   * Optimistically show `pct` until this row's own entity catches up — called by a
+   * parent light-group so member sliders track a master change immediately instead
+   * of lagging HA's per-member state push and then jumping ("teleport").
+   * @param {number} pct
+   */
+  holdDisplay(pct) {
+    if (!this._hold) return;
+    this._hold.hold(pct);
+    this.requestUpdate();
+  }
+
+  /** Drop the optimistic hold (e.g. the parent's group service call failed). */
+  clearDisplay() {
+    if (this._hold) this._hold.clear();
+  }
+
   // An on/off-only light (supported_color_modes === ["onoff"]) has no brightness,
   // so the drag slider is meaningless — render a plain toggle instead. Absent the
   // attribute (legacy) we assume dimmable.
