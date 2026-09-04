@@ -79,7 +79,12 @@ export class FibbersLightDetail extends LitElement {
     if (this._tab == null) this._tab = "colour";
     // Brightness + temperature keep the shared slider pipeline (active lamp).
     this._sl = this._sl || {};
-    this._mk("bri", (pct) => this._call({ brightness_pct: Math.round(pct) }));
+    this._mk("bri", (pct) => {
+      const p = Math.round(pct);
+      // Mirror light-row: dragging to zero turns the lamp off, not turn_on 0%.
+      if (p <= 0) this._callOff();
+      else this._call({ brightness_pct: p });
+    });
     this._mk("temp", (pct) => {
       const [lo, hi] = this._kRange();
       this._call({
@@ -276,6 +281,13 @@ export class FibbersLightDetail extends LitElement {
       this.hass.callService("light", "turn_on", { entity_id, ...data }),
     ).catch(() => {});
   }
+  _callOff(id) {
+    if (!this.hass) return;
+    const entity_id = id || this._config.entity;
+    Promise.resolve(
+      this.hass.callService("light", "turn_off", { entity_id }),
+    ).catch(() => {});
+  }
   _setColour(id, h, s, flush) {
     this._cHold.set(id, { h, s, exp: Date.now() + 2500 });
     this._colourCommit({ id, h, s });
@@ -296,6 +308,9 @@ export class FibbersLightDetail extends LitElement {
   _toggle(id) {
     const target = id || this._config.entity;
     if (!this.hass || this._lUnavail(target)) return;
+    // Turning the active lamp off: drop its brightness hold so no stale % lingers.
+    if (target === this._config.entity && this._lOn(target))
+      this._sl.bri.hold.clear();
     this.hass.callService("light", "toggle", { entity_id: target });
   }
   // Make a lamp the active one (brightness/temp sliders + swatches + keyboard).
@@ -324,7 +339,9 @@ export class FibbersLightDetail extends LitElement {
       s.hold.value(raw, {
         dragging: s.dragging,
         dragValue: s.dragPct,
-        gone: this._unavail() || !this._on(),
+        // Only unavailable = gone; an off lamp still holds its dragged value so
+        // dragging it on doesn't snap 60→0→60 during the turn-on round trip.
+        gone: this._unavail(),
       }),
     );
   }
@@ -332,7 +349,9 @@ export class FibbersLightDetail extends LitElement {
   _slider(key, label, valueText, opts = {}) {
     const s = this._sl[key];
     const pct = this._pct(key);
-    const disabled = this._unavail() || (opts.needsOn && !this._on());
+    // Off is not disabled — parity with light-row. Only an unavailable lamp is
+    // disabled (dragging an off lamp turns it on; drag to zero turns it off).
+    const disabled = this._unavail();
     return html`<div class="grid gap-1.5">
       <div class="flex items-center justify-between text-[11px]">
         <span class="font-medium uppercase tracking-[0.1em] text-muted"
@@ -692,7 +711,6 @@ export class FibbersLightDetail extends LitElement {
         "bri",
         `${t(hl, "light_detail.brightness")} · ${this._lAttr(this._config.entity, "friendly_name") || ""}`,
         `${this._pct("bri")}%`,
-        { needsOn: true },
       )}
       ${this._swatches(hl)} ${this._lampList(hl)}
     `;
@@ -704,14 +722,7 @@ export class FibbersLightDetail extends LitElement {
     const [lo, hi] = this._kRange();
     const curK = Math.round(lo + (this._pct("temp") / 100) * (hi - lo));
     return html`
-      ${this._slider(
-        "bri",
-        t(hl, "light_detail.brightness"),
-        `${this._pct("bri")}%`,
-        {
-          needsOn: true,
-        },
-      )}
+      ${this._slider("bri", t(hl, "light_detail.brightness"), `${this._pct("bri")}%`)}
       ${
         this._hasColor()
           ? this._colourWheel(hl)
@@ -721,7 +732,6 @@ export class FibbersLightDetail extends LitElement {
                 t(hl, "light_detail.temperature"),
                 `${curK} K`,
                 {
-                  needsOn: true,
                   gradient:
                     "linear-gradient(90deg,#ff9838,#ffd9a0,#fff6ea,#e6efff,#bcd2ff)",
                 },
