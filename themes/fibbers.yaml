@@ -1,0 +1,129 @@
+# Fibbers — a real Home Assistant theme (dark + light).
+#
+# The nav card's `theme: fibbers-global` themes HA for the browser session, but a
+# Lovelace resource can't run on a cold /config page or before a dashboard mounts.
+# Install this theme for a permanent, everywhere-including-cold-load green HA:
+#
+#   1. copy this file to  <config>/themes/fibbers.yaml
+#      (add `frontend: { themes: !include_dir_merge_named themes }` to
+#       configuration.yaml if you don't already include a themes dir)
+#   2. Developer Tools → YAML → Reload Themes  (or restart)
+#   3. Profile → Theme → Fibbers  (Auto follows your dark/light system setting)
+#
+# The palette mirrors src/shared/tokens.js + the DARK_VARS/LIGHT_VARS in
+# src/core/*.js — keep them in sync if you change one.
+
+Fibbers:
+  modes:
+    dark:
+      # grounds & surfaces
+      primary-background-color: "#111516"
+      secondary-background-color: "#161C1E"
+      card-background-color: "#1D2426"
+      ha-card-background: "#1D2426"
+      app-header-background-color: "#111516"
+      app-header-text-color: "#EDF1F1"
+      sidebar-background-color: "#0E1315"
+      sidebar-icon-color: "#7D8B8E"
+      sidebar-text-color: "#A9B6B9"
+      sidebar-selected-icon-color: "#74B98A"
+      sidebar-selected-text-color: "#EDF1F1"
+      divider-color: "#333E41"
+      # text
+      primary-text-color: "#EDF1F1"
+      secondary-text-color: "#8B999C"
+      disabled-text-color: "#5C6A6D"
+      text-primary-color: "#111516"
+      # accent (green); amber is reserved for warnings
+      primary-color: "#74B98A"
+      accent-color: "#74B98A"
+      state-icon-color: "#8B999C"
+      state-icon-active-color: "#74B98A"
+      error-color: "#EC8377"
+      warning-color: "#E8A33D"
+      success-color: "#63C295"
+      info-color: "#5AAFD6"
+      # cards
+      ha-card-border-radius: "15px"
+      ha-card-border-width: "1px"
+      ha-card-border-color: "#333E41"
+      ha-card-box-shadow: "none"
+      # dialogs (the more-info sheet)
+      ha-dialog-border-radius: "22px"
+      mdc-dialog-scrim-color: "rgba(6,9,10,.72)"
+      mdc-theme-surface: "#171E20"
+      ha-dialog-surface-background: "#171E20"
+      more-info-header-background: "#171E20"
+      dialog-backdrop-filter: "blur(3px)"
+      # controls
+      switch-checked-color: "#74B98A"
+      switch-checked-button-color: "#EDF1F1"
+      switch-checked-track-color: "#2E5238"
+      switch-unchecked-button-color: "#8B999C"
+      switch-unchecked-track-color: "#333E41"
+      paper-slider-active-color: "#74B98A"
+      paper-slider-knob-color: "#74B98A"
+      paper-slider-container-color: "#2C3639"
+      # inputs / code editor
+      input-fill-color: "#212A2C"
+      input-ink-color: "#EDF1F1"
+      input-label-ink-color: "#8B999C"
+      input-idle-line-color: "#333E41"
+      code-editor-background-color: "#161C1E"
+      markdown-code-background-color: "#262F31"
+    light:
+      # grounds & surfaces
+      primary-background-color: "#EEF1F0"
+      secondary-background-color: "#FFFFFF"
+      card-background-color: "#FFFFFF"
+      ha-card-background: "#FFFFFF"
+      app-header-background-color: "#FFFFFF"
+      app-header-text-color: "#14201A"
+      sidebar-background-color: "#FFFFFF"
+      sidebar-icon-color: "#5C6A6D"
+      sidebar-text-color: "#3A4744"
+      sidebar-selected-icon-color: "#2F6B45"
+      sidebar-selected-text-color: "#14201A"
+      divider-color: "#E1E5E3"
+      # text
+      primary-text-color: "#14201A"
+      secondary-text-color: "#55635C"
+      disabled-text-color: "#9AA5A0"
+      text-primary-color: "#FFFFFF"
+      # accent (green)
+      primary-color: "#2F6B45"
+      accent-color: "#2F6B45"
+      state-icon-color: "#55635C"
+      state-icon-active-color: "#2F6B45"
+      error-color: "#C4443B"
+      warning-color: "#B7791F"
+      success-color: "#2F6B45"
+      info-color: "#2F6FB0"
+      # cards
+      ha-card-border-radius: "15px"
+      ha-card-border-width: "1px"
+      ha-card-border-color: "#E1E5E3"
+      ha-card-box-shadow: "none"
+      # dialogs
+      ha-dialog-border-radius: "22px"
+      mdc-dialog-scrim-color: "rgba(20,32,26,.32)"
+      mdc-theme-surface: "#FFFFFF"
+      ha-dialog-surface-background: "#FFFFFF"
+      more-info-header-background: "#FFFFFF"
+      dialog-backdrop-filter: "blur(3px)"
+      # controls
+      switch-checked-color: "#2F6B45"
+      switch-checked-button-color: "#FFFFFF"
+      switch-checked-track-color: "#A9CDB6"
+      switch-unchecked-button-color: "#FFFFFF"
+      switch-unchecked-track-color: "#C7CDCA"
+      paper-slider-active-color: "#2F6B45"
+      paper-slider-knob-color: "#2F6B45"
+      paper-slider-container-color: "#D8DDDA"
+      # inputs / code editor
+      input-fill-color: "#F1F4F2"
+      input-ink-color: "#14201A"
+      input-label-ink-color: "#55635C"
+      input-idle-line-color: "#E1E5E3"
+      code-editor-background-color: "#F1F4F2"
+      markdown-code-background-color: "#EAEEEC"

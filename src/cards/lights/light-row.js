@@ -93,8 +93,9 @@ export class FibbersLightRow extends LitElement {
       },
       live: (v) => this._debouncedCommit(v),
       end: (v) => {
-        this._debouncedCommit.cancel();
-        if (v != null) this._commit(v);
+        if (v == null) return this._debouncedCommit.cancel();
+        this._debouncedCommit(v); // pending = release value
+        this._debouncedCommit.flush(); // commit now (deduped vs the live commit)
       },
     });
     // Construct the hold once — SliderHold.addController has no counterpart, so a

@@ -100,8 +100,9 @@ export class FibbersLightGroup extends LitElement {
       },
       live: (v) => this._debouncedCommit(v),
       end: (v) => {
-        this._debouncedCommit.cancel();
-        if (v != null) this._commit(v);
+        if (v == null) return this._debouncedCommit.cancel();
+        this._debouncedCommit(v);
+        this._debouncedCommit.flush();
       },
     });
     this._rowCache = new Map();

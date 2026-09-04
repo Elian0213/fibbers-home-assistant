@@ -36,6 +36,7 @@ import {
   debounce,
   clamp,
   fmtNum,
+  capturePointer,
 } from "../../shared/util.js";
 import "../../shared/icon.js";
 
@@ -819,8 +820,9 @@ export class FibbersRemote extends LitElement {
       },
       live: (v) => this._volInput(v),
       end: (v) => {
-        this._volInput.cancel();
-        if (v != null) this._setVol(v);
+        if (v == null) return this._volInput.cancel();
+        this._volInput(v);
+        this._volInput.flush();
       },
     });
 
@@ -866,8 +868,9 @@ export class FibbersRemote extends LitElement {
       },
       live: (v) => s.debounced(v),
       end: (v) => {
-        s.debounced.cancel();
-        if (v != null) this._ctlSet(entity, v);
+        if (v == null) return s.debounced.cancel();
+        s.debounced(v);
+        s.debounced.flush();
       },
     });
     return s;
@@ -1238,9 +1241,8 @@ export class FibbersRemote extends LitElement {
   }
 
   _swipeStart(e) {
+    capturePointer(e.currentTarget, e.pointerId);
     this._sw = { x: e.clientX, y: e.clientY };
-    e.currentTarget.setPointerCapture &&
-      e.currentTarget.setPointerCapture(e.pointerId);
   }
   _swipeEnd(e) {
     const s = this._sw;
@@ -1650,8 +1652,7 @@ export class FibbersRemote extends LitElement {
     // Groove drag: horizontal only; vertical gestures are left to the page (pan-y).
     const down = (e) => {
       if (this._unavail()) return;
-      e.currentTarget.setPointerCapture &&
-        e.currentTarget.setPointerCapture(e.pointerId);
+      capturePointer(e.currentTarget, e.pointerId);
       this._scrub = { lastX: e.clientX, moved: false };
       this.requestUpdate(); // reflect the .dragging grip state
     };

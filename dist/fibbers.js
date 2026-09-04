@@ -1498,17 +1498,49 @@ ${BASE_CSS}`);
     return st ? st.state : "";
   }
   function debounce(fn, ms) {
-    let t4;
-    const wrapped = (...args) => {
-      clearTimeout(t4);
-      t4 = setTimeout(() => fn(...args), ms);
+    let t4 = null;
+    let lastArgs = null;
+    let firedKey;
+    let firedAt = 0;
+    const fire = (args) => {
+      const key = args[0];
+      const now = Date.now();
+      if (key === firedKey && now - firedAt < 800)
+        return;
+      firedKey = key;
+      firedAt = now;
+      fn(...args);
     };
-    wrapped.cancel = () => clearTimeout(t4);
+    const wrapped = (...args) => {
+      lastArgs = args;
+      clearTimeout(t4);
+      t4 = setTimeout(() => {
+        t4 = null;
+        fire(lastArgs);
+      }, ms);
+    };
+    wrapped.cancel = () => {
+      clearTimeout(t4);
+      t4 = null;
+    };
+    wrapped.flush = () => {
+      if (t4 == null)
+        return;
+      clearTimeout(t4);
+      t4 = null;
+      fire(lastArgs);
+    };
     return wrapped;
   }
   function pctFromX(clientX, track) {
     const r4 = track.getBoundingClientRect();
     return clamp((clientX - r4.left) / r4.width * 100, 0, 100);
+  }
+  function capturePointer(el, pointerId) {
+    try {
+      if (el && el.setPointerCapture)
+        el.setPointerCapture(pointerId);
+    } catch (_2) {}
   }
   async function fetchHistory(hass, entityId, hours = 24) {
     if (!hass || !hass.callWS)
@@ -2006,10 +2038,10 @@ ${BASE_CSS}`);
       down(e4) {
         if (guard && guard())
           return;
+        capturePointer(e4.currentTarget, e4.pointerId);
         active = true;
         downX = e4.clientX;
         moved = false;
-        e4.currentTarget.setPointerCapture && e4.currentTarget.setPointerCapture(e4.pointerId);
         frame(read(e4), true);
       },
       move(e4) {
@@ -2291,9 +2323,10 @@ ${BASE_CSS}`);
         },
         live: (v2) => this._debouncedSet(v2),
         end: (v2) => {
-          this._debouncedSet.cancel();
-          if (v2 != null)
-            this._setValue(v2);
+          if (v2 == null)
+            return this._debouncedSet.cancel();
+          this._debouncedSet(v2);
+          this._debouncedSet.flush();
         }
       });
       if (!this._hold)
@@ -3511,209 +3544,11 @@ ${BASE_CSS}`);
     removeStyle(STYLE_ID);
   }
 
-  // src/core/global-css.js
-  var STYLE_ID2 = "fibbers-global";
-  var DARK_VARS = {
-    "--primary-background-color": T2.bg,
-    "--secondary-background-color": T2.nav,
-    "--card-background-color": T2.card,
-    "--ha-card-background": T2.card,
-    "--app-header-background-color": T2.bg,
-    "--app-header-text-color": T2.ink,
-    "--sidebar-background-color": "#0E1315",
-    "--sidebar-icon-color": T2.muted,
-    "--sidebar-text-color": T2.ink2,
-    "--sidebar-selected-icon-color": T2.accent,
-    "--sidebar-selected-text-color": T2.ink,
-    "--divider-color": T2.line,
-    "--primary-text-color": T2.ink,
-    "--secondary-text-color": "#8B999C",
-    "--disabled-text-color": "#5C6A6D",
-    "--text-primary-color": T2.bg,
-    "--primary-color": T2.accent,
-    "--accent-color": T2.accent,
-    "--state-icon-color": "#8B999C",
-    "--state-icon-active-color": T2.accent,
-    "--error-color": T2.red,
-    "--warning-color": T2.amber,
-    "--success-color": T2.green,
-    "--info-color": T2.blue,
-    "--ha-card-border-radius": "15px",
-    "--ha-card-border-width": "1px",
-    "--ha-card-border-color": T2.line,
-    "--ha-card-box-shadow": "none",
-    "--ha-dialog-border-radius": "22px",
-    "--mdc-dialog-scrim-color": "rgba(6,9,10,.72)",
-    "--mdc-theme-surface": T2.sheet,
-    "--ha-dialog-surface-background": T2.sheet,
-    "--more-info-header-background": T2.sheet,
-    "--dialog-backdrop-filter": "blur(3px)",
-    "--switch-checked-color": T2.accent,
-    "--switch-checked-button-color": T2.ink,
-    "--switch-checked-track-color": "#2E5238",
-    "--switch-unchecked-button-color": "#8B999C",
-    "--switch-unchecked-track-color": T2.line,
-    "--paper-slider-active-color": T2.accent,
-    "--paper-slider-knob-color": T2.accent,
-    "--paper-slider-container-color": "#2C3639"
-  };
-  function setGlobalVars(vars = DARK_VARS) {
-    if (window.FIBBERS_DISABLE_GLOBAL_CSS)
-      return;
-    const decls = Object.entries(vars).map(([k2, v2]) => `  ${k2}: ${v2} !important;`).join(`
-`);
-    let style = document.getElementById(STYLE_ID2);
-    if (!style) {
-      style = document.createElement("style");
-      style.id = STYLE_ID2;
-      document.head.appendChild(style);
-    }
-    style.textContent = `html {
-${decls}
-}`;
-  }
-  function clearGlobalVars() {
-    const style = document.getElementById(STYLE_ID2);
-    if (style)
-      style.remove();
-  }
-  function injectGlobalCss() {
-    setGlobalVars(DARK_VARS);
-  }
-
-  // src/core/theme.js
-  var STYLE_ID3 = "fibbers-theme";
-  var LIGHT_VARS = {
-    "--primary-background-color": "#EEF1F0",
-    "--secondary-background-color": "#FFFFFF",
-    "--card-background-color": "#FFFFFF",
-    "--ha-card-background": "#FFFFFF",
-    "--app-header-background-color": "#FFFFFF",
-    "--app-header-text-color": "#14201A",
-    "--sidebar-background-color": "#FFFFFF",
-    "--sidebar-icon-color": "#5C6A6D",
-    "--sidebar-text-color": "#3A4744",
-    "--sidebar-selected-icon-color": "#2F6B45",
-    "--sidebar-selected-text-color": "#14201A",
-    "--divider-color": "#E1E5E3",
-    "--primary-text-color": "#14201A",
-    "--secondary-text-color": "#55635C",
-    "--disabled-text-color": "#9AA5A0",
-    "--text-primary-color": "#FFFFFF",
-    "--primary-color": "#2F6B45",
-    "--accent-color": "#2F6B45",
-    "--state-icon-color": "#55635C",
-    "--state-icon-active-color": "#2F6B45",
-    "--error-color": "#C4443B",
-    "--warning-color": "#B7791F",
-    "--success-color": "#2F6B45",
-    "--info-color": "#2F6FB0",
-    "--ha-card-border-radius": "15px",
-    "--ha-card-border-width": "1px",
-    "--ha-card-border-color": "#E1E5E3",
-    "--ha-card-box-shadow": "none",
-    "--ha-dialog-border-radius": "22px",
-    "--mdc-dialog-scrim-color": "rgba(20,32,26,.32)",
-    "--mdc-theme-surface": "#FFFFFF",
-    "--ha-dialog-surface-background": "#FFFFFF",
-    "--more-info-header-background": "#FFFFFF",
-    "--dialog-backdrop-filter": "blur(3px)",
-    "--switch-checked-color": "#2F6B45",
-    "--switch-checked-button-color": "#FFFFFF",
-    "--switch-checked-track-color": "#A9CDB6",
-    "--switch-unchecked-button-color": "#FFFFFF",
-    "--switch-unchecked-track-color": "#C7CDCA",
-    "--paper-slider-active-color": "#2F6B45",
-    "--paper-slider-knob-color": "#2F6B45",
-    "--paper-slider-container-color": "#D8DDDA"
-  };
-  var state3 = { mode: "none", mql: null };
-  function palette() {
-    if (state3.mode === "fibbers")
-      return DARK_VARS;
-    if (state3.mode === "fibbers-light")
-      return LIGHT_VARS;
-    if (state3.mode === "auto") {
-      const dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-      return dark ? DARK_VARS : LIGHT_VARS;
-    }
-    return null;
-  }
-  var unreachable = (k2) => k2.startsWith("--sidebar-") || /dialog/.test(k2) || k2 === "--mdc-theme-surface" || k2 === "--more-info-header-background";
-  function cssFor(vars) {
-    const decls = Object.entries(vars).filter(([k2]) => !unreachable(k2)).map(([k2, v2]) => `  ${k2}: ${v2};`).join(`
-`);
-    return `:host {
-${decls}
-}`;
-  }
-  function computeCss2() {
-    const vars = palette();
-    return vars ? cssFor(vars) : "";
-  }
-  var onScheme = () => {
-    if (state3.mode === "auto")
-      injectStyle(STYLE_ID3, computeCss2);
-  };
-  function watchScheme() {
-    if (state3.mql || !window.matchMedia)
-      return;
-    state3.mql = window.matchMedia("(prefers-color-scheme: dark)");
-    try {
-      state3.mql.addEventListener("change", onScheme);
-    } catch (_2) {
-      state3.mql.addListener(onScheme);
-    }
-  }
-  function unwatchScheme() {
-    if (!state3.mql)
-      return;
-    try {
-      state3.mql.removeEventListener("change", onScheme);
-    } catch (_2) {
-      state3.mql.removeListener(onScheme);
-    }
-    state3.mql = null;
-  }
-  function applyTheme(mode) {
-    const KNOWN = [
-      "fibbers",
-      "fibbers-light",
-      "auto",
-      "fibbers-global",
-      "fibbers-global-light"
-    ];
-    const normalized = KNOWN.includes(mode) ? mode : "none";
-    state3.mode = normalized;
-    if (normalized === "none") {
-      removeTheme();
-      return;
-    }
-    if (normalized === "fibbers-global" || normalized === "fibbers-global-light") {
-      removeStyle(STYLE_ID3);
-      unwatchScheme();
-      setGlobalVars(normalized === "fibbers-global-light" ? LIGHT_VARS : DARK_VARS);
-      return;
-    }
-    clearGlobalVars();
-    injectStyle(STYLE_ID3, computeCss2);
-    if (normalized === "auto")
-      watchScheme();
-    else
-      unwatchScheme();
-  }
-  function removeTheme() {
-    state3.mode = "none";
-    unwatchScheme();
-    removeStyle(STYLE_ID3);
-    clearGlobalVars();
-  }
-
   // src/core/view-reserve.js
-  var STYLE_ID4 = "fibbers-view-reserve";
-  var state4 = { px: 0 };
-  function computeCss3() {
-    return state4.px ? `#view { padding-bottom: ${state4.px}px !important; }` : "";
+  var STYLE_ID2 = "fibbers-view-reserve";
+  var state3 = { px: 0 };
+  function computeCss2() {
+    return state3.px ? `#view { padding-bottom: ${state3.px}px !important; }` : "";
   }
   var LOCK_ID = "fibbers-view-lock";
   function lockView(on) {
@@ -3723,16 +3558,16 @@ ${decls}
       removeStyle(LOCK_ID);
   }
   function setViewReserve(px) {
-    state4.px = Math.max(0, Math.round(px || 0));
-    if (!state4.px) {
+    state3.px = Math.max(0, Math.round(px || 0));
+    if (!state3.px) {
       removeViewReserve();
       return;
     }
-    injectStyle(STYLE_ID4, computeCss3);
+    injectStyle(STYLE_ID2, computeCss2);
   }
   function removeViewReserve() {
-    state4.px = 0;
-    removeStyle(STYLE_ID4);
+    state3.px = 0;
+    removeStyle(STYLE_ID2);
   }
 
   // src/core/body-sheet.js
@@ -3875,9 +3710,9 @@ ${decls}
     handle.addEventListener("pointerdown", (e4) => {
       if (window.innerWidth >= 640)
         return;
+      capturePointer(handle, e4.pointerId);
       layer.drag = { startY: e4.clientY, dy: 0 };
       sheet.style.transition = "none";
-      handle.setPointerCapture && handle.setPointerCapture(e4.pointerId);
     });
     handle.addEventListener("pointermove", (e4) => {
       if (!layer.drag)
@@ -3955,6 +3790,20 @@ ${decls}
       body.appendChild(msg);
     }
   }
+  function reveal() {
+    if (!layer.host)
+      return;
+    layer.host.offsetHeight;
+    layer.host.setAttribute("data-shown", "true");
+    if (layer.panel)
+      layer.panel.focus();
+  }
+  function onVisibility() {
+    if (document.visibilityState !== "visible")
+      return;
+    if (layer.openId != null && layer.host && !layer.host.getAttribute("data-shown"))
+      reveal();
+  }
   function openSheet(id) {
     const card = layer.sheets.get(id);
     if (!card || layer.openId === id)
@@ -3969,13 +3818,9 @@ ${decls}
     layer.host.setAttribute("data-open", "true");
     lockView(true);
     renderContent(card);
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      layer.host.setAttribute("data-shown", "true");
-      if (layer.panel)
-        layer.panel.focus();
-    }));
+    reveal();
   }
-  function openModal({ title, icon, subtitle, cards, hass }) {
+  function openModal({ title, icon, subtitle, cards, hass, entityId }) {
     ensureListeners();
     build();
     if (layer.openId != null)
@@ -3986,6 +3831,7 @@ ${decls}
     const card = {
       _config: { title, icon, subtitle, cards },
       _hass: hass,
+      _entityId: entityId,
       _children: []
     };
     layer.modalCard = card;
@@ -3993,11 +3839,10 @@ ${decls}
     layer.host.setAttribute("data-open", "true");
     lockView(true);
     renderContent(card);
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      layer.host.setAttribute("data-shown", "true");
-      if (layer.panel)
-        layer.panel.focus();
-    }));
+    reveal();
+  }
+  function openModalEntity() {
+    return layer.openId === MODAL_ID && layer.modalCard ? layer.modalCard._entityId : null;
   }
   function updateOpenModalHass(hass) {
     if (layer.openId !== MODAL_ID || !layer.modalCard)
@@ -4106,6 +3951,7 @@ ${decls}
     window.addEventListener("hashchange", syncFromHash);
     window.addEventListener("focusin", onFocusIn);
     window.addEventListener("keydown", onKeydown);
+    document.addEventListener("visibilitychange", onVisibility);
   }
   function removeSheetListeners() {
     if (!listenersOn)
@@ -4114,6 +3960,7 @@ ${decls}
     window.removeEventListener("hashchange", syncFromHash);
     window.removeEventListener("focusin", onFocusIn);
     window.removeEventListener("keydown", onKeydown);
+    document.removeEventListener("visibilitychange", onVisibility);
   }
 
   // src/core/more-info.js
@@ -4160,6 +4007,10 @@ ${decls}
     const cards = cardsFor(hass, id);
     if (!cards)
       return;
+    if (openModalEntity() === id) {
+      e4.stopImmediatePropagation();
+      return;
+    }
     e4.stopImmediatePropagation();
     const st = hass.states[id];
     const a3 = st && st.attributes || {};
@@ -4167,25 +4018,226 @@ ${decls}
       title: a3.friendly_name || id,
       icon: a3.icon || DOMAIN_ICON[id.split(".")[0]],
       cards,
-      hass
+      hass,
+      entityId: id
     });
   }
-  var state5 = { on: false, fn: null };
+  var state4 = { on: false, fn: null };
   function enableMoreInfo() {
-    if (state5.on)
+    if (state4.on)
       return;
-    state5.on = true;
-    state5.fn = handle;
-    window.addEventListener("hass-more-info", state5.fn, true);
+    state4.on = true;
+    state4.fn = handle;
+    window.addEventListener("hass-more-info", state4.fn, true);
   }
   function disableMoreInfo() {
-    if (!state5.on)
+    if (!state4.on)
       return;
-    state5.on = false;
-    window.removeEventListener("hass-more-info", state5.fn, true);
-    state5.fn = null;
+    state4.on = false;
+    window.removeEventListener("hass-more-info", state4.fn, true);
+    state4.fn = null;
     closeModal();
     teardownIfIdle();
+  }
+
+  // src/core/global-css.js
+  var STYLE_ID3 = "fibbers-global";
+  var DARK_VARS = {
+    "--primary-background-color": T2.bg,
+    "--secondary-background-color": T2.nav,
+    "--card-background-color": T2.card,
+    "--ha-card-background": T2.card,
+    "--app-header-background-color": T2.bg,
+    "--app-header-text-color": T2.ink,
+    "--sidebar-background-color": "#0E1315",
+    "--sidebar-icon-color": T2.muted,
+    "--sidebar-text-color": T2.ink2,
+    "--sidebar-selected-icon-color": T2.accent,
+    "--sidebar-selected-text-color": T2.ink,
+    "--divider-color": T2.line,
+    "--primary-text-color": T2.ink,
+    "--secondary-text-color": "#8B999C",
+    "--disabled-text-color": "#5C6A6D",
+    "--text-primary-color": T2.bg,
+    "--primary-color": T2.accent,
+    "--accent-color": T2.accent,
+    "--state-icon-color": "#8B999C",
+    "--state-icon-active-color": T2.accent,
+    "--error-color": T2.red,
+    "--warning-color": T2.amber,
+    "--success-color": T2.green,
+    "--info-color": T2.blue,
+    "--ha-card-border-radius": "15px",
+    "--ha-card-border-width": "1px",
+    "--ha-card-border-color": T2.line,
+    "--ha-card-box-shadow": "none",
+    "--ha-dialog-border-radius": "22px",
+    "--mdc-dialog-scrim-color": "rgba(6,9,10,.72)",
+    "--mdc-theme-surface": T2.sheet,
+    "--ha-dialog-surface-background": T2.sheet,
+    "--more-info-header-background": T2.sheet,
+    "--dialog-backdrop-filter": "blur(3px)",
+    "--switch-checked-color": T2.accent,
+    "--switch-checked-button-color": T2.ink,
+    "--switch-checked-track-color": "#2E5238",
+    "--switch-unchecked-button-color": "#8B999C",
+    "--switch-unchecked-track-color": T2.line,
+    "--paper-slider-active-color": T2.accent,
+    "--paper-slider-knob-color": T2.accent,
+    "--paper-slider-container-color": "#2C3639"
+  };
+  function setGlobalVars(vars = DARK_VARS) {
+    if (window.FIBBERS_DISABLE_GLOBAL_CSS)
+      return;
+    const decls = Object.entries(vars).map(([k2, v2]) => `  ${k2}: ${v2} !important;`).join(`
+`);
+    let style = document.getElementById(STYLE_ID3);
+    if (!style) {
+      style = document.createElement("style");
+      style.id = STYLE_ID3;
+      document.head.appendChild(style);
+    }
+    style.textContent = `html {
+${decls}
+}`;
+  }
+  function clearGlobalVars() {
+    const style = document.getElementById(STYLE_ID3);
+    if (style)
+      style.remove();
+  }
+  function injectGlobalCss() {
+    setGlobalVars(DARK_VARS);
+  }
+
+  // src/core/theme.js
+  var STYLE_ID4 = "fibbers-theme";
+  var LIGHT_VARS = {
+    "--primary-background-color": "#EEF1F0",
+    "--secondary-background-color": "#FFFFFF",
+    "--card-background-color": "#FFFFFF",
+    "--ha-card-background": "#FFFFFF",
+    "--app-header-background-color": "#FFFFFF",
+    "--app-header-text-color": "#14201A",
+    "--sidebar-background-color": "#FFFFFF",
+    "--sidebar-icon-color": "#5C6A6D",
+    "--sidebar-text-color": "#3A4744",
+    "--sidebar-selected-icon-color": "#2F6B45",
+    "--sidebar-selected-text-color": "#14201A",
+    "--divider-color": "#E1E5E3",
+    "--primary-text-color": "#14201A",
+    "--secondary-text-color": "#55635C",
+    "--disabled-text-color": "#9AA5A0",
+    "--text-primary-color": "#FFFFFF",
+    "--primary-color": "#2F6B45",
+    "--accent-color": "#2F6B45",
+    "--state-icon-color": "#55635C",
+    "--state-icon-active-color": "#2F6B45",
+    "--error-color": "#C4443B",
+    "--warning-color": "#B7791F",
+    "--success-color": "#2F6B45",
+    "--info-color": "#2F6FB0",
+    "--ha-card-border-radius": "15px",
+    "--ha-card-border-width": "1px",
+    "--ha-card-border-color": "#E1E5E3",
+    "--ha-card-box-shadow": "none",
+    "--ha-dialog-border-radius": "22px",
+    "--mdc-dialog-scrim-color": "rgba(20,32,26,.32)",
+    "--mdc-theme-surface": "#FFFFFF",
+    "--ha-dialog-surface-background": "#FFFFFF",
+    "--more-info-header-background": "#FFFFFF",
+    "--dialog-backdrop-filter": "blur(3px)",
+    "--switch-checked-color": "#2F6B45",
+    "--switch-checked-button-color": "#FFFFFF",
+    "--switch-checked-track-color": "#A9CDB6",
+    "--switch-unchecked-button-color": "#FFFFFF",
+    "--switch-unchecked-track-color": "#C7CDCA",
+    "--paper-slider-active-color": "#2F6B45",
+    "--paper-slider-knob-color": "#2F6B45",
+    "--paper-slider-container-color": "#D8DDDA"
+  };
+  var state5 = { mode: "none", mql: null };
+  var isGlobal = (m2) => m2 === "fibbers-global" || m2 === "fibbers-global-light";
+  function palette() {
+    if (state5.mode === "fibbers")
+      return DARK_VARS;
+    if (state5.mode === "fibbers-light")
+      return LIGHT_VARS;
+    if (state5.mode === "auto") {
+      const dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      return dark ? DARK_VARS : LIGHT_VARS;
+    }
+    return null;
+  }
+  var unreachable = (k2) => k2.startsWith("--sidebar-") || /dialog/.test(k2) || k2 === "--mdc-theme-surface" || k2 === "--more-info-header-background";
+  function cssFor(vars) {
+    const decls = Object.entries(vars).filter(([k2]) => !unreachable(k2)).map(([k2, v2]) => `  ${k2}: ${v2};`).join(`
+`);
+    return `:host {
+${decls}
+}`;
+  }
+  function computeCss3() {
+    const vars = palette();
+    return vars ? cssFor(vars) : "";
+  }
+  var onScheme = () => {
+    if (state5.mode === "auto")
+      injectStyle(STYLE_ID4, computeCss3);
+  };
+  function watchScheme() {
+    if (state5.mql || !window.matchMedia)
+      return;
+    state5.mql = window.matchMedia("(prefers-color-scheme: dark)");
+    try {
+      state5.mql.addEventListener("change", onScheme);
+    } catch (_2) {
+      state5.mql.addListener(onScheme);
+    }
+  }
+  function unwatchScheme() {
+    if (!state5.mql)
+      return;
+    try {
+      state5.mql.removeEventListener("change", onScheme);
+    } catch (_2) {
+      state5.mql.removeListener(onScheme);
+    }
+    state5.mql = null;
+  }
+  function applyTheme(mode) {
+    const KNOWN = [
+      "fibbers",
+      "fibbers-light",
+      "auto",
+      "fibbers-global",
+      "fibbers-global-light"
+    ];
+    const normalized = KNOWN.includes(mode) ? mode : "none";
+    state5.mode = normalized;
+    if (isGlobal(normalized)) {
+      removeStyle(STYLE_ID4);
+      unwatchScheme();
+      setGlobalVars(normalized === "fibbers-global-light" ? LIGHT_VARS : DARK_VARS);
+      return;
+    }
+    clearGlobalVars();
+    if (normalized === "none") {
+      removeStyle(STYLE_ID4);
+      unwatchScheme();
+      return;
+    }
+    injectStyle(STYLE_ID4, computeCss3);
+    if (normalized === "auto")
+      watchScheme();
+    else
+      unwatchScheme();
+  }
+  function removeTheme() {
+    unwatchScheme();
+    removeStyle(STYLE_ID4);
+    if (!isGlobal(state5.mode))
+      clearGlobalVars();
   }
 
   // src/core/body-layer.js
@@ -4483,8 +4535,14 @@ ${decls}
             { value: "fibbers", label: "Fibbers (dark)" },
             { value: "fibbers-light", label: "Fibbers Light" },
             { value: "auto", label: "Auto" },
-            { value: "fibbers-global", label: "Fibbers Global (all of HA)" },
-            { value: "fibbers-global-light", label: "Fibbers Global Light" }
+            {
+              value: "fibbers-global",
+              label: "Fibbers Global (this browser session)"
+            },
+            {
+              value: "fibbers-global-light",
+              label: "Fibbers Global Light (session)"
+            }
           ]
         }
       }
@@ -4994,9 +5052,10 @@ ${decls}
         },
         live: (v2) => this._debouncedCommit(v2),
         end: (v2) => {
-          this._debouncedCommit.cancel();
-          if (v2 != null)
-            this._commit(v2);
+          if (v2 == null)
+            return this._debouncedCommit.cancel();
+          this._debouncedCommit(v2);
+          this._debouncedCommit.flush();
         }
       });
       this._rowCache = new Map;
@@ -5323,9 +5382,10 @@ ${decls}
         },
         live: (v2) => this._debouncedCommit(v2),
         end: (v2) => {
-          this._debouncedCommit.cancel();
-          if (v2 != null)
-            this._commit(v2);
+          if (v2 == null)
+            return this._debouncedCommit.cancel();
+          this._debouncedCommit(v2);
+          this._debouncedCommit.flush();
         }
       });
       if (!this._hold)
@@ -5583,9 +5643,10 @@ ${decls}
         },
         live: (v2) => this._volInput(v2),
         end: (v2) => {
-          this._volInput.cancel();
-          if (v2 != null)
-            this._setVol(v2);
+          if (v2 == null)
+            return this._volInput.cancel();
+          this._volInput(v2);
+          this._volInput.flush();
         }
       });
       this._seekDrag = sliderDrag({
@@ -5597,9 +5658,10 @@ ${decls}
         },
         live: (v2) => this._seekInput(v2),
         end: (v2) => {
-          this._seekInput.cancel();
-          if (v2 != null)
-            this._seek(v2);
+          if (v2 == null)
+            return this._seekInput.cancel();
+          this._seekInput(v2);
+          this._seekInput.flush();
         }
       });
     }
@@ -6699,9 +6761,10 @@ ${decls}
         },
         live: (v2) => this._volInput(v2),
         end: (v2) => {
-          this._volInput.cancel();
-          if (v2 != null)
-            this._setVol(v2);
+          if (v2 == null)
+            return this._volInput.cancel();
+          this._volInput(v2);
+          this._volInput.flush();
         }
       });
       this._ctlOpen = this._ctlOpen || new Map;
@@ -6742,9 +6805,10 @@ ${decls}
         },
         live: (v2) => s4.debounced(v2),
         end: (v2) => {
-          s4.debounced.cancel();
-          if (v2 != null)
-            this._ctlSet(entity, v2);
+          if (v2 == null)
+            return s4.debounced.cancel();
+          s4.debounced(v2);
+          s4.debounced.flush();
         }
       });
       return s4;
@@ -7047,8 +7111,8 @@ ${decls}
       this._send(key);
     }
     _swipeStart(e4) {
+      capturePointer(e4.currentTarget, e4.pointerId);
       this._sw = { x: e4.clientX, y: e4.clientY };
-      e4.currentTarget.setPointerCapture && e4.currentTarget.setPointerCapture(e4.pointerId);
     }
     _swipeEnd(e4) {
       const s4 = this._sw;
@@ -7346,7 +7410,7 @@ ${decls}
       const down = (e4) => {
         if (this._unavail())
           return;
-        e4.currentTarget.setPointerCapture && e4.currentTarget.setPointerCapture(e4.pointerId);
+        capturePointer(e4.currentTarget, e4.pointerId);
         this._scrub = { lastX: e4.clientX, moved: false };
         this.requestUpdate();
       };

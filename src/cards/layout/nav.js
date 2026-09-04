@@ -5,8 +5,8 @@
 import { LitElement, html, css } from "lit";
 
 import { attach, detach, renderBar } from "../../core/body-layer.js";
-import { nav } from "../../core/nav-stack.js";
 import { updateOpenModalHass } from "../../core/body-sheet.js";
+import { nav } from "../../core/nav-stack.js";
 import "../../shared/icon.js";
 
 const EDITOR_SCHEMA = [
@@ -20,8 +20,14 @@ const EDITOR_SCHEMA = [
           { value: "fibbers", label: "Fibbers (dark)" },
           { value: "fibbers-light", label: "Fibbers Light" },
           { value: "auto", label: "Auto" },
-          { value: "fibbers-global", label: "Fibbers Global (all of HA)" },
-          { value: "fibbers-global-light", label: "Fibbers Global Light" },
+          {
+            value: "fibbers-global",
+            label: "Fibbers Global (this browser session)",
+          },
+          {
+            value: "fibbers-global-light",
+            label: "Fibbers Global Light (session)",
+          },
         ],
       },
     },

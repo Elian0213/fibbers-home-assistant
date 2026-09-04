@@ -76,6 +76,8 @@ const LIGHT_VARS = {
 
 const state = { mode: "none", mql: null };
 
+const isGlobal = (m) => m === "fibbers-global" || m === "fibbers-global-light";
+
 // Which palette the current mode resolves to (null = inject nothing).
 function palette() {
   if (state.mode === "fibbers") return DARK_VARS;
@@ -155,14 +157,7 @@ export function applyTheme(mode) {
   ];
   const normalized = KNOWN.includes(mode) ? mode : "none";
   state.mode = normalized;
-  if (normalized === "none") {
-    removeTheme();
-    return;
-  }
-  if (
-    normalized === "fibbers-global" ||
-    normalized === "fibbers-global-light"
-  ) {
+  if (isGlobal(normalized)) {
     // Whole-HA takeover: the <html> palette (with !important) covers the dashboard
     // too, so drop the scoped style and the scheme watcher.
     removeStyle(STYLE_ID);
@@ -172,20 +167,30 @@ export function applyTheme(mode) {
     );
     return;
   }
-  // Scoped dashboard theme.
+  // Scoped or none: a previous `-global` palette must go — the user picked a
+  // non-global theme (this is the explicit off switch for the global takeover).
   clearGlobalVars();
+  if (normalized === "none") {
+    removeStyle(STYLE_ID);
+    unwatchScheme();
+    return;
+  }
   injectStyle(STYLE_ID, computeCss);
   if (normalized === "auto") watchScheme();
   else unwatchScheme();
 }
 
 /**
- * Full teardown — drop the scoped style, the global palette, and the scheme
- * watcher. Called from detach() when the last fibbers-nav unmounts.
+ * Teardown on the last nav detach: drop the scoped style + scheme watcher. A
+ * `-global` palette is deliberately KEPT set (on <html>) so a normal SPA nav from
+ * the dashboard into Settings / a dialog stays themed for the browser session —
+ * a Lovelace resource can't re-run off-dashboard, so tearing it down there is what
+ * made "all of HA" only hold while standing on the dashboard. An explicit
+ * `theme: none` clears it via applyTheme. `state.mode` is left as-is so a re-attach
+ * re-applies the same mode.
  */
 export function removeTheme() {
-  state.mode = "none";
   unwatchScheme();
   removeStyle(STYLE_ID);
-  clearGlobalVars();
+  if (!isGlobal(state.mode)) clearGlobalVars();
 }

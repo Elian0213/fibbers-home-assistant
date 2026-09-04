@@ -6,6 +6,7 @@
 import { html, nothing } from "lit";
 
 import { t } from "./i18n.js";
+import { capturePointer } from "./util.js";
 
 /**
  * Enter/Space → activate, for elements carrying role="button" instead of a real
@@ -144,11 +145,10 @@ export function sliderDrag({ read, frame, live, end, guard }) {
   return {
     down(e) {
       if (guard && guard()) return;
+      capturePointer(e.currentTarget, e.pointerId);
       active = true;
       downX = e.clientX;
       moved = false;
-      e.currentTarget.setPointerCapture &&
-        e.currentTarget.setPointerCapture(e.pointerId);
       frame(read(e), true);
     },
     move(e) {

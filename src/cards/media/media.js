@@ -128,8 +128,9 @@ export class FibbersMedia extends LitElement {
       },
       live: (v) => this._volInput(v),
       end: (v) => {
-        this._volInput.cancel();
-        if (v != null) this._setVol(v);
+        if (v == null) return this._volInput.cancel();
+        this._volInput(v);
+        this._volInput.flush();
       },
     });
     this._seekDrag = sliderDrag({
@@ -140,8 +141,9 @@ export class FibbersMedia extends LitElement {
       },
       live: (v) => this._seekInput(v),
       end: (v) => {
-        this._seekInput.cancel();
-        if (v != null) this._seek(v);
+        if (v == null) return this._seekInput.cancel();
+        this._seekInput(v);
+        this._seekInput.flush();
       },
     });
   }

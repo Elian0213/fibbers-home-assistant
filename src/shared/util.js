@@ -155,12 +155,42 @@ export function fmtState(hass, st) {
  * @returns {Function} debounced wrapper with `.cancel()`
  */
 export function debounce(fn, ms) {
-  let t;
-  const wrapped = (...args) => {
-    clearTimeout(t);
-    t = setTimeout(() => fn(...args), ms);
+  let t = null;
+  let lastArgs = null;
+  let firedKey;
+  let firedAt = 0;
+  // Fire, but skip a call whose first arg equals one fired in the last ~0.8s — the
+  // slider committers all take a single value, and this kills the "commit the final
+  // value mid-drag, then commit it again on release" double without ever blocking a
+  // genuine later repeat of the same value.
+  const fire = (args) => {
+    const key = args[0];
+    const now = Date.now();
+    if (key === firedKey && now - firedAt < 800) return;
+    firedKey = key;
+    firedAt = now;
+    fn(...args);
   };
-  wrapped.cancel = () => clearTimeout(t);
+  const wrapped = (...args) => {
+    lastArgs = args;
+    clearTimeout(t);
+    t = setTimeout(() => {
+      t = null;
+      fire(lastArgs);
+    }, ms);
+  };
+  wrapped.cancel = () => {
+    clearTimeout(t);
+    t = null;
+  };
+  // Fire the pending call immediately (once), if any — used on drag release so the
+  // final value lands now instead of after the debounce window.
+  wrapped.flush = () => {
+    if (t == null) return;
+    clearTimeout(t);
+    t = null;
+    fire(lastArgs);
+  };
   return wrapped;
 }
 
@@ -174,6 +204,22 @@ export function debounce(fn, ms) {
 export function pctFromX(clientX, track) {
   const r = track.getBoundingClientRect();
   return clamp(((clientX - r.left) / r.width) * 100, 0, 100);
+}
+
+/**
+ * Capture the pointer on `el` if possible. `el.setPointerCapture(id)` throws an
+ * (uncaught) `NotFoundError` when the pointer is already gone — a tap released
+ * between dispatch and handler — so every drag guards the call here rather than
+ * letting the throw reach HA's global error handler and half-init the gesture.
+ * @param {Element} el
+ * @param {number} pointerId
+ */
+export function capturePointer(el, pointerId) {
+  try {
+    if (el && el.setPointerCapture) el.setPointerCapture(pointerId);
+  } catch (_) {
+    /* pointer already released — nothing to capture */
+  }
 }
 
 /**

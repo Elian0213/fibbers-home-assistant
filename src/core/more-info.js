@@ -8,8 +8,13 @@
  * a Fibbers modal (built from the existing cards). Enabled/torn down by the nav
  * (opt-in via `more_info: true`), so it never runs on a plain HA page.
  * ================================================================== */
+import {
+  openModal,
+  closeModal,
+  teardownIfIdle,
+  openModalEntity,
+} from "./body-sheet.js";
 import { nav } from "./nav-stack.js";
-import { openModal, closeModal, teardownIfIdle } from "./body-sheet.js";
 
 // entity domain → the child card configs the modal renders. Each is an existing
 // Fibbers card, so they stay live once the modal pumps hass into them.
@@ -62,6 +67,12 @@ function handle(e) {
   if (!hass || !hass.states[id]) return; // unknown entity → HA's dialog
   const cards = cardsFor(hass, id);
   if (!cards) return; // unsupported domain → fall through to HA (themed)
+  // A card inside the modal (e.g. the stat tile) re-fires more-info for the same
+  // entity — swallow it so the modal doesn't close-and-reopen (flash + scroll jump).
+  if (openModalEntity() === id) {
+    e.stopImmediatePropagation();
+    return;
+  }
   // Ours — stop the event before <home-assistant> sees it, open the Fibbers modal.
   e.stopImmediatePropagation();
   const st = hass.states[id];
@@ -71,6 +82,7 @@ function handle(e) {
     icon: a.icon || DOMAIN_ICON[id.split(".")[0]],
     cards,
     hass,
+    entityId: id,
   });
 }
 

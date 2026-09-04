@@ -104,8 +104,9 @@ export class FibbersNumber extends LitElement {
       },
       live: (v) => this._debouncedSet(v),
       end: (v) => {
-        this._debouncedSet.cancel();
-        if (v != null) this._setValue(v);
+        if (v == null) return this._debouncedSet.cancel();
+        this._debouncedSet(v);
+        this._debouncedSet.flush();
       },
     });
     // Construct once (addController has no counterpart); tolerance is set per-read

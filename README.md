@@ -299,14 +299,17 @@ tabs: [...]
 It's injected into `hui-root` only while that Fibbers dashboard is mounted and removed when you
 leave, so it never leaks into unrelated views. `auto` follows `prefers-color-scheme`.
 
-- Want the palette **everywhere** — sidebar, header, Settings and every dialog — with no file
-  editing or restart? Set **`theme: fibbers-global`** (or `fibbers-global-light`) on the nav. It
-  paints all of Home Assistant while the dashboard is mounted, and reverts when you leave. Any other
-  value keeps HA's own chrome, so it's fully opt-out.
-- Prefer a real, durable HA theme instead? [`docs/optional-theme.yaml`](docs/optional-theme.yaml) is
-  the same palette as a standalone theme you select under **Profile → Theme**.
-- The old load-time global injector is still there — `window.FIBBERS.injectGlobalCss()` — and
-  `window.FIBBERS_DISABLE_GLOBAL_CSS = true` still opts out.
+Two ways to take it **beyond the dashboard** — sidebar, header, Settings, dialogs:
+
+- **`theme: fibbers-global`** (or `fibbers-global-light`) on the nav — no file editing or restart.
+  Once you've opened a Fibbers dashboard it paints the rest of HA for the **browser session**
+  (dashboard → Settings → a dialog stays green), and any other value keeps HA's own chrome, so it's
+  fully opt-out. It can't cover a **cold** load of `/config` (before any dashboard mounts) — for that,
+  use the theme file:
+- **`themes/fibbers.yaml`** — a real HA theme (dark **and** light modes) for a permanent, everywhere,
+  cold-load-safe install. Copy it to `<config>/themes/fibbers.yaml`, reload themes, and pick
+  **Fibbers** under **Profile → Theme**. (The old `window.FIBBERS.injectGlobalCss()` /
+  `FIBBERS_DISABLE_GLOBAL_CSS` escape hatches still work too.)
 
 ### Fibbers modals (`more_info: true`)
 
