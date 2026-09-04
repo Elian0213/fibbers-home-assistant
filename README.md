@@ -242,12 +242,16 @@ The remote's Back/Home sit in their own row under the wheel, transport is
 `⏮ ▶ ⏭`, and volume is a real slider when the player reports a level or a
 drag-to-change **scrub strip** when it doesn't (many Apple TVs). `controls:` adds a
 companion panel for anything the remote can't infer — a `select` becomes preset
-chips, a `light`/`number` a slider, a `switch` a toggle. Note that TV **picture-style
-presets** (e.g. _Dolby Vision Dark_) aren't a Home Assistant entity by default —
-`philips_js` exposes none — so to show them as chips you first expose a
-`select`/`input_select` yourself (via `pylips` or a `rest_command` to the JointSpace
-API) and point a `controls:` entry at it. See
-[docs/remote-commands.md](docs/remote-commands.md).
+chips, a `light`/`number` a slider, a `switch` a toggle.
+
+> **🧪 Beta — TV picture-style presets.** _Dolby Vision Dark/Bright_ and picture
+> brightness aren't Home Assistant entities by default (`philips_js` exposes none). On
+> **Android-TV** Philips models you can expose them yourself (`pylips` / a `rest_command`
+> to the JointSpace `menuitems` API) and point `controls:` at the resulting
+> `select`/`number`. On **Titan OS** models (2022+, e.g. PUS7608) it's **not possible
+> over the network** — the API has no picture-settings module. Which one do you have, and
+> why? → **[docs/philips-tv.md](docs/philips-tv.md)** (and
+> [docs/remote-commands.md](docs/remote-commands.md) for the `controls:` reference).
 
 **Muziek** — a now-playing hero with artwork + seek bar and speaker grouping, with the TV
 players in a clearly separate section:

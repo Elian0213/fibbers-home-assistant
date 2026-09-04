@@ -103,8 +103,21 @@ controls:
     name: Scherm uit
 ```
 
-Picture-style presets aren't a Home Assistant entity out of the box — the
-`philips_js` integration explicitly exposes no picture-style control. To get
-`Dolby Vision Dark` as a chip, expose a `select`/`input_select` yourself (e.g. via
-`pylips` MQTT or a `rest_command` hitting the JointSpace settings API) and point a
-`controls:` entry at it. The card renders whatever you wire up.
+### Picture-style presets — 🧪 beta, and TV-dependent
+
+Picture-style presets (e.g. `Dolby Vision Dark`) and picture brightness aren't Home
+Assistant entities out of the box — `philips_js` exposes no picture control — so the
+card can only render them if **you expose them yourself**, and whether that's even
+possible depends on your TV's OS:
+
+- **Android-TV Philips (≈2016–2021)** — the JointSpace API has the `menuitems` module,
+  so picture style/brightness *can* be exposed as an `input_select`/`number` (via
+  [`pylips`](https://github.com/eslavnov/pylips) MQTT or a `rest_command` to
+  `…/menuitems/settings/update`). Point a `controls:` entry at it and the card renders
+  it. The example above assumes such an entity exists.
+- **Titan OS Philips (2022+, e.g. PUS7608/7609)** — the API has **no `menuitems`**, so
+  picture style/brightness are **not controllable over the network by any tool**. Change
+  them on the TV itself.
+
+Check which one you have and see the full findings + how to identify your TV in
+**[philips-tv.md](philips-tv.md)**.
