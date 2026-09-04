@@ -3,6 +3,36 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.8.4] — 2026-09-04
+
+Light-experience patch: two slider/keyboard fixes and a Hue-style colour wheel.
+
+### Fixed
+
+- **Escape now closes a Fibbers sheet or the light-detail modal.** The handler
+  deferred to any `role="dialog"` in the event path — but the sheet's own panel is
+  one, so every Escape was swallowed. It now only defers to a dialog stacked _above_
+  the sheet (a real HA overlay). Backdrop-click and × were unaffected.
+- **Sliders no longer snap back on release.** The release commit could be skipped by
+  the duplicate-value guard while the on-screen hold was already armed, so on a slow
+  bulb the hold expired and the slider jumped to the stale value; the release now
+  always commits (and re-arms the hold). The colour/brightness sliders in the
+  light-detail modal never armed their hold at all — now fixed too.
+- **Member sliders no longer "teleport" on an all-off / master change.** A group
+  commit now optimistically holds each expanded member row at the target so they
+  move with the master instead of lagging then jumping.
+
+### Added
+
+- **A colour wheel in the light-detail modal** for colour lights — a draggable HSV
+  disc (hue = angle, saturation = radius) above the hue/saturation sliders, with
+  arrow-key control and graceful off/unavailable degradation.
+- **Switch between a room's lamps inside the modal.** Opening the light detail from a
+  room or light-group shows a tab bar of that room's lamps (Left/Right/Home/End) so
+  you can tune each without close/reopen.
+- **A visible cue on the light-row name** so it's obvious that tapping it opens the
+  full colour/brightness controls.
+
 ## [0.8.3] — 2026-09-04
 
 Bug-fix patch for 0.8.2 (one serious), plus a proper Fibbers light dialog.
