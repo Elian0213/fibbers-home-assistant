@@ -208,10 +208,13 @@ export class FibbersLightRow extends LitElement {
       val = w ? `${w} · ${pct}%` : `${pct}%`;
     } else val = t(hl, "light_row.off");
 
+    // Compact = a group member: drop the 44px name-row min-height (it stacks on top
+    // of the 44px slider, doubling each row's height) so an expanded group is tight.
+    const compact = !!cfg.compact;
     return html`
       <div
         class="grid grid-cols-[28px_1fr] grid-rows-[auto_auto] items-center gap-x-2.5
-               gap-y-0 ${unavail ? "opacity-50" : ""}"
+               gap-y-0 ${compact ? "py-0.5" : ""} ${unavail ? "opacity-50" : ""}"
       >
         <div
           role="button"
@@ -249,7 +252,8 @@ export class FibbersLightRow extends LitElement {
           role="button"
           tabindex="0"
           aria-label=${`${name} — ${t(hl, "common.more_info")}`}
-          class="flex min-h-[var(--fib-hit)] cursor-pointer items-center justify-between gap-2"
+          class="flex cursor-pointer items-center justify-between gap-2
+                 ${compact ? "min-h-[26px]" : "min-h-[var(--fib-hit)]"}"
           @click=${() => this._moreInfo()}
           @keydown=${activateOnKey(() => this._moreInfo())}
         >
@@ -262,6 +266,7 @@ export class FibbersLightRow extends LitElement {
             ? sliderTrack({
                 pct,
                 disabled: unavail,
+                dragging: this._dragging,
                 label: name,
                 value: pct,
                 min: 0,

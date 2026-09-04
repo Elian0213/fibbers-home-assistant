@@ -1593,6 +1593,7 @@ export class FibbersRemote extends LitElement {
       return html`${sliderTrack({
           pct: vol,
           disabled: gone,
+          dragging: this._dragging,
           cls: "flex-1",
           label: t(hl, "remote.volume"),
           value: vol,
@@ -1848,6 +1849,7 @@ export class FibbersRemote extends LitElement {
       ${sliderTrack({
         pct: this._ctlPct(entity, v),
         disabled: gone,
+        dragging: s.dragging,
         label: name,
         value: v,
         min: b.min,

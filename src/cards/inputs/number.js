@@ -255,6 +255,7 @@ export class FibbersNumber extends LitElement {
         return sliderTrack({
           pct,
           disabled: unavail,
+          dragging: this._dragging,
           cls: "mt-2.5",
           label: name,
           value: v,

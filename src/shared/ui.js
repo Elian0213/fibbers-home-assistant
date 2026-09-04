@@ -215,7 +215,8 @@ export function stepFromKey(key, { value, min, max, step }) {
  * accent fill and knob positioned at `pct` (0-100), with pointer handlers wired
  * by the caller. Purely presentational — the caller owns pct↔value mapping and
  * the service call. Passing the value-space (value/min/max/step) + onInput
- * upgrades it to a keyboard-driven role="slider".
+ * upgrades it to a keyboard-driven role="slider". Pass `dragging` (the card's own
+ * drag flag) to grow the knob and reveal the live value bubble mid-drag.
  * @param {object} opts — see destructured params
  * @returns {object} lit-html template
  */
@@ -227,6 +228,7 @@ export function sliderTrack({
   onMove,
   onUp,
   onCancel,
+  dragging = false,
   // Accessibility (optional but recommended). Give the value-space (value/min/max/
   // step) + onInput(newValue) and the track becomes a real, keyboard-driven
   // role="slider"; label/valueText feed the screen-reader announcement.
@@ -247,12 +249,15 @@ export function sliderTrack({
           e.preventDefault();
           if (next !== value) onInput(next);
         };
+  // The bubble text — the caller's valueText (e.g. "72%", "21.5 °C", "1:24"), else
+  // the raw percentage. Shown while dragging (JS flag) or on keyboard focus (CSS).
+  const bubbleText = valueText != null ? valueText : `${Math.round(pct)}%`;
   // The element carrying role="slider" + the pointer handlers is a 44px-tall
   // transparent wrapper (a real touch target); the painted 6px bar is an inert
   // child. pctFromX still measures e.currentTarget (the wrapper) — same width, so
-  // the maths is unchanged.
+  // the maths is unchanged. `group` lets the bubble reveal on keyboard focus.
   return html`<div
-    class="relative flex h-[var(--fib-hit)] cursor-pointer touch-pan-y items-center
+    class="group relative flex h-[var(--fib-hit)] cursor-pointer touch-pan-y items-center
            ${cls} ${disabled ? "pointer-events-none" : ""}"
     role="slider"
     tabindex=${disabled ? -1 : 0}
@@ -281,9 +286,25 @@ export function sliderTrack({
                 class="absolute bottom-0 left-0 top-0 rounded-[3px] bg-accent"
                 style="width:${pct}%"
               ></div>
+              <!-- live value bubble above the knob: visible while dragging or on
+                   keyboard focus, tabular so digits don't jitter. -->
               <div
-                class="absolute top-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2
-                     rounded-full bg-accent shadow-[0_1px_3px_rgba(0,0,0,.4)]"
+                class="pointer-events-none absolute bottom-full z-10 mb-2 -translate-x-1/2
+                       whitespace-nowrap rounded-md border border-line bg-card2 px-2 py-1
+                       text-[11px] font-semibold tabular-nums text-ink
+                       shadow-[0_2px_10px_rgba(0,0,0,.5)] transition-[opacity,transform]
+                       duration-100 group-focus-visible:scale-100
+                       group-focus-visible:opacity-100
+                       ${dragging ? "scale-100 opacity-100" : "scale-90 opacity-0"}"
+                style="left:${pct}%"
+              >
+                ${bubbleText}
+              </div>
+              <div
+                class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full
+                       bg-accent shadow-[0_1px_4px_rgba(0,0,0,.5)]
+                       transition-[width,height] duration-100
+                       ${dragging ? "h-[22px] w-[22px]" : "h-[18px] w-[18px]"}"
                 style="left:${pct}%"
               ></div>`
       }

@@ -253,7 +253,11 @@ export class FibbersLightGroup extends LitElement {
     let el = this._rowCache.get(id);
     if (!el) {
       el = document.createElement("fibbers-light-row");
-      el.setConfig({ type: "custom:fibbers-light-row", entity: id });
+      el.setConfig({
+        type: "custom:fibbers-light-row",
+        entity: id,
+        compact: true,
+      });
       this._rowCache.set(id, el);
     }
     el.hass = this.hass;
@@ -332,7 +336,7 @@ export class FibbersLightGroup extends LitElement {
       </div>
 
       <div
-        class="relative mt-2 flex h-[var(--fib-hit)] cursor-pointer touch-pan-y items-center
+        class="group relative mt-2 flex h-[var(--fib-hit)] cursor-pointer touch-pan-y items-center
                ${s.allOff ? "pointer-events-none opacity-50" : ""}"
         role="slider"
         tabindex=${s.allOff ? -1 : 0}
@@ -360,8 +364,22 @@ export class FibbersLightGroup extends LitElement {
                     style="width:${pct}%${stripe}"
                   ></div>
                   <div
-                    class="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full
-                         bg-accent shadow-[0_1px_3px_rgba(0,0,0,.4)]"
+                    class="pointer-events-none absolute bottom-full z-10 mb-2 -translate-x-1/2
+                           whitespace-nowrap rounded-md border border-line bg-card2 px-2 py-1
+                           text-[11px] font-semibold tabular-nums text-ink
+                           shadow-[0_2px_10px_rgba(0,0,0,.5)] transition-[opacity,transform]
+                           duration-100 group-focus-visible:scale-100
+                           group-focus-visible:opacity-100
+                           ${this._dragging ? "scale-100 opacity-100" : "scale-90 opacity-0"}"
+                    style="left:${pct}%"
+                  >
+                    ${pct}%
+                  </div>
+                  <div
+                    class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full
+                         bg-accent shadow-[0_1px_4px_rgba(0,0,0,.5)]
+                         transition-[width,height] duration-100
+                         ${this._dragging ? "h-[22px] w-[22px]" : "h-[18px] w-[18px]"}"
                     style="left:${pct}%"
                   ></div>`
           }

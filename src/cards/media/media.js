@@ -7,7 +7,12 @@ import { LitElement, html, css } from "lit";
 
 import { t } from "../../shared/i18n.js";
 import { twSheet } from "../../shared/tw.js";
-import { sliderTrack, overflowChips, SliderHold } from "../../shared/ui.js";
+import {
+  sliderTrack,
+  sliderDrag,
+  overflowChips,
+  SliderHold,
+} from "../../shared/ui.js";
 import { pctFromX, pickEntity, cssUrl, debounce } from "../../shared/util.js";
 import "../../shared/icon.js";
 
@@ -112,6 +117,33 @@ export class FibbersMedia extends LitElement {
     // Keyboard nudges on the sliders shouldn't fire a service call per keydown.
     this._volInput = debounce((v) => this._setVol(v), 150);
     this._seekInput = debounce((v) => this._seek(v), 150);
+    // Shared drag gesture: live-track past the slop (debounced writes mid-drag),
+    // final value wins on release — same pipeline as the light/number sliders, so
+    // volume and seek update live while dragging instead of only on release.
+    this._volDrag = sliderDrag({
+      read: (e) => Math.round(pctFromX(e.clientX, e.currentTarget)),
+      frame: (v, dragging) => {
+        this._dragging = dragging;
+        if (v != null) this._dragVol = v;
+      },
+      live: (v) => this._volInput(v),
+      end: (v) => {
+        this._volInput.cancel();
+        if (v != null) this._setVol(v);
+      },
+    });
+    this._seekDrag = sliderDrag({
+      read: (e) => this._seekFromX(e),
+      frame: (v, dragging) => {
+        this._seeking = dragging;
+        if (v != null) this._dragSeek = v;
+      },
+      live: (v) => this._seekInput(v),
+      end: (v) => {
+        this._seekInput.cancel();
+        if (v != null) this._seek(v);
+      },
+    });
   }
 
   /**
@@ -273,41 +305,9 @@ export class FibbersMedia extends LitElement {
       .catch(() => {});
   }
 
-  _down(e) {
-    this._dragging = true;
-    e.currentTarget.setPointerCapture &&
-      e.currentTarget.setPointerCapture(e.pointerId);
-    this._dragVol = Math.round(pctFromX(e.clientX, e.currentTarget));
-  }
-  _move(e) {
-    if (this._dragging)
-      this._dragVol = Math.round(pctFromX(e.clientX, e.currentTarget));
-  }
-  _up(e) {
-    if (!this._dragging) return;
-    const v = Math.round(pctFromX(e.clientX, e.currentTarget));
-    this._dragging = false;
-    this._setVol(v);
-  }
-
   _seekFromX(e) {
     const dur = (this._pos() || {}).dur || 0;
     return (pctFromX(e.clientX, e.currentTarget) / 100) * dur;
-  }
-  _seekDown(e) {
-    this._seeking = true;
-    e.currentTarget.setPointerCapture &&
-      e.currentTarget.setPointerCapture(e.pointerId);
-    this._dragSeek = this._seekFromX(e);
-  }
-  _seekMove(e) {
-    if (this._seeking) this._dragSeek = this._seekFromX(e);
-  }
-  _seekUp(e) {
-    if (!this._seeking) return;
-    const s = this._seekFromX(e);
-    this._seeking = false;
-    this._seek(s);
   }
 
   _transportBtn(icon, service, opts = {}) {
@@ -368,6 +368,7 @@ export class FibbersMedia extends LitElement {
     return html`<div class="mb-3">
       ${sliderTrack({
         pct,
+        dragging: this._seeking,
         label: t(hl, "media.seek"),
         value: Math.round(pos),
         min: 0,
@@ -381,12 +382,10 @@ export class FibbersMedia extends LitElement {
           this._seekHold.hold(v);
           this._seekInput(v);
         },
-        onDown: this._seekDown,
-        onMove: this._seekMove,
-        onUp: this._seekUp,
-        onCancel: () => {
-          this._seeking = false;
-        },
+        onDown: this._seekDrag.down,
+        onMove: this._seekDrag.move,
+        onUp: this._seekDrag.up,
+        onCancel: this._seekDrag.cancel,
       })}
       ${times}
     </div>`;
@@ -518,6 +517,7 @@ export class FibbersMedia extends LitElement {
               ></fib-icon>
               ${sliderTrack({
                 pct: this._vol(),
+                dragging: this._dragging,
                 cls: "flex-1",
                 label: t(hl, "media.volume"),
                 value: this._vol(),
@@ -530,12 +530,10 @@ export class FibbersMedia extends LitElement {
                   this._volHold.hold(v);
                   this._volInput(v);
                 },
-                onDown: this._down,
-                onMove: this._move,
-                onUp: this._up,
-                onCancel: () => {
-                  this._dragging = false;
-                },
+                onDown: this._volDrag.down,
+                onMove: this._volDrag.move,
+                onUp: this._volDrag.up,
+                onCancel: this._volDrag.cancel,
               })}
               <fib-icon
                 class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-muted"
