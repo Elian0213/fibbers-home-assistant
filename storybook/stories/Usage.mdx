@@ -152,6 +152,9 @@ tabs: [...]
 - **`more_info: true`** opens a Fibbers-styled modal for the entities it renders well —
   `media_player`, `climate`, `light`, and a numeric `sensor` (current value + 24h history
   with min/max/change). Every other domain falls through to HA's own (themed) dialog.
+  Tapping a **light** opens brightness + a colour wheel; opened from a **room / light-group**
+  it becomes a Hue-style **room colour picker** — one wheel with a draggable marker per lamp
+  (drag two together to snap them to one colour) and the lamps as tiles below.
 
 Sliders show a live value bubble above the knob while dragging and update the entity
 live (debounced) as you slide, on every card.

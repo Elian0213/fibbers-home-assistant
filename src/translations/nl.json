@@ -36,7 +36,6 @@
     "neutral": "Neutraal",
     "cool": "Koel",
     "lights": "Lampen",
-    "white": "Wit",
     "on_count": "{on} van {total} aan"
   },
   "light_group": {

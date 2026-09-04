@@ -93,6 +93,7 @@ function handle(e) {
     cards,
     hass,
     entityId: id,
+    wide: grouped, // the room picker gets the wider two-column desktop dialog
   });
 }
 

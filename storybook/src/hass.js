@@ -28,15 +28,22 @@ export function makeHass(flags = {}) {
     brightness: f.tvLed ? 204 : 0,
     color_mode: f.tvLed ? "hs" : null,
     hs_color: f.tvLed ? [280, 72] : null,
+    rgb_color: f.tvLed ? [194, 71, 255] : null,
     supported_color_modes: ["hs", "color_temp"],
   });
   add("light.kitchen", "on", { friendly_name: "Gitaarlamp", brightness: 178 });
-  add("light.woonkamer_computer", "off", { friendly_name: "Computer" });
+  add("light.woonkamer_computer", "off", {
+    friendly_name: "Computer",
+    supported_color_modes: ["color_temp"],
+    min_color_temp_kelvin: 2000,
+    max_color_temp_kelvin: 6535,
+  });
   add("light.kitchen_lsc_led_strip", "on", {
     friendly_name: "Keuken LED",
     brightness: 120,
     color_mode: "hs",
     hs_color: [140, 75],
+    rgb_color: [64, 255, 128],
     supported_color_modes: ["hs", "color_temp"],
     min_color_temp_kelvin: 2000,
     max_color_temp_kelvin: 6535,

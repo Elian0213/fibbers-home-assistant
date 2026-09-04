@@ -1,4 +1,4 @@
-/*! Fibbers v0.8.4 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */
+/*! Fibbers v0.8.7 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */
 (() => {
 
   // src/generated/icons.core.gen.js
@@ -1103,7 +1103,6 @@
       neutral: "Neutral",
       cool: "Cool",
       lights: "Lights",
-      white: "White",
       on_count: "{on} of {total} on"
     },
     light_group: {
@@ -1271,7 +1270,6 @@
       neutral: "Neutraal",
       cool: "Koel",
       lights: "Lampen",
-      white: "Wit",
       on_count: "{on} van {total} aan"
     },
     light_group: {
@@ -1435,7 +1433,7 @@
 
   // src/generated/tailwind.gen.js
   var TW_CSS = `/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */
-@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-translate-x:0;--tw-translate-y:0;--tw-translate-z:0;--tw-scale-x:1;--tw-scale-y:1;--tw-scale-z:1;--tw-rotate-x:initial;--tw-rotate-y:initial;--tw-rotate-z:initial;--tw-skew-x:initial;--tw-skew-y:initial;--tw-pan-x:initial;--tw-pan-y:initial;--tw-pinch-zoom:initial;--tw-border-style:solid;--tw-leading:initial;--tw-font-weight:initial;--tw-tracking:initial;--tw-ordinal:initial;--tw-slashed-zero:initial;--tw-numeric-figure:initial;--tw-numeric-spacing:initial;--tw-numeric-fraction:initial;--tw-shadow:0 0 #0000;--tw-shadow-color:initial;--tw-shadow-alpha:100%;--tw-inset-shadow:0 0 #0000;--tw-inset-shadow-color:initial;--tw-inset-shadow-alpha:100%;--tw-ring-color:initial;--tw-ring-shadow:0 0 #0000;--tw-inset-ring-color:initial;--tw-inset-ring-shadow:0 0 #0000;--tw-ring-inset:initial;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-offset-shadow:0 0 #0000;--tw-outline-style:solid;--tw-blur:initial;--tw-brightness:initial;--tw-contrast:initial;--tw-grayscale:initial;--tw-hue-rotate:initial;--tw-invert:initial;--tw-opacity:initial;--tw-saturate:initial;--tw-sepia:initial;--tw-drop-shadow:initial;--tw-drop-shadow-color:initial;--tw-drop-shadow-alpha:100%;--tw-drop-shadow-size:initial;--tw-backdrop-blur:initial;--tw-backdrop-brightness:initial;--tw-backdrop-contrast:initial;--tw-backdrop-grayscale:initial;--tw-backdrop-hue-rotate:initial;--tw-backdrop-invert:initial;--tw-backdrop-opacity:initial;--tw-backdrop-saturate:initial;--tw-backdrop-sepia:initial;--tw-duration:initial}}}@layer theme{:root,:host{--font-sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";--font-mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;--color-white:#fff;--spacing:.25rem;--font-weight-medium:500;--font-weight-semibold:600;--tracking-tight:-.025em;--leading-tight:1.25;--radius-md:.375rem;--radius-lg:.5rem;--radius-xl:.75rem;--animate-pulse:pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;--default-transition-duration:.15s;--default-transition-timing-function:cubic-bezier(.4, 0, .2, 1);--default-font-family:var(--font-sans);--default-mono-font-family:var(--font-mono);--color-card:#1d2426;--color-card2:#262f31;--color-line:#333e41;--color-ink:#edf1f1;--color-ink2:#a9b6b9;--color-muted:#7d8b8e;--color-accent:#74b98a;--color-accentbg:#17281c;--color-accentline:#2b4a34;--color-accenttx:#cfe6d5;--color-amber:#e8a33d;--color-amberbg:#3a2b12;--color-amberline:#4e3a18;--color-ambertx:#ebd9bc;--color-blue:#5aafd6;--color-bluebg:#152b36;--color-blueline:#2c5a70;--color-blueink:#9bd2ea;--color-green:#63c295;--color-red:#ec8377}}@layer base{*,:after,:before,::backdrop{box-sizing:border-box;border:0 solid;margin:0;padding:0}::file-selector-button{box-sizing:border-box;border:0 solid;margin:0;padding:0}html,:host{-webkit-text-size-adjust:100%;tab-size:4;line-height:1.5;font-family:var(--default-font-family,-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");font-feature-settings:var(--default-font-feature-settings,normal);font-variation-settings:var(--default-font-variation-settings,normal);-webkit-tap-highlight-color:transparent}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,samp,pre{font-family:var(--default-mono-font-family,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);font-feature-settings:var(--default-mono-font-feature-settings,normal);font-variation-settings:var(--default-mono-font-variation-settings,normal);font-size:1em}small{font-size:80%}sub,sup{vertical-align:baseline;font-size:75%;line-height:0;position:relative}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}:-moz-focusring:where(:not(iframe)){outline:auto}progress{vertical-align:baseline}summary{display:list-item}ol,ul,menu{list-style:none}img,svg,video,canvas,audio,iframe,embed,object{vertical-align:middle;display:block}img,video{max-width:100%;height:auto}button,input,select,optgroup,textarea{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}::file-selector-button{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}:where(select:is([multiple],[size])) optgroup{font-weight:bolder}:where(select:is([multiple],[size])) optgroup option{padding-inline-start:20px}::file-selector-button{margin-inline-end:4px}::placeholder{opacity:1}@supports (not ((-webkit-appearance:-apple-pay-button))) or (contain-intrinsic-size:1px){::placeholder{color:currentColor}@supports (color:color-mix(in lab, red, red)){::placeholder{color:color-mix(in oklab, currentcolor 50%, transparent)}}}textarea{resize:vertical}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-date-and-time-value{min-height:1lh;text-align:inherit}::-webkit-datetime-edit{display:inline-flex}::-webkit-datetime-edit-fields-wrapper{padding:0}::-webkit-datetime-edit{padding-block:0}::-webkit-datetime-edit-year-field{padding-block:0}::-webkit-datetime-edit-month-field{padding-block:0}::-webkit-datetime-edit-day-field{padding-block:0}::-webkit-datetime-edit-hour-field{padding-block:0}::-webkit-datetime-edit-minute-field{padding-block:0}::-webkit-datetime-edit-second-field{padding-block:0}::-webkit-datetime-edit-millisecond-field{padding-block:0}::-webkit-datetime-edit-meridiem-field{padding-block:0}::-webkit-calendar-picker-indicator{line-height:1}:-moz-ui-invalid{box-shadow:none}button,input:where([type=button],[type=reset],[type=submit]){appearance:button}::file-selector-button{appearance:button}::-webkit-inner-spin-button{height:auto}::-webkit-outer-spin-button{height:auto}[hidden]:where(:not([hidden=until-found])){display:none!important}}@layer components;@layer utilities{.\\@container{container-type:inline-size}.pointer-events-none{pointer-events:none}.collapse{visibility:collapse}.invisible{visibility:hidden}.visible{visibility:visible}.absolute{position:absolute}.fixed{position:fixed}.relative{position:relative}.static{position:static}.inset-x-0{inset-inline:0}.top-0{top:0}.top-0\\.5{top:calc(var(--spacing) * .5)}.top-1{top:var(--spacing)}.top-1\\/2{top:50%}.top-2{top:calc(var(--spacing) * 2)}.top-\\[calc\\(100\\%\\+4px\\)\\]{top:calc(100% + 4px)}.right-0{right:0}.right-1{right:var(--spacing)}.right-2{right:calc(var(--spacing) * 2)}.bottom-0{bottom:0}.bottom-1{bottom:var(--spacing)}.bottom-2{bottom:calc(var(--spacing) * 2)}.bottom-full{bottom:100%}.left-0{left:0}.left-0\\.5{left:calc(var(--spacing) * .5)}.left-1{left:var(--spacing)}.left-1\\/2{left:50%}.left-2{left:calc(var(--spacing) * 2)}.left-\\[18px\\]{left:18px}.z-10{z-index:10}.col-start-2{grid-column-start:2}.row-span-2{grid-row:span 2/span 2}.container{width:100%}@media (min-width:40rem){.container{max-width:40rem}}@media (min-width:48rem){.container{max-width:48rem}}@media (min-width:64rem){.container{max-width:64rem}}@media (min-width:80rem){.container{max-width:80rem}}@media (min-width:96rem){.container{max-width:96rem}}.-mx-1{margin-inline:calc(var(--spacing) * -1)}.mx-0{margin-inline:0}.mx-auto{margin-inline:auto}.mt-0{margin-top:0}.mt-0\\.5{margin-top:calc(var(--spacing) * .5)}.mt-1{margin-top:var(--spacing)}.mt-1\\.5{margin-top:calc(var(--spacing) * 1.5)}.mt-2{margin-top:calc(var(--spacing) * 2)}.mt-2\\.5{margin-top:calc(var(--spacing) * 2.5)}.mt-3{margin-top:calc(var(--spacing) * 3)}.mb-1{margin-bottom:var(--spacing)}.mb-1\\.5{margin-bottom:calc(var(--spacing) * 1.5)}.mb-2{margin-bottom:calc(var(--spacing) * 2)}.mb-2\\.5{margin-bottom:calc(var(--spacing) * 2.5)}.mb-3{margin-bottom:calc(var(--spacing) * 3)}.ml-0{margin-left:0}.ml-0\\.5{margin-left:calc(var(--spacing) * .5)}.ml-2{margin-left:calc(var(--spacing) * 2)}.ml-\\[7px\\]{margin-left:7px}.ml-\\[18px\\]{margin-left:18px}.ml-auto{margin-left:auto}.block{display:block}.contents{display:contents}.flex{display:flex}.grid{display:grid}.hidden{display:none}.inline{display:inline}.inline-flex{display:inline-flex}.table{display:table}.aspect-square{aspect-ratio:1}.h-1{height:var(--spacing)}.h-1\\.5{height:calc(var(--spacing) * 1.5)}.h-2{height:calc(var(--spacing) * 2)}.h-2\\.5{height:calc(var(--spacing) * 2.5)}.h-3{height:calc(var(--spacing) * 3)}.h-3\\.5{height:calc(var(--spacing) * 3.5)}.h-4{height:calc(var(--spacing) * 4)}.h-5{height:calc(var(--spacing) * 5)}.h-6{height:calc(var(--spacing) * 6)}.h-7{height:calc(var(--spacing) * 7)}.h-8{height:calc(var(--spacing) * 8)}.h-9{height:calc(var(--spacing) * 9)}.h-10{height:calc(var(--spacing) * 10)}.h-11{height:calc(var(--spacing) * 11)}.h-12{height:calc(var(--spacing) * 12)}.h-14{height:calc(var(--spacing) * 14)}.h-20{height:calc(var(--spacing) * 20)}.h-\\[5px\\]{height:5px}.h-\\[13px\\]{height:13px}.h-\\[15px\\]{height:15px}.h-\\[17px\\]{height:17px}.h-\\[18px\\]{height:18px}.h-\\[19px\\]{height:19px}.h-\\[20px\\]{height:20px}.h-\\[22px\\]{height:22px}.h-\\[26px\\]{height:26px}.h-\\[30px\\]{height:30px}.h-\\[34px\\]{height:34px}.h-\\[42px\\]{height:42px}.h-\\[84px\\]{height:84px}.h-\\[var\\(--fib-hit\\)\\]{height:var(--fib-hit)}.h-full{height:100%}.max-h-\\[220px\\]{max-height:220px}.min-h-11{min-height:calc(var(--spacing) * 11)}.min-h-\\[26px\\]{min-height:26px}.min-h-\\[var\\(--fib-hit\\)\\]{min-height:var(--fib-hit)}.w-1{width:var(--spacing)}.w-2{width:calc(var(--spacing) * 2)}.w-3{width:calc(var(--spacing) * 3)}.w-3\\.5{width:calc(var(--spacing) * 3.5)}.w-4{width:calc(var(--spacing) * 4)}.w-5{width:calc(var(--spacing) * 5)}.w-6{width:calc(var(--spacing) * 6)}.w-7{width:calc(var(--spacing) * 7)}.w-8{width:calc(var(--spacing) * 8)}.w-9{width:calc(var(--spacing) * 9)}.w-10{width:calc(var(--spacing) * 10)}.w-11{width:calc(var(--spacing) * 11)}.w-12{width:calc(var(--spacing) * 12)}.w-14{width:calc(var(--spacing) * 14)}.w-20{width:calc(var(--spacing) * 20)}.w-\\[5px\\]{width:5px}.w-\\[13px\\]{width:13px}.w-\\[15px\\]{width:15px}.w-\\[17px\\]{width:17px}.w-\\[18px\\]{width:18px}.w-\\[19px\\]{width:19px}.w-\\[20px\\]{width:20px}.w-\\[22px\\]{width:22px}.w-\\[26px\\]{width:26px}.w-\\[30px\\]{width:30px}.w-\\[34px\\]{width:34px}.w-\\[42px\\]{width:42px}.w-\\[84px\\]{width:84px}.w-full{width:100%}.w-px{width:1px}.max-w-\\[96px\\]{max-width:96px}.max-w-\\[240px\\]{max-width:240px}.min-w-0{min-width:0}.min-w-\\[52px\\]{min-width:52px}.min-w-\\[68px\\]{min-width:68px}.flex-1{flex:1}.flex-none{flex:none}.shrink{flex-shrink:1}.grow{flex-grow:1}.-translate-x-1{--tw-translate-x:calc(var(--spacing) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-x-1\\/2{--tw-translate-x:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1{--tw-translate-y:calc(var(--spacing) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1\\/2{--tw-translate-y:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.scale-90{--tw-scale-x:90%;--tw-scale-y:90%;--tw-scale-z:90%;scale:var(--tw-scale-x) var(--tw-scale-y)}.scale-100{--tw-scale-x:100%;--tw-scale-y:100%;--tw-scale-z:100%;scale:var(--tw-scale-x) var(--tw-scale-y)}.rotate-180{rotate:180deg}.transform{transform:var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,)}.animate-pulse{animation:var(--animate-pulse)}.cursor-pointer{cursor:pointer}.touch-pan-y{--tw-pan-y:pan-y;touch-action:var(--tw-pan-x,) var(--tw-pan-y,) var(--tw-pinch-zoom,)}.touch-none{touch-action:none}.resize{resize:both}.auto-cols-fr{grid-auto-columns:minmax(0,1fr)}.grid-flow-col{grid-auto-flow:column}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.grid-cols-\\[28px_1fr\\]{grid-template-columns:28px 1fr}.grid-cols-\\[28px_1fr_auto\\]{grid-template-columns:28px 1fr auto}.grid-cols-\\[34px_1fr\\]{grid-template-columns:34px 1fr}.grid-cols-\\[repeat\\(auto-fit\\,minmax\\(84px\\,1fr\\)\\)\\]{grid-template-columns:repeat(auto-fit,minmax(84px,1fr))}.grid-rows-\\[auto_auto\\]{grid-template-rows:auto auto}.flex-col{flex-direction:column}.flex-nowrap{flex-wrap:nowrap}.flex-wrap{flex-wrap:wrap}.items-baseline{align-items:baseline}.items-center{align-items:center}.items-start{align-items:flex-start}.justify-between{justify-content:space-between}.justify-center{justify-content:center}.gap-0{gap:0}.gap-1{gap:var(--spacing)}.gap-1\\.5{gap:calc(var(--spacing) * 1.5)}.gap-2{gap:calc(var(--spacing) * 2)}.gap-2\\.5{gap:calc(var(--spacing) * 2.5)}.gap-3{gap:calc(var(--spacing) * 3)}.gap-4{gap:calc(var(--spacing) * 4)}.gap-\\[3px\\]{gap:3px}.gap-\\[5px\\]{gap:5px}.gap-\\[7px\\]{gap:7px}.gap-x-1{column-gap:var(--spacing)}.gap-x-1\\.5{column-gap:calc(var(--spacing) * 1.5)}.gap-x-2{column-gap:calc(var(--spacing) * 2)}.gap-x-2\\.5{column-gap:calc(var(--spacing) * 2.5)}.gap-x-3{column-gap:calc(var(--spacing) * 3)}.gap-x-4{column-gap:calc(var(--spacing) * 4)}.gap-x-\\[11px\\]{column-gap:11px}.gap-y-0{row-gap:0}.gap-y-0\\.5{row-gap:calc(var(--spacing) * .5)}.gap-y-2{row-gap:calc(var(--spacing) * 2)}.gap-y-\\[18px\\]{row-gap:18px}.truncate{text-overflow:ellipsis;white-space:nowrap;overflow:hidden}.overflow-auto{overflow:auto}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overscroll-contain{overscroll-behavior:contain}.rounded{border-radius:.25rem}.rounded-\\[3px\\]{border-radius:3px}.rounded-\\[6px\\]{border-radius:6px}.rounded-\\[7px\\]{border-radius:7px}.rounded-\\[9px\\]{border-radius:9px}.rounded-\\[10px\\]{border-radius:10px}.rounded-\\[11px\\]{border-radius:11px}.rounded-\\[14px\\]{border-radius:14px}.rounded-\\[15px\\]{border-radius:15px}.rounded-full{border-radius:3.40282e38px}.rounded-lg{border-radius:var(--radius-lg)}.rounded-md{border-radius:var(--radius-md)}.rounded-xl{border-radius:var(--radius-xl)}.border{border-style:var(--tw-border-style);border-width:1px}.border-0{border-style:var(--tw-border-style);border-width:0}.border-2{border-style:var(--tw-border-style);border-width:2px}.border-l{border-left-style:var(--tw-border-style);border-left-width:1px}.border-\\[\\#2E5238\\]{border-color:#2e5238}.border-\\[rgba\\(0\\,0\\,0\\,\\.45\\)\\]{border-color:#00000073}.border-\\[rgba\\(255\\,255\\,255\\,\\.15\\)\\]{border-color:#ffffff26}.border-\\[rgba\\(255\\,255\\,255\\,\\.25\\)\\]{border-color:#ffffff40}.border-accent{border-color:var(--color-accent)}.border-accentline{border-color:var(--color-accentline)}.border-amberline{border-color:var(--color-amberline)}.border-blueline{border-color:var(--color-blueline)}.border-card2{border-color:var(--color-card2)}.border-line{border-color:var(--color-line)}.border-white{border-color:var(--color-white)}.bg-\\[\\#2C3639\\]{background-color:#2c3639}.bg-\\[rgba\\(116\\,185\\,138\\,0\\.10\\)\\]{background-color:#74b98a1a}.bg-accent{background-color:var(--color-accent)}.bg-accentbg{background-color:var(--color-accentbg)}.bg-amberbg{background-color:var(--color-amberbg)}.bg-bluebg{background-color:var(--color-bluebg)}.bg-card{background-color:var(--color-card)}.bg-card2{background-color:var(--color-card2)}.bg-line{background-color:var(--color-line)}.bg-muted{background-color:var(--color-muted)}.bg-transparent{background-color:#0000}.bg-white{background-color:var(--color-white)}.bg-\\[linear-gradient\\(145deg\\,\\#1E3427\\,\\#132016\\)\\]{background-image:linear-gradient(145deg,#1e3427,#132016)}.bg-cover{background-size:cover}.bg-center{background-position:50%}.p-1{padding:var(--spacing)}.p-2{padding:calc(var(--spacing) * 2)}.p-3{padding:calc(var(--spacing) * 3)}.p-3\\.5{padding:calc(var(--spacing) * 3.5)}.p-\\[13px\\]{padding:13px}.p-\\[15px\\]{padding:15px}.px-0{padding-inline:0}.px-0\\.5{padding-inline:calc(var(--spacing) * .5)}.px-1{padding-inline:var(--spacing)}.px-2{padding-inline:calc(var(--spacing) * 2)}.px-2\\.5{padding-inline:calc(var(--spacing) * 2.5)}.px-3{padding-inline:calc(var(--spacing) * 3)}.px-3\\.5{padding-inline:calc(var(--spacing) * 3.5)}.px-\\[13px\\]{padding-inline:13px}.py-0{padding-block:0}.py-0\\.5{padding-block:calc(var(--spacing) * .5)}.py-1{padding-block:var(--spacing)}.py-1\\.5{padding-block:calc(var(--spacing) * 1.5)}.py-2{padding-block:calc(var(--spacing) * 2)}.py-3{padding-block:calc(var(--spacing) * 3)}.py-\\[5px\\]{padding-block:5px}.py-\\[7px\\]{padding-block:7px}.py-\\[9px\\]{padding-block:9px}.pt-0{padding-top:0}.pt-0\\.5{padding-top:calc(var(--spacing) * .5)}.pt-\\[5px\\]{padding-top:5px}.pt-\\[7px\\]{padding-top:7px}.pt-\\[13px\\]{padding-top:13px}.pr-\\[11px\\]{padding-right:11px}.pb-0{padding-bottom:0}.pb-1{padding-bottom:var(--spacing)}.pb-1\\.5{padding-bottom:calc(var(--spacing) * 1.5)}.pb-3{padding-bottom:calc(var(--spacing) * 3)}.pb-\\[3px\\]{padding-bottom:3px}.pl-3{padding-left:calc(var(--spacing) * 3)}.pl-\\[7px\\]{padding-left:7px}.text-center{text-align:center}.text-left{text-align:left}.text-right{text-align:right}.font-mono{font-family:var(--font-mono)}.text-\\[9\\.5px\\]{font-size:9.5px}.text-\\[9px\\]{font-size:9px}.text-\\[10\\.5px\\]{font-size:10.5px}.text-\\[10px\\]{font-size:10px}.text-\\[11\\.5px\\]{font-size:11.5px}.text-\\[11px\\]{font-size:11px}.text-\\[12\\.5px\\]{font-size:12.5px}.text-\\[12px\\]{font-size:12px}.text-\\[13px\\]{font-size:13px}.text-\\[14px\\]{font-size:14px}.text-\\[15px\\]{font-size:15px}.text-\\[16px\\]{font-size:16px}.text-\\[17px\\]{font-size:17px}.text-\\[20px\\]{font-size:20px}.text-\\[22px\\]{font-size:22px}.text-\\[24px\\]{font-size:24px}.text-\\[26px\\]{font-size:26px}.text-\\[30px\\]{font-size:30px}.leading-\\[1\\.1\\]{--tw-leading:1.1;line-height:1.1}.leading-\\[1\\.15\\]{--tw-leading:1.15;line-height:1.15}.leading-\\[1\\.25\\]{--tw-leading:1.25;line-height:1.25}.leading-\\[1\\.42\\]{--tw-leading:1.42;line-height:1.42}.leading-none{--tw-leading:1;line-height:1}.leading-tight{--tw-leading:var(--leading-tight);line-height:var(--leading-tight)}.font-medium{--tw-font-weight:var(--font-weight-medium);font-weight:var(--font-weight-medium)}.font-semibold{--tw-font-weight:var(--font-weight-semibold);font-weight:var(--font-weight-semibold)}.tracking-\\[-0\\.015em\\]{--tw-tracking:-.015em;letter-spacing:-.015em}.tracking-\\[0\\.01em\\]{--tw-tracking:.01em;letter-spacing:.01em}.tracking-\\[0\\.1em\\]{--tw-tracking:.1em;letter-spacing:.1em}.tracking-\\[0\\.06em\\]{--tw-tracking:.06em;letter-spacing:.06em}.tracking-\\[0\\.08em\\]{--tw-tracking:.08em;letter-spacing:.08em}.tracking-\\[0\\.11em\\]{--tw-tracking:.11em;letter-spacing:.11em}.tracking-tight{--tw-tracking:var(--tracking-tight);letter-spacing:var(--tracking-tight)}.text-ellipsis{text-overflow:ellipsis}.whitespace-nowrap{white-space:nowrap}.text-\\[\\#0c1510\\]{color:#0c1510}.text-accent{color:var(--color-accent)}.text-accenttx{color:var(--color-accenttx)}.text-amber{color:var(--color-amber)}.text-ambertx{color:var(--color-ambertx)}.text-blue{color:var(--color-blue)}.text-blueink{color:var(--color-blueink)}.text-green{color:var(--color-green)}.text-ink{color:var(--color-ink)}.text-ink2{color:var(--color-ink2)}.text-muted{color:var(--color-muted)}.text-red{color:var(--color-red)}.capitalize{text-transform:capitalize}.lowercase{text-transform:lowercase}.uppercase{text-transform:uppercase}.tabular-nums{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,)}.opacity-0{opacity:0}.opacity-40{opacity:.4}.opacity-50{opacity:.5}.opacity-60{opacity:.6}.opacity-100{opacity:1}.opacity-\\[\\.66\\]{opacity:.66}.shadow{--tw-shadow:0 1px 3px 0 var(--tw-shadow-color,#0000001a), 0 1px 2px -1px var(--tw-shadow-color,#0000001a);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_3px_rgba\\(0\\,0\\,0\\,\\.4\\)\\]{--tw-shadow:0 1px 3px var(--tw-shadow-color,#0006);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_3px_rgba\\(0\\,0\\,0\\,\\.35\\)\\]{--tw-shadow:0 1px 3px var(--tw-shadow-color,#00000059);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_4px_rgba\\(0\\,0\\,0\\,\\.5\\)\\]{--tw-shadow:0 1px 4px var(--tw-shadow-color,#00000080);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_4px_rgba\\(0\\,0\\,0\\,\\.55\\)\\]{--tw-shadow:0 1px 4px var(--tw-shadow-color,#0000008c);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_5px_rgba\\(0\\,0\\,0\\,\\.6\\)\\]{--tw-shadow:0 1px 5px var(--tw-shadow-color,#0009);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_2px_10px_rgba\\(0\\,0\\,0\\,\\.5\\)\\]{--tw-shadow:0 2px 10px var(--tw-shadow-color,#00000080);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_10px_30px_rgba\\(0\\,0\\,0\\,\\.5\\)\\]{--tw-shadow:0 10px 30px var(--tw-shadow-color,#00000080);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.ring{--tw-ring-shadow:var(--tw-ring-inset,) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color,currentcolor);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.ring-2{--tw-ring-shadow:var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color,currentcolor);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.ring-accent{--tw-ring-color:var(--color-accent)}.ring-white{--tw-ring-color:var(--color-white)}.outline{outline-style:var(--tw-outline-style);outline-width:1px}.invert{--tw-invert:invert(100%);filter:var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)}.filter{filter:var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)}.backdrop-filter{-webkit-backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,)}.transition{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to,opacity,box-shadow,transform,translate,scale,rotate,filter,-webkit-backdrop-filter,backdrop-filter,display,content-visibility,overlay,pointer-events;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-\\[opacity\\,transform\\]{transition-property:opacity,transform;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-\\[width\\,height\\]{transition-property:width,height;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-all{transition-property:all;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-colors{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-transform{transition-property:transform,translate,scale,rotate;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.duration-100{--tw-duration:.1s;transition-duration:.1s}.select-none{-webkit-user-select:none;user-select:none}.\\[--mdc-icon-size\\:12px\\]{--mdc-icon-size:12px}.\\[--mdc-icon-size\\:13px\\]{--mdc-icon-size:13px}.\\[--mdc-icon-size\\:14px\\]{--mdc-icon-size:14px}.\\[--mdc-icon-size\\:15px\\]{--mdc-icon-size:15px}.\\[--mdc-icon-size\\:16px\\]{--mdc-icon-size:16px}.\\[--mdc-icon-size\\:17px\\]{--mdc-icon-size:17px}.\\[--mdc-icon-size\\:18px\\]{--mdc-icon-size:18px}.\\[--mdc-icon-size\\:19px\\]{--mdc-icon-size:19px}.\\[--mdc-icon-size\\:20px\\]{--mdc-icon-size:20px}.\\[--mdc-icon-size\\:22px\\]{--mdc-icon-size:22px}.\\[--mdc-icon-size\\:24px\\]{--mdc-icon-size:24px}.\\[--mdc-icon-size\\:28px\\]{--mdc-icon-size:28px}.\\[--mdc-icon-size\\:34px\\]{--mdc-icon-size:34px}.group-focus-visible\\:scale-100:is(:where(.group):focus-visible *){--tw-scale-x:100%;--tw-scale-y:100%;--tw-scale-z:100%;scale:var(--tw-scale-x) var(--tw-scale-y)}.group-focus-visible\\:opacity-100:is(:where(.group):focus-visible *){opacity:1}.group-data-\\[pressed\\=true\\]\\:bg-\\[rgba\\(255\\,255\\,255\\,0\\.06\\)\\]:is(:where(.group)[data-pressed=true] *){background-color:#ffffff0f}@media (hover:hover){.hover\\:bg-card2:hover{background-color:var(--color-card2)}}.focus-visible\\:outline:focus-visible{outline-style:var(--tw-outline-style);outline-width:1px}.focus-visible\\:outline-2:focus-visible{outline-style:var(--tw-outline-style);outline-width:2px}.focus-visible\\:\\[outline-offset\\:-2px\\]:focus-visible{outline-offset:-2px}.focus-visible\\:outline-accent:focus-visible{outline-color:var(--color-accent)}.active\\:translate-y-\\[0\\.5px\\]:active{--tw-translate-y:.5px;translate:var(--tw-translate-x) var(--tw-translate-y)}.active\\:scale-90:active{--tw-scale-x:90%;--tw-scale-y:90%;--tw-scale-z:90%;scale:var(--tw-scale-x) var(--tw-scale-y)}.active\\:scale-\\[\\.96\\]:active{scale:.96}.active\\:bg-card2:active{background-color:var(--color-card2)}}@property --tw-translate-x{syntax:"*";inherits:false;initial-value:0}@property --tw-translate-y{syntax:"*";inherits:false;initial-value:0}@property --tw-translate-z{syntax:"*";inherits:false;initial-value:0}@property --tw-scale-x{syntax:"*";inherits:false;initial-value:1}@property --tw-scale-y{syntax:"*";inherits:false;initial-value:1}@property --tw-scale-z{syntax:"*";inherits:false;initial-value:1}@property --tw-rotate-x{syntax:"*";inherits:false}@property --tw-rotate-y{syntax:"*";inherits:false}@property --tw-rotate-z{syntax:"*";inherits:false}@property --tw-skew-x{syntax:"*";inherits:false}@property --tw-skew-y{syntax:"*";inherits:false}@property --tw-pan-x{syntax:"*";inherits:false}@property --tw-pan-y{syntax:"*";inherits:false}@property --tw-pinch-zoom{syntax:"*";inherits:false}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-leading{syntax:"*";inherits:false}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-tracking{syntax:"*";inherits:false}@property --tw-ordinal{syntax:"*";inherits:false}@property --tw-slashed-zero{syntax:"*";inherits:false}@property --tw-numeric-figure{syntax:"*";inherits:false}@property --tw-numeric-spacing{syntax:"*";inherits:false}@property --tw-numeric-fraction{syntax:"*";inherits:false}@property --tw-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-shadow-color{syntax:"*";inherits:false}@property --tw-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-inset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-shadow-color{syntax:"*";inherits:false}@property --tw-inset-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-ring-color{syntax:"*";inherits:false}@property --tw-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-ring-color{syntax:"*";inherits:false}@property --tw-inset-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-ring-inset{syntax:"*";inherits:false}@property --tw-ring-offset-width{syntax:"<length>";inherits:false;initial-value:0}@property --tw-ring-offset-color{syntax:"*";inherits:false;initial-value:#fff}@property --tw-ring-offset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-outline-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-blur{syntax:"*";inherits:false}@property --tw-brightness{syntax:"*";inherits:false}@property --tw-contrast{syntax:"*";inherits:false}@property --tw-grayscale{syntax:"*";inherits:false}@property --tw-hue-rotate{syntax:"*";inherits:false}@property --tw-invert{syntax:"*";inherits:false}@property --tw-opacity{syntax:"*";inherits:false}@property --tw-saturate{syntax:"*";inherits:false}@property --tw-sepia{syntax:"*";inherits:false}@property --tw-drop-shadow{syntax:"*";inherits:false}@property --tw-drop-shadow-color{syntax:"*";inherits:false}@property --tw-drop-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-drop-shadow-size{syntax:"*";inherits:false}@property --tw-backdrop-blur{syntax:"*";inherits:false}@property --tw-backdrop-brightness{syntax:"*";inherits:false}@property --tw-backdrop-contrast{syntax:"*";inherits:false}@property --tw-backdrop-grayscale{syntax:"*";inherits:false}@property --tw-backdrop-hue-rotate{syntax:"*";inherits:false}@property --tw-backdrop-invert{syntax:"*";inherits:false}@property --tw-backdrop-opacity{syntax:"*";inherits:false}@property --tw-backdrop-saturate{syntax:"*";inherits:false}@property --tw-backdrop-sepia{syntax:"*";inherits:false}@property --tw-duration{syntax:"*";inherits:false}@keyframes pulse{50%{opacity:.5}}`;
+@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-translate-x:0;--tw-translate-y:0;--tw-translate-z:0;--tw-scale-x:1;--tw-scale-y:1;--tw-scale-z:1;--tw-rotate-x:initial;--tw-rotate-y:initial;--tw-rotate-z:initial;--tw-skew-x:initial;--tw-skew-y:initial;--tw-pan-x:initial;--tw-pan-y:initial;--tw-pinch-zoom:initial;--tw-border-style:solid;--tw-leading:initial;--tw-font-weight:initial;--tw-tracking:initial;--tw-ordinal:initial;--tw-slashed-zero:initial;--tw-numeric-figure:initial;--tw-numeric-spacing:initial;--tw-numeric-fraction:initial;--tw-shadow:0 0 #0000;--tw-shadow-color:initial;--tw-shadow-alpha:100%;--tw-inset-shadow:0 0 #0000;--tw-inset-shadow-color:initial;--tw-inset-shadow-alpha:100%;--tw-ring-color:initial;--tw-ring-shadow:0 0 #0000;--tw-inset-ring-color:initial;--tw-inset-ring-shadow:0 0 #0000;--tw-ring-inset:initial;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-offset-shadow:0 0 #0000;--tw-outline-style:solid;--tw-blur:initial;--tw-brightness:initial;--tw-contrast:initial;--tw-grayscale:initial;--tw-hue-rotate:initial;--tw-invert:initial;--tw-opacity:initial;--tw-saturate:initial;--tw-sepia:initial;--tw-drop-shadow:initial;--tw-drop-shadow-color:initial;--tw-drop-shadow-alpha:100%;--tw-drop-shadow-size:initial;--tw-backdrop-blur:initial;--tw-backdrop-brightness:initial;--tw-backdrop-contrast:initial;--tw-backdrop-grayscale:initial;--tw-backdrop-hue-rotate:initial;--tw-backdrop-invert:initial;--tw-backdrop-opacity:initial;--tw-backdrop-saturate:initial;--tw-backdrop-sepia:initial;--tw-duration:initial}}}@layer theme{:root,:host{--font-sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";--font-mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;--color-white:#fff;--spacing:.25rem;--font-weight-medium:500;--font-weight-semibold:600;--font-weight-bold:700;--tracking-tight:-.025em;--leading-tight:1.25;--radius-md:.375rem;--radius-lg:.5rem;--radius-xl:.75rem;--animate-pulse:pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;--default-transition-duration:.15s;--default-transition-timing-function:cubic-bezier(.4, 0, .2, 1);--default-font-family:var(--font-sans);--default-mono-font-family:var(--font-mono);--color-card:#1d2426;--color-card2:#262f31;--color-line:#333e41;--color-ink:#edf1f1;--color-ink2:#a9b6b9;--color-muted:#7d8b8e;--color-accent:#74b98a;--color-accentbg:#17281c;--color-accentline:#2b4a34;--color-accenttx:#cfe6d5;--color-amber:#e8a33d;--color-amberbg:#3a2b12;--color-amberline:#4e3a18;--color-ambertx:#ebd9bc;--color-blue:#5aafd6;--color-bluebg:#152b36;--color-blueline:#2c5a70;--color-blueink:#9bd2ea;--color-green:#63c295;--color-red:#ec8377}}@layer base{*,:after,:before,::backdrop{box-sizing:border-box;border:0 solid;margin:0;padding:0}::file-selector-button{box-sizing:border-box;border:0 solid;margin:0;padding:0}html,:host{-webkit-text-size-adjust:100%;tab-size:4;line-height:1.5;font-family:var(--default-font-family,-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji");font-feature-settings:var(--default-font-feature-settings,normal);font-variation-settings:var(--default-font-variation-settings,normal);-webkit-tap-highlight-color:transparent}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;-webkit-text-decoration:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,samp,pre{font-family:var(--default-mono-font-family,ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);font-feature-settings:var(--default-mono-font-feature-settings,normal);font-variation-settings:var(--default-mono-font-variation-settings,normal);font-size:1em}small{font-size:80%}sub,sup{vertical-align:baseline;font-size:75%;line-height:0;position:relative}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}:-moz-focusring:where(:not(iframe)){outline:auto}progress{vertical-align:baseline}summary{display:list-item}ol,ul,menu{list-style:none}img,svg,video,canvas,audio,iframe,embed,object{vertical-align:middle;display:block}img,video{max-width:100%;height:auto}button,input,select,optgroup,textarea{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}::file-selector-button{font:inherit;font-feature-settings:inherit;font-variation-settings:inherit;letter-spacing:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}:where(select:is([multiple],[size])) optgroup{font-weight:bolder}:where(select:is([multiple],[size])) optgroup option{padding-inline-start:20px}::file-selector-button{margin-inline-end:4px}::placeholder{opacity:1}@supports (not ((-webkit-appearance:-apple-pay-button))) or (contain-intrinsic-size:1px){::placeholder{color:currentColor}@supports (color:color-mix(in lab, red, red)){::placeholder{color:color-mix(in oklab, currentcolor 50%, transparent)}}}textarea{resize:vertical}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-date-and-time-value{min-height:1lh;text-align:inherit}::-webkit-datetime-edit{display:inline-flex}::-webkit-datetime-edit-fields-wrapper{padding:0}::-webkit-datetime-edit{padding-block:0}::-webkit-datetime-edit-year-field{padding-block:0}::-webkit-datetime-edit-month-field{padding-block:0}::-webkit-datetime-edit-day-field{padding-block:0}::-webkit-datetime-edit-hour-field{padding-block:0}::-webkit-datetime-edit-minute-field{padding-block:0}::-webkit-datetime-edit-second-field{padding-block:0}::-webkit-datetime-edit-millisecond-field{padding-block:0}::-webkit-datetime-edit-meridiem-field{padding-block:0}::-webkit-calendar-picker-indicator{line-height:1}:-moz-ui-invalid{box-shadow:none}button,input:where([type=button],[type=reset],[type=submit]){appearance:button}::file-selector-button{appearance:button}::-webkit-inner-spin-button{height:auto}::-webkit-outer-spin-button{height:auto}[hidden]:where(:not([hidden=until-found])){display:none!important}}@layer components;@layer utilities{.\\@container{container-type:inline-size}.pointer-events-auto{pointer-events:auto}.pointer-events-none{pointer-events:none}.collapse{visibility:collapse}.invisible{visibility:hidden}.visible{visibility:visible}.absolute{position:absolute}.fixed{position:fixed}.relative{position:relative}.static{position:static}.inset-0{inset:0}.inset-x-0{inset-inline:0}.-top-1{top:calc(var(--spacing) * -1)}.-top-1\\.5{top:calc(var(--spacing) * -1.5)}.top-0{top:0}.top-0\\.5{top:calc(var(--spacing) * .5)}.top-1{top:var(--spacing)}.top-1\\/2{top:50%}.top-2{top:calc(var(--spacing) * 2)}.top-\\[calc\\(100\\%\\+4px\\)\\]{top:calc(100% + 4px)}.-right-1{right:calc(var(--spacing) * -1)}.-right-1\\.5{right:calc(var(--spacing) * -1.5)}.right-0{right:0}.right-1{right:var(--spacing)}.right-2{right:calc(var(--spacing) * 2)}.bottom-0{bottom:0}.bottom-1{bottom:var(--spacing)}.bottom-2{bottom:calc(var(--spacing) * 2)}.bottom-full{bottom:100%}.left-0{left:0}.left-0\\.5{left:calc(var(--spacing) * .5)}.left-1{left:var(--spacing)}.left-1\\/2{left:50%}.left-2{left:calc(var(--spacing) * 2)}.left-\\[18px\\]{left:18px}.z-10{z-index:10}.col-start-2{grid-column-start:2}.row-span-2{grid-row:span 2/span 2}.container{width:100%}@media (min-width:40rem){.container{max-width:40rem}}@media (min-width:48rem){.container{max-width:48rem}}@media (min-width:64rem){.container{max-width:64rem}}@media (min-width:80rem){.container{max-width:80rem}}@media (min-width:96rem){.container{max-width:96rem}}.-mx-1{margin-inline:calc(var(--spacing) * -1)}.mx-0{margin-inline:0}.mx-auto{margin-inline:auto}.mt-0{margin-top:0}.mt-0\\.5{margin-top:calc(var(--spacing) * .5)}.mt-1{margin-top:var(--spacing)}.mt-1\\.5{margin-top:calc(var(--spacing) * 1.5)}.mt-2{margin-top:calc(var(--spacing) * 2)}.mt-2\\.5{margin-top:calc(var(--spacing) * 2.5)}.mt-3{margin-top:calc(var(--spacing) * 3)}.mb-1{margin-bottom:var(--spacing)}.mb-1\\.5{margin-bottom:calc(var(--spacing) * 1.5)}.mb-2{margin-bottom:calc(var(--spacing) * 2)}.mb-2\\.5{margin-bottom:calc(var(--spacing) * 2.5)}.mb-3{margin-bottom:calc(var(--spacing) * 3)}.ml-0{margin-left:0}.ml-0\\.5{margin-left:calc(var(--spacing) * .5)}.ml-2{margin-left:calc(var(--spacing) * 2)}.ml-\\[7px\\]{margin-left:7px}.ml-\\[18px\\]{margin-left:18px}.ml-auto{margin-left:auto}.block{display:block}.contents{display:contents}.flex{display:flex}.grid{display:grid}.hidden{display:none}.inline{display:inline}.inline-flex{display:inline-flex}.table{display:table}.aspect-square{aspect-ratio:1}.h-1{height:var(--spacing)}.h-1\\.5{height:calc(var(--spacing) * 1.5)}.h-2{height:calc(var(--spacing) * 2)}.h-2\\.5{height:calc(var(--spacing) * 2.5)}.h-3{height:calc(var(--spacing) * 3)}.h-3\\.5{height:calc(var(--spacing) * 3.5)}.h-4{height:calc(var(--spacing) * 4)}.h-5{height:calc(var(--spacing) * 5)}.h-6{height:calc(var(--spacing) * 6)}.h-7{height:calc(var(--spacing) * 7)}.h-8{height:calc(var(--spacing) * 8)}.h-9{height:calc(var(--spacing) * 9)}.h-10{height:calc(var(--spacing) * 10)}.h-11{height:calc(var(--spacing) * 11)}.h-12{height:calc(var(--spacing) * 12)}.h-14{height:calc(var(--spacing) * 14)}.h-20{height:calc(var(--spacing) * 20)}.h-\\[5px\\]{height:5px}.h-\\[13px\\]{height:13px}.h-\\[15px\\]{height:15px}.h-\\[17px\\]{height:17px}.h-\\[18px\\]{height:18px}.h-\\[19px\\]{height:19px}.h-\\[20px\\]{height:20px}.h-\\[22px\\]{height:22px}.h-\\[26px\\]{height:26px}.h-\\[30px\\]{height:30px}.h-\\[34px\\]{height:34px}.h-\\[42px\\]{height:42px}.h-\\[84px\\]{height:84px}.h-\\[var\\(--fib-hit\\)\\]{height:var(--fib-hit)}.h-full{height:100%}.max-h-\\[220px\\]{max-height:220px}.min-h-11{min-height:calc(var(--spacing) * 11)}.min-h-\\[26px\\]{min-height:26px}.min-h-\\[var\\(--fib-hit\\)\\]{min-height:var(--fib-hit)}.w-1{width:var(--spacing)}.w-2{width:calc(var(--spacing) * 2)}.w-3{width:calc(var(--spacing) * 3)}.w-3\\.5{width:calc(var(--spacing) * 3.5)}.w-4{width:calc(var(--spacing) * 4)}.w-5{width:calc(var(--spacing) * 5)}.w-6{width:calc(var(--spacing) * 6)}.w-7{width:calc(var(--spacing) * 7)}.w-8{width:calc(var(--spacing) * 8)}.w-9{width:calc(var(--spacing) * 9)}.w-10{width:calc(var(--spacing) * 10)}.w-11{width:calc(var(--spacing) * 11)}.w-12{width:calc(var(--spacing) * 12)}.w-14{width:calc(var(--spacing) * 14)}.w-20{width:calc(var(--spacing) * 20)}.w-\\[5px\\]{width:5px}.w-\\[13px\\]{width:13px}.w-\\[15px\\]{width:15px}.w-\\[17px\\]{width:17px}.w-\\[18px\\]{width:18px}.w-\\[19px\\]{width:19px}.w-\\[20px\\]{width:20px}.w-\\[22px\\]{width:22px}.w-\\[26px\\]{width:26px}.w-\\[30px\\]{width:30px}.w-\\[34px\\]{width:34px}.w-\\[42px\\]{width:42px}.w-\\[104px\\]{width:104px}.w-full{width:100%}.w-px{width:1px}.max-w-\\[96px\\]{max-width:96px}.max-w-\\[280px\\]{max-width:280px}.min-w-0{min-width:0}.min-w-\\[14px\\]{min-width:14px}.min-w-\\[16px\\]{min-width:16px}.min-w-\\[52px\\]{min-width:52px}.min-w-\\[68px\\]{min-width:68px}.flex-1{flex:1}.flex-none{flex:none}.shrink{flex-shrink:1}.grow{flex-grow:1}.-translate-x-1{--tw-translate-x:calc(var(--spacing) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-x-1\\/2{--tw-translate-x:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1{--tw-translate-y:calc(var(--spacing) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.-translate-y-1\\/2{--tw-translate-y:calc(calc(1 / 2 * 100%) * -1);translate:var(--tw-translate-x) var(--tw-translate-y)}.scale-90{--tw-scale-x:90%;--tw-scale-y:90%;--tw-scale-z:90%;scale:var(--tw-scale-x) var(--tw-scale-y)}.scale-100{--tw-scale-x:100%;--tw-scale-y:100%;--tw-scale-z:100%;scale:var(--tw-scale-x) var(--tw-scale-y)}.rotate-180{rotate:180deg}.transform{transform:var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,)}.animate-pulse{animation:var(--animate-pulse)}.cursor-pointer{cursor:pointer}.touch-pan-y{--tw-pan-y:pan-y;touch-action:var(--tw-pan-x,) var(--tw-pan-y,) var(--tw-pinch-zoom,)}.touch-none{touch-action:none}.resize{resize:both}.auto-cols-fr{grid-auto-columns:minmax(0,1fr)}.grid-flow-col{grid-auto-flow:column}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.grid-cols-\\[28px_1fr\\]{grid-template-columns:28px 1fr}.grid-cols-\\[28px_1fr_auto\\]{grid-template-columns:28px 1fr auto}.grid-cols-\\[34px_1fr\\]{grid-template-columns:34px 1fr}.grid-cols-\\[repeat\\(auto-fit\\,minmax\\(84px\\,1fr\\)\\)\\]{grid-template-columns:repeat(auto-fit,minmax(84px,1fr))}.grid-rows-\\[auto_auto\\]{grid-template-rows:auto auto}.flex-col{flex-direction:column}.flex-nowrap{flex-wrap:nowrap}.flex-wrap{flex-wrap:wrap}.items-baseline{align-items:baseline}.items-center{align-items:center}.items-start{align-items:flex-start}.justify-between{justify-content:space-between}.justify-center{justify-content:center}.gap-0{gap:0}.gap-1{gap:var(--spacing)}.gap-1\\.5{gap:calc(var(--spacing) * 1.5)}.gap-2{gap:calc(var(--spacing) * 2)}.gap-2\\.5{gap:calc(var(--spacing) * 2.5)}.gap-3{gap:calc(var(--spacing) * 3)}.gap-4{gap:calc(var(--spacing) * 4)}.gap-\\[3px\\]{gap:3px}.gap-\\[5px\\]{gap:5px}.gap-\\[7px\\]{gap:7px}.gap-x-1{column-gap:var(--spacing)}.gap-x-1\\.5{column-gap:calc(var(--spacing) * 1.5)}.gap-x-2{column-gap:calc(var(--spacing) * 2)}.gap-x-2\\.5{column-gap:calc(var(--spacing) * 2.5)}.gap-x-3{column-gap:calc(var(--spacing) * 3)}.gap-x-4{column-gap:calc(var(--spacing) * 4)}.gap-x-\\[11px\\]{column-gap:11px}.gap-y-0{row-gap:0}.gap-y-0\\.5{row-gap:calc(var(--spacing) * .5)}.gap-y-2{row-gap:calc(var(--spacing) * 2)}.gap-y-\\[18px\\]{row-gap:18px}.truncate{text-overflow:ellipsis;white-space:nowrap;overflow:hidden}.overflow-auto{overflow:auto}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overscroll-contain{overscroll-behavior:contain}.rounded{border-radius:.25rem}.rounded-\\[3px\\]{border-radius:3px}.rounded-\\[6px\\]{border-radius:6px}.rounded-\\[7px\\]{border-radius:7px}.rounded-\\[9px\\]{border-radius:9px}.rounded-\\[10px\\]{border-radius:10px}.rounded-\\[11px\\]{border-radius:11px}.rounded-\\[14px\\]{border-radius:14px}.rounded-\\[15px\\]{border-radius:15px}.rounded-full{border-radius:3.40282e38px}.rounded-lg{border-radius:var(--radius-lg)}.rounded-md{border-radius:var(--radius-md)}.rounded-xl{border-radius:var(--radius-xl)}.border{border-style:var(--tw-border-style);border-width:1px}.border-0{border-style:var(--tw-border-style);border-width:0}.border-2{border-style:var(--tw-border-style);border-width:2px}.border-l{border-left-style:var(--tw-border-style);border-left-width:1px}.border-\\[\\#2E5238\\]{border-color:#2e5238}.border-\\[rgba\\(0\\,0\\,0\\,\\.3\\)\\]{border-color:#0000004d}.border-\\[rgba\\(0\\,0\\,0\\,\\.35\\)\\]{border-color:#00000059}.border-\\[rgba\\(0\\,0\\,0\\,\\.45\\)\\]{border-color:#00000073}.border-\\[rgba\\(255\\,255\\,255\\,\\.15\\)\\]{border-color:#ffffff26}.border-accent{border-color:var(--color-accent)}.border-accentline{border-color:var(--color-accentline)}.border-amberline{border-color:var(--color-amberline)}.border-blueline{border-color:var(--color-blueline)}.border-card2{border-color:var(--color-card2)}.border-line{border-color:var(--color-line)}.border-white{border-color:var(--color-white)}.bg-\\[\\#2C3639\\]{background-color:#2c3639}.bg-\\[rgba\\(116\\,185\\,138\\,0\\.10\\)\\]{background-color:#74b98a1a}.bg-accent{background-color:var(--color-accent)}.bg-accentbg{background-color:var(--color-accentbg)}.bg-amberbg{background-color:var(--color-amberbg)}.bg-bluebg{background-color:var(--color-bluebg)}.bg-card{background-color:var(--color-card)}.bg-card2{background-color:var(--color-card2)}.bg-line{background-color:var(--color-line)}.bg-muted{background-color:var(--color-muted)}.bg-transparent{background-color:#0000}.bg-white{background-color:var(--color-white)}.bg-\\[linear-gradient\\(145deg\\,\\#1E3427\\,\\#132016\\)\\]{background-image:linear-gradient(145deg,#1e3427,#132016)}.bg-cover{background-size:cover}.bg-center{background-position:50%}.p-1{padding:var(--spacing)}.p-2{padding:calc(var(--spacing) * 2)}.p-2\\.5{padding:calc(var(--spacing) * 2.5)}.p-3{padding:calc(var(--spacing) * 3)}.p-3\\.5{padding:calc(var(--spacing) * 3.5)}.p-\\[13px\\]{padding:13px}.p-\\[15px\\]{padding:15px}.px-0{padding-inline:0}.px-0\\.5{padding-inline:calc(var(--spacing) * .5)}.px-1{padding-inline:var(--spacing)}.px-2{padding-inline:calc(var(--spacing) * 2)}.px-2\\.5{padding-inline:calc(var(--spacing) * 2.5)}.px-3{padding-inline:calc(var(--spacing) * 3)}.px-3\\.5{padding-inline:calc(var(--spacing) * 3.5)}.px-\\[13px\\]{padding-inline:13px}.py-0{padding-block:0}.py-0\\.5{padding-block:calc(var(--spacing) * .5)}.py-1{padding-block:var(--spacing)}.py-1\\.5{padding-block:calc(var(--spacing) * 1.5)}.py-2{padding-block:calc(var(--spacing) * 2)}.py-3{padding-block:calc(var(--spacing) * 3)}.py-\\[5px\\]{padding-block:5px}.py-\\[7px\\]{padding-block:7px}.py-\\[9px\\]{padding-block:9px}.pt-0{padding-top:0}.pt-0\\.5{padding-top:calc(var(--spacing) * .5)}.pt-\\[5px\\]{padding-top:5px}.pt-\\[7px\\]{padding-top:7px}.pt-\\[13px\\]{padding-top:13px}.pr-\\[11px\\]{padding-right:11px}.pb-0{padding-bottom:0}.pb-1{padding-bottom:var(--spacing)}.pb-1\\.5{padding-bottom:calc(var(--spacing) * 1.5)}.pb-3{padding-bottom:calc(var(--spacing) * 3)}.pb-\\[3px\\]{padding-bottom:3px}.pl-3{padding-left:calc(var(--spacing) * 3)}.pl-\\[7px\\]{padding-left:7px}.text-center{text-align:center}.text-left{text-align:left}.text-right{text-align:right}.font-mono{font-family:var(--font-mono)}.text-\\[9\\.5px\\]{font-size:9.5px}.text-\\[9px\\]{font-size:9px}.text-\\[10\\.5px\\]{font-size:10.5px}.text-\\[10px\\]{font-size:10px}.text-\\[11\\.5px\\]{font-size:11.5px}.text-\\[11px\\]{font-size:11px}.text-\\[12\\.5px\\]{font-size:12.5px}.text-\\[12px\\]{font-size:12px}.text-\\[13px\\]{font-size:13px}.text-\\[14px\\]{font-size:14px}.text-\\[15px\\]{font-size:15px}.text-\\[16px\\]{font-size:16px}.text-\\[17px\\]{font-size:17px}.text-\\[20px\\]{font-size:20px}.text-\\[22px\\]{font-size:22px}.text-\\[24px\\]{font-size:24px}.text-\\[26px\\]{font-size:26px}.text-\\[30px\\]{font-size:30px}.leading-\\[1\\.1\\]{--tw-leading:1.1;line-height:1.1}.leading-\\[1\\.15\\]{--tw-leading:1.15;line-height:1.15}.leading-\\[1\\.25\\]{--tw-leading:1.25;line-height:1.25}.leading-\\[1\\.42\\]{--tw-leading:1.42;line-height:1.42}.leading-none{--tw-leading:1;line-height:1}.leading-tight{--tw-leading:var(--leading-tight);line-height:var(--leading-tight)}.font-bold{--tw-font-weight:var(--font-weight-bold);font-weight:var(--font-weight-bold)}.font-medium{--tw-font-weight:var(--font-weight-medium);font-weight:var(--font-weight-medium)}.font-semibold{--tw-font-weight:var(--font-weight-semibold);font-weight:var(--font-weight-semibold)}.tracking-\\[-0\\.015em\\]{--tw-tracking:-.015em;letter-spacing:-.015em}.tracking-\\[0\\.01em\\]{--tw-tracking:.01em;letter-spacing:.01em}.tracking-\\[0\\.1em\\]{--tw-tracking:.1em;letter-spacing:.1em}.tracking-\\[0\\.06em\\]{--tw-tracking:.06em;letter-spacing:.06em}.tracking-\\[0\\.08em\\]{--tw-tracking:.08em;letter-spacing:.08em}.tracking-\\[0\\.11em\\]{--tw-tracking:.11em;letter-spacing:.11em}.tracking-tight{--tw-tracking:var(--tracking-tight);letter-spacing:var(--tracking-tight)}.text-ellipsis{text-overflow:ellipsis}.whitespace-nowrap{white-space:nowrap}.text-\\[\\#0c1510\\]{color:#0c1510}.text-accent{color:var(--color-accent)}.text-accenttx{color:var(--color-accenttx)}.text-amber{color:var(--color-amber)}.text-ambertx{color:var(--color-ambertx)}.text-blue{color:var(--color-blue)}.text-blueink{color:var(--color-blueink)}.text-green{color:var(--color-green)}.text-ink{color:var(--color-ink)}.text-ink2{color:var(--color-ink2)}.text-muted{color:var(--color-muted)}.text-red{color:var(--color-red)}.text-white{color:var(--color-white)}.capitalize{text-transform:capitalize}.lowercase{text-transform:lowercase}.uppercase{text-transform:uppercase}.tabular-nums{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal,) var(--tw-slashed-zero,) var(--tw-numeric-figure,) var(--tw-numeric-spacing,) var(--tw-numeric-fraction,)}.opacity-0{opacity:0}.opacity-40{opacity:.4}.opacity-50{opacity:.5}.opacity-60{opacity:.6}.opacity-70{opacity:.7}.opacity-100{opacity:1}.opacity-\\[\\.66\\]{opacity:.66}.shadow{--tw-shadow:0 1px 3px 0 var(--tw-shadow-color,#0000001a), 0 1px 2px -1px var(--tw-shadow-color,#0000001a);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_2px_rgba\\(0\\,0\\,0\\,\\.6\\)\\]{--tw-shadow:0 1px 2px var(--tw-shadow-color,#0009);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_3px_rgba\\(0\\,0\\,0\\,\\.4\\)\\]{--tw-shadow:0 1px 3px var(--tw-shadow-color,#0006);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_3px_rgba\\(0\\,0\\,0\\,\\.35\\)\\]{--tw-shadow:0 1px 3px var(--tw-shadow-color,#00000059);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_4px_rgba\\(0\\,0\\,0\\,\\.5\\)\\]{--tw-shadow:0 1px 4px var(--tw-shadow-color,#00000080);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_1px_4px_rgba\\(0\\,0\\,0\\,\\.55\\)\\]{--tw-shadow:0 1px 4px var(--tw-shadow-color,#0000008c);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_2px_6px_rgba\\(0\\,0\\,0\\,\\.55\\)\\]{--tw-shadow:0 2px 6px var(--tw-shadow-color,#0000008c);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_2px_10px_rgba\\(0\\,0\\,0\\,\\.5\\)\\]{--tw-shadow:0 2px 10px var(--tw-shadow-color,#00000080);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.shadow-\\[0_10px_30px_rgba\\(0\\,0\\,0\\,\\.5\\)\\]{--tw-shadow:0 10px 30px var(--tw-shadow-color,#00000080);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.ring{--tw-ring-shadow:var(--tw-ring-inset,) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color,currentcolor);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.ring-2{--tw-ring-shadow:var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color,currentcolor);box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}.ring-accent{--tw-ring-color:var(--color-accent)}.ring-white{--tw-ring-color:var(--color-white)}.outline{outline-style:var(--tw-outline-style);outline-width:1px}.drop-shadow-\\[0_1px_1px_rgba\\(0\\,0\\,0\\,0\\.8\\)\\]{--tw-drop-shadow-size:drop-shadow(0 1px 1px var(--tw-drop-shadow-color,#000c));--tw-drop-shadow:var(--tw-drop-shadow-size);filter:var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)}.drop-shadow-\\[0_1px_2px_rgba\\(0\\,0\\,0\\,0\\.85\\)\\]{--tw-drop-shadow-size:drop-shadow(0 1px 2px var(--tw-drop-shadow-color,#000000d9));--tw-drop-shadow:var(--tw-drop-shadow-size);filter:var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)}.invert{--tw-invert:invert(100%);filter:var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)}.filter{filter:var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)}.backdrop-filter{-webkit-backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,);backdrop-filter:var(--tw-backdrop-blur,) var(--tw-backdrop-brightness,) var(--tw-backdrop-contrast,) var(--tw-backdrop-grayscale,) var(--tw-backdrop-hue-rotate,) var(--tw-backdrop-invert,) var(--tw-backdrop-opacity,) var(--tw-backdrop-saturate,) var(--tw-backdrop-sepia,)}.transition{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to,opacity,box-shadow,transform,translate,scale,rotate,filter,-webkit-backdrop-filter,backdrop-filter,display,content-visibility,overlay,pointer-events;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-\\[opacity\\,transform\\]{transition-property:opacity,transform;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-\\[width\\,height\\]{transition-property:width,height;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-all{transition-property:all;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-colors{transition-property:color,background-color,border-color,outline-color,text-decoration-color,fill,stroke,--tw-gradient-from,--tw-gradient-via,--tw-gradient-to;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.transition-transform{transition-property:transform,translate,scale,rotate;transition-timing-function:var(--tw-ease,var(--default-transition-timing-function));transition-duration:var(--tw-duration,var(--default-transition-duration))}.duration-100{--tw-duration:.1s;transition-duration:.1s}.select-none{-webkit-user-select:none;user-select:none}.\\[--mdc-icon-size\\:12px\\]{--mdc-icon-size:12px}.\\[--mdc-icon-size\\:13px\\]{--mdc-icon-size:13px}.\\[--mdc-icon-size\\:14px\\]{--mdc-icon-size:14px}.\\[--mdc-icon-size\\:15px\\]{--mdc-icon-size:15px}.\\[--mdc-icon-size\\:16px\\]{--mdc-icon-size:16px}.\\[--mdc-icon-size\\:17px\\]{--mdc-icon-size:17px}.\\[--mdc-icon-size\\:18px\\]{--mdc-icon-size:18px}.\\[--mdc-icon-size\\:19px\\]{--mdc-icon-size:19px}.\\[--mdc-icon-size\\:20px\\]{--mdc-icon-size:20px}.\\[--mdc-icon-size\\:22px\\]{--mdc-icon-size:22px}.\\[--mdc-icon-size\\:24px\\]{--mdc-icon-size:24px}.\\[--mdc-icon-size\\:28px\\]{--mdc-icon-size:28px}.\\[--mdc-icon-size\\:34px\\]{--mdc-icon-size:34px}.group-focus-visible\\:scale-100:is(:where(.group):focus-visible *){--tw-scale-x:100%;--tw-scale-y:100%;--tw-scale-z:100%;scale:var(--tw-scale-x) var(--tw-scale-y)}.group-focus-visible\\:opacity-100:is(:where(.group):focus-visible *){opacity:1}.group-data-\\[pressed\\=true\\]\\:bg-\\[rgba\\(255\\,255\\,255\\,0\\.06\\)\\]:is(:where(.group)[data-pressed=true] *){background-color:#ffffff0f}@media (hover:hover){.hover\\:bg-card2:hover{background-color:var(--color-card2)}}.focus-visible\\:outline:focus-visible{outline-style:var(--tw-outline-style);outline-width:1px}.focus-visible\\:outline-2:focus-visible{outline-style:var(--tw-outline-style);outline-width:2px}.focus-visible\\:\\[outline-offset\\:-2px\\]:focus-visible{outline-offset:-2px}.focus-visible\\:outline-accent:focus-visible{outline-color:var(--color-accent)}.active\\:translate-y-\\[0\\.5px\\]:active{--tw-translate-y:.5px;translate:var(--tw-translate-x) var(--tw-translate-y)}.active\\:scale-90:active{--tw-scale-x:90%;--tw-scale-y:90%;--tw-scale-z:90%;scale:var(--tw-scale-x) var(--tw-scale-y)}.active\\:scale-\\[\\.96\\]:active{scale:.96}.active\\:bg-card2:active{background-color:var(--color-card2)}}@property --tw-translate-x{syntax:"*";inherits:false;initial-value:0}@property --tw-translate-y{syntax:"*";inherits:false;initial-value:0}@property --tw-translate-z{syntax:"*";inherits:false;initial-value:0}@property --tw-scale-x{syntax:"*";inherits:false;initial-value:1}@property --tw-scale-y{syntax:"*";inherits:false;initial-value:1}@property --tw-scale-z{syntax:"*";inherits:false;initial-value:1}@property --tw-rotate-x{syntax:"*";inherits:false}@property --tw-rotate-y{syntax:"*";inherits:false}@property --tw-rotate-z{syntax:"*";inherits:false}@property --tw-skew-x{syntax:"*";inherits:false}@property --tw-skew-y{syntax:"*";inherits:false}@property --tw-pan-x{syntax:"*";inherits:false}@property --tw-pan-y{syntax:"*";inherits:false}@property --tw-pinch-zoom{syntax:"*";inherits:false}@property --tw-border-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-leading{syntax:"*";inherits:false}@property --tw-font-weight{syntax:"*";inherits:false}@property --tw-tracking{syntax:"*";inherits:false}@property --tw-ordinal{syntax:"*";inherits:false}@property --tw-slashed-zero{syntax:"*";inherits:false}@property --tw-numeric-figure{syntax:"*";inherits:false}@property --tw-numeric-spacing{syntax:"*";inherits:false}@property --tw-numeric-fraction{syntax:"*";inherits:false}@property --tw-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-shadow-color{syntax:"*";inherits:false}@property --tw-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-inset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-shadow-color{syntax:"*";inherits:false}@property --tw-inset-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-ring-color{syntax:"*";inherits:false}@property --tw-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-inset-ring-color{syntax:"*";inherits:false}@property --tw-inset-ring-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-ring-inset{syntax:"*";inherits:false}@property --tw-ring-offset-width{syntax:"<length>";inherits:false;initial-value:0}@property --tw-ring-offset-color{syntax:"*";inherits:false;initial-value:#fff}@property --tw-ring-offset-shadow{syntax:"*";inherits:false;initial-value:0 0 #0000}@property --tw-outline-style{syntax:"*";inherits:false;initial-value:solid}@property --tw-blur{syntax:"*";inherits:false}@property --tw-brightness{syntax:"*";inherits:false}@property --tw-contrast{syntax:"*";inherits:false}@property --tw-grayscale{syntax:"*";inherits:false}@property --tw-hue-rotate{syntax:"*";inherits:false}@property --tw-invert{syntax:"*";inherits:false}@property --tw-opacity{syntax:"*";inherits:false}@property --tw-saturate{syntax:"*";inherits:false}@property --tw-sepia{syntax:"*";inherits:false}@property --tw-drop-shadow{syntax:"*";inherits:false}@property --tw-drop-shadow-color{syntax:"*";inherits:false}@property --tw-drop-shadow-alpha{syntax:"<percentage>";inherits:false;initial-value:100%}@property --tw-drop-shadow-size{syntax:"*";inherits:false}@property --tw-backdrop-blur{syntax:"*";inherits:false}@property --tw-backdrop-brightness{syntax:"*";inherits:false}@property --tw-backdrop-contrast{syntax:"*";inherits:false}@property --tw-backdrop-grayscale{syntax:"*";inherits:false}@property --tw-backdrop-hue-rotate{syntax:"*";inherits:false}@property --tw-backdrop-invert{syntax:"*";inherits:false}@property --tw-backdrop-opacity{syntax:"*";inherits:false}@property --tw-backdrop-saturate{syntax:"*";inherits:false}@property --tw-backdrop-sepia{syntax:"*";inherits:false}@property --tw-duration{syntax:"*";inherits:false}@keyframes pulse{50%{opacity:.5}}`;
 
   // src/shared/tw.js
   var supportsAdopt = "adoptedStyleSheets" in Document.prototype && "replaceSync" in CSSStyleSheet.prototype;
@@ -3715,6 +3713,9 @@ ${BASE_CSS}`);
       opacity: 0; transform: translateY(8px);
       transition: opacity .2s ease, transform .2s ease;
     }
+    /* A modal that opts into wide (the room light picker) gets more room on
+       desktop so its content can lay out in two columns. */
+    :host([data-wide]) .sheet { width: min(760px, calc(100vw - 32px)); }
     :host([data-shown="true"]) .sheet { transform: translateY(0); opacity: 1; }
   }
 `;
@@ -3868,7 +3869,15 @@ ${BASE_CSS}`);
     renderContent(card);
     reveal();
   }
-  function openModal({ title, icon, subtitle, cards, hass, entityId }) {
+  function openModal({
+    title,
+    icon,
+    subtitle,
+    cards,
+    hass,
+    entityId,
+    wide
+  }) {
     ensureListeners();
     build();
     if (layer.openId != null)
@@ -3885,6 +3894,10 @@ ${BASE_CSS}`);
     layer.modalCard = card;
     layer.openId = MODAL_ID;
     layer.host.setAttribute("data-open", "true");
+    if (wide)
+      layer.host.setAttribute("data-wide", "true");
+    else
+      layer.host.removeAttribute("data-wide");
     lockView(true);
     renderContent(card);
     reveal();
@@ -3922,8 +3935,10 @@ ${BASE_CSS}`);
   function finishClose() {
     if (layer.openId != null)
       return;
-    if (layer.host)
+    if (layer.host) {
       layer.host.removeAttribute("data-open");
+      layer.host.removeAttribute("data-wide");
+    }
     if (layer.bodyEl)
       layer.bodyEl.textContent = "";
     layer.modalCard = null;
@@ -4072,7 +4087,8 @@ ${BASE_CSS}`);
       icon: a3.icon || DOMAIN_ICON[id.split(".")[0]],
       cards,
       hass,
-      entityId: id
+      entityId: id,
+      wide: grouped
     });
   }
   var state4 = { on: false, fn: null };
@@ -5057,13 +5073,46 @@ ${decls}
   var HUES = [0, 30, 60, 120, 200, 260, 300];
   var STRIP_LO = 2000;
   var STRIP_HI = 6535;
+  var TRACK_X0 = 12;
+  var TRACK_W = 76;
   var SNAP_PX = 18;
+  function hsToRgb(h3, s4) {
+    const sat = s4 / 100;
+    const c4 = sat;
+    const x2 = c4 * (1 - Math.abs(h3 / 60 % 2 - 1));
+    const m2 = 1 - c4;
+    let r4 = 0;
+    let g2 = 0;
+    let b3 = 0;
+    if (h3 < 60)
+      [r4, g2, b3] = [c4, x2, 0];
+    else if (h3 < 120)
+      [r4, g2, b3] = [x2, c4, 0];
+    else if (h3 < 180)
+      [r4, g2, b3] = [0, c4, x2];
+    else if (h3 < 240)
+      [r4, g2, b3] = [0, x2, c4];
+    else if (h3 < 300)
+      [r4, g2, b3] = [x2, 0, c4];
+    else
+      [r4, g2, b3] = [c4, 0, x2];
+    return [(r4 + m2) * 255, (g2 + m2) * 255, (b3 + m2) * 255];
+  }
+  function rgbToKelvin([r4, g2, b3]) {
+    const X = (r4 * 0.4124 + g2 * 0.3576 + b3 * 0.1805) / 255;
+    const Y = (r4 * 0.2126 + g2 * 0.7152 + b3 * 0.0722) / 255;
+    const Z2 = (r4 * 0.0193 + g2 * 0.1192 + b3 * 0.9505) / 255;
+    const sum = X + Y + Z2 || 1;
+    const x2 = X / sum;
+    const y3 = Y / sum;
+    const n4 = (x2 - 0.332) / (0.1858 - y3 || 0.000001);
+    return 449 * n4 ** 3 + 3525 * n4 ** 2 + 6823.3 * n4 + 5520.33;
+  }
 
   class FibbersLightDetail extends i4 {
     static properties = {
       hass: { attribute: false },
       _config: { state: true },
-      _tab: { state: true },
       _v: { state: true }
     };
     static styles = [
@@ -5071,6 +5120,19 @@ ${decls}
       i`
       :host {
         display: block;
+        container-type: inline-size;
+      }
+      /* Wide container (desktop, widened modal) → two columns: wheel | controls. */
+      @container (min-width: 700px) {
+        .room-layout {
+          grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+          align-items: start;
+        }
+        .lamp-tiles {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, 104px);
+          overflow: visible;
+        }
       }
       /* Themed thin scrollbar for the horizontal lamp-tile strip. */
       .lamp-scroll {
@@ -5104,8 +5166,6 @@ ${decls}
       }
       this._config = config;
       this._v = 0;
-      if (this._tab == null)
-        this._tab = "colour";
       this._sl = this._sl || {};
       this._mk("bri", (pct) => {
         const p3 = Math.round(pct);
@@ -5120,9 +5180,14 @@ ${decls}
           color_temp_kelvin: Math.round(lo + pct / 100 * (hi - lo))
         });
       });
-      this._wheel = this._wheel || { mode: null, lampId: null, dragging: false };
+      this._wheel = this._wheel || { kind: null, members: [], dragging: false };
       this._cHold = this._cHold || new Map;
       this._kHold = this._kHold || new Map;
+      const sig = Array.isArray(config.siblings) ? config.siblings.join(",") : config.entity;
+      if (this._groupsSig !== sig) {
+        this._groups = [];
+        this._groupsSig = sig;
+      }
       if (!this._colourCommit)
         this._colourCommit = debounce((a3) => this._call({ hs_color: [Math.round(a3.h), Math.round(a3.s)] }, a3.id), 110);
       if (!this._warmCommit)
@@ -5234,15 +5299,12 @@ ${decls}
     _colourLamps() {
       return this._lamps().filter((id) => this._lOn(id) && this._lHasColor(id) && Array.isArray(this._lAttr(id, "hs_color")));
     }
-    _warmLamps() {
-      return this._lamps().filter((id) => this._lOn(id) && this._lHasTemp(id));
-    }
     _hueDiff(a3, b3) {
       const d3 = Math.abs(a3 - b3) % 360;
       return d3 > 180 ? 360 - d3 : d3;
     }
     _dispHs(id) {
-      if (this._wheel.dragging && this._wheel.lampId === id && this._wheel.mode === "colour")
+      if (this._wheel.dragging && this._wheel.kind === "colour" && this._wheel.members && this._wheel.members.includes(id))
         return [this._wheel.hue, this._wheel.sat];
       const held = this._cHold.get(id);
       const hs = this._lHs(id);
@@ -5256,7 +5318,7 @@ ${decls}
       return hs;
     }
     _dispK(id) {
-      if (this._wheel.dragging && this._wheel.lampId === id && this._wheel.mode === "warm")
+      if (this._wheel.dragging && this._wheel.kind === "warm" && this._wheel.members && this._wheel.members.includes(id))
         return this._wheel.k;
       const held = this._kHold.get(id);
       const k2 = this._lKelvin(id);
@@ -5388,10 +5450,79 @@ ${decls}
       ></button>`;
       const anyTemp = this._lamps().some((id) => this._lHasTemp(id));
       const anyColour = this._lamps().some((id) => this._lHasColor(id));
-      return b2`<div class="flex flex-wrap gap-2">
+      return b2`<div class="lamp-scroll flex gap-2 overflow-x-auto pb-1">
       ${anyTemp ? WHITES.map((w2) => btn(w2.css, `${t3(hl, "light_detail." + w2.key)} (${w2.k}K)`, () => this._applyAll({ color_temp_kelvin: w2.k }))) : ""}
       ${anyColour ? HUES.map((h3) => btn(`hsl(${h3} 90% 55%)`, `${t3(hl, "light_detail.colour")} ${h3}°`, () => this._applyAll({ hs_color: [h3, 90] }))) : ""}
     </div>`;
+    }
+    _warmOnlyLamps() {
+      const colour = this._colourLamps();
+      return this._lamps().filter((id) => this._lOn(id) && this._lHasTemp(id) && !colour.includes(id));
+    }
+    _wheelLamps() {
+      return [...this._colourLamps(), ...this._warmOnlyLamps()];
+    }
+    _isWarm(id) {
+      return !this._colourLamps().includes(id);
+    }
+    _unitOf(id) {
+      return this._groups.find((g2) => g2.has(id)) || null;
+    }
+    _members(id) {
+      const g2 = this._unitOf(id);
+      return g2 ? [...g2].filter((m2) => this._lOn(m2)) : [id];
+    }
+    _units() {
+      const wheel = this._wheelLamps();
+      const inWheel = new Set(wheel);
+      const seen = new Set;
+      const units = [];
+      for (const id of wheel) {
+        if (seen.has(id))
+          continue;
+        const g2 = this._unitOf(id);
+        const members = g2 ? [...g2].filter((m2) => inWheel.has(m2)) : [id];
+        members.forEach((m2) => seen.add(m2));
+        const colourRep = members.find((m2) => !this._isWarm(m2));
+        units.push({ rep: colourRep || members[0], members, warm: !colourRep });
+      }
+      return units;
+    }
+    _mergeIds(ids) {
+      const merged = new Set(ids);
+      const keep = [];
+      for (const g2 of this._groups) {
+        if ([...g2].some((m2) => merged.has(m2)))
+          g2.forEach((m2) => merged.add(m2));
+        else
+          keep.push(g2);
+      }
+      keep.push(merged);
+      this._groups = keep;
+      return merged;
+    }
+    _ungroupAndSelect(id) {
+      const g2 = this._unitOf(id);
+      if (g2) {
+        g2.delete(id);
+        this._groups = this._groups.filter((s4) => s4.size > 1);
+      }
+      if (id !== this._config.entity) {
+        Object.values(this._sl || {}).forEach((s4) => s4.hold.clear());
+        this._config = { ...this._config, entity: id };
+      }
+      this._v++;
+    }
+    _groupBadge(id) {
+      const g2 = this._unitOf(id);
+      const n4 = g2 ? [...g2].filter((m2) => this._lOn(m2)).length : 0;
+      if (n4 < 2)
+        return "";
+      return b2`<span
+      class="absolute -right-1 -top-1 flex h-3.5 min-w-[14px] items-center justify-center
+             rounded-full bg-accent px-0.5 text-[9px] font-bold leading-none text-[#0c1510]"
+      >${n4}</span
+    >`;
     }
     _colourXY(id) {
       const [h3, s4] = this._dispHs(id);
@@ -5401,6 +5532,15 @@ ${decls}
         y: 50 - s4 / 100 * 50 * Math.cos(rad)
       };
     }
+    _warmFrac(id) {
+      return clamp((this._dispK(id) - STRIP_LO) / (STRIP_HI - STRIP_LO), 0, 1);
+    }
+    _warmXY(id) {
+      return { x: TRACK_X0 + this._warmFrac(id) * TRACK_W, y: 50 };
+    }
+    _warmFracAt(clientX, rect) {
+      return clamp((clientX - rect.left - TRACK_X0 / 100 * rect.width) / (TRACK_W / 100 * rect.width), 0, 1);
+    }
     _colourAt(e4, R2) {
       const r4 = e4.currentTarget.getBoundingClientRect();
       const dx = e4.clientX - (r4.left + R2);
@@ -5408,304 +5548,285 @@ ${decls}
       let hue = Math.atan2(dx, -dy) * 180 / Math.PI;
       if (hue < 0)
         hue += 360;
-      let sat = clamp(Math.hypot(dx, dy) / R2 * 100, 0, 100);
-      const mx = sat / 100 * R2 * Math.sin(hue * Math.PI / 180);
-      const my = -(sat / 100) * R2 * Math.cos(hue * Math.PI / 180);
-      for (const other of this._colourLamps()) {
-        if (other === this._wheel.lampId)
+      const sat = clamp(Math.hypot(dx, dy) / R2 * 100, 0, 100);
+      return [hue, sat];
+    }
+    _unitXY(u3) {
+      return u3.warm ? this._warmXY(u3.rep) : this._colourXY(u3.rep);
+    }
+    _commitColour(members, hue, sat, flush) {
+      const k2 = clamp(Math.round(rgbToKelvin(hsToRgb(hue, sat))), STRIP_LO, STRIP_HI);
+      members.forEach((id) => {
+        if (this._isWarm(id))
+          this._setKelvin(id, k2, flush);
+        else
+          this._setColour(id, hue, sat, flush);
+      });
+    }
+    _wheelDown(e4) {
+      const units = this._units();
+      if (!units.length)
+        return;
+      const r4 = e4.currentTarget.getBoundingClientRect();
+      const distTo = (u3) => {
+        const p3 = this._unitXY(u3);
+        return Math.hypot(e4.clientX - (r4.left + p3.x / 100 * r4.width), e4.clientY - (r4.top + p3.y / 100 * r4.height));
+      };
+      let best = null;
+      let bestD = Infinity;
+      for (const u3 of units) {
+        const d3 = distTo(u3);
+        if (d3 < bestD) {
+          bestD = d3;
+          best = u3;
+        }
+      }
+      const au = units.find((u3) => u3.members.includes(this._config.entity));
+      if (au && distTo(au) <= 22)
+        best = au;
+      if (!best)
+        return;
+      capturePointer(e4.currentTarget, e4.pointerId);
+      this._wheel = {
+        kind: best.warm ? "warm" : "colour",
+        warm: best.warm,
+        members: best.members,
+        dragging: true,
+        hue: 0,
+        sat: 0,
+        k: this._dispK(best.rep)
+      };
+      this._selectActive(best.rep);
+      this._wheelMove(e4);
+    }
+    _wheelMove(e4, final) {
+      if (!this._wheel.dragging)
+        return;
+      const rect = e4.currentTarget.getBoundingClientRect();
+      const R2 = rect.width / 2;
+      if (R2 <= 0)
+        return;
+      if (this._wheel.kind === "warm") {
+        const frac = this._warmFracAt(e4.clientX, rect);
+        const k2 = Math.round(STRIP_LO + frac * (STRIP_HI - STRIP_LO));
+        this._wheel.k = k2;
+        this._v++;
+        this._wheel.members.forEach((id) => this._setKelvin(id, k2, final));
+      } else {
+        const [hue, sat] = this._colourAt(e4, R2);
+        this._wheel.hue = hue;
+        this._wheel.sat = sat;
+        this._v++;
+        this._commitColour(this._wheel.members, hue, sat, final);
+      }
+    }
+    _wheelUp(e4) {
+      if (!this._wheel.dragging)
+        return;
+      this._wheelMove(e4, true);
+      const rect = e4.currentTarget.getBoundingClientRect();
+      let dp;
+      if (this._wheel.kind === "warm") {
+        dp = {
+          x: TRACK_X0 + clamp((this._wheel.k - STRIP_LO) / (STRIP_HI - STRIP_LO), 0, 1) * TRACK_W,
+          y: 50
+        };
+      } else {
+        const rad = this._wheel.hue * Math.PI / 180;
+        const s4 = this._wheel.sat;
+        dp = {
+          x: 50 + s4 / 100 * 50 * Math.sin(rad),
+          y: 50 - s4 / 100 * 50 * Math.cos(rad)
+        };
+      }
+      const dcx = rect.left + dp.x / 100 * rect.width;
+      const dcy = rect.top + dp.y / 100 * rect.height;
+      const dragged = new Set(this._wheel.members);
+      let target = null;
+      for (const u3 of this._units()) {
+        if (u3.members.some((m2) => dragged.has(m2)))
           continue;
-        const [oh, os] = this._dispHs(other);
-        const ox = os / 100 * R2 * Math.sin(oh * Math.PI / 180);
-        const oy = -(os / 100) * R2 * Math.cos(oh * Math.PI / 180);
-        if (Math.hypot(mx - ox, my - oy) <= SNAP_PX) {
-          hue = oh;
-          sat = os;
+        const p3 = this._unitXY(u3);
+        const d3 = Math.hypot(dcx - (rect.left + p3.x / 100 * rect.width), dcy - (rect.top + p3.y / 100 * rect.height));
+        if (d3 <= SNAP_PX + 12) {
+          target = u3;
           break;
         }
       }
-      return [hue, sat];
-    }
-    _colourDown(e4) {
-      const lamps = this._colourLamps();
-      if (!lamps.length)
-        return;
-      const r4 = e4.currentTarget.getBoundingClientRect();
-      let best = null;
-      let bestD = Infinity;
-      for (const id of lamps) {
-        const p3 = this._colourXY(id);
-        const d3 = Math.hypot(e4.clientX - (r4.left + p3.x / 100 * r4.width), e4.clientY - (r4.top + p3.y / 100 * r4.height));
-        if (d3 < bestD) {
-          bestD = d3;
-          best = id;
-        }
-      }
-      capturePointer(e4.currentTarget, e4.pointerId);
-      this._wheel = {
-        mode: "colour",
-        lampId: best,
-        dragging: true,
-        hue: 0,
-        sat: 0
-      };
-      this._selectActive(best);
-      this._colourMove(e4);
-    }
-    _colourMove(e4, final) {
-      if (!this._wheel.dragging || this._wheel.mode !== "colour")
-        return;
-      const R2 = e4.currentTarget.getBoundingClientRect().width / 2;
-      if (R2 <= 0)
-        return;
-      const [hue, sat] = this._colourAt(e4, R2);
-      this._wheel.hue = hue;
-      this._wheel.sat = sat;
-      this._v++;
-      this._setColour(this._wheel.lampId, hue, sat, final);
-    }
-    _colourUp(e4) {
-      if (!this._wheel.dragging || this._wheel.mode !== "colour")
-        return;
-      this._colourMove(e4, true);
       this._wheel.dragging = false;
+      if (target) {
+        const merged = this._mergeIds([
+          ...this._wheel.members,
+          ...target.members
+        ]);
+        const on = [...merged].filter((id) => this._lOn(id));
+        if (this._wheel.kind === "warm")
+          on.forEach((id) => this._setKelvin(id, this._wheel.k, true));
+        else
+          this._commitColour(on, this._wheel.hue, this._wheel.sat, true);
+      }
       this._v++;
     }
     _dragCancel() {
       this._wheel.dragging = false;
       this._v++;
     }
-    _colourKey(e4) {
+    _wheelKey(e4) {
       const id = this._config.entity;
-      if (!this._lOn(id) || !this._lHasColor(id))
+      if (!this._lOn(id) || !this._wheelLamps().includes(id))
         return;
-      const d3 = {
-        ArrowLeft: [-1, 0],
-        ArrowRight: [1, 0],
-        ArrowUp: [0, 1],
-        ArrowDown: [0, -1]
-      }[e4.key];
-      if (!d3)
-        return;
-      e4.preventDefault();
-      const step = e4.shiftKey ? 10 : 2;
-      const [ch, cs] = this._dispHs(id);
-      const hue = ((ch + d3[0] * step) % 360 + 360) % 360;
-      const sat = clamp(cs + d3[1] * step, 0, 100);
-      this._setColour(id, hue, sat, true);
+      const members = this._members(id);
+      if (this._isWarm(id)) {
+        const dir = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[e4.key];
+        if (!dir)
+          return;
+        e4.preventDefault();
+        const k2 = clamp((this._dispK(id) || STRIP_LO) + (e4.shiftKey ? 500 : 100) * dir, STRIP_LO, STRIP_HI);
+        members.forEach((m2) => this._isWarm(m2) && this._setKelvin(m2, k2, true));
+      } else {
+        const d3 = {
+          ArrowLeft: [-1, 0],
+          ArrowRight: [1, 0],
+          ArrowUp: [0, 1],
+          ArrowDown: [0, -1]
+        }[e4.key];
+        if (!d3)
+          return;
+        e4.preventDefault();
+        const step = e4.shiftKey ? 10 : 2;
+        const [ch, cs] = this._dispHs(id);
+        const hue = ((ch + d3[0] * step) % 360 + 360) % 360;
+        const sat = clamp(cs + d3[1] * step, 0, 100);
+        this._commitColour(members, hue, sat, true);
+      }
       this._v++;
     }
-    _colourWheel(hl) {
-      const lamps = this._colourLamps();
+    _wheelDisc(hl) {
+      const lamps = this._wheelLamps();
       const disabled = !lamps.length;
       const active = this._config.entity;
-      const [ah, as] = this._dispHs(active);
+      let activeText = "";
+      if (this._isWarm(active)) {
+        activeText = `${Math.round(this._dispK(active) || 0)} K`;
+      } else {
+        const [ah, as] = this._dispHs(active);
+        activeText = `${Math.round(ah)}°, ${Math.round(as)}%`;
+      }
       return b2`<div
-      class="relative mx-auto aspect-square w-full max-w-[240px] touch-none select-none
-             rounded-full ${disabled ? "opacity-40" : "cursor-pointer"}"
-      style="background:radial-gradient(circle at center,#fff 0%,rgba(255,255,255,0) 100%),
+      class="relative mx-auto aspect-square w-full max-w-[280px] touch-none select-none
+             rounded-full ${disabled ? "pointer-events-none opacity-40" : "cursor-pointer"}"
+      style="background:radial-gradient(circle at center,#ffe9c8 0%,rgba(255,233,200,0) 62%),
              conic-gradient(from 0deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)"
       role="slider"
       tabindex=${disabled ? -1 : 0}
       aria-label=${t3(hl, "light_detail.colour")}
-      aria-valuetext=${`${Math.round(ah)}°, ${Math.round(as)}%`}
+      aria-valuetext=${activeText}
       aria-disabled=${disabled ? "true" : "false"}
-      @pointerdown=${this._colourDown}
-      @pointermove=${this._colourMove}
-      @pointerup=${this._colourUp}
+      @pointerdown=${this._wheelDown}
+      @pointermove=${this._wheelMove}
+      @pointerup=${this._wheelUp}
       @pointercancel=${this._dragCancel}
       @lostpointercapture=${this._dragCancel}
-      @keydown=${this._colourKey}
+      @keydown=${this._wheelKey}
     >
-      ${lamps.map((id) => {
-        const p3 = this._colourXY(id);
-        const isActive = id === active;
+      ${this._warmOnlyLamps().length ? b2`<div
+              class="pointer-events-none absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full opacity-70"
+              style="left:${TRACK_X0}%;width:${TRACK_W}%;background:linear-gradient(90deg,#ff9838,#ffd9a0,#fff6ea,#e6efff,#bcd2ff)"
+            ></div>` : ""}
+      ${this._units().map((u3) => {
+        const p3 = this._unitXY(u3);
+        const isActive = u3.members.includes(active);
+        const icon = this._lAttr(u3.rep, "icon") || "solar:lightbulb-bold-duotone";
+        const count = u3.members.length;
         return b2`<div
-          class="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full
-                 shadow-[0_1px_5px_rgba(0,0,0,.6)]
-                 ${isActive ? "h-6 w-6 border-2 border-accent ring-2 ring-accent" : "h-[18px] w-[18px] border-2 border-white"}"
-          style="left:${p3.x}%;top:${p3.y}%;background:${this._swatchColor(id)}"
-        ></div>`;
+          class="pointer-events-none absolute flex -translate-x-1/2 -translate-y-1/2 items-center
+                 justify-center rounded-full border shadow-[0_2px_6px_rgba(0,0,0,.55)]
+                 ${isActive ? "h-9 w-9 border-2 border-accent ring-2 ring-accent" : "h-8 w-8 border-[rgba(0,0,0,.35)]"}"
+          style="left:${p3.x}%;top:${p3.y}%;background:${this._swatchColor(u3.rep)}"
+        >
+          <fib-icon
+            class="h-4 w-4 [--mdc-icon-size:16px] text-white
+                   drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]"
+            icon=${icon}
+          ></fib-icon>
+          ${count > 1 ? b2`<span
+                  class="absolute -right-1.5 -top-1.5 flex h-4 min-w-[16px] items-center
+                         justify-center rounded-full bg-accent px-0.5 text-[9px] font-bold
+                         leading-none text-[#0c1510] shadow-[0_1px_2px_rgba(0,0,0,.6)]"
+                  >${count}</span
+                >` : ""}
+        </div>`;
       })}
-    </div>`;
-    }
-    _warmFrac(id) {
-      return clamp((this._dispK(id) - STRIP_LO) / (STRIP_HI - STRIP_LO), 0, 1);
-    }
-    _warmAngle(id) {
-      const lamps = this._warmLamps();
-      const i5 = lamps.indexOf(id);
-      const n4 = lamps.length || 1;
-      return i5 / n4 * 360;
-    }
-    _warmXY(id) {
-      const frac = this._warmFrac(id);
-      const a3 = this._warmAngle(id) * Math.PI / 180;
-      return { x: 50 + frac * 50 * Math.sin(a3), y: 50 - frac * 50 * Math.cos(a3) };
-    }
-    _warmDown(e4) {
-      const lamps = this._warmLamps();
-      if (!lamps.length)
-        return;
-      const r4 = e4.currentTarget.getBoundingClientRect();
-      let best = null;
-      let bestD = Infinity;
-      for (const id of lamps) {
-        const p3 = this._warmXY(id);
-        const d3 = Math.hypot(e4.clientX - (r4.left + p3.x / 100 * r4.width), e4.clientY - (r4.top + p3.y / 100 * r4.height));
-        if (d3 < bestD) {
-          bestD = d3;
-          best = id;
-        }
-      }
-      capturePointer(e4.currentTarget, e4.pointerId);
-      this._wheel = {
-        mode: "warm",
-        lampId: best,
-        dragging: true,
-        k: this._dispK(best)
-      };
-      this._selectActive(best);
-      this._warmMove(e4);
-    }
-    _warmMove(e4, final) {
-      if (!this._wheel.dragging || this._wheel.mode !== "warm")
-        return;
-      const r4 = e4.currentTarget.getBoundingClientRect();
-      const R2 = r4.width / 2;
-      if (R2 <= 0)
-        return;
-      const dx = e4.clientX - (r4.left + R2);
-      const dy = e4.clientY - (r4.top + R2);
-      const frac = clamp(Math.hypot(dx, dy) / R2, 0, 1);
-      const k2 = Math.round(STRIP_LO + frac * (STRIP_HI - STRIP_LO));
-      this._wheel.k = k2;
-      this._v++;
-      this._setKelvin(this._wheel.lampId, k2, final);
-    }
-    _warmUp(e4) {
-      if (!this._wheel.dragging || this._wheel.mode !== "warm")
-        return;
-      this._warmMove(e4, true);
-      this._wheel.dragging = false;
-      this._v++;
-    }
-    _warmKey(e4) {
-      const id = this._config.entity;
-      if (!this._lOn(id) || !this._lHasTemp(id))
-        return;
-      const dir = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[e4.key];
-      if (!dir)
-        return;
-      e4.preventDefault();
-      const k2 = clamp((this._dispK(id) || STRIP_LO) + (e4.shiftKey ? 500 : 100) * dir, STRIP_LO, STRIP_HI);
-      this._setKelvin(id, k2, true);
-      this._v++;
-    }
-    _warmDisc(hl) {
-      const lamps = this._warmLamps();
-      const disabled = !lamps.length;
-      const active = this._config.entity;
-      return b2`<div
-      class="relative mx-auto aspect-square w-full max-w-[240px] touch-none select-none
-             rounded-full ${disabled ? "opacity-40" : "cursor-pointer"}"
-      style="background:radial-gradient(circle at center,#ff9838 0%,#ffd9a0 30%,#fff6ea 55%,#e6efff 78%,#bcd2ff 100%)"
-      role="slider"
-      tabindex=${disabled ? -1 : 0}
-      aria-label=${t3(hl, "light_detail.temperature")}
-      aria-valuetext=${`${Math.round(this._dispK(active) || 0)} K`}
-      aria-disabled=${disabled ? "true" : "false"}
-      @pointerdown=${this._warmDown}
-      @pointermove=${this._warmMove}
-      @pointerup=${this._warmUp}
-      @pointercancel=${this._dragCancel}
-      @lostpointercapture=${this._dragCancel}
-      @keydown=${this._warmKey}
-    >
-      ${lamps.map((id) => {
-        const p3 = this._warmXY(id);
-        const isActive = id === active;
-        return b2`<div
-          class="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full
-                 shadow-[0_1px_5px_rgba(0,0,0,.6)]
-                 ${isActive ? "h-6 w-6 border-2 border-accent ring-2 ring-accent" : "h-[18px] w-[18px] border-2 border-white"}"
-          style="left:${p3.x}%;top:${p3.y}%;background:${this._swatchColor(id)}"
-        ></div>`;
-      })}
-    </div>`;
-    }
-    _tabs(hl) {
-      const tab = (key, label) => b2`<button
-        type="button"
-        role="tab"
-        aria-selected=${this._tab === key ? "true" : "false"}
-        class="fib-hit flex-1 rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors
-             ${this._tab === key ? "bg-accent text-[#0c1510]" : "text-ink2"}"
-        @click=${() => {
-        this._tab = key;
-      }}
-      >
-        ${label}
-      </button>`;
-      return b2`<div
-      role="tablist"
-      class="flex gap-1 rounded-full border border-line bg-card2 p-1"
-      aria-label=${t3(hl, "light_detail.colour")}
-    >
-      ${tab("colour", t3(hl, "light_detail.colour"))}
-      ${tab("warm", t3(hl, "light_detail.white"))}
     </div>`;
     }
     _lampTiles(hl) {
       const active = this._config.entity;
-      return b2`<div class="lamp-scroll flex gap-2 overflow-x-auto pb-1">
+      return b2`<div
+      class="lamp-tiles lamp-scroll flex gap-2 overflow-x-auto pb-1"
+    >
       ${this._lamps().map((id) => {
         const on = this._lOn(id);
         const unavail = this._lUnavail(id);
         const nm = this._lAttr(id, "friendly_name") || id;
         const isActive = id === active;
+        const icon = this._lAttr(id, "icon") || "solar:lightbulb-bold-duotone";
         return b2`<div
-          class="flex h-[84px] w-[84px] flex-none cursor-pointer flex-col justify-between
-                 rounded-xl border p-2 transition-colors
+          class="relative flex h-[84px] w-[104px] flex-none rounded-[14px] border
+                 p-2.5 transition-colors
                  ${isActive ? "border-accent bg-accentbg" : "border-line bg-card2"} ${unavail ? "opacity-50" : ""}"
-          role="button"
-          tabindex="0"
-          aria-pressed=${isActive ? "true" : "false"}
-          aria-label=${nm}
-          @click=${() => this._selectActive(id)}
-          @keydown=${activateOnKey(() => this._selectActive(id))}
         >
-          <div class="flex items-start justify-between">
-            <span
-              class="h-5 w-5 flex-none rounded-full border border-[rgba(255,255,255,.25)]
-                     shadow-[0_1px_3px_rgba(0,0,0,.4)]"
-              style="background:${this._swatchColor(id)}"
-            ></span>
-            ${unavail ? b2`<span class="text-[9px] uppercase text-muted"
-                    >${t3(hl, "light_detail.offline")}</span
-                  >` : pillSwitch({
+          <button
+            type="button"
+            class="absolute inset-0 cursor-pointer rounded-[14px]"
+            aria-pressed=${isActive ? "true" : "false"}
+            aria-label=${nm}
+            @click=${() => this._ungroupAndSelect(id)}
+            @keydown=${activateOnKey(() => this._ungroupAndSelect(id))}
+          ></button>
+          <div
+            class="pointer-events-none relative flex h-full w-full flex-col justify-between"
+          >
+            <div class="flex items-start justify-between gap-1">
+              <span
+                class="relative flex h-8 w-8 flex-none items-center justify-center rounded-full
+                       border border-[rgba(0,0,0,.3)] shadow-[0_1px_3px_rgba(0,0,0,.4)]"
+                style="background:${this._swatchColor(id)}"
+              >
+                <fib-icon
+                  class="h-4 w-4 [--mdc-icon-size:16px] text-white
+                         drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]"
+                  icon=${icon}
+                ></fib-icon>
+                ${this._groupBadge(id)}
+              </span>
+              ${unavail ? b2`<span class="text-[9px] uppercase text-muted"
+                      >${t3(hl, "light_detail.offline")}</span
+                    >` : b2`<span class="pointer-events-auto"
+                      >${pillSwitch({
           on,
           label: nm,
-          onClick: (e4) => {
-            if (e4)
-              e4.stopPropagation();
-            this._toggle(id);
-          }
-        })}
+          onClick: () => this._toggle(id)
+        })}</span
+                    >`}
+            </div>
+            <span
+              class="truncate text-[11px] ${isActive ? "font-medium text-ink" : "text-ink2"}"
+              >${nm}</span
+            >
           </div>
-          <span
-            class="truncate text-[11px] ${isActive ? "font-medium text-ink" : "text-ink2"}"
-            >${nm}</span
-          >
         </div>`;
       })}
     </div>`;
     }
     _roomPicker(hl) {
       return b2`
-      ${this._tabs(hl)}
-      ${this._tab === "warm" ? this._warmDisc(hl) : this._colourWheel(hl)}
-      ${this._slider("bri", `${t3(hl, "light_detail.brightness")} · ${this._lAttr(this._config.entity, "friendly_name") || ""}`, `${this._pct("bri")}%`)}
-      ${this._swatches(hl)} ${this._lampTiles(hl)}
+      <div class="room-layout grid gap-4">
+        <div class="min-w-0">${this._wheelDisc(hl)}</div>
+        <div class="grid min-w-0 gap-4">
+          ${this._slider("bri", `${t3(hl, "light_detail.brightness")} · ${this._lAttr(this._config.entity, "friendly_name") || ""}`, `${this._pct("bri")}%`)}
+          ${this._swatches(hl)} ${this._lampTiles(hl)}
+        </div>
+      </div>
     `;
     }
     _singleControls(hl) {
@@ -5713,7 +5834,7 @@ ${decls}
       const curK = Math.round(lo + this._pct("temp") / 100 * (hi - lo));
       return b2`
       ${this._slider("bri", t3(hl, "light_detail.brightness"), `${this._pct("bri")}%`)}
-      ${this._hasColor() ? this._colourWheel(hl) : this._hasTemp() ? this._slider("temp", t3(hl, "light_detail.temperature"), `${curK} K`, {
+      ${this._hasColor() ? this._wheelDisc(hl) : this._hasTemp() ? this._slider("temp", t3(hl, "light_detail.temperature"), `${curK} K`, {
         gradient: "linear-gradient(90deg,#ff9838,#ffd9a0,#fff6ea,#e6efff,#bcd2ff)"
       }) : ""}
       ${this._hasTemp() || this._hasColor() ? this._swatches(hl) : ""}
@@ -5740,15 +5861,15 @@ ${decls}
              ${!room && unavail ? "opacity-60" : ""}"
     >
       <div class="flex items-center gap-3">
-        <div
-          class="flex h-9 w-9 flex-none items-center justify-center rounded-xl
-                 ${on || room ? "bg-accentbg text-accent" : "bg-card2 text-muted"}"
-        >
-          <fib-icon
-            class="h-[20px] w-[20px] [--mdc-icon-size:20px]"
-            icon=${room ? "solar:lightbulb-bolt-bold-duotone" : icon}
-          ></fib-icon>
-        </div>
+        ${room ? "" : b2`<div
+                class="flex h-9 w-9 flex-none items-center justify-center rounded-xl
+                       ${on ? "bg-accentbg text-accent" : "bg-card2 text-muted"}"
+              >
+                <fib-icon
+                  class="h-[20px] w-[20px] [--mdc-icon-size:20px]"
+                  icon=${icon}
+                ></fib-icon>
+              </div>`}
         <div class="min-w-0 flex-1">
           <div class="truncate text-[14px] font-semibold text-ink">
             ${title}
@@ -9791,7 +9912,7 @@ ${decls}
    * custom element and registers it with HA's card picker (window.customCards).
    * The `/*!` banner is kept verbatim by the minifier. Edit src/, run `bun run build`.
    */
-  var VERSION = "0.8.4";
+  var VERSION = "0.8.7";
   var CARDS = [
     [
       "fibbers-nav",

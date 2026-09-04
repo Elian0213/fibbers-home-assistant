@@ -3,6 +3,81 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.8.7] — 2026-09-05
+
+More room-picker polish: tunable-white lamps, lamp grouping, roomier tiles.
+
+### Added
+
+- **Group lamps by dragging their markers together.** Drag one lamp's marker onto
+  another and they merge into a group — one marker with a count badge — and dragging
+  it moves every member together (colour lamps share the colour, white lamps the
+  nearest warmth). Tap a lamp in the tiles to pop it back out of the group.
+
+### Changed
+
+- **Tunable-white lamps now ride a warm↔cool track** across the centre of the wheel
+  (warm on the left, cool on the right) instead of sitting at a meaningless angle —
+  colour temperature isn't a hue. Colour lamps keep the full colour wheel; it's still
+  one circle for the whole room.
+- **The lamp tiles are roomier** so the colour/icon and the on/off toggle no longer
+  crowd each other.
+
+## [0.8.6] — 2026-09-05
+
+Philips-Hue-style redesign of the room light picker, plus a proper desktop layout.
+
+### Changed
+
+- **The room light picker is one wheel now.** The Colour/White tabs are gone: a single
+  warm-centred wheel is the colour control — colour lamps place by hue and saturation,
+  colour-temperature-only lamps place by warmth (kelvin) — and each lamp is a draggable
+  round marker carrying its own icon and real colour. The lamp you're editing is ringed
+  in the theme accent; drag one marker onto another to snap them to the same colour.
+- **Lamp tiles match the reference cards** — each carries the lamp's icon in a coloured
+  circle alongside the instant on/off toggle and name; the room header is trimmed so the
+  wheel dominates.
+
+### Added
+
+- **A proper desktop layout.** On a wide screen the room light modal widens and lays out
+  in two columns — the wheel on the left, brightness + swatches + a wrapped grid of lamp
+  tiles on the right. Mobile stays the single-column bottom sheet.
+
+### Fixed
+
+- Review polish on the room picker: you can now separate two lamps that snapped to the
+  same colour (focus one in the tiles, then drag its marker); a lamp turning off no longer
+  reshuffles the warm markers mid-drag; the wheel is inert when every lamp is off; the lamp
+  tiles no longer nest interactive elements; and the two-column layout only engages on a
+  genuinely wide screen so small tablets aren't cramped.
+
+## [0.8.5] — 2026-09-04
+
+Room light-picker polish, and a brightness-slider fix.
+
+### Fixed
+
+- **The brightness slider keeps its knob when a lamp is off.** Selecting an off lamp
+  in a room (or opening an off light) collapsed the slider to an empty hairline: the
+  detail modal treated "off" as "disabled", and a disabled slider drew no fill, knob
+  or value at all. Brightness now behaves like the light row — the knob sits at 0%
+  and dragging it turns the lamp on (drag to zero turns it off) — and a genuinely
+  disabled slider (an unavailable lamp) is dimmed rather than blank. Rooms now also
+  open focused on a lamp that is actually on.
+- **Each lamp's colour renders faithfully.** Dots and tiles now use the light's real
+  `rgb_color`, so a light that advertises a colour mode but reports no colour no
+  longer shows a bogus red dot (it's dropped from the wheel and reads neutral in the
+  list).
+
+### Changed
+
+- **The room picker is redesigned.** The lamps sit below the picker as equal square
+  tiles in a horizontal scroll (colour swatch, an instant on/off toggle, tap to focus
+  for colour/temperature), the White tab is now a **radial warm disc** (warm centre →
+  cool rim) carrying the same per-lamp dots as the colour wheel, and the lamp you're
+  editing is highlighted in the theme accent.
+
 ## [0.8.4] — 2026-09-04
 
 Light-experience patch: two slider/keyboard fixes and a Hue-style colour wheel.

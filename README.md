@@ -9,7 +9,7 @@ you came from, drag-away sheets, room tiles that count their own lights, and an 
 from real checks instead of Jinja. It reads in your language, sizes itself, and leaves the rest of
 Home Assistant untouched.
 
-26 cards, one file. No theme repo, no `kiosk-mode`, no wall of `card-mod`.
+27 cards, one file. No theme repo, no `kiosk-mode`, no wall of `card-mod`.
 
 [![Validate](https://github.com/Elian0213/fibbers-home-assistant/actions/workflows/validate.yml/badge.svg)](https://github.com/Elian0213/fibbers-home-assistant/actions/workflows/validate.yml)
 [![CI](https://github.com/Elian0213/fibbers-home-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/Elian0213/fibbers-home-assistant/actions/workflows/ci.yml)
@@ -54,7 +54,7 @@ scattering `card-mod` across your config. Fibbers handles those:
   or light palette is opt-in on the nav — scoped to the dashboard, or, if you want it,
   `fibbers-global` across all of Home Assistant.
 
-Verified on **Home Assistant 2026.8.x**.
+Verified on **Home Assistant 2026.9.x**.
 
 ---
 
@@ -70,7 +70,7 @@ Fibbers is a **Dashboard** plugin (a Lovelace resource), installed through HACS.
    Add**, URL `/hacsfiles/fibbers-home-assistant/fibbers.js`, type **JavaScript module**.
 4. Hard-refresh the browser (Ctrl/Cmd-Shift-R).
 
-Done — the 26 cards are in the card picker (search "fibbers"). Nothing else about your Home
+Done — the 27 cards are in the card picker (search "fibbers"). Nothing else about your Home
 Assistant changes.
 
 ---
@@ -116,7 +116,7 @@ in the [Storybook](https://elian0213.github.io/fibbers-home-assistant/).
 
 ## The cards
 
-26 cards sharing one design-token set, so they match out of the box. On-screen strings follow your
+27 cards sharing one design-token set, so they match out of the box. On-screen strings follow your
 Home Assistant language (English by default, Dutch translation included); config keys are English.
 
 **Shell & navigation** — the app shell: a pinned bottom bar (sidebar-aware on desktop), a back button, drag-away modal sheets, a section label, and the greeting header. (The bar and an open sheet are up top.)
@@ -131,7 +131,7 @@ Home Assistant language (English by default, Dutch translation included); config
 </tr>
 </table>
 
-**Rooms, lights & scenes** — room tiles, a master light-group control, a light row with a slider, scene tiles, and action chips.
+**Rooms, lights & scenes** — room tiles, a master light-group control, a light row with a slider, a full colour picker (the light modal — a Hue-style colour wheel per room), scene tiles, and action chips.
 
 <table>
 <tr>
@@ -142,7 +142,7 @@ Home Assistant language (English by default, Dutch translation included); config
 <tr>
 <td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/scene.png" width="240" alt="fibbers-scene"><br><code>fibbers-scene</code><br><sub>scene tiles</sub></td>
 <td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/chips.png" width="240" alt="fibbers-chips"><br><code>fibbers-chips</code><br><sub>action pills</sub></td>
-<td></td>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/light-detail.png" width="240" alt="fibbers-light-detail"><br><code>fibbers-light-detail</code><br><sub>room colour picker</sub></td>
 </tr>
 </table>
 
@@ -316,6 +316,13 @@ Two ways to take it **beyond the dashboard** — sidebar, header, Settings, dial
 Add **`more_info: true`** to the nav and tapping an entity opens a Fibbers-styled modal instead of
 HA's more-info dialog — for `media_player`, `climate`, `light`, and numeric `sensor`s (current value
 + a 24-hour history graph). Other domains fall through to HA's own (themed) dialog. Off by default.
+
+Tapping a **light** opens `fibbers-light-detail`: brightness, a colour wheel and quick swatches for
+one bulb. Opened from a **room or light-group** (which pass the room's lamps), it becomes a
+Philips-Hue-style **room colour picker** — one warm-centred wheel carrying a draggable, icon-labelled
+marker per lamp (drag one marker onto another to snap them to the same colour), with the lamps as
+tiles below for per-lamp brightness and instant on/off. The focused lamp is highlighted in the accent;
+on a wide screen the modal widens into a two-column layout.
 
 ---
 

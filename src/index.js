@@ -39,7 +39,7 @@ import { nav, goBack, previous } from "./core/nav-stack.js";
 import { T, styleBlock } from "./shared/tokens.js";
 import { navigate } from "./shared/util.js";
 
-const VERSION = "0.8.4";
+const VERSION = "0.8.7";
 
 /* ================================================================== *
  * REGISTRY — `[tag, class, name, description]` per card. The forEach below

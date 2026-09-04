@@ -36,7 +36,6 @@
     "neutral": "Neutral",
     "cool": "Cool",
     "lights": "Lights",
-    "white": "White",
     "on_count": "{on} of {total} on"
   },
   "light_group": {
