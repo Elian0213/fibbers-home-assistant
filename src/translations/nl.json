@@ -34,7 +34,8 @@
     "colour": "Kleur",
     "warm": "Warm",
     "neutral": "Neutraal",
-    "cool": "Koel"
+    "cool": "Koel",
+    "lights": "Lampen"
   },
   "light_group": {
     "default_name": "Lampen",

@@ -138,7 +138,12 @@ export class FibbersRoom extends LitElement {
     if (this._config.sheet) window.location.hash = this._config.sheet;
   }
   _moreInfo() {
-    moreInfo(this, this._lights()[0] || this._entities()[0]);
+    const lights = this._lights();
+    const id = lights[0] || this._entities()[0];
+    if (!id) return;
+    // Hand the modal the whole room so the light-detail card can switch between
+    // this room's lamps in place instead of close/reopen per light.
+    moreInfo(this, id, { siblings: lights, groupName: this._config.name });
   }
 
   /** The tile — icon, name, and computed light-state subline; glows when lit. */

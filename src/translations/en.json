@@ -34,7 +34,8 @@
     "colour": "Colour",
     "warm": "Warm",
     "neutral": "Neutral",
-    "cool": "Cool"
+    "cool": "Cool",
+    "lights": "Lights"
   },
   "light_group": {
     "default_name": "Lights",

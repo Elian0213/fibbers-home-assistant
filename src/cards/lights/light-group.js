@@ -269,6 +269,9 @@ export class FibbersLightGroup extends LitElement {
         type: "custom:fibbers-light-row",
         entity: id,
         compact: true,
+        // Carry the group so opening a member's detail can switch lamps in place.
+        siblings: this._members(),
+        groupName: this._config.name,
       });
       this._rowCache.set(id, el);
     }

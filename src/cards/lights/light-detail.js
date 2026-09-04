@@ -191,6 +191,82 @@ export class FibbersLightDetail extends LitElement {
     });
   }
 
+  // Sibling lamps to switch between (room/group context), live entities only.
+  _siblings() {
+    const ids = this._config.siblings;
+    return Array.isArray(ids)
+      ? ids.filter((id) => this.hass && this.hass.states[id])
+      : [];
+  }
+
+  // Switch the controlled lamp in place — clear the per-attribute holds so the new
+  // lamp's values don't inherit the previous one's optimistic display.
+  _switchTo(id) {
+    if (!id || id === this._config.entity) return;
+    Object.values(this._sl || {}).forEach((s) => s.hold.clear());
+    this._config = { ...this._config, entity: id };
+    this._v++;
+  }
+
+  // Roving focus for the lamp switcher tablist; Left/Right/Home/End, activate on move.
+  _switcherKey(e) {
+    const ids = this._siblings();
+    if (!ids.length) return;
+    const cur = ids.indexOf(this._config.entity);
+    const delta = { ArrowLeft: -1, ArrowRight: 1 };
+    let next;
+    if (e.key in delta) next = (cur + delta[e.key] + ids.length) % ids.length;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = ids.length - 1;
+    else return;
+    e.preventDefault();
+    this._switchTo(ids[next]);
+    this.updateComplete.then(() => {
+      const tab = this.renderRoot.querySelector(
+        '[role="tab"][aria-selected="true"]',
+      );
+      if (tab) tab.focus();
+    });
+  }
+
+  // A horizontal tablist of the room/group's lamps (only when there's more than one).
+  _switcher(hl) {
+    const ids = this._siblings();
+    if (ids.length <= 1) return "";
+    return html`<div
+      role="tablist"
+      aria-label=${t(hl, "light_detail.lights")}
+      class="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5"
+      @keydown=${this._switcherKey}
+    >
+      ${ids.map((id) => {
+        const sel = id === this._config.entity;
+        const st = this.hass && this.hass.states[id];
+        const on = !!st && st.state === "on";
+        const nm = (st && st.attributes.friendly_name) || id;
+        return html`<button
+          type="button"
+          role="tab"
+          aria-selected=${sel ? "true" : "false"}
+          tabindex=${sel ? 0 : -1}
+          class="fib-hit flex flex-none items-center gap-1.5 whitespace-nowrap rounded-full
+                 border px-3 py-1 text-[11px] font-medium transition-colors
+                 ${
+                   sel
+                     ? "border-accent bg-accentbg text-accent"
+                     : "border-line bg-card2 text-ink2"
+                 }"
+          @click=${() => this._switchTo(id)}
+        >
+          <span
+            class="h-1.5 w-1.5 flex-none rounded-full ${on ? "bg-accent" : "bg-muted"}"
+          ></span>
+          ${nm}
+        </button>`;
+      })}
+    </div>`;
+  }
+
   // One slider row: label + value on top, the track below.
   _slider(key, label, valueText, opts = {}) {
     const s = this._sl[key];
@@ -280,6 +356,7 @@ export class FibbersLightDetail extends LitElement {
       class="grid gap-4 rounded-[14px] border border-line bg-card p-[15px]
              ${unavail ? "opacity-60" : ""}"
     >
+      ${this._switcher(hl)}
       <div class="flex items-center gap-3">
         <div
           class="flex h-9 w-9 flex-none items-center justify-center rounded-xl

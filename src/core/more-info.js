@@ -61,7 +61,8 @@ function cardsFor(hass, id) {
 }
 
 function handle(e) {
-  const id = e.detail && e.detail.entityId;
+  const detail = e.detail || {};
+  const id = detail.entityId;
   if (!id) return;
   const hass = currentHass();
   if (!hass || !hass.states[id]) return; // unknown entity → HA's dialog
@@ -77,8 +78,17 @@ function handle(e) {
   e.stopImmediatePropagation();
   const st = hass.states[id];
   const a = (st && st.attributes) || {};
+  // A room/group can pass its sibling lights; hand them to the light-detail card so
+  // it renders an in-modal lamp switcher, and title the modal with the room name.
+  const siblings = Array.isArray(detail.siblings)
+    ? detail.siblings.filter((s) => hass.states[s])
+    : null;
+  const grouped =
+    siblings && siblings.length > 1 && id.split(".")[0] === "light";
+  if (grouped)
+    cards[0] = { ...cards[0], siblings, groupName: detail.groupName };
   openModal({
-    title: a.friendly_name || id,
+    title: (grouped && detail.groupName) || a.friendly_name || id,
     icon: a.icon || DOMAIN_ICON[id.split(".")[0]],
     cards,
     hass,

@@ -58,13 +58,15 @@ export function deepFind(localName) {
  * the normal in-view case.
  * @param {Element} host
  * @param {string} entityId
+ * @param {object} [extra] — merged into the event detail (e.g. `{ siblings,
+ *   groupName }` so a room/group modal can switch between its lamps in place)
  */
-export function moreInfo(host, entityId) {
+export function moreInfo(host, entityId, extra) {
   if (!host || !entityId) return;
   const target = document.querySelector("home-assistant") || host;
   target.dispatchEvent(
     new CustomEvent("hass-more-info", {
-      detail: { entityId },
+      detail: { entityId, ...(extra || {}) },
       bubbles: true,
       composed: true,
     }),

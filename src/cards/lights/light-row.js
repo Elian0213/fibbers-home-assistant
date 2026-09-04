@@ -201,7 +201,12 @@ export class FibbersLightRow extends LitElement {
     return this._config.icon_tap_action || { action: "toggle" };
   }
   _moreInfo() {
-    moreInfo(this, this._config.entity);
+    const cfg = this._config;
+    // A group member carries its siblings so the modal can switch lamps in place.
+    const extra = Array.isArray(cfg.siblings)
+      ? { siblings: cfg.siblings, groupName: cfg.groupName }
+      : undefined;
+    moreInfo(this, cfg.entity, extra);
   }
 
   /** Draw the row: icon action, name → more-info, and a dimmer slider or plain toggle. */
