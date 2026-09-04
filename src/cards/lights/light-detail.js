@@ -14,6 +14,7 @@ import {
   sliderTrack,
   sliderDrag,
   pillSwitch,
+  activateOnKey,
   SliderHold,
 } from "../../shared/ui.js";
 import {
@@ -57,6 +58,24 @@ export class FibbersLightDetail extends LitElement {
     css`
       :host {
         display: block;
+      }
+      /* Themed thin scrollbar for the horizontal lamp-tile strip. */
+      .lamp-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-line, #333e41) transparent;
+      }
+      .lamp-scroll::-webkit-scrollbar {
+        height: 6px;
+      }
+      .lamp-scroll::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .lamp-scroll::-webkit-scrollbar-thumb {
+        background: var(--color-line, #333e41);
+        border-radius: 3px;
+      }
+      .lamp-scroll:hover::-webkit-scrollbar-thumb {
+        background: var(--color-accent, #74b98a);
       }
     `,
   ];
@@ -283,9 +302,9 @@ export class FibbersLightDetail extends LitElement {
   // (faithful for colour AND warm lamps), else a warm-white for an on lamp with no
   // colour data (e.g. an hs-mode light reporting color_mode "onoff"), else neutral.
   _swatchColor(id) {
+    if (!this._lOn(id)) return "#3a4446";
     const rgb = this._lAttr(id, "rgb_color");
     if (Array.isArray(rgb)) return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
-    if (!this._lOn(id)) return "#3a4446";
     const hs = this._lAttr(id, "hs_color");
     if (Array.isArray(hs))
       return `hsl(${Math.round(hs[0])} ${Math.round(clamp(hs[1], 20, 90))}% 55%)`;
@@ -726,45 +745,57 @@ export class FibbersLightDetail extends LitElement {
     </div>`;
   }
 
-  _lampList(hl) {
+  // Equal square tiles in a horizontal scroll: each shows the lamp's real colour,
+  // an instant on/off toggle, and its name; tapping a tile focuses that lamp for the
+  // colour/warm picker (active = accent border).
+  _lampTiles(hl) {
     const active = this._config.entity;
-    return html`<div class="grid gap-0.5">
+    return html`<div class="lamp-scroll flex gap-2 overflow-x-auto pb-1">
       ${this._lamps().map((id) => {
         const on = this._lOn(id);
         const unavail = this._lUnavail(id);
         const nm = this._lAttr(id, "friendly_name") || id;
         const isActive = id === active;
-        let dot = "#3a4446";
-        if (on && this._lHasColor(id)) {
-          const [h, s] = this._dispHs(id);
-          dot = `hsl(${Math.round(h)} ${Math.round(clamp(s, 15, 90))}% 55%)`;
-        } else if (on) dot = "#ffd9a0";
         return html`<div
-          class="flex items-center gap-2 rounded-lg px-2 py-1.5
-                 ${isActive ? "bg-card2" : ""} ${unavail ? "opacity-50" : ""}"
+          class="flex h-[84px] w-[84px] flex-none cursor-pointer flex-col justify-between
+                 rounded-xl border p-2 transition-colors
+                 ${
+                   isActive
+                     ? "border-accent bg-accentbg"
+                     : "border-line bg-card2"
+                 } ${unavail ? "opacity-50" : ""}"
+          role="button"
+          tabindex="0"
+          aria-pressed=${isActive ? "true" : "false"}
+          aria-label=${nm}
+          @click=${() => this._selectActive(id)}
+          @keydown=${activateOnKey(() => this._selectActive(id))}
         >
-          <button
-            type="button"
-            class="flex min-w-0 flex-1 items-center gap-2 text-left"
-            aria-pressed=${isActive ? "true" : "false"}
-            @click=${() => this._selectActive(id)}
-          >
+          <div class="flex items-start justify-between">
             <span
-              class="h-2.5 w-2.5 flex-none rounded-full"
-              style="background:${dot}"
+              class="h-5 w-5 flex-none rounded-full border border-[rgba(255,255,255,.25)]
+                     shadow-[0_1px_3px_rgba(0,0,0,.4)]"
+              style="background:${this._swatchColor(id)}"
             ></span>
-            <span
-              class="truncate text-[12px] ${isActive ? "font-medium text-ink" : "text-ink2"}"
-              >${nm}</span
-            >
-          </button>
-          ${
-            unavail
-              ? html`<span class="text-[10.5px] text-muted"
-                  >${t(hl, "light_detail.offline")}</span
-                >`
-              : pillSwitch({ on, label: nm, onClick: () => this._toggle(id) })
-          }
+            ${
+              unavail
+                ? html`<span class="text-[9px] uppercase text-muted"
+                    >${t(hl, "light_detail.offline")}</span
+                  >`
+                : pillSwitch({
+                    on,
+                    label: nm,
+                    onClick: (e) => {
+                      if (e) e.stopPropagation();
+                      this._toggle(id);
+                    },
+                  })
+            }
+          </div>
+          <span
+            class="truncate text-[11px] ${isActive ? "font-medium text-ink" : "text-ink2"}"
+            >${nm}</span
+          >
         </div>`;
       })}
     </div>`;
@@ -779,7 +810,7 @@ export class FibbersLightDetail extends LitElement {
         `${t(hl, "light_detail.brightness")} · ${this._lAttr(this._config.entity, "friendly_name") || ""}`,
         `${this._pct("bri")}%`,
       )}
-      ${this._swatches(hl)} ${this._lampList(hl)}
+      ${this._swatches(hl)} ${this._lampTiles(hl)}
     `;
   }
 
