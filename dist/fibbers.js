@@ -3549,19 +3549,28 @@ ${BASE_CSS}`);
     "--paper-slider-knob-color": T2.accent,
     "--paper-slider-container-color": "#2C3639"
   };
-  function injectGlobalCss() {
+  function setGlobalVars(vars = DARK_VARS) {
     if (window.FIBBERS_DISABLE_GLOBAL_CSS)
       return;
-    if (document.getElementById(STYLE_ID2))
-      return;
-    const decls = Object.entries(DARK_VARS).map(([k2, v2]) => `  ${k2}: ${v2} !important;`).join(`
+    const decls = Object.entries(vars).map(([k2, v2]) => `  ${k2}: ${v2} !important;`).join(`
 `);
-    const style = document.createElement("style");
-    style.id = STYLE_ID2;
+    let style = document.getElementById(STYLE_ID2);
+    if (!style) {
+      style = document.createElement("style");
+      style.id = STYLE_ID2;
+      document.head.appendChild(style);
+    }
     style.textContent = `html {
 ${decls}
 }`;
-    document.head.appendChild(style);
+  }
+  function clearGlobalVars() {
+    const style = document.getElementById(STYLE_ID2);
+    if (style)
+      style.remove();
+  }
+  function injectGlobalCss() {
+    setGlobalVars(DARK_VARS);
   }
 
   // src/core/theme.js
@@ -3659,12 +3668,26 @@ ${decls}
     state3.mql = null;
   }
   function applyTheme(mode) {
-    const normalized = ["fibbers", "fibbers-light", "auto"].includes(mode) ? mode : "none";
+    const KNOWN = [
+      "fibbers",
+      "fibbers-light",
+      "auto",
+      "fibbers-global",
+      "fibbers-global-light"
+    ];
+    const normalized = KNOWN.includes(mode) ? mode : "none";
     state3.mode = normalized;
     if (normalized === "none") {
       removeTheme();
       return;
     }
+    if (normalized === "fibbers-global" || normalized === "fibbers-global-light") {
+      removeStyle(STYLE_ID3);
+      unwatchScheme();
+      setGlobalVars(normalized === "fibbers-global-light" ? LIGHT_VARS : DARK_VARS);
+      return;
+    }
+    clearGlobalVars();
     injectStyle(STYLE_ID3, computeCss2);
     if (normalized === "auto")
       watchScheme();
@@ -3675,6 +3698,7 @@ ${decls}
     state3.mode = "none";
     unwatchScheme();
     removeStyle(STYLE_ID3);
+    clearGlobalVars();
   }
 
   // src/core/view-reserve.js
@@ -3992,7 +4016,9 @@ ${decls}
             { value: "none", label: "None" },
             { value: "fibbers", label: "Fibbers (dark)" },
             { value: "fibbers-light", label: "Fibbers Light" },
-            { value: "auto", label: "Auto" }
+            { value: "auto", label: "Auto" },
+            { value: "fibbers-global", label: "Fibbers Global (all of HA)" },
+            { value: "fibbers-global-light", label: "Fibbers Global Light" }
           ]
         }
       }
@@ -4050,8 +4076,15 @@ ${decls}
       if (config.respect_sidebar != null && typeof config.respect_sidebar !== "boolean") {
         throw new Error("fibbers-nav: `respect_sidebar` must be true or false");
       }
-      if (config.theme != null && !["none", "fibbers", "fibbers-light", "auto"].includes(config.theme)) {
-        throw new Error('fibbers-nav: `theme` must be "fibbers", "fibbers-light", "auto", or "none"');
+      if (config.theme != null && ![
+        "none",
+        "fibbers",
+        "fibbers-light",
+        "auto",
+        "fibbers-global",
+        "fibbers-global-light"
+      ].includes(config.theme)) {
+        throw new Error('fibbers-nav: `theme` must be "fibbers", "fibbers-light", "auto", ' + '"fibbers-global", "fibbers-global-light", or "none"');
       }
       if (config.reserve != null && !Number.isFinite(Number(config.reserve))) {
         throw new Error("fibbers-nav: `reserve` must be a number of pixels");

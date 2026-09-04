@@ -19,6 +19,8 @@ const EDITOR_SCHEMA = [
           { value: "fibbers", label: "Fibbers (dark)" },
           { value: "fibbers-light", label: "Fibbers Light" },
           { value: "auto", label: "Auto" },
+          { value: "fibbers-global", label: "Fibbers Global (all of HA)" },
+          { value: "fibbers-global-light", label: "Fibbers Global Light" },
         ],
       },
     },
@@ -105,10 +107,18 @@ export class FibbersNav extends LitElement {
     }
     if (
       config.theme != null &&
-      !["none", "fibbers", "fibbers-light", "auto"].includes(config.theme)
+      ![
+        "none",
+        "fibbers",
+        "fibbers-light",
+        "auto",
+        "fibbers-global",
+        "fibbers-global-light",
+      ].includes(config.theme)
     ) {
       throw new Error(
-        'fibbers-nav: `theme` must be "fibbers", "fibbers-light", "auto", or "none"',
+        'fibbers-nav: `theme` must be "fibbers", "fibbers-light", "auto", ' +
+          '"fibbers-global", "fibbers-global-light", or "none"',
       );
     }
     if (config.reserve != null && !Number.isFinite(Number(config.reserve))) {

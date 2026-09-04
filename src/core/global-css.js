@@ -70,20 +70,37 @@ export const DARK_VARS = {
 };
 
 /**
- * Opt-in "repaint all of Home Assistant" — set DARK_VARS on <html> with
- * !important so they inherit into shadow DOM (more-info dialogs included).
- * Idempotent; skipped when FIBBERS_DISABLE_GLOBAL_CSS is set. Not called on load.
+ * Set a palette on <html> with !important so it inherits into every shadow root —
+ * HA's sidebar, header, Settings, and the more-info dialogs all pick it up. Replaces
+ * any previous global palette (so switching dark↔light is clean). Skipped when
+ * `FIBBERS_DISABLE_GLOBAL_CSS` is set.
+ * @param {object} [vars] — HA theme-var map (defaults to the dark palette)
  */
-export function injectGlobalCss() {
+export function setGlobalVars(vars = DARK_VARS) {
   if (window.FIBBERS_DISABLE_GLOBAL_CSS) return;
-  if (document.getElementById(STYLE_ID)) return; // idempotent
-
-  const decls = Object.entries(DARK_VARS)
+  const decls = Object.entries(vars)
     .map(([k, v]) => `  ${k}: ${v} !important;`)
     .join("\n");
-
-  const style = document.createElement("style");
-  style.id = STYLE_ID;
+  let style = document.getElementById(STYLE_ID);
+  if (!style) {
+    style = document.createElement("style");
+    style.id = STYLE_ID;
+    document.head.appendChild(style);
+  }
   style.textContent = `html {\n${decls}\n}`;
-  document.head.appendChild(style);
+}
+
+/** Remove the global palette, restoring HA's own theme everywhere. */
+export function clearGlobalVars() {
+  const style = document.getElementById(STYLE_ID);
+  if (style) style.remove();
+}
+
+/**
+ * Back-compatible opt-in "repaint all of Home Assistant" — the dark palette on
+ * <html>. Still exposed on `window.FIBBERS.injectGlobalCss()`; the nav's
+ * `theme: fibbers-global` uses `setGlobalVars` directly.
+ */
+export function injectGlobalCss() {
+  setGlobalVars(DARK_VARS);
 }

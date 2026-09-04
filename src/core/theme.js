@@ -7,12 +7,15 @@
  * and it's removed the moment the last nav card detaches. Other dashboards, the
  * sidebar and the header keep the user's own theme.
  *
- *   theme: none           (default) — inject nothing
- *   theme: fibbers        — the dark forest-green palette (as shipped)
- *   theme: fibbers-light  — a light palette derived for legibility (not inverted)
- *   theme: auto           — follow prefers-color-scheme
+ *   theme: none                 (default) — inject nothing
+ *   theme: fibbers              — the dark forest-green palette (dashboard only)
+ *   theme: fibbers-light        — a light palette derived for legibility (dashboard only)
+ *   theme: auto                 — follow prefers-color-scheme (dashboard only)
+ *   theme: fibbers-global       — the dark palette across ALL of Home Assistant
+ *                                 (sidebar, header, Settings, dialogs) via <html>
+ *   theme: fibbers-global-light — the light palette across all of Home Assistant
  * ================================================================== */
-import { DARK_VARS } from "./global-css.js";
+import { DARK_VARS, setGlobalVars, clearGlobalVars } from "./global-css.js";
 import { injectStyle, removeStyle } from "./hui-inject.js";
 
 const STYLE_ID = "fibbers-theme";
@@ -137,31 +140,52 @@ function unwatchScheme() {
 }
 
 /**
- * Apply the scoped dashboard theme from the bar singleton's attach() — injects
- * the palette vars into hui-root's shadow root so only this dashboard is themed.
- * `none`/undefined tears the injected style down.
- * @param {"fibbers"|"fibbers-light"|"auto"|"none"} mode
+ * Apply the theme from the bar singleton's attach(). Dashboard modes inject the
+ * palette into hui-root's shadow root (scoped); the `-global` modes set it on
+ * <html> so all of Home Assistant is themed. `none`/undefined tears everything down.
+ * @param {"fibbers"|"fibbers-light"|"auto"|"fibbers-global"|"fibbers-global-light"|"none"} mode
  */
 export function applyTheme(mode) {
-  const normalized = ["fibbers", "fibbers-light", "auto"].includes(mode)
-    ? mode
-    : "none";
+  const KNOWN = [
+    "fibbers",
+    "fibbers-light",
+    "auto",
+    "fibbers-global",
+    "fibbers-global-light",
+  ];
+  const normalized = KNOWN.includes(mode) ? mode : "none";
   state.mode = normalized;
   if (normalized === "none") {
     removeTheme();
     return;
   }
+  if (
+    normalized === "fibbers-global" ||
+    normalized === "fibbers-global-light"
+  ) {
+    // Whole-HA takeover: the <html> palette (with !important) covers the dashboard
+    // too, so drop the scoped style and the scheme watcher.
+    removeStyle(STYLE_ID);
+    unwatchScheme();
+    setGlobalVars(
+      normalized === "fibbers-global-light" ? LIGHT_VARS : DARK_VARS,
+    );
+    return;
+  }
+  // Scoped dashboard theme.
+  clearGlobalVars();
   injectStyle(STYLE_ID, computeCss);
   if (normalized === "auto") watchScheme();
   else unwatchScheme();
 }
 
 /**
- * Full teardown — drop the injected style and the scheme watcher. Called from
- * detach() when the last fibbers-nav unmounts.
+ * Full teardown — drop the scoped style, the global palette, and the scheme
+ * watcher. Called from detach() when the last fibbers-nav unmounts.
  */
 export function removeTheme() {
   state.mode = "none";
   unwatchScheme();
   removeStyle(STYLE_ID);
+  clearGlobalVars();
 }
