@@ -2,9 +2,9 @@
  * fibbers-light-detail — the full light control used by the more-info modal.
  * Single light: brightness, a warm→cool temperature slider, a colour wheel and
  * quick swatches. Opened from a room/group (siblings): a Philips-Hue-style room
- * picker — a Colour wheel / Warm strip carrying one draggable dot per lamp (drag
- * a dot onto another to snap them to the same colour), with the lamps listed
- * below for per-lamp brightness and on/off. Reuses the shared slider primitives.
+ * picker — a Colour wheel / Warm disc carrying one draggable dot per lamp (drag
+ * a dot onto another to snap them to the same colour), with the lamps as tiles
+ * below for per-lamp on/off. Reuses the shared slider primitives.
  * ================================================================== */
 import { LitElement, html, css } from "lit";
 
@@ -222,7 +222,14 @@ export class FibbersLightDetail extends LitElement {
     return this._lamps().length > 1;
   }
   _colourLamps() {
-    return this._lamps().filter((id) => this._lOn(id) && this._lHasColor(id));
+    // On, colour-capable, and actually reporting a colour — excludes a light that
+    // advertises a colour mode but has no hs_color (it would sit at a bogus 0,0).
+    return this._lamps().filter(
+      (id) =>
+        this._lOn(id) &&
+        this._lHasColor(id) &&
+        Array.isArray(this._lAttr(id, "hs_color")),
+    );
   }
   _warmLamps() {
     return this._lamps().filter((id) => this._lOn(id) && this._lHasTemp(id));
@@ -270,6 +277,19 @@ export class FibbersLightDetail extends LitElement {
     }
     const [lo, hi] = this._lKRange(id);
     return k != null ? k : Math.round((lo + hi) / 2);
+  }
+
+  // The lamp's real rendered colour for a swatch/dot: HA's rgb_color when present
+  // (faithful for colour AND warm lamps), else a warm-white for an on lamp with no
+  // colour data (e.g. an hs-mode light reporting color_mode "onoff"), else neutral.
+  _swatchColor(id) {
+    const rgb = this._lAttr(id, "rgb_color");
+    if (Array.isArray(rgb)) return `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+    if (!this._lOn(id)) return "#3a4446";
+    const hs = this._lAttr(id, "hs_color");
+    if (Array.isArray(hs))
+      return `hsl(${Math.round(hs[0])} ${Math.round(clamp(hs[1], 20, 90))}% 55%)`;
+    return "#ffe6c2";
   }
 
   // --- commits ------------------------------------------------------------------
@@ -546,22 +566,38 @@ export class FibbersLightDetail extends LitElement {
     >
       ${lamps.map((id) => {
         const p = this._colourXY(id);
-        const [h] = this._dispHs(id);
         const isActive = id === active;
         return html`<div
           class="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full
-                 border-2 border-white shadow-[0_1px_5px_rgba(0,0,0,.6)]
-                 ${isActive ? "h-6 w-6 ring-2 ring-white/60" : "h-[18px] w-[18px]"}"
-          style="left:${p.x}%;top:${p.y}%;background:hsl(${Math.round(h)} 90% 50%)"
+                 shadow-[0_1px_5px_rgba(0,0,0,.6)]
+                 ${
+                   isActive
+                     ? "h-6 w-6 border-2 border-accent ring-2 ring-accent"
+                     : "h-[18px] w-[18px] border-2 border-white"
+                 }"
+          style="left:${p.x}%;top:${p.y}%;background:${this._swatchColor(id)}"
         ></div>`;
       })}
     </div>`;
   }
 
-  // --- warm strip (kelvin along x) ----------------------------------------------
+  // --- warm disc (radius = colour temperature, warm centre → cool rim) ----------
 
   _warmFrac(id) {
     return clamp((this._dispK(id) - STRIP_LO) / (STRIP_HI - STRIP_LO), 0, 1);
+  }
+  // Each warm lamp gets a fixed display angle by index so dots don't stack; the
+  // radius carries the value. Angle is cosmetic — only the radius sets kelvin.
+  _warmAngle(id) {
+    const lamps = this._warmLamps();
+    const i = lamps.indexOf(id);
+    const n = lamps.length || 1;
+    return (i / n) * 360;
+  }
+  _warmXY(id) {
+    const frac = this._warmFrac(id);
+    const a = (this._warmAngle(id) * Math.PI) / 180;
+    return { x: 50 + frac * 50 * Math.sin(a), y: 50 - frac * 50 * Math.cos(a) };
   }
   _warmDown(e) {
     const lamps = this._warmLamps();
@@ -570,7 +606,11 @@ export class FibbersLightDetail extends LitElement {
     let best = null;
     let bestD = Infinity;
     for (const id of lamps) {
-      const d = Math.abs(e.clientX - (r.left + this._warmFrac(id) * r.width));
+      const p = this._warmXY(id);
+      const d = Math.hypot(
+        e.clientX - (r.left + (p.x / 100) * r.width),
+        e.clientY - (r.top + (p.y / 100) * r.height),
+      );
       if (d < bestD) {
         bestD = d;
         best = id;
@@ -589,8 +629,11 @@ export class FibbersLightDetail extends LitElement {
   _warmMove(e, final) {
     if (!this._wheel.dragging || this._wheel.mode !== "warm") return;
     const r = e.currentTarget.getBoundingClientRect();
-    if (r.width <= 0) return;
-    const frac = clamp((e.clientX - r.left) / r.width, 0, 1);
+    const R = r.width / 2;
+    if (R <= 0) return;
+    const dx = e.clientX - (r.left + R);
+    const dy = e.clientY - (r.top + R);
+    const frac = clamp(Math.hypot(dx, dy) / R, 0, 1);
     const k = Math.round(STRIP_LO + frac * (STRIP_HI - STRIP_LO));
     this._wheel.k = k;
     this._v++;
@@ -602,32 +645,56 @@ export class FibbersLightDetail extends LitElement {
     this._wheel.dragging = false;
     this._v++;
   }
+  // Arrows nudge the active lamp's colour temperature.
+  _warmKey(e) {
+    const id = this._config.entity;
+    if (!this._lOn(id) || !this._lHasTemp(id)) return;
+    const dir = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[
+      e.key
+    ];
+    if (!dir) return;
+    e.preventDefault();
+    const k = clamp(
+      (this._dispK(id) || STRIP_LO) + (e.shiftKey ? 500 : 100) * dir,
+      STRIP_LO,
+      STRIP_HI,
+    );
+    this._setKelvin(id, k, true);
+    this._v++;
+  }
 
-  _warmStripEl(hl) {
+  _warmDisc(hl) {
     const lamps = this._warmLamps();
     const disabled = !lamps.length;
+    const active = this._config.entity;
     return html`<div
-      class="relative h-[var(--fib-hit)] w-full touch-none select-none
-             ${disabled ? "opacity-40" : "cursor-pointer"}"
-      role="group"
+      class="relative mx-auto aspect-square w-full max-w-[240px] touch-none select-none
+             rounded-full ${disabled ? "opacity-40" : "cursor-pointer"}"
+      style="background:radial-gradient(circle at center,#ff9838 0%,#ffd9a0 30%,#fff6ea 55%,#e6efff 78%,#bcd2ff 100%)"
+      role="slider"
+      tabindex=${disabled ? -1 : 0}
       aria-label=${t(hl, "light_detail.temperature")}
+      aria-valuetext=${`${Math.round(this._dispK(active) || 0)} K`}
+      aria-disabled=${disabled ? "true" : "false"}
       @pointerdown=${this._warmDown}
       @pointermove=${this._warmMove}
       @pointerup=${this._warmUp}
       @pointercancel=${this._dragCancel}
       @lostpointercapture=${this._dragCancel}
+      @keydown=${this._warmKey}
     >
-      <div
-        class="pointer-events-none absolute inset-x-0 top-1/2 h-3 -translate-y-1/2 rounded-full"
-        style="background:linear-gradient(90deg,#ff9838,#ffd9a0,#fff6ea,#e6efff,#bcd2ff)"
-      ></div>
       ${lamps.map((id) => {
-        const isActive = id === this._config.entity;
+        const p = this._warmXY(id);
+        const isActive = id === active;
         return html`<div
-          class="pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full
-                 border-2 border-white bg-white shadow-[0_1px_5px_rgba(0,0,0,.6)]
-                 ${isActive ? "h-6 w-6 ring-2 ring-white/60" : "h-[18px] w-[18px]"}"
-          style="left:${this._warmFrac(id) * 100}%"
+          class="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full
+                 shadow-[0_1px_5px_rgba(0,0,0,.6)]
+                 ${
+                   isActive
+                     ? "h-6 w-6 border-2 border-accent ring-2 ring-accent"
+                     : "h-[18px] w-[18px] border-2 border-white"
+                 }"
+          style="left:${p.x}%;top:${p.y}%;background:${this._swatchColor(id)}"
         ></div>`;
       })}
     </div>`;
@@ -706,7 +773,7 @@ export class FibbersLightDetail extends LitElement {
   _roomPicker(hl) {
     return html`
       ${this._tabs(hl)}
-      ${this._tab === "warm" ? this._warmStripEl(hl) : this._colourWheel(hl)}
+      ${this._tab === "warm" ? this._warmDisc(hl) : this._colourWheel(hl)}
       ${this._slider(
         "bri",
         `${t(hl, "light_detail.brightness")} · ${this._lAttr(this._config.entity, "friendly_name") || ""}`,
