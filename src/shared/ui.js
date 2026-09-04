@@ -286,39 +286,42 @@ export function sliderTrack({
       style=${gradient ? `background:${gradient}` : nothing}
     >
       ${
+        gradient
+          ? ""
+          : html`<div
+              class="absolute bottom-0 left-0 top-0 rounded-[3px] bg-accent
+                     ${disabled ? "opacity-40" : ""}"
+              style="width:${pct}%"
+            ></div>`
+      }
+      <!-- live value bubble above the knob: visible while dragging or on keyboard
+           focus, tabular so digits don't jitter. Suppressed while disabled. -->
+      ${
         disabled
           ? ""
-          : html`${
-                gradient
-                  ? ""
-                  : html`<div
-                      class="absolute bottom-0 left-0 top-0 rounded-[3px] bg-accent"
-                      style="width:${pct}%"
-                    ></div>`
-              }
-              <!-- live value bubble above the knob: visible while dragging or on
-                   keyboard focus, tabular so digits don't jitter. -->
-              <div
-                class="pointer-events-none absolute bottom-full z-10 mb-2 -translate-x-1/2
-                       whitespace-nowrap rounded-md border border-line bg-card2 px-2 py-1
-                       text-[11px] font-semibold tabular-nums text-ink
-                       shadow-[0_2px_10px_rgba(0,0,0,.5)] transition-[opacity,transform]
-                       duration-100 group-focus-visible:scale-100
-                       group-focus-visible:opacity-100
-                       ${dragging ? "scale-100 opacity-100" : "scale-90 opacity-0"}"
-                style="left:${pct}%"
-              >
-                ${bubbleText}
-              </div>
-              <div
-                class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full
-                       shadow-[0_1px_4px_rgba(0,0,0,.55)] transition-[width,height]
-                       duration-100
-                       ${gradient ? "border-2 border-[rgba(0,0,0,.45)] bg-white" : "bg-accent"}
-                       ${dragging ? "h-[22px] w-[22px]" : "h-[18px] w-[18px]"}"
-                style="left:${pct}%"
-              ></div>`
+          : html`<div
+              class="pointer-events-none absolute bottom-full z-10 mb-2 -translate-x-1/2
+                     whitespace-nowrap rounded-md border border-line bg-card2 px-2 py-1
+                     text-[11px] font-semibold tabular-nums text-ink
+                     shadow-[0_2px_10px_rgba(0,0,0,.5)] transition-[opacity,transform]
+                     duration-100 group-focus-visible:scale-100
+                     group-focus-visible:opacity-100
+                     ${dragging ? "scale-100 opacity-100" : "scale-90 opacity-0"}"
+              style="left:${pct}%"
+            >
+              ${bubbleText}
+            </div>`
       }
+      <!-- knob: always drawn (dimmed when disabled) so a disabled slider reads as
+           disabled, not broken. -->
+      <div
+        class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full
+               shadow-[0_1px_4px_rgba(0,0,0,.55)] transition-[width,height] duration-100
+               ${gradient ? "border-2 border-[rgba(0,0,0,.45)] bg-white" : "bg-accent"}
+               ${dragging ? "h-[22px] w-[22px]" : "h-[18px] w-[18px]"}
+               ${disabled ? "opacity-40" : ""}"
+        style="left:${pct}%"
+      ></div>
     </div>
   </div>`;
 }
