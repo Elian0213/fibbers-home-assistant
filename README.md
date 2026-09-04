@@ -51,7 +51,8 @@ scattering `card-mod` across your config. Fibbers handles those:
 - **It sizes itself.** Cards report their own grid size, so a Sections view lays them out with no
   `grid_options` to hand-write.
 - **It stays out of the way.** Installing Fibbers changes nothing else in your UI. An optional dark
-  or light palette can be switched on per dashboard (`theme:` on the nav) — never globally.
+  or light palette is opt-in on the nav — scoped to the dashboard, or, if you want it,
+  `fibbers-global` across all of Home Assistant.
 
 Verified on **Home Assistant 2026.8.x**.
 
@@ -298,11 +299,20 @@ tabs: [...]
 It's injected into `hui-root` only while that Fibbers dashboard is mounted and removed when you
 leave, so it never leaks into unrelated views. `auto` follows `prefers-color-scheme`.
 
-- Want the palette **everywhere** — every dashboard and every dialog? That's what a real HA theme
-  is for: [`docs/optional-theme.yaml`](docs/optional-theme.yaml) is the same palette as a standalone
-  theme you select under **Profile → Theme**.
-- The old load-time global injector is still there for anyone who relied on it —
-  `window.FIBBERS.injectGlobalCss()` — and `window.FIBBERS_DISABLE_GLOBAL_CSS = true` still opts out.
+- Want the palette **everywhere** — sidebar, header, Settings and every dialog — with no file
+  editing or restart? Set **`theme: fibbers-global`** (or `fibbers-global-light`) on the nav. It
+  paints all of Home Assistant while the dashboard is mounted, and reverts when you leave. Any other
+  value keeps HA's own chrome, so it's fully opt-out.
+- Prefer a real, durable HA theme instead? [`docs/optional-theme.yaml`](docs/optional-theme.yaml) is
+  the same palette as a standalone theme you select under **Profile → Theme**.
+- The old load-time global injector is still there — `window.FIBBERS.injectGlobalCss()` — and
+  `window.FIBBERS_DISABLE_GLOBAL_CSS = true` still opts out.
+
+### Fibbers modals (`more_info: true`)
+
+Add **`more_info: true`** to the nav and tapping an entity opens a Fibbers-styled modal instead of
+HA's more-info dialog — for `media_player`, `climate`, `light`, and numeric `sensor`s (current value
++ a 24-hour history graph). Other domains fall through to HA's own (themed) dialog. Off by default.
 
 ---
 

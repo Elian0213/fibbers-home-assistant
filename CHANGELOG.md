@@ -3,6 +3,33 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.8.2] — 2026-09-04
+
+Sliders you can actually hit on a phone, a Fibbers modal in place of Home
+Assistant's more-info dialog, and an option to paint all of HA green.
+
+### Added
+
+- **A live value bubble on every slider.** Drag any slider and a tooltip above the
+  knob shows the live percentage/value; the knob is bigger (and grows while you
+  drag) so it's easier to grab precisely. Every slider also updates the entity
+  _live_ as you drag (debounced, no snap-back) — the media seek and volume sliders
+  were the last to only commit on release; now they match the rest.
+- **`theme: fibbers-global` on `fibbers-nav`** — the Fibbers palette across _all_ of
+  Home Assistant (sidebar, header, Settings, dialogs), not just the dashboard.
+  `fibbers-global-light` is the light variant. Any other value leaves HA's own theme
+  untouched, so it's fully opt-out.
+- **`more_info: true` on `fibbers-nav`** — replaces HA's more-info dialog with a
+  Fibbers-styled modal for the domains Fibbers renders well: `media_player`,
+  `climate`, `light`, and a numeric `sensor` (current value + a 24-hour history graph
+  with min/max/change). Every other domain falls through to HA's own (themed) dialog.
+  Off by default.
+
+### Changed
+
+- Expanded light-group members are tighter — the member rows no longer stack a 44px
+  name row on top of the 44px slider, so a group doesn't leave big gaps between lamps.
+
 ## [0.8.1] — 2026-09-04
 
 A touch/a11y patch for 0.8.0's remote and the shared sliders, plus a full

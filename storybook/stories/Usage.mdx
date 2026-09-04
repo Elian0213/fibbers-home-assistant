@@ -134,6 +134,28 @@ sections:
             }
 ```
 
+## Whole-app theme & Fibbers modals
+
+Two `fibbers-nav` options make Home Assistant feel like one Fibbers package. Both are
+opt-in and independent:
+
+```yaml
+type: custom:fibbers-nav
+theme: fibbers-global # green across ALL of HA: sidebar, header, Settings, dialogs
+more_info: true # tap an entity → a Fibbers modal instead of HA's more-info
+tabs: [...]
+```
+
+- **`theme: fibbers-global`** (and `fibbers-global-light`) sets the palette on `<html>`, so
+  every HA surface — not just the dashboard — is themed. Any other value (`fibbers`,
+  `none`, omitted) leaves HA's own chrome untouched.
+- **`more_info: true`** opens a Fibbers-styled modal for the entities it renders well —
+  `media_player`, `climate`, `light`, and a numeric `sensor` (current value + 24h history
+  with min/max/change). Every other domain falls through to HA's own (themed) dialog.
+
+Sliders show a live value bubble above the knob while dragging and update the entity
+live (debounced) as you slide, on every card.
+
 ## Icons
 
 Cards default to **Solar Bold Duotone** icons (`solar:*`). Any Home Assistant icon works too —

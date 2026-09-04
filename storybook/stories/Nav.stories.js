@@ -62,3 +62,13 @@ export const LightTheme = story({ ...NAV, theme: "fibbers-light" });
 
 /** `hide_ha_tabs: "header"` swaps HA's own view tabs for this bar as the sole navigation. */
 export const HidesHaTabs = story({ ...NAV, hide_ha_tabs: "header" });
+
+/** `theme: fibbers-global` paints the whole of Home Assistant — sidebar, header,
+ * Settings and dialogs — in the Fibbers palette (not just the dashboard). Off-able:
+ * any other value leaves HA's own theme alone. */
+export const GlobalTheme = story({ ...NAV, theme: "fibbers-global" });
+
+/** `more_info: true` replaces HA's more-info dialog with a Fibbers modal for
+ * media players, climate, lights and numeric sensors (24h history); other domains
+ * fall through to HA's dialog. */
+export const MoreInfoModals = story({ ...NAV, more_info: true });
