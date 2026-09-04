@@ -3642,7 +3642,10 @@ ${BASE_CSS}`);
   var onKeydown = (e4) => {
     if (e4.key !== "Escape" || e4.defaultPrevented)
       return;
-    if (e4.composedPath().some(isDialogNode))
+    const path = e4.composedPath();
+    const i5 = path.indexOf(layer.host);
+    const above = i5 >= 0 ? path.slice(i5 + 1) : path;
+    if (above.some(isDialogNode))
       return;
     closeSheet();
   };
