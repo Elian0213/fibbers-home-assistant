@@ -275,7 +275,15 @@ export class FibbersLightRow extends LitElement {
           @click=${() => this._moreInfo()}
           @keydown=${activateOnKey(() => this._moreInfo())}
         >
-          <span class="text-[12px] font-medium text-ink">${name}</span>
+          <span class="flex min-w-0 items-center gap-1.5">
+            <span class="truncate text-[12px] font-medium text-ink"
+              >${name}</span
+            >
+            <fib-icon
+              class="h-3 w-3 flex-none [--mdc-icon-size:12px] text-muted opacity-60"
+              icon="solar:colour-tuning-bold-duotone"
+            ></fib-icon>
+          </span>
           <span class="whitespace-nowrap text-[10.5px] text-muted">${val}</span>
         </div>
 
