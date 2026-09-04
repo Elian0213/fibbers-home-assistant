@@ -1,6 +1,6 @@
 {
   "name": "fibbers",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "private": true,
   "description": "A bottom-nav dashboard plugin for Home Assistant: a viewport-pinned bottom bar, modal sheets, self-computing room tiles, and dark theming. Lit + Tailwind web components, bundled to a single file.",
   "homepage": "https://elian0213.github.io/fibbers-home-assistant/",
@@ -11,8 +11,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "bun run gen-tw && bun build src/index.js --outfile dist/fibbers.js --format=iife --target=browser --conditions=production --define process.env.NODE_ENV='\"production\"' --banner=\"/*! Fibbers v0.8.2 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */\"",
-    "watch": "bun build src/index.js --outfile dist/fibbers.js --format=iife --target=browser --define process.env.NODE_ENV='\"development\"' --banner=\"/*! Fibbers v0.8.2 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */\" --watch",
+    "build": "bun run gen-tw && bun build src/index.js --outfile dist/fibbers.js --format=iife --target=browser --conditions=production --define process.env.NODE_ENV='\"production\"' --banner=\"/*! Fibbers v0.8.3 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */\"",
+    "watch": "bun build src/index.js --outfile dist/fibbers.js --format=iife --target=browser --define process.env.NODE_ENV='\"development\"' --banner=\"/*! Fibbers v0.8.3 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */\" --watch",
     "gen-icons": "bun scripts/gen-icons.mjs",
     "gen-tw": "bun scripts/gen-tw.mjs",
     "format": "prettier --write \"src/**/*.js\" \"docs/*.html\"",

@@ -1,4 +1,4 @@
-/*! Fibbers v0.8.2 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */
+/*! Fibbers v0.8.3 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */
 (() => {
 
   // src/generated/icons.core.gen.js
@@ -9266,7 +9266,7 @@ ${decls}
    * custom element and registers it with HA's card picker (window.customCards).
    * The `/*!` banner is kept verbatim by the minifier. Edit src/, run `bun run build`.
    */
-  var VERSION = "0.8.2";
+  var VERSION = "0.8.3";
   var CARDS = [
     [
       "fibbers-nav",

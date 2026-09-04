@@ -3,6 +3,36 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.8.3] — 2026-09-04
+
+Bug-fix patch for 0.8.2 (one serious), plus a proper Fibbers light dialog.
+
+### Fixed
+
+- **A modal opened on a backgrounded tab could lock the whole dashboard.** The
+  sheet/modal set its visible state inside a nested `requestAnimationFrame`, which
+  the browser never runs while the page is hidden — leaving an invisible,
+  full-viewport layer that swallowed every tap (reload was the only escape, and in
+  0.8.2 any light/media/sensor tap could trigger it). The reveal is now synchronous,
+  with a `visibilitychange` safety net.
+- **`theme: fibbers-global` now stays applied when you leave the dashboard** (into
+  Settings or a dialog) for the browser session, instead of being torn down on nav
+  unmount. For a permanent, cold-load-safe install across all of HA there's now a
+  real theme file — **`themes/fibbers.yaml`** (dark + light) — and the nav option is
+  relabelled "(this browser session)" to be honest about its scope.
+- **Sliders no longer log an error / half-init on a fast release.** `setPointerCapture`
+  is guarded everywhere (it threw an uncaught `NotFoundError` when the pointer was
+  already gone).
+- **One service call per drag** instead of two — the shared committer flushes on
+  release and skips a value identical to one just sent.
+
+### Added
+
+- **`fibbers-light-detail`** — a full single-light control (power, brightness, a
+  warm→cool colour-temperature slider, hue + saturation sliders, and quick colour
+  swatches), used by the `more_info` light modal so it's no longer a brightness-only
+  downgrade. Degrades gracefully when the light is offline.
+
 ## [0.8.2] — 2026-09-04
 
 Sliders you can actually hit on a phone, a Fibbers modal in place of Home
