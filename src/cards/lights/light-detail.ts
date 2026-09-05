@@ -7,10 +7,12 @@
  * onto another to snap them together), brightness + swatches, and the lamps as
  * tiles below. Reuses the shared slider primitives.
  * ================================================================== */
-import { LitElement, html, css, type TemplateResult } from "lit";
+import { LitElement, html, unsafeCSS, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 
+import { closeSheet } from "@core/body-sheet";
 import { t } from "@shared/i18n";
+import { cardShell } from "@shared/shells";
 import { twSheet } from "@shared/tw";
 import {
   sliderTrack,
@@ -29,12 +31,15 @@ import {
   capturePointer,
   type Debounced,
 } from "@shared/util";
+import { cx } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
   LovelaceCard,
   LovelaceCardConfig,
 } from "@/types/home-assistant";
+// Wheel/scrollbar/container-query CSS — real CSS, co-located; Vite inlines it.
+import lightDetailCss from "./light-detail.css?inline";
 import "@shared/icon";
 
 const COLOR_MODES = ["hs", "rgb", "rgbw", "rgbww", "xy"];
@@ -155,45 +160,7 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
 
   private _warmCommit?: Debounced<[{ id?: string; k: number }]>;
 
-  static styles = [
-    twSheet,
-    css`
-      :host {
-        display: block;
-        container-type: inline-size;
-      }
-      /* Wide container (desktop, widened modal) → two columns: wheel | controls. */
-      @container (min-width: 700px) {
-        .room-layout {
-          grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
-          align-items: start;
-        }
-        .lamp-tiles {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, 104px);
-          overflow: visible;
-        }
-      }
-      /* Themed thin scrollbar for the horizontal lamp-tile strip. */
-      .lamp-scroll {
-        scrollbar-width: thin;
-        scrollbar-color: var(--color-line, #333e41) transparent;
-      }
-      .lamp-scroll::-webkit-scrollbar {
-        height: 6px;
-      }
-      .lamp-scroll::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      .lamp-scroll::-webkit-scrollbar-thumb {
-        background: var(--color-line, #333e41);
-        border-radius: 3px;
-      }
-      .lamp-scroll:hover::-webkit-scrollbar-thumb {
-        background: var(--color-accent, #74b98a);
-      }
-    `,
-  ];
+  static styles = [twSheet, unsafeCSS(lightDetailCss)];
 
   /** Seed config for the picker — a light entity from the dashboard. */
   static getStubConfig(
@@ -228,6 +195,16 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
         color_temp_kelvin: Math.round(lo + (pct / 100) * (hi - lo)),
       });
     });
+    // Room bar: one slider driving every lamp at once (mirrors light-group).
+    this._mk(
+      "grp",
+      (pct) => {
+        const p = Math.round(pct);
+        if (p <= 0) this._callOff(this._lamps());
+        else this._call({ brightness_pct: p }, this._lamps());
+      },
+      () => this._allUnavail(),
+    );
     // The wheel drives one unit (a lamp or a group) at a time; a per-lamp display
     // hold keeps each dragged marker on its committed spot until the lamp reports.
     this._wheel = this._wheel || { kind: null, members: [], dragging: false };
@@ -254,7 +231,11 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
       );
   }
 
-  private _mk(key: string, commit: (v: number) => void): void {
+  private _mk(
+    key: string,
+    commit: (v: number) => void,
+    guard?: () => boolean,
+  ): void {
     if (this._sl[key]) {
       this._sl[key].hold.clear();
       return;
@@ -268,7 +249,7 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
       commit(v);
     }, 120);
     s.drag = sliderDrag({
-      guard: () => this._unavail(),
+      guard: guard || (() => this._unavail()),
       read: (e) => Math.round(pctFromX(e.clientX, e.currentTarget as Element)),
       frame: (v, dragging) => {
         s.dragging = dragging;
@@ -309,6 +290,11 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
 
   private _lUnavail(id: string): boolean {
     return isUnavail(this._lSt(id));
+  }
+
+  // The whole room is gone only when every lamp is — gates the group slider.
+  private _allUnavail(): boolean {
+    return this._lamps().every((id) => this._lUnavail(id));
   }
 
   private _lAttr(id: string, k: string): unknown {
@@ -460,7 +446,7 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
 
   // --- commits ------------------------------------------------------------------
 
-  private _call(data: Record<string, unknown>, id?: string): void {
+  private _call(data: Record<string, unknown>, id?: string | string[]): void {
     if (!this.hass) return;
     const entityId = id || this.config.entity;
     Promise.resolve(
@@ -471,7 +457,7 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
     ).catch(() => {});
   }
 
-  private _callOff(id?: string): void {
+  private _callOff(id?: string | string[]): void {
     if (!this.hass) return;
     const entityId = id || this.config.entity;
     Promise.resolve(
@@ -529,6 +515,23 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
       raw = Number.isFinite(k)
         ? clamp(((k - lo) / (hi - lo)) * 100, 0, 100)
         : 50;
+    } else if (key === "grp") {
+      // Room average — only lamps that report a brightness feed it; an on/off lamp
+      // would inject a phantom 100% and drag the slider up (mirrors light-group).
+      let sum = 0;
+      let withBrightness = 0;
+      let on = 0;
+      this._lamps().forEach((id) => {
+        if (!this._lOn(id)) return;
+        on += 1;
+        const b = this._lAttr(id, "brightness");
+        if (b != null) {
+          sum += Math.round((Number(b) / 255) * 100);
+          withBrightness += 1;
+        }
+      });
+      if (withBrightness) raw = Math.round(sum / withBrightness);
+      else raw = on ? 100 : 0;
     }
     return Math.round(
       s.hold.value(raw, {
@@ -536,7 +539,7 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
         dragValue: s.dragPct,
         // Only unavailable = gone; an off lamp still holds its dragged value so
         // dragging it on doesn't snap 60→0→60 during the turn-on round trip.
-        gone: this._unavail(),
+        gone: key === "grp" ? this._allUnavail() : this._unavail(),
       }),
     );
   }
@@ -545,13 +548,13 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
     key: string,
     label: string,
     valueText: string,
-    opts: { gradient?: string } = {},
+    opts: { gradient?: string; disabled?: boolean } = {},
   ): TemplateResult {
     const s = this._sl[key];
     const pct = this._pct(key);
     // Off is not disabled — parity with light-row. Only an unavailable lamp is
     // disabled (dragging an off lamp turns it on; drag to zero turns it off).
-    const disabled = this._unavail();
+    const disabled = opts.disabled ?? this._unavail();
     return html`<div class="grid gap-1.5">
       <div class="flex items-center justify-between text-[11px]">
         <span class="font-medium uppercase tracking-[0.1em] text-muted"
@@ -1100,7 +1103,7 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
             `${t(hl, "light_detail.brightness")} · ${(this._lAttr(this.config.entity, "friendly_name") as string) || ""}`,
             `${this._pct("bri")}%`,
           )}
-          ${this._swatches(hl)} ${this._lampTiles(hl)}
+          ${this._lampTiles(hl)}
         </div>
       </div>
     `;
@@ -1130,72 +1133,90 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
     `;
   }
 
-  /** Header (icon + name + power) then either the room picker or single controls. */
+  // Room top bar — back on the left, the whole-room brightness beside it, and a
+  // hairline under both.
+  private _renderRoomBar(hl: unknown): TemplateResult {
+    const cfg = this.config;
+    const title = cfg.groupName || cfg.title || t(hl, "light_detail.lights");
+    return html`<div class="grid gap-3.5">
+      <div class="flex items-center gap-3">
+        <button
+          type="button"
+          class="flex h-9 w-9 flex-none items-center justify-center rounded-lg
+                 bg-card2 text-ink2 transition-colors hover:text-ink"
+          aria-label=${t(hl, "back.back")}
+          @click=${() => closeSheet()}
+        >
+          <fib-icon
+            class="h-[18px] w-[18px] [--mdc-icon-size:18px]"
+            icon="solar:alt-arrow-left-bold-duotone"
+          ></fib-icon>
+        </button>
+        <div class="min-w-0 flex-1">
+          ${this._slider("grp", title, `${this._pct("grp")}%`, {
+            disabled: this._allUnavail(),
+          })}
+        </div>
+      </div>
+      <div class="border-t border-line"></div>
+    </div>`;
+  }
+
+  private _renderHeader(hl: unknown, on: boolean): TemplateResult {
+    const cfg = this.config;
+    const st = this._st();
+    const unavail = this._unavail();
+    const title = cfg.name || (st && st.attributes.friendly_name) || cfg.entity;
+    const icon =
+      cfg.icon || (st && st.attributes.icon) || "solar:lightbulb-bold-duotone";
+    let subtitle: string;
+    if (unavail) subtitle = t(hl, "light_detail.offline");
+    else if (on) subtitle = t(hl, "light_detail.on");
+    else subtitle = t(hl, "light_detail.off");
+
+    return html`<div class="flex items-center gap-3">
+      <div
+        class="${cx(
+          "flex h-9 w-9 flex-none items-center justify-center rounded-xl",
+          on ? "bg-accentbg text-accent" : "bg-card2 text-muted",
+        )}"
+      >
+        <fib-icon
+          class="h-[20px] w-[20px] [--mdc-icon-size:20px]"
+          icon=${icon}
+        ></fib-icon>
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="truncate text-[14px] font-semibold text-ink">${title}</div>
+        <div class="text-[11px] text-muted">${subtitle}</div>
+      </div>
+      ${pillSwitch({
+        on,
+        label: t(hl, "light_detail.power"),
+        onClick: () => this._toggle(),
+      })}
+    </div>`;
+  }
+
+  /** Room: back + group slider then the picker. Single: header + controls. */
   render(): TemplateResult {
     const cfg = this.config;
     if (!cfg) return html``;
     const hl = cfg.language || this.hass;
-    const st = this._st();
     const unavail = this._unavail();
-    const on = this._on();
     const room = this._room();
     let body: TemplateResult | string;
     if (room) body = this._roomPicker(hl);
     else if (unavail) body = "";
     else body = this._singleControls(hl);
-    const title = room
-      ? cfg.groupName || cfg.title || t(hl, "light_detail.lights")
-      : cfg.name || (st && st.attributes.friendly_name) || cfg.entity;
-    const icon =
-      cfg.icon || (st && st.attributes.icon) || "solar:lightbulb-bold-duotone";
-    const lampsOn = this._lamps().filter((id) => this._lOn(id)).length;
-    let subtitle: string;
-    if (room)
-      subtitle = t(hl, "light_detail.on_count", {
-        on: lampsOn,
-        total: this._lamps().length,
-      });
-    else if (unavail) subtitle = t(hl, "light_detail.offline");
-    else if (on) subtitle = t(hl, "light_detail.on");
-    else subtitle = t(hl, "light_detail.off");
 
-    return html`<div
-      class="grid gap-4 rounded-[14px] border border-line bg-card p-[15px]
-             ${!room && unavail ? "opacity-60" : ""}"
-    >
-      <div class="flex items-center gap-3">
-        ${
-          room
-            ? ""
-            : html`<div
-                class="flex h-9 w-9 flex-none items-center justify-center rounded-xl
-                       ${on ? "bg-accentbg text-accent" : "bg-card2 text-muted"}"
-              >
-                <fib-icon
-                  class="h-[20px] w-[20px] [--mdc-icon-size:20px]"
-                  icon=${icon}
-                ></fib-icon>
-              </div>`
-        }
-        <div class="min-w-0 flex-1">
-          <div class="truncate text-[14px] font-semibold text-ink">
-            ${title}
-          </div>
-          <div class="text-[11px] text-muted">${subtitle}</div>
-        </div>
-        ${
-          room
-            ? ""
-            : pillSwitch({
-                on,
-                label: t(hl, "light_detail.power"),
-                onClick: () => this._toggle(),
-              })
-        }
-      </div>
-
-      ${body}
-    </div>`;
+    const head = room
+      ? this._renderRoomBar(hl)
+      : this._renderHeader(hl, this._on());
+    return cardShell(html`${head} ${body}`, {
+      pad: "lg",
+      cls: cx("grid gap-4", !room && unavail && "opacity-60"),
+    });
   }
 
   /** Masonry height — header + picker + swatches + lamp list. */
