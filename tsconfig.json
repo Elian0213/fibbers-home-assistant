@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+
+    // Lit's recommended decorator mode (see lit.dev/docs/components/decorators).
+    // Viable because Vite/esbuild honours experimentalDecorators — unlike Bun's
+    // bundler, which we moved off of.
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+
+    // Incremental migration: typed .ts checked strictly, remaining .js resolved
+    // (as `any`) but not type-checked, so cards can migrate one at a time.
+    "allowJs": true,
+    "checkJs": false,
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+
+    // Vite/Bun bundles; tsc is typecheck-only.
+    "noEmit": true,
+    "types": [],
+
+    "paths": {
+      "@/*": ["./src/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@core/*": ["./src/core/*"],
+      "@cards/*": ["./src/cards/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.js", "vite.config.ts"],
+  "exclude": ["node_modules", "dist", "storybook", "src/generated/*.gen.js"]
+}

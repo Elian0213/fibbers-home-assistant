@@ -11,31 +11,42 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "bun run gen-tw && bun build src/index.js --outfile dist/fibbers.js --format=iife --target=browser --conditions=production --define process.env.NODE_ENV='\"production\"' --banner=\"/*! Fibbers v0.8.7 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */\"",
-    "watch": "bun build src/index.js --outfile dist/fibbers.js --format=iife --target=browser --define process.env.NODE_ENV='\"development\"' --banner=\"/*! Fibbers v0.8.7 — GENERATED from src/ by 'bun run build'. Do not hand-edit. */\" --watch",
+    "build": "bun run gen-tw && vite build",
+    "watch": "bun run gen-tw && vite build --watch --mode development",
+    "typecheck": "tsc --noEmit",
     "gen-icons": "bun scripts/gen-icons.mjs",
     "gen-tw": "bun scripts/gen-tw.mjs",
-    "format": "prettier --write \"src/**/*.js\" \"docs/*.html\"",
+    "format": "prettier --write \"src/**/*.{js,ts}\" \"docs/*.html\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "check": "prettier --check \"src/**/*.js\" \"docs/*.html\" && bun run lint && bun run build && bun scripts/check-icons.mjs && bun scripts/check-i18n.mjs && node -e \"new Function(require('fs').readFileSync('dist/fibbers.js','utf8'))\""
+    "check": "prettier --check \"src/**/*.{js,ts}\" \"docs/*.html\" && bun run typecheck && bun run lint && bun run build && bun scripts/check-icons.mjs && bun scripts/check-i18n.mjs && node -e \"new Function(require('fs').readFileSync('dist/fibbers.js','utf8'))\""
   },
   "devDependencies": {
     "@eslint/js": "^9",
     "@iconify-json/solar": "1.2.10",
     "@tailwindcss/cli": "4.3.3",
+    "custom-card-helpers": "^2.0.0",
     "eslint": "^9",
+    "eslint-config-airbnb-extended": "^3.2.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-check-file": "^3.3.2",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsdoc": "^64.3.4",
     "eslint-plugin-lit": "^2.3.1",
+    "eslint-plugin-lit-a11y": "^5.1.1",
     "eslint-plugin-wc": "^3.1.0",
     "globals": "^17.12.0",
     "prettier": "^3",
-    "tailwindcss": "4.3.3"
+    "tailwindcss": "4.3.3",
+    "typescript": "6",
+    "typescript-eslint": "^8.69.0",
+    "vite": "^8.2.2"
   },
   "dependencies": {
+    "@lit-labs/signals": "^0.3.0",
     "lit": "^3.3.3"
-  }
+  },
+  "trustedDependencies": [
+    "unrs-resolver"
+  ]
 }

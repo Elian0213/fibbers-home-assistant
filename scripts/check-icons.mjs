@@ -19,12 +19,13 @@ const root = join(here, "..");
 const roots = [join(root, "src"), join(root, "storybook/stories")];
 const skip = join(root, "src/generated/icons.core.gen.js");
 
-function jsFiles(dir) {
+function sourceFiles(dir) {
   const out = [];
   for (const entry of readdirSync(dir)) {
     const p = join(dir, entry);
-    if (statSync(p).isDirectory()) out.push(...jsFiles(p));
-    else if (p.endsWith(".js") && p !== skip) out.push(p);
+    if (statSync(p).isDirectory()) out.push(...sourceFiles(p));
+    else if ((p.endsWith(".ts") || p.endsWith(".js")) && p !== skip)
+      out.push(p);
   }
   return out;
 }
@@ -33,7 +34,7 @@ const re = /solar:[a-z0-9-]+/g;
 const missing = new Map(); // name -> [files]
 
 for (const base of roots) {
-  for (const file of jsFiles(base)) {
+  for (const file of sourceFiles(base)) {
     const src = readFileSync(file, "utf8");
     for (const name of src.match(re) || []) {
       if (ICONS[name]) continue;

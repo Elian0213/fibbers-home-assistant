@@ -1,34 +1,40 @@
-import js from "@eslint/js";
-import globals from "globals";
-import importPlugin from "eslint-plugin-import";
-import checkFile from "eslint-plugin-check-file";
-import lit from "eslint-plugin-lit";
-import wc from "eslint-plugin-wc";
-import jsdoc from "eslint-plugin-jsdoc";
+import {
+  plugins as airbnbPlugins,
+  configs as airbnb,
+} from "eslint-config-airbnb-extended";
 import prettier from "eslint-config-prettier";
+import checkFile from "eslint-plugin-check-file";
+import jsdoc from "eslint-plugin-jsdoc";
+import lit from "eslint-plugin-lit";
+import litA11y from "eslint-plugin-lit-a11y";
+import wc from "eslint-plugin-wc";
 import { defineConfig, globalIgnores } from "eslint/config";
+import globals from "globals";
 
-// Airbnb best-practices applied as an explicit, curated set (not `extends:
-// airbnb-base`) so the ruleset stays legible and matched to this repo — the same
-// approach used in the Athena frontend's eslint.config.js.
-const airbnb = {
-  "no-var": "error",
-  "prefer-const": "error",
-  // A local shadowing an import (`const t = …` over the i18n `t`) is a silent
-  // data-loss class of bug (see alert.js backup_age); make it an error.
-  "no-shadow": ["error", { builtinGlobals: false }],
-  "object-shorthand": ["warn", "always"],
-  "prefer-template": "warn",
-  "no-else-return": ["warn", { allowElseIf: false }],
-  eqeqeq: ["error", "always", { null: "ignore" }],
-  "no-unused-vars": [
-    "warn",
+const jsdocRules = {
+  // Require a JSDoc block on the public surface — exported functions/classes and
+  // public (non-`_`) methods incl. the HA card-contract statics. Private `_`
+  // helpers and inline arrows stay documented by their `//` WHY-comments.
+  "jsdoc/require-jsdoc": [
+    "error",
     {
-      argsIgnorePattern: "^_",
-      varsIgnorePattern: "^_",
-      caughtErrorsIgnorePattern: "^_",
+      require: {
+        FunctionDeclaration: false,
+        ArrowFunctionExpression: false,
+        FunctionExpression: false,
+        ClassDeclaration: false,
+        MethodDefinition: false,
+      },
+      contexts: [
+        "ExportNamedDeclaration > FunctionDeclaration",
+        "ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression",
+        "ExportNamedDeclaration > ClassDeclaration",
+        "MethodDefinition[key.name!=/^_/]",
+      ],
+      checkConstructors: false,
     },
   ],
+  "jsdoc/require-description": "error",
 };
 
 export default defineConfig([
@@ -42,94 +48,78 @@ export default defineConfig([
     "bun.lock",
   ]),
 
-  // --- src/** : browser web components (Lit) ---
+  // --- Airbnb styleguide. Plugins must register before the rule sets that use
+  // them; the presets self-scope via their own globs and keep type-checked rules
+  // off plain JS.
+  airbnbPlugins.stylistic,
+  airbnbPlugins.importX,
+  airbnbPlugins.node,
+  airbnbPlugins.typescriptEslint,
+  ...airbnb.base.recommended,
+  ...airbnb.base.typescript,
+
+  // --- src/** : Lit + web-component + a11y layer on top of Airbnb ---
   {
-    files: ["src/**/*.js"],
-    extends: [
-      js.configs.recommended,
-      lit.configs["flat/recommended"],
-      wc.configs["flat/recommended"],
-    ],
+    files: ["src/**/*.{js,ts}"],
+    extends: [lit.configs["flat/recommended"], wc.configs["flat/recommended"]],
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
       globals: { ...globals.browser },
     },
-    plugins: { import: importPlugin, "check-file": checkFile, jsdoc },
-    // No jsconfig/tsconfig here — the node resolver resolves the bare `lit`
-    // dependency and the explicit-`.js` relative imports the browser ESM needs.
-    settings: { "import/resolver": { node: { extensions: [".js", ".json"] } } },
+    plugins: { jsdoc, "lit-a11y": litA11y, "check-file": checkFile },
     rules: {
-      ...airbnb,
-      "no-empty": ["error", { allowEmptyCatch: true }],
-      // Require a JSDoc block on the public surface — exported functions/classes and
-      // public (non-`_`) methods incl. the HA card-contract statics. Private `_`
-      // helpers and inline arrows stay documented by their `//` WHY-comments.
-      "jsdoc/require-jsdoc": [
-        "error",
-        {
-          // Disable the built-in defaults (which would demand JSDoc on every
-          // FunctionDeclaration, including non-exported module helpers) and require
-          // it only on the explicit public surface below.
-          require: {
-            FunctionDeclaration: false,
-            ArrowFunctionExpression: false,
-            FunctionExpression: false,
-            ClassDeclaration: false,
-            MethodDefinition: false,
-          },
-          contexts: [
-            "ExportNamedDeclaration > FunctionDeclaration",
-            "ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ArrowFunctionExpression",
-            "ExportNamedDeclaration > ClassDeclaration",
-            "MethodDefinition[key.name!=/^_/]",
-          ],
-          checkConstructors: false,
-        },
-      ],
-      "jsdoc/require-description": "error",
-      "import/no-unresolved": "error",
-      "import/order": [
-        "warn",
-        {
-          groups: [
-            "builtin",
-            "external",
-            "internal",
-            "parent",
-            "sibling",
-            "index",
-          ],
-          "newlines-between": "always",
-          alphabetize: { order: "asc", caseInsensitive: true },
-        },
-      ],
-      "import/newline-after-import": ["warn", { count: 1 }],
-      "import/no-extraneous-dependencies": ["warn", { devDependencies: false }],
+      ...litA11y.configs.recommended.rules,
+      ...jsdocRules,
       "check-file/filename-naming-convention": [
         "error",
-        { "**/*.js": "KEBAB_CASE" },
+        { "**/*.{js,ts}": "KEBAB_CASE" },
         { ignoreMiddleExtensions: true },
       ],
     },
   },
 
-  // --- build scripts + this config : Node ---
+  // --- Repo/Lit conventions that intentionally diverge from stock Airbnb ---
   {
-    files: ["scripts/**/*.mjs", "eslint.config.js"],
-    languageOptions: {
-      ecmaVersion: "latest",
-      sourceType: "module",
-      globals: { ...globals.node },
-    },
+    files: ["src/**/*.{js,ts}"],
     rules: {
-      "no-var": "error",
-      "prefer-const": "error",
-      eqeqeq: ["error", "always", { null: "ignore" }],
+      "no-underscore-dangle": "off", // private `_method`/`_state` convention
+      "class-methods-use-this": "off", // Lit render()/lifecycle needn't use `this`
+      "import-x/extensions": "off", // bundler + @ aliases resolve extensions
+      "import-x/no-unresolved": "off", // @shared/@core/@cards aliases
+      "import-x/prefer-default-export": "off", // named card exports are the norm
+      "no-plusplus": "off",
+      "no-restricted-syntax": "off",
+      "no-continue": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
     },
   },
 
-  // --- storybook : browser stories + Node config, its own deps + file naming ---
+  // --- build scripts + Vite/ESLint config : Node ---
+  {
+    files: ["scripts/**/*.mjs", "eslint.config.js", "vite.config.ts"],
+    languageOptions: { globals: { ...globals.node } },
+    rules: {
+      "import-x/no-extraneous-dependencies": "off",
+      "import-x/extensions": "off", // Node ESM build scripts use explicit .js
+      "no-console": "off",
+      "no-continue": "off",
+      "no-shadow": "off",
+      "no-restricted-syntax": "off", // for..of over Rollup's bundle map is fine here
+      "no-param-reassign": "off", // Rollup's generateBundle mutates chunk.code
+    },
+  },
+
+  // --- storybook : a separate showcase package (own package.json/build).
+  // Lint lightly — relax the product-grade Airbnb rules that don't suit the
+  // config-driven story/fixture files. ---
   {
     files: ["storybook/**/*.js"],
     languageOptions: {
@@ -137,10 +127,20 @@ export default defineConfig([
       sourceType: "module",
       globals: { ...globals.browser, ...globals.node },
     },
-    plugins: { import: importPlugin },
     rules: {
-      "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
-      "import/no-extraneous-dependencies": "off",
+      "import-x/no-extraneous-dependencies": "off",
+      "import-x/extensions": "off", // native ESM in Storybook's own Vite
+      "import-x/no-relative-packages": "off",
+      "import-x/first": "off",
+      "no-console": "off",
+      "no-underscore-dangle": "off",
+      "no-param-reassign": "off",
+      "no-return-assign": "off",
+      "no-restricted-syntax": "off",
+      "no-restricted-globals": "off",
+      "prefer-template": "off",
+      "func-names": "off",
+      "@stylistic/lines-between-class-members": "off",
     },
   },
 

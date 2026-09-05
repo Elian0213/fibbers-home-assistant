@@ -17,12 +17,12 @@ const cardsDir = join(root, "src/cards");
 
 // Cards live in domain subfolders (cards/lights/, cards/media/, …), so walk the
 // tree rather than reading a single flat directory.
-function jsFiles(dir) {
+function sourceFiles(dir) {
   const out = [];
   for (const entry of readdirSync(dir)) {
     const p = join(dir, entry);
-    if (statSync(p).isDirectory()) out.push(...jsFiles(p));
-    else if (p.endsWith(".js")) out.push(p);
+    if (statSync(p).isDirectory()) out.push(...sourceFiles(p));
+    else if (p.endsWith(".ts") || p.endsWith(".js")) out.push(p);
   }
   return out;
 }
@@ -55,10 +55,10 @@ const stripComments = (src) =>
 const LITERAL = /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`/gs;
 
 // Every card, plus the body-portal modules that also render user-facing text.
-const files = jsFiles(cardsDir);
+const files = sourceFiles(cardsDir);
 files.push(
-  join(root, "src/core/body-sheet.js"),
-  join(root, "src/core/body-layer.js"),
+  join(root, "src/core/body-sheet.ts"),
+  join(root, "src/core/body-layer.ts"),
 );
 
 const hits = [];

@@ -47,7 +47,7 @@ const roots = [join(root, "src"), join(root, "storybook/stories")];
 const skip = join(root, "src/generated/icons.core.gen.js");
 const re = /solar:[a-z0-9-]+/g;
 
-function jsFiles(dir) {
+function sourceFiles(dir) {
   const out = [];
   let entries;
   try {
@@ -57,15 +57,16 @@ function jsFiles(dir) {
   }
   for (const entry of entries) {
     const p = join(dir, entry);
-    if (statSync(p).isDirectory()) out.push(...jsFiles(p));
-    else if (p.endsWith(".js") && p !== skip) out.push(p);
+    if (statSync(p).isDirectory()) out.push(...sourceFiles(p));
+    else if ((p.endsWith(".ts") || p.endsWith(".js")) && p !== skip)
+      out.push(p);
   }
   return out;
 }
 
 const referenced = new Set();
 for (const base of roots)
-  for (const file of jsFiles(base))
+  for (const file of sourceFiles(base))
     for (const name of readFileSync(file, "utf8").match(re) || [])
       referenced.add(name);
 
