@@ -130,6 +130,9 @@ export default defineConfig([
     rules: {
       "import-x/no-extraneous-dependencies": "off",
       "import-x/extensions": "off", // native ESM in Storybook's own Vite
+      // Separate package — its node_modules isn't installed when the root lints
+      // (CI runs only the root `bun install`); the storybook job builds it for real.
+      "import-x/no-unresolved": "off",
       "import-x/no-relative-packages": "off",
       "import-x/first": "off",
       "no-console": "off",
