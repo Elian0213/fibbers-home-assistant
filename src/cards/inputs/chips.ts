@@ -7,6 +7,7 @@ import { customElement, property, state } from "lit/decorators.js";
 
 import { runAction, type ActionConfig } from "@shared/actions";
 import { twSheet } from "@shared/tw";
+import { cx } from "@shared/variants";
 import type {
   HomeAssistant,
   LovelaceCard,
@@ -89,13 +90,12 @@ export class FibbersChips extends LitElement implements LovelaceCard {
         return html`<button
           type="button"
           aria-label=${chip.name || chip.entity || "action"}
-          class="fib-hit inline-flex items-center gap-[5px] rounded-full border px-2.5 py-[5px]
-                 text-[10.5px] font-medium
-                 ${
-                   active
-                     ? "border-blueline bg-bluebg text-blueink"
-                     : "border-line bg-card2 text-ink2"
-                 }"
+          class="${cx(
+            "fib-hit inline-flex items-center gap-[5px] rounded-full border px-2.5 py-[5px] text-[10.5px] font-medium",
+            active
+              ? "border-blueline bg-bluebg text-blueink"
+              : "border-line bg-card2 text-ink2",
+          )}"
           @click=${() =>
             this.hass &&
             runAction(

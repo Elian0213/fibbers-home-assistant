@@ -6,8 +6,10 @@ import { LitElement, html, css, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 
 import { t } from "@shared/i18n";
+import { cardShell } from "@shared/shells";
 import { twSheet } from "@shared/tw";
 import { moreInfo, cssUrl } from "@shared/util";
+import { sectionLabel } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -79,6 +81,66 @@ export class FibbersPresence extends LitElement implements LovelaceCard {
     moreInfo(this, entity);
   }
 
+  // --- render helpers ------------------------------------------------
+
+  private _renderHeader(hl: unknown, homeCount: number): TemplateResult {
+    return html`<div class="mb-2.5 flex items-baseline justify-between gap-2">
+      ${
+        this.config.title === false
+          ? ""
+          : html`<span class="${sectionLabel()}"
+              >${t(hl, "presence.title")}</span
+            >`
+      }
+      <span
+        class="text-[12px] font-semibold ${
+          homeCount === 0 ? "text-muted" : "text-ink"
+        }"
+        >${homeCount === 0 ? t(hl, "presence.nobody_home") : t(hl, "presence.count_home", { n: homeCount })}</span
+      >
+    </div>`;
+  }
+
+  private _renderPerson(id: string): TemplateResult {
+    const st = this.hass && this.hass.states[id];
+    const home = this._isHome(st);
+    const pic = st && st.attributes && st.attributes.entity_picture;
+    return html`<button
+      type="button"
+      class="flex items-center gap-2 rounded-full border py-[7px] pl-[7px] pr-[11px]
+             ${home ? "border-accentline bg-accentbg" : "border-line bg-card2"}"
+      @click=${() => this._moreInfo(id)}
+    >
+      <div
+        class="flex h-[26px] w-[26px] flex-none items-center justify-center
+               overflow-hidden rounded-full bg-card bg-cover bg-center"
+        style=${pic ? `background-image:${cssUrl(pic)}` : ""}
+      >
+        ${
+          pic
+            ? ""
+            : html`<fib-icon
+                class="h-[15px] w-[15px] [--mdc-icon-size:15px] ${
+                  home ? "text-accent" : "text-muted"
+                }"
+                icon="solar:user-bold-duotone"
+              ></fib-icon>`
+        }
+      </div>
+      <div class="flex flex-col leading-[1.25]">
+        <span class="text-[12px] font-semibold text-ink"
+          >${
+            (st && st.attributes && st.attributes.friendly_name) ||
+            id.split(".")[1]
+          }</span
+        >
+        <span class="text-[10px] ${home ? "text-accenttx" : "text-muted"}"
+          >${this._stateLabel(st)}</span
+        >
+      </div>
+    </button>`;
+  }
+
   /** Render the home-count header and a wrapped row of tappable person tiles. */
   render(): TemplateResult {
     const people = this._people();
@@ -87,69 +149,12 @@ export class FibbersPresence extends LitElement implements LovelaceCard {
       this._isHome(this.hass && this.hass.states[id]),
     ).length;
 
-    return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
-      <div class="mb-2.5 flex items-baseline justify-between gap-2">
-        ${
-          this.config.title === false
-            ? ""
-            : html`<span
-                class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-                >${t(hl, "presence.title")}</span
-              >`
-        }
-        <span
-          class="text-[12px] font-semibold ${
-            homeCount === 0 ? "text-muted" : "text-ink"
-          }"
-          >${homeCount === 0 ? t(hl, "presence.nobody_home") : t(hl, "presence.count_home", { n: homeCount })}</span
-        >
-      </div>
-      <div class="flex flex-wrap gap-2">
-        ${people.map((id) => {
-          const st = this.hass && this.hass.states[id];
-          const home = this._isHome(st);
-          const pic = st && st.attributes && st.attributes.entity_picture;
-          return html`<button
-            type="button"
-            class="flex items-center gap-2 rounded-full border py-[7px] pl-[7px] pr-[11px]
-                   ${
-                     home
-                       ? "border-accentline bg-accentbg"
-                       : "border-line bg-card2"
-                   }"
-            @click=${() => this._moreInfo(id)}
-          >
-            <div
-              class="flex h-[26px] w-[26px] flex-none items-center justify-center
-                     overflow-hidden rounded-full bg-card bg-cover bg-center"
-              style=${pic ? `background-image:${cssUrl(pic)}` : ""}
-            >
-              ${
-                pic
-                  ? ""
-                  : html`<fib-icon
-                      class="h-[15px] w-[15px] [--mdc-icon-size:15px] ${
-                        home ? "text-accent" : "text-muted"
-                      }"
-                      icon="solar:user-bold-duotone"
-                    ></fib-icon>`
-              }
-            </div>
-            <div class="flex flex-col leading-[1.25]">
-              <span class="text-[12px] font-semibold text-ink"
-                >${
-                  (st && st.attributes && st.attributes.friendly_name) ||
-                  id.split(".")[1]
-                }</span
-              >
-              <span class="text-[10px] ${home ? "text-accenttx" : "text-muted"}"
-                >${this._stateLabel(st)}</span
-              >
-            </div>
-          </button>`;
-        })}
-      </div>
-    </div>`;
+    return cardShell(
+      html`${this._renderHeader(hl, homeCount)}
+        <div class="flex flex-wrap gap-2">
+          ${people.map((id) => this._renderPerson(id))}
+        </div>`,
+    );
   }
 
   /** Masonry height in rows. */

@@ -6,9 +6,11 @@ import { LitElement, html, css, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 
 import { t } from "@shared/i18n";
+import { cardShell } from "@shared/shells";
 import { twSheet } from "@shared/tw";
 import { pillSwitch } from "@shared/ui";
 import { moreInfo, pickEntity } from "@shared/util";
+import { cx, sectionLabel } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -105,85 +107,96 @@ export class FibbersScheduler extends LitElement implements LovelaceCard {
     const cfg = this.config;
     if (!cfg) return html``;
     const hl = cfg.language || this.hass;
-    const timeSt = this._state(cfg.time);
-    const time = hhmm(timeSt && timeSt.state);
     const enSt = this._state(cfg.enable);
     const on = enSt ? enSt.state === "on" : true;
+
+    return cardShell(
+      html`${this._renderHeader(hl, on)} ${this._renderTime(hl, on)}
+      ${this._renderDays()}`,
+    );
+  }
+
+  private _renderHeader(hl: unknown, on: boolean): TemplateResult {
+    const cfg = this.config;
+    return html`<div class="mb-2 flex items-center gap-2">
+      <fib-icon
+        class="${cx(
+          "h-4 w-4 [--mdc-icon-size:16px]",
+          on ? "text-accent" : "text-muted",
+        )}"
+        icon="solar:alarm-bold-duotone"
+      ></fib-icon>
+      <span class="${cx("flex-1", sectionLabel())}"
+        >${cfg.name || t(hl, "scheduler.default_name")}</span
+      >
+      ${
+        cfg.enable
+          ? pillSwitch({
+              on,
+              label: cfg.name || t(hl, "scheduler.default_name"),
+              onClick: () =>
+                this.hass &&
+                this.hass.callService("homeassistant", "toggle", {
+                  entity_id: cfg.enable,
+                }),
+            })
+          : ""
+      }
+    </div>`;
+  }
+
+  private _renderTime(hl: unknown, on: boolean): TemplateResult {
+    const cfg = this.config;
+    const timeSt = this._state(cfg.time);
+    const time = hhmm(timeSt && timeSt.state);
     const durSt = this._state(cfg.duration);
     const dur = durSt ? Number(durSt.state) : null;
     const windowEnd = dur ? addMinutes(time, dur) : "";
-
-    return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
-      <div class="mb-2 flex items-center gap-2">
-        <fib-icon
-          class="h-4 w-4 [--mdc-icon-size:16px] ${on ? "text-accent" : "text-muted"}"
-          icon="solar:alarm-bold-duotone"
-        ></fib-icon>
-        <span
-          class="flex-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-          >${cfg.name || t(hl, "scheduler.default_name")}</span
-        >
-        ${
-          cfg.enable
-            ? pillSwitch({
-                on,
-                label: cfg.name || t(hl, "scheduler.default_name"),
-                onClick: () =>
-                  this.hass &&
-                  this.hass.callService("homeassistant", "toggle", {
-                    entity_id: cfg.enable,
-                  }),
-              })
-            : ""
-        }
-      </div>
-
-      <button
-        type="button"
-        class="text-left ${on ? "" : "opacity-50"}"
-        @click=${() => moreInfo(this, cfg.time)}
+    return html`<button
+      type="button"
+      class="${cx("text-left", !on && "opacity-50")}"
+      @click=${() => moreInfo(this, cfg.time)}
+    >
+      <span class="text-[30px] font-semibold leading-none text-ink"
+        >${time || "—"}</span
       >
-        <span class="text-[30px] font-semibold leading-none text-ink"
-          >${time || "—"}</span
-        >
-        ${
-          windowEnd
-            ? html`<span class="ml-2 text-[13px] text-muted"
-                >→
-                ${windowEnd}${dur ? html` · ${t(hl, "scheduler.duration", { n: dur })}` : ""}</span
-              >`
-            : ""
-        }
-      </button>
-
       ${
-        Array.isArray(cfg.days) && cfg.days.length
-          ? html`<div class="mt-3 flex flex-wrap gap-x-2 gap-y-[18px]">
-              ${cfg.days.map((d) => {
-                const obj = typeof d === "object";
-                const st = obj ? this._state(d.entity) : null;
-                const active = obj ? st && st.state === "on" : true;
-                return html`<button
-                  type="button"
-                  class="fib-hit rounded-full border px-2.5 py-1 text-[10.5px] font-medium
-                       ${
-                         active
-                           ? "border-accentline bg-accentbg text-accent"
-                           : "border-line bg-card2 text-ink2"
-                       }"
-                  @click=${() =>
-                    obj &&
-                    this.hass &&
-                    this.hass.callService("homeassistant", "toggle", {
-                      entity_id: d.entity,
-                    })}
-                >
-                  ${obj ? d.name : d}
-                </button>`;
-              })}
-            </div>`
+        windowEnd
+          ? html`<span class="ml-2 text-[13px] text-muted"
+              >→
+              ${windowEnd}${dur ? html` · ${t(hl, "scheduler.duration", { n: dur })}` : ""}</span
+            >`
           : ""
       }
+    </button>`;
+  }
+
+  private _renderDays(): TemplateResult | string {
+    const cfg = this.config;
+    if (!Array.isArray(cfg.days) || !cfg.days.length) return "";
+    return html`<div class="mt-3 flex flex-wrap gap-x-2 gap-y-[18px]">
+      ${cfg.days.map((d) => {
+        const obj = typeof d === "object";
+        const st = obj ? this._state(d.entity) : null;
+        const active = obj ? st && st.state === "on" : true;
+        return html`<button
+          type="button"
+          class="${cx(
+            "fib-hit rounded-full border px-2.5 py-1 text-[10.5px] font-medium",
+            active
+              ? "border-accentline bg-accentbg text-accent"
+              : "border-line bg-card2 text-ink2",
+          )}"
+          @click=${() =>
+            obj &&
+            this.hass &&
+            this.hass.callService("homeassistant", "toggle", {
+              entity_id: d.entity,
+            })}
+        >
+          ${obj ? d.name : d}
+        </button>`;
+      })}
     </div>`;
   }
 

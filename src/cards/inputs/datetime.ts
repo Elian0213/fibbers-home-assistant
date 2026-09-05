@@ -5,9 +5,10 @@
 import { LitElement, html, css, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 
-import { t } from "@shared/i18n";
+import { cardShell, unavailNotice } from "@shared/shells";
 import { twSheet } from "@shared/tw";
 import { moreInfo, fmtState, pickEntity } from "@shared/util";
+import { cx, sectionLabel } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -109,43 +110,35 @@ export class FibbersDateTime extends LitElement implements LovelaceCard {
     if (!cfg) return html``;
     const hl = cfg.language || this.hass;
     const st = this._st();
-    if (!st) {
-      return html`<div
-        class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
-      >
-        ${t(hl, "common.not_available")}
-      </div>`;
-    }
+    if (!st) return unavailNotice(hl);
     const name = cfg.name || st.attributes.friendly_name || cfg.entity;
     const icon =
       cfg.icon || st.attributes.icon || "solar:clock-circle-bold-duotone";
     const timeOnly = st.attributes.has_time && !st.attributes.has_date;
     const val = this._display(st);
 
-    return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
-      <div class="mb-1.5 flex items-center gap-2">
-        <fib-icon
-          class="h-4 w-4 [--mdc-icon-size:16px] text-accent"
-          icon=${icon}
-        ></fib-icon>
-        <span
-          class="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-          >${name}</span
+    return cardShell(
+      html`<div class="mb-1.5 flex items-center gap-2">
+          <fib-icon
+            class="h-4 w-4 [--mdc-icon-size:16px] text-accent"
+            icon=${icon}
+          ></fib-icon>
+          <span class="${sectionLabel()}">${name}</span>
+        </div>
+        <button
+          type="button"
+          class="text-left"
+          @click=${() => moreInfo(this, cfg.entity)}
         >
-      </div>
-      <button
-        type="button"
-        class="text-left"
-        @click=${() => moreInfo(this, cfg.entity)}
-      >
-        <span
-          class="font-semibold leading-none text-ink ${
-            timeOnly ? "text-[30px]" : "text-[20px]"
-          }"
-          >${val}</span
-        >
-      </button>
-    </div>`;
+          <span
+            class="${cx(
+              "font-semibold leading-none text-ink",
+              timeOnly ? "text-[30px]" : "text-[20px]",
+            )}"
+            >${val}</span
+          >
+        </button>`,
+    );
   }
 
   /** One masonry row tall. */

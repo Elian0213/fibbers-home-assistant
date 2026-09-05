@@ -7,6 +7,7 @@ import { LitElement, html, css, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 
 import { t } from "@shared/i18n";
+import { cardShell, sectionLabel } from "@shared/shells";
 import { twSheet } from "@shared/tw";
 import {
   sliderTrack,
@@ -23,6 +24,7 @@ import {
   debounce,
   type Debounced,
 } from "@shared/util";
+import { cx } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -419,9 +421,11 @@ export class FibbersMedia extends LitElement implements LovelaceCard {
     return html`<button
       type="button"
       aria-label=${LABELS[service] || service}
-      class="fib-hit flex ${big ? "h-11 w-11" : "h-9 w-9"} items-center justify-center rounded-full
-             ${opts.accent ? "bg-accentbg text-accent" : "bg-card2 text-ink"}
-             transition-transform active:scale-90"
+      class=${cx(
+        "fib-hit flex items-center justify-center rounded-full transition-transform active:scale-90",
+        big ? "h-11 w-11" : "h-9 w-9",
+        opts.accent ? "bg-accentbg text-accent" : "bg-card2 text-ink",
+      )}
       @click=${() => this._do(service)}
     >
       <fib-icon
@@ -435,7 +439,7 @@ export class FibbersMedia extends LitElement implements LovelaceCard {
     </button>`;
   }
 
-  private _seekBar(hl: unknown): TemplateResult | string {
+  private _renderSeekBar(hl: unknown): TemplateResult | string {
     const p = this._pos();
     if (!p || !p.dur) return "";
     const pos = this._seekHold!.value(p.pos, {
@@ -490,33 +494,15 @@ export class FibbersMedia extends LitElement implements LovelaceCard {
     </div>`;
   }
 
-  /** Draw the card — the compact now-playing row, or the full art/seek/transport/volume/sources stack. */
-  render(): TemplateResult {
-    const cfg = this.config;
-    if (!cfg) return html``;
-    const hl = cfg.language || this.hass;
-    const st = this._st();
-    const a = (st && st.attributes) || {};
-    const idle = this._idle();
-    const title = idle
-      ? t(hl, "media.idle")
-      : a.media_title || a.app_name || a.source || cfg.name || a.friendly_name;
-    const artist = idle ? "" : a.media_artist || a.app_name || "";
+  // Artwork thumbnail — the entity_picture as a cover, else a content-type icon.
+  private _renderArt(compact: boolean): TemplateResult {
+    const a = (this._st() && this._st()!.attributes) || {};
     const art = a.entity_picture; // media_image_url is a Python property, never a state attr
-    const playIcon = this._playing()
-      ? "solar:pause-bold-duotone"
-      : "solar:play-bold-duotone";
-    const canPlay = this._supports(MF.PLAY) || this._supports(MF.PAUSE);
-    const canPrev = this._supports(MF.PREV);
-    const canNext = this._supports(MF.NEXT);
-    // A player can advertise VOLUME_SET yet never report a level (CEC, androidtv
-    // volume-only, Chromecast before it connects) — the slider would sit at 0% and
-    // re-snap there after every hold. Gate on the actual level, not just the bit.
-    const canVol = this._supports(MF.VOLUME_SET) && a.volume_level != null;
-
-    const artBox = html`<div
-      class="flex ${cfg.compact ? "h-11 w-11" : "h-14 w-14"} flex-none items-center
-             justify-center overflow-hidden rounded-xl bg-card2 bg-cover bg-center"
+    return html`<div
+      class=${cx(
+        "flex flex-none items-center justify-center overflow-hidden rounded-xl bg-card2 bg-cover bg-center",
+        compact ? "h-11 w-11" : "h-14 w-14",
+      )}
       style=${art ? `background-image:${cssUrl(art)}` : ""}
     >
       ${
@@ -528,12 +514,17 @@ export class FibbersMedia extends LitElement implements LovelaceCard {
             ></fib-icon>`
       }
     </div>`;
+  }
 
-    if (cfg.compact) {
-      return html`<div
-        class="flex items-center gap-3 rounded-[14px] border border-line bg-card p-3"
-      >
-        ${artBox}
+  // The tight `compact: true` row: art, title/artist, play/pause + next.
+  private _renderCompact(title: unknown, artist: unknown): TemplateResult {
+    const playIcon = this._playing()
+      ? "solar:pause-bold-duotone"
+      : "solar:play-bold-duotone";
+    const canPlay = this._supports(MF.PLAY) || this._supports(MF.PAUSE);
+    const canNext = this._supports(MF.NEXT);
+    return cardShell(
+      html`${this._renderArt(true)}
         <div class="min-w-0 flex-1">
           <div class="truncate text-[13px] font-semibold text-ink">
             ${title}
@@ -552,121 +543,147 @@ export class FibbersMedia extends LitElement implements LovelaceCard {
                 "media_next_track",
               )
             : ""
-        }
-      </div>`;
-    }
+        }`,
+      { cls: "flex items-center gap-3", pad: "sm" },
+    );
+  }
 
-    return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
-      <div class="mb-3 flex items-center gap-3">
-        ${artBox}
-        <div class="min-w-0 flex-1">
-          ${
-            cfg.name
-              ? html`<div
-                  class="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted"
-                >
-                  ${cfg.name}
-                </div>`
-              : ""
-          }
-          <div class="truncate text-[15px] font-semibold text-ink">
-            ${title}
-          </div>
-          <div class="truncate text-[12px] text-muted">${artist}</div>
-        </div>
+  private _renderNowPlaying(title: unknown, artist: unknown): TemplateResult {
+    const cfg = this.config;
+    return html`<div class="mb-3 flex items-center gap-3">
+      ${this._renderArt(false)}
+      <div class="min-w-0 flex-1">
+        ${cfg.name ? sectionLabel(cfg.name, { tracking: "tight" }) : ""}
+        <div class="truncate text-[15px] font-semibold text-ink">${title}</div>
+        <div class="truncate text-[12px] text-muted">${artist}</div>
       </div>
-
-      ${this._seekBar(hl)}
-      ${
-        canPrev || canPlay || canNext
-          ? html`<div class="mb-3 flex items-center justify-center gap-4">
-              ${
-                canPrev
-                  ? this._transportBtn(
-                      "solar:skip-previous-bold-duotone",
-                      "media_previous_track",
-                    )
-                  : ""
-              }
-              ${
-                canPlay
-                  ? this._transportBtn(playIcon, "media_play_pause", {
-                      big: true,
-                      accent: true,
-                    })
-                  : ""
-              }
-              ${
-                canNext
-                  ? this._transportBtn(
-                      "solar:skip-next-bold-duotone",
-                      "media_next_track",
-                    )
-                  : ""
-              }
-            </div>`
-          : ""
-      }
-      ${
-        canVol
-          ? html`<div class="mb-1 flex items-center gap-2.5">
-              <fib-icon
-                class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-muted"
-                icon="solar:volume-small-bold-duotone"
-              ></fib-icon>
-              ${sliderTrack({
-                pct: this._vol(),
-                dragging: this._dragging,
-                cls: "flex-1",
-                label: t(hl, "media.volume"),
-                value: this._vol(),
-                min: 0,
-                max: 100,
-                step: 5,
-                valueText: `${this._vol()}%`,
-                // Arm the hold so keyboard steps accumulate (see the seek bar).
-                onInput: (v) => {
-                  this._volHold!.hold(v);
-                  this._volInput(v);
-                },
-                onDown: this._volDrag.down,
-                onMove: this._volDrag.move,
-                onUp: this._volDrag.up,
-                onCancel: this._volDrag.cancel,
-              })}
-              <fib-icon
-                class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-muted"
-                icon="solar:volume-loud-bold-duotone"
-              ></fib-icon>
-            </div>`
-          : ""
-      }
-      ${(() => {
-        // Gate on SELECT_SOURCE: a player that lists sources it can't switch to
-        // shouldn't render chips whose calls HA rejects.
-        const all = this._allSources();
-        if (!all.length || !this._supports(MF.SELECT_SOURCE)) return "";
-        const collapsed = all.length > 8 ? all.slice(0, 8) : null;
-        return html`<div class="mt-3">
-          ${overflowChips({
-            hl,
-            all,
-            collapsed,
-            activeValue: a.source,
-            open: this._srcOpen,
-            onToggle: () => {
-              this._srcOpen = !this._srcOpen;
-            },
-            onSelect: (s) =>
-              this._do("select_source", { source: s.source || s.name }),
-          })}
-        </div>`;
-      })()}
-      ${this._groupRow(a)} ${this._favouritesGrid()}
     </div>`;
   }
 
-  private _groupRow(a: Record<string, any>): TemplateResult | string {
+  private _renderTransport(): TemplateResult | string {
+    const canPlay = this._supports(MF.PLAY) || this._supports(MF.PAUSE);
+    const canPrev = this._supports(MF.PREV);
+    const canNext = this._supports(MF.NEXT);
+    if (!canPrev && !canPlay && !canNext) return "";
+    const playIcon = this._playing()
+      ? "solar:pause-bold-duotone"
+      : "solar:play-bold-duotone";
+    return html`<div class="mb-3 flex items-center justify-center gap-4">
+      ${
+        canPrev
+          ? this._transportBtn(
+              "solar:skip-previous-bold-duotone",
+              "media_previous_track",
+            )
+          : ""
+      }
+      ${
+        canPlay
+          ? this._transportBtn(playIcon, "media_play_pause", {
+              big: true,
+              accent: true,
+            })
+          : ""
+      }
+      ${
+        canNext
+          ? this._transportBtn(
+              "solar:skip-next-bold-duotone",
+              "media_next_track",
+            )
+          : ""
+      }
+    </div>`;
+  }
+
+  private _renderVolume(
+    hl: unknown,
+    a: Record<string, any>,
+  ): TemplateResult | string {
+    // A player can advertise VOLUME_SET yet never report a level (CEC, androidtv
+    // volume-only, Chromecast before it connects) — the slider would sit at 0% and
+    // re-snap there after every hold. Gate on the actual level, not just the bit.
+    const canVol = this._supports(MF.VOLUME_SET) && a.volume_level != null;
+    if (!canVol) return "";
+    return html`<div class="mb-1 flex items-center gap-2.5">
+      <fib-icon
+        class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-muted"
+        icon="solar:volume-small-bold-duotone"
+      ></fib-icon>
+      ${sliderTrack({
+        pct: this._vol(),
+        dragging: this._dragging,
+        cls: "flex-1",
+        label: t(hl, "media.volume"),
+        value: this._vol(),
+        min: 0,
+        max: 100,
+        step: 5,
+        valueText: `${this._vol()}%`,
+        // Arm the hold so keyboard steps accumulate (see the seek bar).
+        onInput: (v) => {
+          this._volHold!.hold(v);
+          this._volInput(v);
+        },
+        onDown: this._volDrag.down,
+        onMove: this._volDrag.move,
+        onUp: this._volDrag.up,
+        onCancel: this._volDrag.cancel,
+      })}
+      <fib-icon
+        class="h-4 w-4 flex-none [--mdc-icon-size:16px] text-muted"
+        icon="solar:volume-loud-bold-duotone"
+      ></fib-icon>
+    </div>`;
+  }
+
+  private _renderSources(
+    hl: unknown,
+    a: Record<string, any>,
+  ): TemplateResult | string {
+    // Gate on SELECT_SOURCE: a player that lists sources it can't switch to
+    // shouldn't render chips whose calls HA rejects.
+    const all = this._allSources();
+    if (!all.length || !this._supports(MF.SELECT_SOURCE)) return "";
+    const collapsed = all.length > 8 ? all.slice(0, 8) : null;
+    return html`<div class="mt-3">
+      ${overflowChips({
+        hl,
+        all,
+        collapsed,
+        activeValue: a.source,
+        open: this._srcOpen,
+        onToggle: () => {
+          this._srcOpen = !this._srcOpen;
+        },
+        onSelect: (s) =>
+          this._do("select_source", { source: s.source || s.name }),
+      })}
+    </div>`;
+  }
+
+  /** Draw the card — the compact now-playing row, or the full art/seek/transport/volume/sources stack. */
+  render(): TemplateResult {
+    const cfg = this.config;
+    if (!cfg) return html``;
+    const hl = cfg.language || this.hass;
+    const st = this._st();
+    const a = (st && st.attributes) || {};
+    const idle = this._idle();
+    const title = idle
+      ? t(hl, "media.idle")
+      : a.media_title || a.app_name || a.source || cfg.name || a.friendly_name;
+    const artist = idle ? "" : a.media_artist || a.app_name || "";
+    if (cfg.compact) return this._renderCompact(title, artist);
+    return cardShell(
+      html`${this._renderNowPlaying(title, artist)} ${this._renderSeekBar(hl)}
+      ${this._renderTransport()} ${this._renderVolume(hl, a)}
+      ${this._renderSources(hl, a)} ${this._renderGroup(a)}
+      ${this._renderFavourites()}`,
+    );
+  }
+
+  private _renderGroup(a: Record<string, any>): TemplateResult | string {
     const cfg = this.config;
     // Gate on GROUPING — a `group:` list on a player that can't join does nothing.
     if (
@@ -678,11 +695,7 @@ export class FibbersMedia extends LitElement implements LovelaceCard {
     const hl = cfg.language || this.hass;
     const members = a.group_members || [];
     return html`<div class="mt-3">
-      <div
-        class="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-      >
-        ${t(hl, "media.speakers")}
-      </div>
+      ${sectionLabel(t(hl, "media.speakers"), { cls: "mb-1.5" })}
       <div class="flex flex-wrap gap-1.5">
         ${cfg.group.map((g) => {
           const gid = typeof g === "string" ? g : g.entity;
@@ -697,12 +710,12 @@ export class FibbersMedia extends LitElement implements LovelaceCard {
             type="button"
             aria-label=${gname}
             aria-pressed=${joined ? "true" : "false"}
-            class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[5px]
-                   text-[10.5px] font-medium ${
-                     joined
-                       ? "border-accentline bg-accentbg text-accent"
-                       : "border-line bg-card2 text-ink2"
-                   }"
+            class=${cx(
+              "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[5px] text-[10.5px] font-medium",
+              joined
+                ? "border-accentline bg-accentbg text-accent"
+                : "border-line bg-card2 text-ink2",
+            )}
             @click=${() => (joined ? this._unjoin(gid) : this._join(gid))}
           >
             <fib-icon
@@ -716,7 +729,7 @@ export class FibbersMedia extends LitElement implements LovelaceCard {
     </div>`;
   }
 
-  private _favouritesGrid(): TemplateResult | string {
+  private _renderFavourites(): TemplateResult | string {
     const favs = this.config.favourites;
     if (!Array.isArray(favs) || !favs.length) return "";
     return html`<div class="mt-3 grid grid-cols-4 gap-2">

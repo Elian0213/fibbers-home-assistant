@@ -12,6 +12,7 @@ import {
 import { customElement, property, state } from "lit/decorators.js";
 
 import { t } from "@shared/i18n";
+import { cardShell } from "@shared/shells";
 import { twSheet } from "@shared/tw";
 import { fmtNum, fetchHistory, pickEntity } from "@shared/util";
 import type {
@@ -180,24 +181,30 @@ export class FibbersGraph extends LitElement implements LovelaceCard {
     return (st && st.attributes.unit_of_measurement) || "";
   }
 
-  /** Render the sparkline (or a loading skeleton / no-history line) plus header and optional min/max. */
-  render(): TemplateResult {
-    const cfg = this.config;
-    if (!cfg) return html``;
-    const st = cfg.entity && this.hass && this.hass.states[cfg.entity];
-    const name = cfg.name || (st && st.attributes.friendly_name) || cfg.entity;
-    const hl = cfg.language || this.hass;
-    const now = this._current();
-    const h = cfg.height || 46;
-    const series = this._series;
-    const color = cfg.color || "accent";
-    const colorCls = STROKE[color] || "text-accent";
+  // --- render helpers ------------------------------------------------
 
-    let body;
+  private _renderHeader(name: string | undefined): TemplateResult {
+    const cfg = this.config;
+    const now = this._current();
+    return html`<div class="mb-2 flex items-baseline justify-between gap-2">
+      <span class="text-[11px] font-medium text-muted">${name}</span>
+      <span class="text-[15px] font-semibold text-ink">
+        ${now != null ? fmtNum(this.hass, now, cfg.decimals) : "—"}<span
+          class="ml-0.5 text-[11px] font-medium text-ink2"
+          >${this._unit()}</span
+        >
+      </span>
+    </div>`;
+  }
+
+  private _renderBody(h: number): TemplateResult {
+    const cfg = this.config;
+    const series = this._series;
     if (!series || series.length < 2) {
+      const hl = cfg.language || this.hass;
       // Until a fetch actually settles, show a skeleton — not "no history", which
       // used to flash on every cold load while the recorder was still answering.
-      body = this._settled
+      return this._settled
         ? html`<div
             class="flex items-center text-[11px] text-muted"
             style="height:${h}px"
@@ -208,63 +215,58 @@ export class FibbersGraph extends LitElement implements LovelaceCard {
             class="animate-pulse rounded-[6px] bg-card2"
             style="height:${h}px"
           ></div>`;
-    } else {
-      let min = Math.min(...series);
-      let max = Math.max(...series);
-      const pad = (max - min || 1) * 0.12;
-      min -= pad;
-      max += pad;
-      const n = series.length;
-      const x = (i: number): number => (i / (n - 1)) * W;
-      const y = (v: number): number => h - ((v - min) / (max - min || 1)) * h;
-      const pts = series.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`);
-      const line = `M${pts.join(" L")}`;
-      const area = `M0,${h} L${pts.join(" L")} L${W},${h} Z`;
-      body = html`<svg
-        viewBox="0 0 ${W} ${h}"
-        preserveAspectRatio="none"
-        class="block w-full ${colorCls}"
-        style="height:${h}px;overflow:visible"
-      >
-        <path
-          d=${area}
-          style="fill:currentColor;opacity:${cfg.fill === false ? 0 : 0.12}"
-        ></path>
-        <path
-          d=${line}
-          style="fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke"
-        ></path>
-      </svg>`;
     }
+    let min = Math.min(...series);
+    let max = Math.max(...series);
+    const pad = (max - min || 1) * 0.12;
+    min -= pad;
+    max += pad;
+    const n = series.length;
+    const x = (i: number): number => (i / (n - 1)) * W;
+    const y = (v: number): number => h - ((v - min) / (max - min || 1)) * h;
+    const pts = series.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`);
+    const line = `M${pts.join(" L")}`;
+    const area = `M0,${h} L${pts.join(" L")} L${W},${h} Z`;
+    const colorCls = STROKE[cfg.color || "accent"] || "text-accent";
+    return html`<svg
+      viewBox="0 0 ${W} ${h}"
+      preserveAspectRatio="none"
+      class="block w-full ${colorCls}"
+      style="height:${h}px;overflow:visible"
+    >
+      <path
+        d=${area}
+        style="fill:currentColor;opacity:${cfg.fill === false ? 0 : 0.12}"
+      ></path>
+      <path
+        d=${line}
+        style="fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke"
+      ></path>
+    </svg>`;
+  }
 
-    return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
-      <div class="mb-2 flex items-baseline justify-between gap-2">
-        <span class="text-[11px] font-medium text-muted">${name}</span>
-        <span class="text-[15px] font-semibold text-ink">
-          ${now != null ? fmtNum(this.hass, now, cfg.decimals) : "—"}<span
-            class="ml-0.5 text-[11px] font-medium text-ink2"
-            >${this._unit()}</span
-          >
-        </span>
-      </div>
-      ${body}
-      ${
-        cfg.show_stats && series && series.length >= 2
-          ? html`<div
-              class="mt-1.5 flex justify-between text-[9.5px] text-muted"
-            >
-              <span
-                >min
-                ${fmtNum(this.hass, Math.min(...series), cfg.decimals)}</span
-              >
-              <span
-                >max
-                ${fmtNum(this.hass, Math.max(...series), cfg.decimals)}</span
-              >
-            </div>`
-          : ""
-      }
+  private _renderStats(): TemplateResult | string {
+    const cfg = this.config;
+    const series = this._series;
+    if (!cfg.show_stats || !series || series.length < 2) return "";
+    return html`<div
+      class="mt-1.5 flex justify-between text-[9.5px] text-muted"
+    >
+      <span>min ${fmtNum(this.hass, Math.min(...series), cfg.decimals)}</span>
+      <span>max ${fmtNum(this.hass, Math.max(...series), cfg.decimals)}</span>
     </div>`;
+  }
+
+  /** Render the sparkline (or a loading skeleton / no-history line) plus header and optional min/max. */
+  render(): TemplateResult {
+    const cfg = this.config;
+    if (!cfg) return html``;
+    const st = cfg.entity && this.hass && this.hass.states[cfg.entity];
+    const name = cfg.name || (st && st.attributes.friendly_name) || cfg.entity;
+    const h = cfg.height || 46;
+    return cardShell(
+      html`${this._renderHeader(name)}${this._renderBody(h)}${this._renderStats()}`,
+    );
   }
 
   /** Masonry height in rows. */

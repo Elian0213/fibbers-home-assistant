@@ -7,6 +7,7 @@ import { customElement, property, state } from "lit/decorators.js";
 
 import { t } from "@shared/i18n";
 import { twSheet } from "@shared/tw";
+import { cx } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -121,65 +122,72 @@ export class FibbersScene extends LitElement implements LovelaceCard {
     const total = cfg.scenes.length;
     const hidden = total - fav;
 
-    const tile = (s: SceneConfig, i: number): TemplateResult => {
-      const isActive = i === active;
-      const show = i < fav || this._open;
-      return html`<button
-        type="button"
-        ?hidden=${!show}
-        class="flex flex-col items-center gap-[7px] rounded-[14px] border p-3.5
-               text-ink2 transition-transform active:scale-[.96]
-               ${
-                 isActive
-                   ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)] text-accenttx"
-                   : "border-line bg-card"
-               }"
-        @click=${() =>
-          this.hass &&
-          this.hass.callService("scene", "turn_on", { entity_id: s.scene })}
-      >
-        <fib-icon
-          class="h-5 w-5 [--mdc-icon-size:20px] ${
-            isActive ? "text-accent" : "text-muted"
-          }"
-          icon=${s.icon || "solar:palette-bold-duotone"}
-        ></fib-icon>
-        <span class="text-center text-[11px] font-medium"
-          >${s.name || s.scene}</span
-        >
-      </button>`;
-    };
-
     return html`
       <div class="grid grid-cols-[repeat(auto-fit,minmax(84px,1fr))] gap-2">
-        ${cfg.scenes.map(tile)}
+        ${cfg.scenes.map((s, i) => this._renderTile(s, i, active, fav))}
       </div>
-      ${
-        hidden > 0
-          ? html`<button
-              type="button"
-              class="mt-2 flex w-full items-center justify-center gap-1.5 rounded-[11px]
-                   border border-line bg-transparent py-[9px] text-[11px] font-medium text-ink2"
-              @click=${() => {
-                this._open = !this._open;
-              }}
-            >
-              <span
-                >${
-                  this._open
-                    ? t(hl, "scene.show_less")
-                    : t(hl, "scene.show_all", { n: total })
-                }</span
-              >
-              <fib-icon
-                class="h-[15px] w-[15px] text-muted transition-transform [--mdc-icon-size:15px]
-                     ${this._open ? "rotate-180" : ""}"
-                icon="solar:alt-arrow-down-bold-duotone"
-              ></fib-icon>
-            </button>`
-          : ""
-      }
+      ${hidden > 0 ? this._renderMore(hl, total) : ""}
     `;
+  }
+
+  private _renderTile(
+    s: SceneConfig,
+    i: number,
+    active: number,
+    fav: number,
+  ): TemplateResult {
+    const isActive = i === active;
+    const show = i < fav || this._open;
+    return html`<button
+      type="button"
+      ?hidden=${!show}
+      class="${cx(
+        "flex flex-col items-center gap-[7px] rounded-[14px] border p-3.5 text-ink2 transition-transform active:scale-[.96]",
+        isActive
+          ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)] text-accenttx"
+          : "border-line bg-card",
+      )}"
+      @click=${() =>
+        this.hass &&
+        this.hass.callService("scene", "turn_on", { entity_id: s.scene })}
+    >
+      <fib-icon
+        class="${cx(
+          "h-5 w-5 [--mdc-icon-size:20px]",
+          isActive ? "text-accent" : "text-muted",
+        )}"
+        icon=${s.icon || "solar:palette-bold-duotone"}
+      ></fib-icon>
+      <span class="text-center text-[11px] font-medium"
+        >${s.name || s.scene}</span
+      >
+    </button>`;
+  }
+
+  private _renderMore(hl: unknown, total: number): TemplateResult {
+    return html`<button
+      type="button"
+      class="mt-2 flex w-full items-center justify-center gap-1.5 rounded-[11px]
+           border border-line bg-transparent py-[9px] text-[11px] font-medium text-ink2"
+      @click=${() => {
+        this._open = !this._open;
+      }}
+    >
+      <span
+        >${
+          this._open
+            ? t(hl, "scene.show_less")
+            : t(hl, "scene.show_all", { n: total })
+        }</span
+      >
+      <fib-icon
+        class="${cx(
+          "h-[15px] w-[15px] text-muted transition-transform [--mdc-icon-size:15px]",
+          this._open && "rotate-180",
+        )}"
+        icon="solar:alt-arrow-down-bold-duotone"
+      ></fib-icon>
+    </button>`;
   }
 
   /** One masonry row tall. */

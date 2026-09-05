@@ -11,6 +11,7 @@ import {
 } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 
+import { cardShell, sectionLabel } from "@shared/shells";
 import { twSheet } from "@shared/tw";
 import { fmtNum, fmtState, isUnavail, fetchHistory } from "@shared/util";
 import type {
@@ -193,43 +194,37 @@ export class FibbersSysmon extends LitElement implements LovelaceCard {
     </svg>`;
   }
 
+  private _renderMetric(m: SysmonMetric): TemplateResult {
+    const v = this._val(m);
+    return html`<div
+      class="flex items-center gap-2.5 rounded-[10px] bg-card2 px-2.5 py-2"
+    >
+      <fib-icon
+        class="h-[18px] w-[18px] flex-none [--mdc-icon-size:18px] text-muted"
+        icon=${m.icon || "solar:widget-bold-duotone"}
+      ></fib-icon>
+      <div class="min-w-0">
+        <div class="text-[10px] text-muted">${m.label || m.entity}</div>
+        <div class="text-[15px] font-semibold text-ink">
+          ${v.text}<span class="ml-0.5 text-[10px] font-medium text-ink2"
+            >${v.unit}</span
+          >
+        </div>
+      </div>
+    </div>`;
+  }
+
   /** Render the metric grid and, if configured, the history sparkline below it. */
   render(): TemplateResult {
     const cfg = this.config;
     if (!cfg) return html``;
-    return html`<div class="rounded-[14px] border border-line bg-card p-[13px]">
-      ${
-        cfg.title
-          ? html`<div
-              class="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
-            >
-              ${cfg.title}
-            </div>`
-          : ""
-      }
-      <div class="grid grid-cols-2 gap-2">
-        ${cfg.metrics.map((m) => {
-          const v = this._val(m);
-          return html`<div
-            class="flex items-center gap-2.5 rounded-[10px] bg-card2 px-2.5 py-2"
-          >
-            <fib-icon
-              class="h-[18px] w-[18px] flex-none [--mdc-icon-size:18px] text-muted"
-              icon=${m.icon || "solar:widget-bold-duotone"}
-            ></fib-icon>
-            <div class="min-w-0">
-              <div class="text-[10px] text-muted">${m.label || m.entity}</div>
-              <div class="text-[15px] font-semibold text-ink">
-                ${v.text}<span class="ml-0.5 text-[10px] font-medium text-ink2"
-                  >${v.unit}</span
-                >
-              </div>
-            </div>
-          </div>`;
-        })}
-      </div>
-      ${this._sparkline()}
-    </div>`;
+    return cardShell(
+      html`${cfg.title ? sectionLabel(cfg.title, { cls: "mb-2.5" }) : ""}
+        <div class="grid grid-cols-2 gap-2">
+          ${cfg.metrics.map((m) => this._renderMetric(m))}
+        </div>
+        ${this._sparkline()}`,
+    );
   }
 
   /** Masonry height in rows. */

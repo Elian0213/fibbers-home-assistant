@@ -6,8 +6,10 @@ import { LitElement, html, css, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 
 import { t } from "@shared/i18n";
+import { cardShell, sectionLabel, unavailNotice } from "@shared/shells";
 import { twSheet } from "@shared/tw";
 import { pickEntity, isUnavail, clamp } from "@shared/util";
+import { cx } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -113,15 +115,43 @@ export class FibbersClimate extends LitElement implements LovelaceCard {
     if (!cfg) return html``;
     const hl = cfg.language || this.hass;
     const st = this._st();
-    if (!st)
-      return html`<div
-        class="rounded-[14px] border border-line bg-card p-[13px] text-[12px] text-muted"
-      >
-        ${t(hl, "common.not_available")}
-      </div>`;
-    const a = st.attributes;
+    if (!st) return unavailNotice(hl);
     const unavail = isUnavail(st);
+
+    return cardShell(
+      html`${this._renderHeader(hl, st)}
+      ${this._renderSetpoint(hl, st, unavail)}
+      ${this._renderModes(hl, st, unavail)}`,
+      { cls: cx(unavail && "opacity-50") },
+    );
+  }
+
+  private _renderHeader(hl: unknown, st: HassEntity): TemplateResult {
+    const a = st.attributes;
     const cur = a.current_temperature;
+    const action = a.hvac_action;
+    return html`<div class="mb-3 flex items-baseline justify-between gap-2">
+      <div>
+        ${sectionLabel(
+          this.config.name || a.friendly_name || t(hl, "climate.default_name"),
+          { tracking: "tight" },
+        )}
+        <div class="text-[24px] font-semibold leading-none text-ink">
+          ${cur != null ? cur : "—"}<span class="text-[14px] text-ink2">°</span>
+        </div>
+      </div>
+      <span class="text-[11px] text-muted"
+        >${ACTION_KEY[action] ? t(hl, `climate.${ACTION_KEY[action]}`) : t(hl, st.state !== "off" ? "climate.on" : "climate.off")}</span
+      >
+    </div>`;
+  }
+
+  private _renderSetpoint(
+    hl: unknown,
+    st: HassEntity,
+    unavail: boolean,
+  ): TemplateResult {
+    const a = st.attributes;
     const target = a.temperature;
     const low = a.target_temp_low;
     const high = a.target_temp_high;
@@ -129,111 +159,85 @@ export class FibbersClimate extends LitElement implements LovelaceCard {
     // low–high band and disable the steppers.
     const range = target == null && (low != null || high != null);
     const canBump = !unavail && !range && target != null;
-    const modes = ((a.hvac_modes as string[]) || []).filter((m) => MODE[m]);
-    const action = a.hvac_action;
+    return html`<div class="mb-3 flex items-center justify-center gap-4">
+      ${this._stepBtn(-1, canBump)}
+      <div class="min-w-[68px] text-center">
+        <div class="text-[26px] font-semibold leading-none text-accent">
+          ${
+            // eslint-disable-next-line no-nested-ternary -- preserves the original range/target/fallback display
+            range
+              ? html`${low ?? "—"}–${high ?? "—"}`
+              : target != null
+                ? target
+                : "—"
+          }<span class="text-[14px]">°</span>
+        </div>
+        <div class="mt-0.5 text-[9.5px] uppercase tracking-[0.08em] text-muted">
+          ${t(hl, "climate.setpoint")}
+        </div>
+      </div>
+      ${this._stepBtn(1, canBump)}
+    </div>`;
+  }
 
-    return html`<div
-      class="rounded-[14px] border border-line bg-card p-[13px] ${
-        unavail ? "opacity-50" : ""
-      }"
+  private _stepBtn(dir: number, canBump: boolean): TemplateResult {
+    return html`<button
+      type="button"
+      aria-label=${dir > 0 ? "Raise setpoint" : "Lower setpoint"}
+      ?disabled=${!canBump}
+      class="${cx(
+        "fib-hit flex h-10 w-10 items-center justify-center rounded-full bg-card2 text-ink transition-transform active:scale-90",
+        !canBump && "pointer-events-none opacity-40",
+      )}"
+      @click=${() => this._bump(dir)}
     >
-      <div class="mb-3 flex items-baseline justify-between gap-2">
-        <div>
-          <div
-            class="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted"
-          >
-            ${cfg.name || a.friendly_name || t(hl, "climate.default_name")}
-          </div>
-          <div class="text-[24px] font-semibold leading-none text-ink">
-            ${cur != null ? cur : "—"}<span class="text-[14px] text-ink2"
-              >°</span
-            >
-          </div>
-        </div>
-        <span class="text-[11px] text-muted"
-          >${ACTION_KEY[action] ? t(hl, `climate.${ACTION_KEY[action]}`) : t(hl, st.state !== "off" ? "climate.on" : "climate.off")}</span
-        >
-      </div>
+      <fib-icon
+        class="h-6 w-6 [--mdc-icon-size:24px]"
+        icon=${
+          dir > 0
+            ? "solar:add-circle-bold-duotone"
+            : "solar:minus-circle-bold-duotone"
+        }
+      ></fib-icon>
+    </button>`;
+  }
 
-      <div class="mb-3 flex items-center justify-center gap-4">
-        <button
+  private _renderModes(
+    hl: unknown,
+    st: HassEntity,
+    unavail: boolean,
+  ): TemplateResult | string {
+    const modes = ((st.attributes.hvac_modes as string[]) || []).filter(
+      (m) => MODE[m],
+    );
+    if (!modes.length) return "";
+    return html`<div class="flex flex-wrap justify-center gap-[7px]">
+      ${modes.map((m) => {
+        const active = st.state === m;
+        return html`<button
           type="button"
-          aria-label="Lower setpoint"
-          ?disabled=${!canBump}
-          class="fib-hit flex h-10 w-10 items-center justify-center rounded-full bg-card2 text-ink
-                 transition-transform active:scale-90
-                 ${canBump ? "" : "pointer-events-none opacity-40"}"
-          @click=${() => this._bump(-1)}
+          ?disabled=${unavail}
+          class="${cx(
+            "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[5px] text-[10.5px] font-medium",
+            active
+              ? "border-accentline bg-accentbg text-accent"
+              : "border-line bg-card2 text-ink2",
+            unavail && "pointer-events-none opacity-40",
+          )}"
+          @click=${() =>
+            this.hass &&
+            this.hass.callService("climate", "set_hvac_mode", {
+              entity_id: this.config.entity,
+              hvac_mode: m,
+            })}
         >
           <fib-icon
-            class="h-6 w-6 [--mdc-icon-size:24px]"
-            icon="solar:minus-circle-bold-duotone"
+            class="h-[13px] w-[13px] [--mdc-icon-size:13px]"
+            icon=${MODE[m].icon}
           ></fib-icon>
-        </button>
-        <div class="min-w-[68px] text-center">
-          <div class="text-[26px] font-semibold leading-none text-accent">
-            ${
-              // eslint-disable-next-line no-nested-ternary -- preserves the original range/target/fallback display
-              range
-                ? html`${low ?? "—"}–${high ?? "—"}`
-                : target != null
-                  ? target
-                  : "—"
-            }<span class="text-[14px]">°</span>
-          </div>
-          <div
-            class="mt-0.5 text-[9.5px] uppercase tracking-[0.08em] text-muted"
-          >
-            ${t(hl, "climate.setpoint")}
-          </div>
-        </div>
-        <button
-          type="button"
-          aria-label="Raise setpoint"
-          ?disabled=${!canBump}
-          class="fib-hit flex h-10 w-10 items-center justify-center rounded-full bg-card2 text-ink
-                 transition-transform active:scale-90
-                 ${canBump ? "" : "pointer-events-none opacity-40"}"
-          @click=${() => this._bump(1)}
-        >
-          <fib-icon
-            class="h-6 w-6 [--mdc-icon-size:24px]"
-            icon="solar:add-circle-bold-duotone"
-          ></fib-icon>
-        </button>
-      </div>
-
-      ${
-        modes.length
-          ? html`<div class="flex flex-wrap justify-center gap-[7px]">
-              ${modes.map((m) => {
-                const active = st.state === m;
-                return html`<button
-                  type="button"
-                  ?disabled=${unavail}
-                  class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[5px]
-                       text-[10.5px] font-medium ${
-                         active
-                           ? "border-accentline bg-accentbg text-accent"
-                           : "border-line bg-card2 text-ink2"
-                       } ${unavail ? "pointer-events-none opacity-40" : ""}"
-                  @click=${() =>
-                    this.hass &&
-                    this.hass.callService("climate", "set_hvac_mode", {
-                      entity_id: cfg.entity,
-                      hvac_mode: m,
-                    })}
-                >
-                  <fib-icon
-                    class="h-[13px] w-[13px] [--mdc-icon-size:13px]"
-                    icon=${MODE[m].icon}
-                  ></fib-icon>
-                  ${t(hl, `climate.${MODE[m].key}`)}
-                </button>`;
-              })}
-            </div>`
-          : ""
-      }
+          ${t(hl, `climate.${MODE[m].key}`)}
+        </button>`;
+      })}
     </div>`;
   }
 

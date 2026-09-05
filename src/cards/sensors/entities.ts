@@ -12,6 +12,7 @@ import {
 import { customElement, property, state } from "lit/decorators.js";
 
 import { t, langOf } from "@shared/i18n";
+import { cardShell, iconBoxTpl, sectionLabel } from "@shared/shells";
 import { twSheet } from "@shared/tw";
 import { activateOnKey } from "@shared/ui";
 import { moreInfo, fmtState } from "@shared/util";
@@ -250,76 +251,76 @@ export class FibbersEntities extends LitElement implements LovelaceCard {
     return true;
   }
 
-  /** Render the row list (optional title, per-row icon/name/secondary) or the `empty` all-clear line. */
-  render(): TemplateResult {
+  // --- render helpers ------------------------------------------------
+
+  private _renderTitle(): TemplateResult | string {
     const cfg = this.config;
-    if (!cfg) return html``;
-    const rows = this._matched();
+    if (!cfg.title) return "";
+    return sectionLabel(
+      html`${
+          cfg.icon
+            ? html`<fib-icon
+                class="h-3.5 w-3.5 [--mdc-icon-size:14px] text-muted"
+                icon=${cfg.icon}
+              ></fib-icon>`
+            : ""
+        } <span>${cfg.title}</span>`,
+      { cls: "flex items-center gap-[7px] px-2.5 pb-1.5 pt-[7px]" },
+    );
+  }
+
+  private _renderRow(st: HassEntity): TemplateResult {
     return html`<div
-      class="rounded-[14px] border border-line bg-card px-1 py-1.5"
+      role="button"
+      tabindex="0"
+      class="grid cursor-pointer grid-cols-[28px_1fr_auto] items-center gap-x-2.5
+         rounded-[10px] px-2.5 py-2 hover:bg-card2"
+      @click=${() => moreInfo(this, st.entity_id)}
+      @keydown=${activateOnKey(() => moreInfo(this, st.entity_id))}
     >
       ${
-        cfg.title
-          ? html`<div
-              class="flex items-center gap-[7px] px-2.5 pb-1.5 pt-[7px] text-[10px]
-                   font-semibold uppercase tracking-[0.08em] text-muted"
-            >
-              ${
-                cfg.icon
-                  ? html`<fib-icon
-                      class="h-3.5 w-3.5 [--mdc-icon-size:14px] text-muted"
-                      icon=${cfg.icon}
-                    ></fib-icon>`
-                  : ""
-              }
-              <span>${cfg.title}</span>
-            </div>`
-          : ""
+        // text-muted rides on the icon (not the box), so the tone stays plain
+        iconBoxTpl(this._icon(st), {
+          tone: "plain",
+          flexNone: false,
+          cls: "bg-card2",
+          iconCls: "h-4 w-4 [--mdc-icon-size:16px] text-muted",
+        })
       }
-      ${
-        // eslint-disable-next-line no-nested-ternary -- template branch: rows, else the all-clear line, else nothing
-        rows.length
-          ? rows.map(
-              (st) =>
-                html`<div
-                  role="button"
-                  tabindex="0"
-                  class="grid cursor-pointer grid-cols-[28px_1fr_auto] items-center gap-x-2.5
-                     rounded-[10px] px-2.5 py-2 hover:bg-card2"
-                  @click=${() => moreInfo(this, st.entity_id)}
-                  @keydown=${activateOnKey(() => moreInfo(this, st.entity_id))}
-                >
-                  <div
-                    class="flex h-7 w-7 items-center justify-center rounded-lg bg-card2"
-                  >
-                    <fib-icon
-                      class="h-4 w-4 [--mdc-icon-size:16px] text-muted"
-                      icon=${this._icon(st)}
-                    ></fib-icon>
-                  </div>
-                  <span
-                    class="overflow-hidden text-ellipsis whitespace-nowrap text-[12px]
-                       font-medium text-ink"
-                    >${this._name(st)}</span
-                  >
-                  <span class="whitespace-nowrap text-[10.5px] text-muted"
-                    >${this._secondary(st)}</span
-                  >
-                </div>`,
-            )
-          : cfg.empty
-            ? html`<div
-                class="flex items-center gap-[7px] px-2.5 py-3 text-[11.5px] text-muted"
-              >
-                <fib-icon
-                  class="h-[15px] w-[15px] [--mdc-icon-size:15px] text-green"
-                  icon="solar:check-circle-bold-duotone"
-                ></fib-icon>
-                <span>${cfg.empty}</span>
-              </div>`
-            : ""
-      }
+      <span
+        class="overflow-hidden text-ellipsis whitespace-nowrap text-[12px]
+           font-medium text-ink"
+        >${this._name(st)}</span
+      >
+      <span class="whitespace-nowrap text-[10.5px] text-muted"
+        >${this._secondary(st)}</span
+      >
     </div>`;
+  }
+
+  private _renderEmpty(): TemplateResult | string {
+    const cfg = this.config;
+    if (!cfg.empty) return "";
+    return html`<div
+      class="flex items-center gap-[7px] px-2.5 py-3 text-[11.5px] text-muted"
+    >
+      <fib-icon
+        class="h-[15px] w-[15px] [--mdc-icon-size:15px] text-green"
+        icon="solar:check-circle-bold-duotone"
+      ></fib-icon>
+      <span>${cfg.empty}</span>
+    </div>`;
+  }
+
+  /** Render the row list (optional title, per-row icon/name/secondary) or the `empty` all-clear line. */
+  render(): TemplateResult {
+    if (!this.config) return html``;
+    const rows = this._matched();
+    return cardShell(
+      html`${this._renderTitle()}
+      ${rows.length ? rows.map((st) => this._renderRow(st)) : this._renderEmpty()}`,
+      { pad: "none", cls: "px-1 py-1.5" },
+    );
   }
 
   /** Masonry height in rows. */

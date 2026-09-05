@@ -9,6 +9,7 @@ import { runAction, type ActionConfig } from "@shared/actions";
 import { twSheet } from "@shared/tw";
 import { activateOnKey } from "@shared/ui";
 import { fmtNum, fmtState, isUnavail, pickEntity } from "@shared/util";
+import { card, cx } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -42,6 +43,14 @@ const IC: Record<string, string> = {
   blue: "bg-bluebg text-blueink",
   green: "bg-accentbg text-green",
   red: "bg-amberbg text-red",
+};
+
+/** Trend glyph + colour class per direction — full class strings, again for the scanner. */
+const TREND_GLYPH: Record<string, string> = { up: "▲", down: "▼", flat: "—" };
+const TREND_CLS: Record<string, string> = {
+  up: "text-red",
+  down: "text-accent",
+  flat: "text-muted",
 };
 
 /** Locale-aware number formatting; leaves non-numeric states intact. */
@@ -204,23 +213,16 @@ export class FibbersStat extends LitElement implements LovelaceCard {
     const trend = ["up", "down", "flat"].includes(cfg.trend as string)
       ? cfg.trend
       : null;
-    // eslint-disable-next-line no-nested-ternary -- up/down/flat glyph
-    const trendChar = trend === "up" ? "▲" : trend === "down" ? "▼" : "—";
-    const trendCls =
-      // eslint-disable-next-line no-nested-ternary -- up/down/flat colour class
-      trend === "up"
-        ? "text-red"
-        : trend === "down"
-          ? "text-accent"
-          : "text-muted";
 
     const tappable = cfg.tap_action || cfg.entity;
 
     return html`
       <div
-        class="grid grid-cols-[34px_1fr] items-center gap-x-3 gap-y-0.5 rounded-[14px]
-               border border-line bg-card p-3 shadow-[0_1px_3px_rgba(0,0,0,.35)]
-               ${tappable ? "cursor-pointer" : ""}"
+        class=${cx(
+          card({ pad: "sm" }),
+          "grid grid-cols-[34px_1fr] items-center gap-x-3 gap-y-0.5 shadow-[0_1px_3px_rgba(0,0,0,.35)]",
+          tappable && "cursor-pointer",
+        )}
         role=${tappable ? "button" : "presentation"}
         tabindex=${tappable ? 0 : nothing}
         @click=${() => tappable && this._tap()}
@@ -247,8 +249,9 @@ export class FibbersStat extends LitElement implements LovelaceCard {
           <span class="text-[12px] font-medium text-ink2">${unit}</span>
           ${
             trend
-              ? html`<span class="ml-0.5 text-[11px] font-semibold ${trendCls}"
-                  >${trendChar}</span
+              ? html`<span
+                  class="ml-0.5 text-[11px] font-semibold ${TREND_CLS[trend]}"
+                  >${TREND_GLYPH[trend]}</span
                 >`
               : ""
           }

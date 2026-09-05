@@ -8,6 +8,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { t } from "@shared/i18n";
 import { twSheet } from "@shared/tw";
 import { moreInfo, isUnavail, pickEntity } from "@shared/util";
+import { cx } from "@shared/variants";
 import type {
   HomeAssistant,
   LovelaceCard,
@@ -216,14 +217,13 @@ export class FibbersRoom extends LitElement implements LovelaceCard {
     const s = this._state();
     return html`<button
       type="button"
-      class="block w-full cursor-pointer rounded-[15px] border px-[13px] pb-3 pt-[13px]
-             text-left transition-colors active:translate-y-[0.5px]
-             ${
-               s.lit
-                 ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)]"
-                 : "border-line bg-card"
-             }
-             ${s.offline ? "opacity-[.66]" : ""}"
+      class="${cx(
+        "block w-full cursor-pointer rounded-[15px] border px-[13px] pb-3 pt-[13px] text-left transition-colors active:translate-y-[0.5px]",
+        s.lit
+          ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)]"
+          : "border-line bg-card",
+        s.offline && "opacity-[.66]",
+      )}"
       @pointerdown=${this._down}
       @pointerup=${this._up}
       @pointercancel=${this._up}
@@ -231,15 +231,18 @@ export class FibbersRoom extends LitElement implements LovelaceCard {
       @click=${this._click}
     >
       <fib-icon
-        class="block h-[19px] w-[19px] [--mdc-icon-size:19px] ${
-          s.lit ? "text-accent" : "text-muted"
-        }"
+        class="${cx(
+          "block h-[19px] w-[19px] [--mdc-icon-size:19px]",
+          s.lit ? "text-accent" : "text-muted",
+        )}"
         icon=${this.config.icon || "solar:home-angle-bold-duotone"}
       ></fib-icon>
       <div class="mt-2 text-[13px] font-semibold tracking-tight text-ink">
         ${this.config.name}
       </div>
-      <div class="mt-0.5 text-[11px] ${s.offline ? "text-red" : "text-muted"}">
+      <div
+        class="${cx("mt-0.5 text-[11px]", s.offline ? "text-red" : "text-muted")}"
+      >
         ${s.label}
       </div>
     </button>`;

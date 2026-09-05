@@ -5,6 +5,7 @@
  * ================================================================== */
 import { LitElement, html, css, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { styleMap } from "lit/directives/style-map.js";
 
 import { t } from "@shared/i18n";
 import { twSheet } from "@shared/tw";
@@ -22,6 +23,7 @@ import {
   pickEntity,
   type Debounced,
 } from "@shared/util";
+import { cx, iconBox } from "@shared/variants";
 import type {
   HomeAssistant,
   LovelaceCard,
@@ -342,6 +344,165 @@ export class FibbersLightGroup extends LitElement implements LovelaceCard {
     return el;
   }
 
+  // --- render helpers ------------------------------------------------
+
+  private _renderHeader(
+    hl: unknown,
+    s: GroupState,
+    name: string,
+    icon: string,
+    lit: boolean,
+  ): TemplateResult {
+    return html`<div class="flex items-center gap-3">
+      <div
+        class="${cx(
+          "flex h-9 w-9 flex-none items-center justify-center rounded-[10px]",
+          lit ? "bg-accentbg" : "bg-card2",
+        )}"
+      >
+        <fib-icon
+          class="${cx(
+            "h-[19px] w-[19px] [--mdc-icon-size:19px]",
+            lit ? "text-accent" : "text-muted",
+          )}"
+          icon=${icon}
+        ></fib-icon>
+      </div>
+      <button
+        type="button"
+        class="min-w-0 flex-1 text-left"
+        @click=${this._toggle}
+      >
+        <div class="truncate text-[13px] font-semibold text-ink">${name}</div>
+        <div
+          class="${cx(
+            "truncate text-[11px]",
+            s.allOff ? "text-red" : "text-muted",
+          )}"
+        >
+          ${this._secondary(s)}
+        </div>
+      </button>
+      <button
+        type="button"
+        class="${cx(
+          iconBox({ tone: "plain" }),
+          "fib-hit text-muted transition-transform active:scale-90",
+        )}"
+        aria-label=${
+          this._open
+            ? t(hl, "light_group.collapse")
+            : t(hl, "light_group.expand")
+        }
+        @click=${this._toggle}
+      >
+        <fib-icon
+          class="${cx(
+            "h-5 w-5 [--mdc-icon-size:20px] transition-transform",
+            this._open && "rotate-180",
+          )}"
+          icon="solar:alt-arrow-down-bold-duotone"
+        ></fib-icon>
+      </button>
+    </div>`;
+  }
+
+  private _renderMasterSlider(
+    name: string,
+    s: GroupState,
+    pct: number,
+  ): TemplateResult {
+    return html`<div
+      class="${cx(
+        "group relative mt-2 flex h-[var(--fib-hit)] cursor-pointer touch-pan-y items-center",
+        s.allOff && "pointer-events-none opacity-50",
+      )}"
+      role="slider"
+      tabindex=${s.allOff ? -1 : 0}
+      aria-label=${name}
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-valuenow=${pct}
+      aria-valuetext=${`${pct}%`}
+      aria-disabled=${s.allOff ? "true" : "false"}
+      @pointerdown=${this._drag.down}
+      @pointermove=${this._drag.move}
+      @pointerup=${this._drag.up}
+      @pointercancel=${this._drag.cancel}
+      @lostpointercapture=${this._drag.cancel}
+      @keydown=${this._onKey}
+    >
+      <div
+        class="pointer-events-none relative h-2.5 w-full rounded-full bg-[#2C3639]"
+      >
+        ${s.allOff ? "" : this._renderTrackFill(pct, s.mixed)}
+      </div>
+    </div>`;
+  }
+
+  private _renderTrackFill(pct: number, mixed: boolean): TemplateResult {
+    return html`<div
+        class="absolute bottom-0 left-0 top-0 rounded-full bg-accent"
+        style=${styleMap({
+          width: `${pct}%`,
+          backgroundImage: mixed
+            ? "repeating-linear-gradient(45deg,transparent 0,transparent 4px,rgba(0,0,0,.18) 4px,rgba(0,0,0,.18) 8px)"
+            : undefined,
+        })}
+      ></div>
+      <div
+        class="${cx(
+          `pointer-events-none absolute bottom-full z-10 mb-2 -translate-x-1/2
+           whitespace-nowrap rounded-md border border-line bg-card2 px-2 py-1
+           text-[11px] font-semibold tabular-nums text-ink
+           shadow-[0_2px_10px_rgba(0,0,0,.5)] transition-[opacity,transform]
+           duration-100 group-focus-visible:scale-100
+           group-focus-visible:opacity-100`,
+          this._dragging ? "scale-100 opacity-100" : "scale-90 opacity-0",
+        )}"
+        style="left:${pct}%"
+      >
+        ${pct}%
+      </div>
+      <div
+        class="${cx(
+          `absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full
+           bg-accent shadow-[0_1px_4px_rgba(0,0,0,.5)]
+           transition-[width,height] duration-100`,
+          this._dragging ? "h-[22px] w-[22px]" : "h-[18px] w-[18px]",
+        )}"
+        style="left:${pct}%"
+      ></div>`;
+  }
+
+  private _renderScenes(): TemplateResult | string {
+    const scenes = Array.isArray(this.config.show_scenes)
+      ? this.config.show_scenes
+      : [];
+    if (!scenes.length) return "";
+    return html`<div class="mb-1 flex flex-wrap gap-1.5">
+      ${scenes.map((id) => {
+        const st = this.hass && this.hass.states[id];
+        const label = (st && st.attributes.friendly_name) || id;
+        return html`<button
+          type="button"
+          class="rounded-full border border-line bg-card2 px-2.5 py-1 text-[10.5px]
+               font-medium text-ink2"
+          @click=${() => this._scene(id)}
+        >
+          ${label}
+        </button>`;
+      })}
+    </div>`;
+  }
+
+  private _renderExpanded(): TemplateResult {
+    return html`<div class="ml-[18px] mt-3 border-l border-card2 pl-3">
+      ${this._renderScenes()}
+      ${this._members().map((id) => this._memberRow(id))}
+    </div>`;
+  }
+
   /** Draw the header, master slider, and (when open) the expanded member rows. */
   render(): TemplateResult {
     const cfg = this.config;
@@ -356,141 +517,19 @@ export class FibbersLightGroup extends LitElement implements LovelaceCard {
     });
     const name = cfg.name || t(hl, "light_group.default_name");
     const icon = cfg.icon || "solar:lightbulb-bold-duotone";
-    const stripe = s.mixed
-      ? ";background-image:repeating-linear-gradient(45deg,transparent 0,transparent 4px,rgba(0,0,0,.18) 4px,rgba(0,0,0,.18) 8px)"
-      : "";
 
     return html`<div
-      class="rounded-[15px] border p-[13px]
-             ${
-               lit
-                 ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)]"
-                 : "border-line bg-card"
-             }
-             ${s.allOff ? "opacity-[.66]" : ""}"
+      class="${cx(
+        "rounded-[15px] border p-[13px]",
+        lit
+          ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)]"
+          : "border-line bg-card",
+        s.allOff && "opacity-[.66]",
+      )}"
     >
-      <div class="flex items-center gap-3">
-        <div
-          class="flex h-9 w-9 flex-none items-center justify-center rounded-[10px]
-                 ${lit ? "bg-accentbg" : "bg-card2"}"
-        >
-          <fib-icon
-            class="h-[19px] w-[19px] [--mdc-icon-size:19px] ${
-              lit ? "text-accent" : "text-muted"
-            }"
-            icon=${icon}
-          ></fib-icon>
-        </div>
-        <button
-          type="button"
-          class="min-w-0 flex-1 text-left"
-          @click=${this._toggle}
-        >
-          <div class="truncate text-[13px] font-semibold text-ink">${name}</div>
-          <div
-            class="truncate text-[11px] ${s.allOff ? "text-red" : "text-muted"}"
-          >
-            ${this._secondary(s)}
-          </div>
-        </button>
-        <button
-          type="button"
-          class="fib-hit flex h-7 w-7 flex-none items-center justify-center rounded-lg text-muted
-                 transition-transform active:scale-90"
-          aria-label=${
-            this._open
-              ? t(hl, "light_group.collapse")
-              : t(hl, "light_group.expand")
-          }
-          @click=${this._toggle}
-        >
-          <fib-icon
-            class="h-5 w-5 [--mdc-icon-size:20px] transition-transform ${
-              this._open ? "rotate-180" : ""
-            }"
-            icon="solar:alt-arrow-down-bold-duotone"
-          ></fib-icon>
-        </button>
-      </div>
-
-      <div
-        class="group relative mt-2 flex h-[var(--fib-hit)] cursor-pointer touch-pan-y items-center
-               ${s.allOff ? "pointer-events-none opacity-50" : ""}"
-        role="slider"
-        tabindex=${s.allOff ? -1 : 0}
-        aria-label=${name}
-        aria-valuemin="0"
-        aria-valuemax="100"
-        aria-valuenow=${pct}
-        aria-valuetext=${`${pct}%`}
-        aria-disabled=${s.allOff ? "true" : "false"}
-        @pointerdown=${this._drag.down}
-        @pointermove=${this._drag.move}
-        @pointerup=${this._drag.up}
-        @pointercancel=${this._drag.cancel}
-        @lostpointercapture=${this._drag.cancel}
-        @keydown=${this._onKey}
-      >
-        <div
-          class="pointer-events-none relative h-2.5 w-full rounded-full bg-[#2C3639]"
-        >
-          ${
-            s.allOff
-              ? ""
-              : html`<div
-                    class="absolute bottom-0 left-0 top-0 rounded-full bg-accent"
-                    style="width:${pct}%${stripe}"
-                  ></div>
-                  <div
-                    class="pointer-events-none absolute bottom-full z-10 mb-2 -translate-x-1/2
-                           whitespace-nowrap rounded-md border border-line bg-card2 px-2 py-1
-                           text-[11px] font-semibold tabular-nums text-ink
-                           shadow-[0_2px_10px_rgba(0,0,0,.5)] transition-[opacity,transform]
-                           duration-100 group-focus-visible:scale-100
-                           group-focus-visible:opacity-100
-                           ${this._dragging ? "scale-100 opacity-100" : "scale-90 opacity-0"}"
-                    style="left:${pct}%"
-                  >
-                    ${pct}%
-                  </div>
-                  <div
-                    class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full
-                         bg-accent shadow-[0_1px_4px_rgba(0,0,0,.5)]
-                         transition-[width,height] duration-100
-                         ${this._dragging ? "h-[22px] w-[22px]" : "h-[18px] w-[18px]"}"
-                    style="left:${pct}%"
-                  ></div>`
-          }
-        </div>
-      </div>
-
-      ${this._open ? this._expanded() : ""}
-    </div>`;
-  }
-
-  private _expanded(): TemplateResult {
-    const cfg = this.config;
-    const scenes = Array.isArray(cfg.show_scenes) ? cfg.show_scenes : [];
-    return html`<div class="ml-[18px] mt-3 border-l border-card2 pl-3">
-      ${
-        scenes.length
-          ? html`<div class="mb-1 flex flex-wrap gap-1.5">
-              ${scenes.map((id) => {
-                const st = this.hass && this.hass.states[id];
-                const label = (st && st.attributes.friendly_name) || id;
-                return html`<button
-                  type="button"
-                  class="rounded-full border border-line bg-card2 px-2.5 py-1 text-[10.5px]
-                       font-medium text-ink2"
-                  @click=${() => this._scene(id)}
-                >
-                  ${label}
-                </button>`;
-              })}
-            </div>`
-          : ""
-      }
-      ${this._members().map((id) => this._memberRow(id))}
+      ${this._renderHeader(hl, s, name, icon, lit)}
+      ${this._renderMasterSlider(name, s, pct)}
+      ${this._open ? this._renderExpanded() : ""}
     </div>`;
   }
 

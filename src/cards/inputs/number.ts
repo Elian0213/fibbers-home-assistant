@@ -6,6 +6,7 @@ import { LitElement, html, css, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 
 import { t } from "@shared/i18n";
+import { cardShell, iconBoxTpl } from "@shared/shells";
 import { twSheet } from "@shared/tw";
 import {
   sliderTrack,
@@ -22,6 +23,7 @@ import {
   pickEntity,
   type Debounced,
 } from "@shared/util";
+import { cx } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -252,58 +254,56 @@ export class FibbersNumber extends LitElement implements LovelaceCard {
     const val = unavail
       ? t(hl, "number.unavailable")
       : `${fmtNum(this.hass, v, this._decimals())}${unit ? ` ${unit}` : ""}`;
-    const pct = this._pct(v);
 
-    const head = html`<div class="flex items-center gap-2.5">
-      <div
-        class="flex h-7 w-7 flex-none items-center justify-center rounded-lg
-               ${unavail ? "bg-card2 text-muted" : "bg-accentbg text-accent"}"
-      >
-        <fib-icon
-          class="h-[17px] w-[17px] [--mdc-icon-size:17px]"
-          icon=${icon}
-        ></fib-icon>
-      </div>
-      <span class="flex-1 text-[12px] font-medium text-ink">${name}</span>
-      <span class="whitespace-nowrap text-[11px] font-medium text-muted"
-        >${val}</span
-      >
-    </div>`;
+    return cfg.mode === "stepper"
+      ? this._renderStepper(name, icon, val, unavail)
+      : this._renderSlider(name, icon, val, v, unavail);
+  }
 
-    if (cfg.mode === "stepper") {
-      return html`<div
-        class="flex items-center gap-2.5 rounded-[14px] border border-line bg-card p-[13px]
-               ${unavail ? "opacity-50" : ""}"
-      >
-        <div
-          class="flex h-7 w-7 flex-none items-center justify-center rounded-lg
-                 ${unavail ? "bg-card2 text-muted" : "bg-accentbg text-accent"}"
-        >
-          <fib-icon
-            class="h-[17px] w-[17px] [--mdc-icon-size:17px]"
-            icon=${icon}
-          ></fib-icon>
-        </div>
+  private _iconBox(icon: string, unavail: boolean): TemplateResult {
+    return iconBoxTpl(icon, {
+      tone: unavail ? "muted" : "accent",
+      iconCls: "h-[17px] w-[17px] [--mdc-icon-size:17px]",
+    });
+  }
+
+  private _renderStepper(
+    name: string,
+    icon: string,
+    val: string,
+    unavail: boolean,
+  ): TemplateResult {
+    return cardShell(
+      html`${this._iconBox(icon, unavail)}
         <span class="flex-1 text-[12px] font-medium text-ink">${name}</span>
         ${this._stepBtn("solar:minus-circle-bold-duotone", -1, unavail)}
         <span
           class="min-w-[52px] text-center text-[13px] font-semibold text-ink"
           >${val}</span
         >
-        ${this._stepBtn("solar:add-circle-bold-duotone", 1, unavail)}
-      </div>`;
-    }
+        ${this._stepBtn("solar:add-circle-bold-duotone", 1, unavail)}`,
+      { cls: cx("flex items-center gap-2.5", unavail && "opacity-50") },
+    );
+  }
 
-    return html`<div
-      class="rounded-[14px] border border-line bg-card p-[13px] ${
-        unavail ? "opacity-50" : ""
-      }"
-    >
-      ${head}
-      ${(() => {
-        const b = this._bounds();
-        return sliderTrack({
-          pct,
+  private _renderSlider(
+    name: string,
+    icon: string,
+    val: string,
+    v: number,
+    unavail: boolean,
+  ): TemplateResult {
+    const b = this._bounds();
+    return cardShell(
+      html`<div class="flex items-center gap-2.5">
+          ${this._iconBox(icon, unavail)}
+          <span class="flex-1 text-[12px] font-medium text-ink">${name}</span>
+          <span class="whitespace-nowrap text-[11px] font-medium text-muted"
+            >${val}</span
+          >
+        </div>
+        ${sliderTrack({
+          pct: this._pct(v),
           disabled: unavail,
           dragging: this._dragging,
           cls: "mt-2.5",
@@ -325,9 +325,9 @@ export class FibbersNumber extends LitElement implements LovelaceCard {
           onMove: this._drag.move,
           onUp: this._drag.up,
           onCancel: this._drag.cancel,
-        });
-      })()}
-    </div>`;
+        })}`,
+      { cls: cx(unavail && "opacity-50") },
+    );
   }
 
   private _stepBtn(
@@ -338,9 +338,10 @@ export class FibbersNumber extends LitElement implements LovelaceCard {
     const hl = this.config.language || this.hass;
     return html`<button
       type="button"
-      class="fib-hit flex h-8 w-8 flex-none items-center justify-center rounded-full bg-card2
-             text-accent transition-transform active:scale-90
-             ${unavail ? "pointer-events-none opacity-40" : ""}"
+      class="${cx(
+        "fib-hit flex h-8 w-8 flex-none items-center justify-center rounded-full bg-card2 text-accent transition-transform active:scale-90",
+        unavail && "pointer-events-none opacity-40",
+      )}"
       aria-label=${dir > 0 ? t(hl, "number.more") : t(hl, "number.less")}
       @click=${() => this._bump(dir)}
     >

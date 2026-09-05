@@ -24,6 +24,7 @@ import {
   debounce,
   type Debounced,
 } from "@shared/util";
+import { cx, iconBox } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -254,6 +255,113 @@ export class FibbersLightRow extends LitElement implements LovelaceCard {
     moreInfo(this, cfg.entity, extra);
   }
 
+  // --- render helpers ------------------------------------------------
+
+  private _renderIcon(
+    icon: string,
+    name: string,
+    on: boolean,
+    unavail: boolean,
+  ): TemplateResult {
+    const cfg = this.config;
+    const act = (): void =>
+      runAction(
+        this._iconAction(),
+        this.hass,
+        this,
+        cfg.icon_entity || cfg.entity,
+      );
+    return html`<div
+      role="button"
+      tabindex=${unavail ? -1 : 0}
+      aria-label=${name}
+      class="${cx(
+        iconBox({ tone: "plain", flexNone: false }),
+        "fib-hit row-span-2 transition-transform active:scale-90",
+        on ? "bg-accentbg" : "bg-card2",
+        unavail ? "pointer-events-none" : "cursor-pointer",
+      )}"
+      @click=${act}
+      @keydown=${activateOnKey(act)}
+    >
+      <fib-icon
+        class="${cx(
+          "h-[17px] w-[17px] [--mdc-icon-size:17px]",
+          on ? "text-accent" : "text-muted",
+        )}"
+        icon=${icon}
+      ></fib-icon>
+    </div>`;
+  }
+
+  private _renderNameRow(
+    hl: unknown,
+    name: string,
+    val: string,
+    compact: boolean,
+  ): TemplateResult {
+    return html`<div
+      role="button"
+      tabindex="0"
+      aria-label=${`${name} — ${t(hl, "common.more_info")}`}
+      class="${cx(
+        "flex cursor-pointer items-center justify-between gap-2",
+        compact ? "min-h-[26px]" : "min-h-[var(--fib-hit)]",
+      )}"
+      @click=${() => this._moreInfo()}
+      @keydown=${activateOnKey(() => this._moreInfo())}
+    >
+      <span class="flex min-w-0 items-center gap-1.5">
+        <span class="truncate text-[12px] font-medium text-ink">${name}</span>
+        <fib-icon
+          class="h-3 w-3 flex-none [--mdc-icon-size:12px] text-muted opacity-60"
+          icon="solar:colour-tuning-bold-duotone"
+        ></fib-icon>
+      </span>
+      <span class="whitespace-nowrap text-[10.5px] text-muted">${val}</span>
+    </div>`;
+  }
+
+  private _renderSlider(
+    pct: number,
+    name: string,
+    unavail: boolean,
+  ): TemplateResult {
+    return sliderTrack({
+      pct,
+      disabled: unavail,
+      dragging: this._dragging,
+      label: name,
+      value: pct,
+      min: 0,
+      max: 100,
+      step: 5,
+      valueText: `${pct}%`,
+      // Keyboard: arm the hold now (display advances, held keys keep
+      // stepping) but debounce the write — auto-repeat fired ~30
+      // light.turn_on calls a second straight at the committer.
+      onInput: (v) => {
+        const p = Math.round(v);
+        this._hold!.hold(p);
+        this._debouncedCommit(p);
+      },
+      onDown: this._drag.down,
+      onMove: this._drag.move,
+      onUp: this._drag.up,
+      onCancel: this._drag.cancel,
+    });
+  }
+
+  private _renderToggleRow(on: boolean, name: string): TemplateResult {
+    return html`<div class="flex min-h-[var(--fib-hit)] items-center">
+      ${pillSwitch({
+        on,
+        label: name,
+        onClick: () => this._toggle(),
+      })}
+    </div>`;
+  }
+
   /** Draw the row: icon action, name → more-info, and a dimmer slider or plain toggle. */
   render(): TemplateResult {
     const cfg = this.config;
@@ -281,94 +389,18 @@ export class FibbersLightRow extends LitElement implements LovelaceCard {
     const compact = !!cfg.compact;
     return html`
       <div
-        class="grid grid-cols-[28px_1fr] grid-rows-[auto_auto] items-center gap-x-2.5
-               gap-y-0 ${compact ? "py-0.5" : ""} ${unavail ? "opacity-50" : ""}"
+        class="${cx(
+          "grid grid-cols-[28px_1fr] grid-rows-[auto_auto] items-center gap-x-2.5 gap-y-0",
+          compact && "py-0.5",
+          unavail && "opacity-50",
+        )}"
       >
-        <div
-          role="button"
-          tabindex=${unavail ? -1 : 0}
-          aria-label=${name}
-          class="fib-hit row-span-2 flex h-7 w-7 items-center justify-center rounded-lg
-                 transition-transform active:scale-90 ${
-                   on ? "bg-accentbg" : "bg-card2"
-                 } ${unavail ? "pointer-events-none" : "cursor-pointer"}"
-          @click=${() =>
-            runAction(
-              this._iconAction(),
-              this.hass,
-              this,
-              cfg.icon_entity || cfg.entity,
-            )}
-          @keydown=${activateOnKey(() =>
-            runAction(
-              this._iconAction(),
-              this.hass,
-              this,
-              cfg.icon_entity || cfg.entity,
-            ),
-          )}
-        >
-          <fib-icon
-            class="h-[17px] w-[17px] [--mdc-icon-size:17px] ${
-              on ? "text-accent" : "text-muted"
-            }"
-            icon=${icon}
-          ></fib-icon>
-        </div>
-
-        <div
-          role="button"
-          tabindex="0"
-          aria-label=${`${name} — ${t(hl, "common.more_info")}`}
-          class="flex cursor-pointer items-center justify-between gap-2
-                 ${compact ? "min-h-[26px]" : "min-h-[var(--fib-hit)]"}"
-          @click=${() => this._moreInfo()}
-          @keydown=${activateOnKey(() => this._moreInfo())}
-        >
-          <span class="flex min-w-0 items-center gap-1.5">
-            <span class="truncate text-[12px] font-medium text-ink"
-              >${name}</span
-            >
-            <fib-icon
-              class="h-3 w-3 flex-none [--mdc-icon-size:12px] text-muted opacity-60"
-              icon="solar:colour-tuning-bold-duotone"
-            ></fib-icon>
-          </span>
-          <span class="whitespace-nowrap text-[10.5px] text-muted">${val}</span>
-        </div>
-
+        ${this._renderIcon(icon, name, on, unavail)}
+        ${this._renderNameRow(hl, name, val, compact)}
         ${
           dimmable
-            ? sliderTrack({
-                pct,
-                disabled: unavail,
-                dragging: this._dragging,
-                label: name,
-                value: pct,
-                min: 0,
-                max: 100,
-                step: 5,
-                valueText: `${pct}%`,
-                // Keyboard: arm the hold now (display advances, held keys keep
-                // stepping) but debounce the write — auto-repeat fired ~30
-                // light.turn_on calls a second straight at the committer.
-                onInput: (v) => {
-                  const p = Math.round(v);
-                  this._hold!.hold(p);
-                  this._debouncedCommit(p);
-                },
-                onDown: this._drag.down,
-                onMove: this._drag.move,
-                onUp: this._drag.up,
-                onCancel: this._drag.cancel,
-              })
-            : html`<div class="flex min-h-[var(--fib-hit)] items-center">
-                ${pillSwitch({
-                  on,
-                  label: name,
-                  onClick: () => this._toggle(),
-                })}
-              </div>`
+            ? this._renderSlider(pct, name, unavail)
+            : this._renderToggleRow(on, name)
         }
       </div>
     `;
