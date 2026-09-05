@@ -3,6 +3,31 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.9.0] — 2026-09-05
+
+The codebase is TypeScript now — same cards, same look, far easier to work on. Plus a
+cleaner room detail with a whole-room brightness bar.
+
+### Added
+
+- **A room header bar in the light detail.** The room picker opens on a slim top bar: a
+  back button beside one brightness slider that drives every lamp in the room at once
+  (it shows the average of the lamps that report a brightness, like the group card),
+  with a subtle hairline under it.
+
+### Changed
+
+- **The whole source is TypeScript** — Lit decorators, typed Home Assistant contracts and
+  per-card config interfaces, built with Vite instead of Bun's bundler and linted with the
+  Airbnb style guide plus type-checked rules. Behaviour and rendering are unchanged; the
+  bundle actually shrank (455 → ~368 KB).
+- **A small design system now backs the cards.** The card surface, icon boxes, section
+  labels and the "not available" notice are shared building blocks instead of copy-pasted
+  class strings, and the big cards' render methods are split into small named sections.
+  The remote's page of real CSS moved out of the component into its own stylesheet.
+- **The swatch-circle row is gone from the room picker** — the wheel and the lamp tiles
+  carry colour now, so the footer is just the lamps.
+
 ## [0.8.7] — 2026-09-05
 
 More room-picker polish: tunable-white lamps, lamp grouping, roomier tiles.

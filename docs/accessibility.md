@@ -1,7 +1,7 @@
 # Accessibility
 
 Fibbers aims to be fully operable by keyboard and legible to a screen reader.
-This page states what's supported as of 0.8.6; if you hit a gap, please open an
+This page states what's supported as of 0.9.0; if you hit a gap, please open an
 issue — it's treated as a bug, not a nice-to-have.
 
 ## Keyboard
