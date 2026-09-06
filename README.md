@@ -136,7 +136,7 @@ Home Assistant language (English by default, Dutch translation included); config
 <table>
 <tr>
 <td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/room.png" width="240" alt="fibbers-room"><br><code>fibbers-room</code><br><sub>counts its own lights</sub></td>
-<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/light-group.png" width="240" alt="fibbers-light-group"><br><code>fibbers-light-group</code><br><sub>master + members</sub></td>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/light-group.png" width="240" alt="fibbers-light-group"><br><code>fibbers-light-group</code><br><sub>master control</sub></td>
 <td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/light-row.png" width="240" alt="fibbers-light-row"><br><code>fibbers-light-row</code><br><sub>brightness slider</sub></td>
 </tr>
 <tr>

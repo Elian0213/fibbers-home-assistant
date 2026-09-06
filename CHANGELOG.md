@@ -3,6 +3,42 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+Touch UX overhaul — sliders and the colour wheel finally feel right under a finger —
+plus a simpler light-group tile and hover/cursor affordances everywhere.
+
+### Changed
+
+- **The light-group tile is one clean control now.** The expand arrow and the nested
+  member rows are gone; in their place a power toggle sits top-right (any member on →
+  all off, all off → all on) and tapping anywhere else on the tile opens the
+  multi-lamp room picker. **Breaking:** the `expanded` and `show_scenes` config keys
+  are retired — they're silently ignored, nothing errors.
+- **Sliders drag relatively and no longer teleport.** Grabbing a slider adjusts the
+  value from where it was (like the HA mobile sliders) instead of jumping to the
+  finger after 4px; a deliberate stationary tap still sets that exact position. The
+  tracks also switched from `touch-action: pan-y` to `none`, so a slightly-vertical
+  finger drag stays a drag instead of being cancelled for page scrolling — the
+  trade-off is that a page scroll can no longer *start* on a slider.
+- **The colour wheel tracks one finger, robustly.** Drag bookkeeping moved onto a
+  shared pointer primitive that tracks the gesture by pointerId — a second finger or
+  palm touch is ignored, a re-render mid-drag can't kill the gesture, and the
+  post-release `lostpointercapture` no longer cancels anything. The remote's volume
+  scrub strip and swipe d-pad got the same `touch-action` fix (a swipe on the d-pad
+  used to scroll the page).
+- **Every clickable now shows it:** pointer cursor plus a hover effect (background
+  tint, brightness lift, or text lift, per control) across all cards, via one shared
+  `pressable` recipe. Hover styles only apply on hover-capable devices — nothing
+  sticks after a tap on touch screens.
+
+### Internal
+
+- One `pointerDrag` primitive under every drag gesture; `setupSlider()` bundles the
+  hold + debounce + drag + keyboard wiring every slider card used to copy-paste;
+  shared `brightnessPct()` / `setLightBrightness()` replace four inline copies each.
+  New unit tests cover the drag state machine and the service helpers.
+
 ## [0.9.0] — 2026-09-05
 
 The codebase is TypeScript now — same cards, same look, far easier to work on. Plus a
