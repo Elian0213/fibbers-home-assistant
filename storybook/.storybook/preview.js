@@ -1,9 +1,16 @@
 import "../src/stubs.js"; // ha-icon + loadCardHelpers stubs, then loads the real bundle
 import theme from "./theme.js";
 
+// The test-runner injects its own axe (axe-playwright); the addon's automatic
+// run would collide with it ("Axe is already running"). Manual-only under tests.
+const isTestRunner =
+  typeof navigator !== "undefined" &&
+  navigator.userAgent.includes("StorybookTestRunner");
+
 /** @type {import('@storybook/web-components-vite').Preview} */
 const preview = {
   parameters: {
+    a11y: { manual: isTestRunner },
     layout: "centered",
     backgrounds: {
       default: "fibbers",
