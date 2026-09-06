@@ -102,6 +102,16 @@ export default defineConfig([
     },
   },
 
+  // --- co-located unit tests : bun test ---
+  {
+    files: ["src/**/*.test.ts"],
+    rules: {
+      "import-x/no-extraneous-dependencies": "off", // bun:test is the runtime
+      "jsdoc/require-jsdoc": "off", // test names document themselves
+      "@typescript-eslint/no-floating-promises": "off", // bun's test() accepts async fns
+    },
+  },
+
   // --- build scripts + Vite/ESLint config : Node ---
   {
     files: ["scripts/**/*.mjs", "eslint.config.js", "vite.config.ts"],
@@ -141,6 +151,9 @@ export default defineConfig([
       "no-return-assign": "off",
       "no-restricted-syntax": "off",
       "no-restricted-globals": "off",
+      "no-plusplus": "off",
+      "no-await-in-loop": "off", // sequential browser automation in test-runner.js
+      "no-continue": "off",
       "prefer-template": "off",
       "func-names": "off",
       "@stylistic/lines-between-class-members": "off",

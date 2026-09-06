@@ -14,17 +14,20 @@
     "build": "bun run gen-tw && vite build",
     "watch": "bun run gen-tw && vite build --watch --mode development",
     "typecheck": "tsc --noEmit",
+    "test": "bun test src",
+    "test:stories": "cd storybook && npm run test-storybook:ci",
     "gen-icons": "bun scripts/gen-icons.mjs",
     "gen-tw": "bun scripts/gen-tw.mjs",
     "format": "prettier --write \"src/**/*.{js,ts}\" \"docs/*.html\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "check": "prettier --check \"src/**/*.{js,ts}\" \"docs/*.html\" && bun run typecheck && bun run lint && bun run build && bun scripts/check-icons.mjs && bun scripts/check-i18n.mjs && node -e \"new Function(require('fs').readFileSync('dist/fibbers.js','utf8'))\""
+    "check": "prettier --check \"src/**/*.{js,ts}\" \"docs/*.html\" && bun run typecheck && bun run lint && bun test src && bun run build && bun scripts/check-icons.mjs && bun scripts/check-i18n.mjs && node -e \"new Function(require('fs').readFileSync('dist/fibbers.js','utf8'))\""
   },
   "devDependencies": {
     "@eslint/js": "^9",
     "@iconify-json/solar": "1.2.10",
     "@tailwindcss/cli": "4.3.3",
+    "@types/bun": "^1.4.1",
     "custom-card-helpers": "^2.0.0",
     "eslint": "^9",
     "eslint-config-airbnb-extended": "^3.2.0",
