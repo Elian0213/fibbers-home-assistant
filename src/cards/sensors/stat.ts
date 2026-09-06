@@ -9,7 +9,7 @@ import { runAction, type ActionConfig } from "@shared/actions";
 import { twSheet } from "@shared/tw";
 import { activateOnKey } from "@shared/ui";
 import { fmtNum, fmtState, isUnavail, pickEntity } from "@shared/util";
-import { card, cx } from "@shared/variants";
+import { card, cx, pressable } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -221,7 +221,7 @@ export class FibbersStat extends LitElement implements LovelaceCard {
         class=${cx(
           card({ pad: "sm" }),
           "grid grid-cols-[34px_1fr] items-center gap-x-3 gap-y-0.5 shadow-[0_1px_3px_rgba(0,0,0,.35)]",
-          tappable && "cursor-pointer",
+          tappable && pressable({ hover: "tint" }),
         )}
         role=${tappable ? "button" : "presentation"}
         tabindex=${tappable ? 0 : nothing}

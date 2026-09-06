@@ -8,7 +8,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { cardShell, iconBoxTpl, unavailNotice } from "@shared/shells";
 import { twSheet } from "@shared/tw";
 import { pickEntity } from "@shared/util";
-import { cx } from "@shared/variants";
+import { cx, pressable } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -208,6 +208,7 @@ export class FibbersSelect extends LitElement implements LovelaceCard {
           type="button"
           class="${cx(
             "fib-hit rounded-full border px-2.5 py-1 text-[10.5px] font-medium",
+            pressable({ hover: "bright" }),
             active
               ? "border-accentline bg-accentbg text-accent"
               : "border-line bg-card2 text-ink2",
@@ -225,7 +226,7 @@ export class FibbersSelect extends LitElement implements LovelaceCard {
       <button
         type="button"
         class="flex w-full items-center justify-between gap-2 rounded-[10px] border border-line
-               bg-card2 px-3 py-2 text-left text-[12px] font-medium text-ink"
+               bg-card2 px-3 py-2 text-left text-[12px] font-medium text-ink ${pressable({ hover: "bright" })}"
         aria-haspopup="listbox"
         aria-expanded=${this._open ? "true" : "false"}
         @click=${() => (this._open ? this._close() : this._openMenu())}
@@ -257,7 +258,8 @@ export class FibbersSelect extends LitElement implements LovelaceCard {
             role="option"
             aria-selected=${o === current ? "true" : "false"}
             class="${cx(
-              "flex w-full items-center justify-between gap-2 rounded-[7px] px-2.5 py-2 text-left text-[12px] hover:bg-card2",
+              "flex w-full items-center justify-between gap-2 rounded-[7px] px-2.5 py-2 text-left text-[12px]",
+              pressable({ hover: "tint" }),
               o === current ? "text-accent" : "text-ink",
             )}"
             @click=${() => this._select(o)}

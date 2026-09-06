@@ -9,7 +9,7 @@ import { t } from "@shared/i18n";
 import { cardShell, sectionLabel, unavailNotice } from "@shared/shells";
 import { twSheet } from "@shared/tw";
 import { pickEntity, isUnavail, clamp } from "@shared/util";
-import { cx } from "@shared/variants";
+import { cx, pressable } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -187,7 +187,9 @@ export class FibbersClimate extends LitElement implements LovelaceCard {
       ?disabled=${!canBump}
       class="${cx(
         "fib-hit flex h-10 w-10 items-center justify-center rounded-full bg-card2 text-ink transition-transform active:scale-90",
-        !canBump && "pointer-events-none opacity-40",
+        canBump
+          ? pressable({ hover: "bright" })
+          : "pointer-events-none opacity-40",
       )}"
       @click=${() => this._bump(dir)}
     >
@@ -222,7 +224,9 @@ export class FibbersClimate extends LitElement implements LovelaceCard {
             active
               ? "border-accentline bg-accentbg text-accent"
               : "border-line bg-card2 text-ink2",
-            unavail && "pointer-events-none opacity-40",
+            unavail
+              ? "pointer-events-none opacity-40"
+              : pressable({ hover: "bright" }),
           )}"
           @click=${() =>
             this.hass &&

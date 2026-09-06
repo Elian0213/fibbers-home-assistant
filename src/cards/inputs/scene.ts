@@ -7,7 +7,7 @@ import { customElement, property, state } from "lit/decorators.js";
 
 import { t } from "@shared/i18n";
 import { twSheet } from "@shared/tw";
-import { cx } from "@shared/variants";
+import { cx, pressable } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -143,6 +143,7 @@ export class FibbersScene extends LitElement implements LovelaceCard {
       ?hidden=${!show}
       class="${cx(
         "flex flex-col items-center gap-[7px] rounded-[14px] border p-3.5 text-ink2 transition-transform active:scale-[.96]",
+        pressable({ hover: "bright" }),
         isActive
           ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)] text-accenttx"
           : "border-line bg-card",
@@ -168,7 +169,7 @@ export class FibbersScene extends LitElement implements LovelaceCard {
     return html`<button
       type="button"
       class="mt-2 flex w-full items-center justify-center gap-1.5 rounded-[11px]
-           border border-line bg-transparent py-[9px] text-[11px] font-medium text-ink2"
+           border border-line bg-transparent py-[9px] text-[11px] font-medium text-ink2 ${pressable({ hover: "tint" })}"
       @click=${() => {
         this._open = !this._open;
       }}

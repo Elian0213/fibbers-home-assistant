@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* Scan the card sources so only used utilities are emitted. */
-@source "../src/**/*.js";
+@source "../src/**/*.{js,ts}";
 
 /* Fibbers palette → Tailwind theme, so `bg-card`, `text-accent`, `border-line`
    etc. resolve. Kept in sync with src/tokens.js (the runtime `--fib-*` vars stay

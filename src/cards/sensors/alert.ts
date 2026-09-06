@@ -9,6 +9,7 @@ import { t } from "@shared/i18n";
 import { twSheet } from "@shared/tw";
 import { activateOnKey } from "@shared/ui";
 import { moreInfo, isUnavail } from "@shared/util";
+import { pressable } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -243,7 +244,7 @@ export class FibbersAlert extends LitElement implements LovelaceCard {
                     role="button"
                     tabindex="0"
                     aria-label=${`${f.label} — ${t(hl, "common.more_info")}`}
-                    class="fib-hit cursor-pointer text-[11.5px] leading-[1.42] text-ambertx"
+                    class="fib-hit text-[11.5px] leading-[1.42] text-ambertx ${pressable({ hover: "bright" })}"
                     @click=${() => this._moreInfo(f.entity)}
                     @keydown=${activateOnKey(() => this._moreInfo(f.entity))}
                   >

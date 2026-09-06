@@ -8,6 +8,7 @@ import { nav, previous, goBack, startNav, stopNav } from "@core/nav-stack";
 import { t } from "@shared/i18n";
 import { twSheet } from "@shared/tw";
 import { norm } from "@shared/util";
+import { pressable } from "@shared/variants";
 import type {
   HomeAssistant,
   LovelaceCard,
@@ -95,7 +96,7 @@ export class FibbersBack extends LitElement implements LovelaceCard {
     return html`<button
       type="button"
       class="flex w-full items-center gap-2 rounded-xl border border-line bg-card
-             px-3.5 py-3 text-[12.5px] font-medium text-ink2 active:bg-card2"
+             px-3.5 py-3 text-[12.5px] font-medium text-ink2 active:bg-card2 ${pressable({ hover: "tint" })}"
       @click=${() => goBack(c.fallback)}
     >
       <fib-icon

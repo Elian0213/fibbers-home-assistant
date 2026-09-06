@@ -13,6 +13,7 @@ import {
   card,
   cx,
   iconBox,
+  pressable,
   sectionLabel as sectionLabelCls,
   type CardVariants,
   type IconBoxVariants,
@@ -44,7 +45,7 @@ export function cardShell(
     return html`<div class="${cx(card({ pad }), cls)}">${inner}</div>`;
   }
   return html`<div
-    class="${cx(card({ pad }), "cursor-pointer", cls)}"
+    class="${cx(card({ pad }), pressable({ hover: "tint" }), cls)}"
     role="button"
     tabindex="0"
     aria-label=${label || nothing}

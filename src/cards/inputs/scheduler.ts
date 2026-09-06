@@ -10,7 +10,7 @@ import { cardShell } from "@shared/shells";
 import { twSheet } from "@shared/tw";
 import { pillSwitch } from "@shared/ui";
 import { moreInfo, pickEntity } from "@shared/util";
-import { cx, sectionLabel } from "@shared/variants";
+import { cx, pressable, sectionLabel } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -154,7 +154,11 @@ export class FibbersScheduler extends LitElement implements LovelaceCard {
     const windowEnd = dur ? addMinutes(time, dur) : "";
     return html`<button
       type="button"
-      class="${cx("text-left", !on && "opacity-50")}"
+      class="${cx(
+        "text-left",
+        pressable({ hover: "tint" }),
+        !on && "opacity-50",
+      )}"
       @click=${() => moreInfo(this, cfg.time)}
     >
       <span class="text-[30px] font-semibold leading-none text-ink"
@@ -183,6 +187,7 @@ export class FibbersScheduler extends LitElement implements LovelaceCard {
           type="button"
           class="${cx(
             "fib-hit rounded-full border px-2.5 py-1 text-[10.5px] font-medium",
+            obj && pressable({ hover: "bright" }),
             active
               ? "border-accentline bg-accentbg text-accent"
               : "border-line bg-card2 text-ink2",

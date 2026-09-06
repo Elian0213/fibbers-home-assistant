@@ -8,7 +8,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { t } from "@shared/i18n";
 import { twSheet } from "@shared/tw";
 import { moreInfo, isUnavail, pickEntity } from "@shared/util";
-import { cx } from "@shared/variants";
+import { cx, pressable } from "@shared/variants";
 import type {
   HomeAssistant,
   LovelaceCard,
@@ -218,7 +218,8 @@ export class FibbersRoom extends LitElement implements LovelaceCard {
     return html`<button
       type="button"
       class="${cx(
-        "block w-full cursor-pointer rounded-[15px] border px-[13px] pb-3 pt-[13px] text-left transition-colors active:translate-y-[0.5px]",
+        "block w-full rounded-[15px] border px-[13px] pb-3 pt-[13px] text-left transition-colors active:translate-y-[0.5px]",
+        pressable({ hover: "bright" }),
         s.lit
           ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)]"
           : "border-line bg-card",

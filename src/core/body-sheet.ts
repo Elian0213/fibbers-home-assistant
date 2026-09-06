@@ -358,7 +358,7 @@ async function renderContent(card: SheetCard): Promise<void> {
         type="button"
         aria-label=${t(c0._hass, "sheet.close")}
         class="fib-hit flex h-[30px] w-[30px] flex-none cursor-pointer items-center justify-center
-               rounded-full border-0 bg-card2 text-[15px] leading-none text-ink2"
+               rounded-full border-0 bg-card2 text-[15px] leading-none text-ink2 hover:brightness-110"
         @click=${() => closeSheet()}
       >
         ✕
