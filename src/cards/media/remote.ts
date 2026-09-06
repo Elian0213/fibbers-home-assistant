@@ -31,25 +31,24 @@ import { t } from "@shared/i18n";
 import { twSheet } from "@shared/tw";
 import {
   sliderTrack,
-  sliderDrag,
+  setupSlider,
   overflowChips,
   activateOnKey,
   pillSwitch,
-  SliderHold,
-  type SliderDragHandlers,
+  type SliderController,
   type ChipItem,
 } from "@shared/ui";
 import {
   pickEntity,
   pctFromX,
   isUnavail,
+  brightnessPct,
   store,
-  debounce,
   clamp,
   fmtNum,
   capturePointer,
-  type Debounced,
 } from "@shared/util";
+import { setLightBrightness } from "@shared/actions";
 import { card, cx } from "@shared/variants";
 import type {
   HomeAssistant,
@@ -244,16 +243,6 @@ export interface RemoteConfig extends LovelaceCardConfig, RemoteDevice {
   language?: string;
 }
 
-// A per-entity slider controller (hold + drag gesture + debounced write) for a
-// light/number control. Kept in _ctlSliders, keyed by entity.
-interface CtlSlider {
-  hold: SliderHold;
-  dragging: boolean;
-  dragVal: number;
-  debounced: Debounced<[number]>;
-  drag: SliderDragHandlers;
-}
-
 /**
  * fibbers-remote — a TV/speaker remote over `remote.send_command` with per-platform
  * command names derived from the entity's integration; holds several `devices:` and
@@ -266,10 +255,6 @@ export class FibbersRemote extends LitElement implements LovelaceCard {
   @state() private config!: RemoteConfig;
 
   @state() private _sel = 0;
-
-  @state() private _dragging = false;
-
-  @state() private _dragVol = 0;
 
   @state() private _srcOpen = false;
 
@@ -287,15 +272,11 @@ export class FibbersRemote extends LitElement implements LovelaceCard {
 
   private _autoDone = false;
 
-  private _volHold?: SliderHold;
-
-  private _volInput!: Debounced<[number]>;
-
-  private _volDrag!: SliderDragHandlers;
+  private _vol?: SliderController;
 
   private _ctlOpen = new Map<string, boolean>();
 
-  private _ctlSliders = new Map<string, CtlSlider>();
+  private _ctlSliders = new Map<string, SliderController>();
 
   private _sw: { x: number; y: number } | null = null;
 
@@ -417,28 +398,19 @@ export class FibbersRemote extends LitElement implements LovelaceCard {
       }
     }
 
-    // Construct the hold once and reuse it — a fresh controller per setConfig (HA
-    // calls it per editor keystroke) would stack controllers on the element.
-    if (!this._volHold) this._volHold = new SliderHold(this, { tolerance: 2 });
-    else this._volHold.clear();
-    this._volInput = debounce((v: number) => this._setVol(v), 150);
-    // Shared drag gesture: live-track past the slop, final value wins on release.
-    this._volDrag = sliderDrag({
-      read: (e) => Math.round(pctFromX(e.clientX, e.currentTarget as Element)),
-      frame: (v, dragging) => {
-        this._dragging = dragging;
-        if (v != null) this._dragVol = v;
-      },
-      live: (v) => this._volInput(v),
-      end: (v) => {
-        if (v == null) {
-          this._volInput.cancel();
-          return;
-        }
-        this._volInput(v);
-        this._volInput.flush();
-      },
-    });
+    // Construct the volume control once and reuse it — a fresh SliderHold per
+    // setConfig (HA calls it per editor keystroke) would stack controllers on the
+    // element. A rejected volume_set releases the optimistic hold automatically.
+    if (!this._vol)
+      this._vol = setupSlider({
+        host: this,
+        read: (e) =>
+          Math.round(pctFromX(e.clientX, e.currentTarget as Element)),
+        base: () => this._volPct(),
+        commit: (v) => this._mpService("volume_set", { volume_level: v / 100 }),
+        hold: { tolerance: 2 },
+      });
+    else this._vol.hold.clear();
 
     // Controls panel: per-select drawer state + per-slider (light/number) hold + drag
     // gesture. Reuse existing controllers by entity so HA's per-keystroke setConfig
@@ -460,54 +432,40 @@ export class FibbersRemote extends LitElement implements LovelaceCard {
     }
     for (const [entity, s] of this._ctlSliders) {
       if (wanted.has(entity)) continue;
-      s.debounced.cancel();
+      s.dispose();
       if (this.removeController) this.removeController(s.hold);
       this._ctlSliders.delete(entity);
     }
   }
 
-  // A per-entity slider controller (hold + drag gesture + debounced write) for a
+  // A per-entity slider control (hold + drag gesture + debounced write) for a
   // light/number control. Kept in _ctlSliders, keyed by entity.
-  private _makeCtlSlider(entity: string): CtlSlider {
-    const hold = new SliderHold(this, { tolerance: 1, timeout: 2000 });
-    const s: CtlSlider = {
-      hold,
-      dragging: false,
-      dragVal: 0,
-      debounced: debounce((v: number) => this._ctlSet(entity, v), 150),
-      drag: sliderDrag({
-        guard: () => isUnavail(this.hass && this.hass.states[entity]),
-        read: (e) =>
-          this._ctlValFromX(entity, e.clientX, e.currentTarget as Element),
-        frame: (v, dragging) => {
-          s.dragging = dragging;
-          if (v != null) s.dragVal = v;
-          this.requestUpdate();
-        },
-        live: (v) => s.debounced(v),
-        end: (v) => {
-          if (v == null) {
-            s.debounced.cancel();
-            return;
-          }
-          s.debounced(v);
-          s.debounced.flush();
-        },
-      }),
-    };
-    return s;
+  private _makeCtlSlider(entity: string): SliderController {
+    return setupSlider({
+      host: this,
+      guard: () => isUnavail(this.hass && this.hass.states[entity]),
+      read: (e) =>
+        this._ctlValFromX(entity, e.clientX, e.currentTarget as Element),
+      base: () => {
+        const s = this._ctlSliders.get(entity);
+        return s ? this._ctlValue(entity, s) : this._ctlRawValue(entity);
+      },
+      clampValue: (v) => this._ctlSnap(entity, v),
+      commit: (v) => this._ctlSvc(entity, v),
+      hold: { tolerance: 1, timeout: 2000 },
+    });
   }
 
   private _resetTransient(): void {
-    this._dragging = false;
-    this._dragVol = 0;
     this._srcOpen = false;
     this._flash = null;
     this._sw = null; // an in-flight swipe must not carry across a device switch
     // A pending debounced volume write resolves _mp() at fire time — cancel it, and
     // abort any in-flight drag, so a value meant for device A can't land on B.
-    if (this._volDrag) this._volDrag.abort();
-    if (this._volInput) this._volInput.cancel();
+    if (this._vol) {
+      this._vol.drag.abort();
+      this._vol.dispose();
+    }
     // Drop any in-flight scrub gesture + its throttle timer / hold-repeat.
     this._scrub = null;
     this._scrubLock = false;
@@ -535,9 +493,9 @@ export class FibbersRemote extends LitElement implements LovelaceCard {
     this._release(); // a held button must not keep firing after unmount
     clearTimeout(this._flashTimer);
     clearTimeout(this._scrubLockT);
-    if (this._volInput) this._volInput.cancel();
+    if (this._vol) this._vol.dispose();
     if (this._ctlSliders)
-      for (const s of this._ctlSliders.values()) s.debounced.cancel();
+      for (const s of this._ctlSliders.values()) s.dispose();
     if (this._onHidden)
       document.removeEventListener("visibilitychange", this._onHidden);
   }
@@ -596,7 +554,7 @@ export class FibbersRemote extends LitElement implements LovelaceCard {
     if (i === this._sel || i < 0 || i >= this._devices.length) return;
     // Nothing from the old device may bleed onto the new one.
     this._release();
-    if (this._volHold) this._volHold.clear();
+    if (this._vol) this._vol.hold.clear();
     this._resetTransient();
     this._sel = i;
     if (this.config.remember !== false) store.set(this._persistKey(), i);
@@ -800,11 +758,7 @@ export class FibbersRemote extends LitElement implements LovelaceCard {
   // else the number's state.
   private _ctlRawValue(entity: string): number {
     const st = this.hass && this.hass.states[entity];
-    if (entity.split(".")[0] === "light") {
-      if (!st || st.state !== "on") return 0;
-      const b = st.attributes.brightness;
-      return b != null ? Math.round((b / 255) * 100) : 100;
-    }
+    if (entity.split(".")[0] === "light") return brightnessPct(st);
     const n = Number(st && st.state);
     return Number.isFinite(n) ? n : this._ctlBounds(entity).min;
   }
@@ -834,40 +788,29 @@ export class FibbersRemote extends LitElement implements LovelaceCard {
 
   // Display value with the snap-back hold applied (same treatment as the volume/
   // number sliders).
-  private _ctlValue(entity: string, s: CtlSlider): number {
+  private _ctlValue(entity: string, s: SliderController): number {
     const { min, max, step } = this._ctlBounds(entity);
     // eslint-disable-next-line no-param-reassign -- retune the per-entity hold's tolerance in place
     s.hold.tolerance = Math.max(step / 2, (max - min) / 1000);
-    return s.hold.value(this._ctlRawValue(entity), {
-      dragging: s.dragging,
-      dragValue: s.dragVal,
-      gone: isUnavail(this.hass && this.hass.states[entity]),
-    });
+    return s.value(
+      this._ctlRawValue(entity),
+      isUnavail(this.hass && this.hass.states[entity]),
+    );
   }
 
-  // Commit a control slider value: light → turn_on brightness_pct (turn_off at 0),
-  // number → set_value. Release the hold on rejection.
-  private _ctlSet(entity: string, v: number): void {
-    if (!this.hass) return;
-    const s = this._ctlSliders.get(entity);
-    if (s) s.hold.hold(v);
+  // The raw write for a control slider: light → brightness (turn_off at 0),
+  // number → set_value. The slider control arms/clears the hold around it.
+  private _ctlSvc(entity: string, v: number): Promise<unknown> {
+    if (!this.hass) return Promise.resolve();
     const dom = entity.split(".")[0];
-    let p: Promise<void>;
-    if (dom === "light") {
-      p =
-        v <= 0
-          ? this.hass.callService("light", "turn_off", { entity_id: entity })
-          : this.hass.callService("light", "turn_on", {
-              entity_id: entity,
-              brightness_pct: v,
-            });
-    } else {
-      p = this.hass.callService(dom, "set_value", {
-        entity_id: entity,
-        value: v,
-      });
-    }
-    Promise.resolve(p).catch(() => s && s.hold.clear());
+    return dom === "light"
+      ? setLightBrightness(this.hass, entity, v)
+      : Promise.resolve(
+          this.hass.callService(dom, "set_value", {
+            entity_id: entity,
+            value: v,
+          }),
+        );
   }
 
   // Fire-and-forget service for the non-slider controls (select/toggle/button);
@@ -883,13 +826,15 @@ export class FibbersRemote extends LitElement implements LovelaceCard {
     );
   }
 
-  private _setVol(pct: number): void {
-    if (this._volHold) this._volHold.hold(pct);
-    // A rejected volume_set would otherwise leave the optimistic value on screen for
-    // the full hold timeout — release it instead.
-    this._mpService("volume_set", { volume_level: pct / 100 }).catch(() => {
-      if (this._volHold) this._volHold.clear();
-    });
+  // The displayed volume % (drag/hold applied) — also the relative-drag base.
+  private _volPct(): number {
+    const mp = this._mp();
+    const gone = !mp || GONE_STATES.includes(mp.state);
+    const raw =
+      mp && mp.attributes.volume_level != null
+        ? Math.round(Number(mp.attributes.volume_level) * 100)
+        : 0;
+    return this._vol ? this._vol.value(raw, gone) : raw;
   }
 
   // Keyboard for the swipe surface (which has no arrow buttons to Tab to). Only
@@ -1056,7 +1001,7 @@ export class FibbersRemote extends LitElement implements LovelaceCard {
           ></path>`
         : nothing;
     return html`<svg
-      class="wheel"
+      class="wheel ${swipe ? "swipe" : ""}"
       viewBox="-104 -104 208 208"
       role="group"
       aria-label=${
@@ -1278,14 +1223,12 @@ export class FibbersRemote extends LitElement implements LovelaceCard {
     if (hasSlider && mp) {
       // If the player drops out mid-hold, release the optimistic value.
       const gone = !mp || GONE_STATES.includes(mp.state);
-      const vol = this._volHold!.value(
-        Math.round(mp.attributes.volume_level * 100),
-        { dragging: this._dragging, dragValue: this._dragVol, gone },
-      );
+      const vol = Math.round(this._volPct());
+      const s = this._vol!;
       return html`${sliderTrack({
           pct: vol,
           disabled: gone,
-          dragging: this._dragging,
+          dragging: s.dragging,
           cls: "flex-1",
           label: t(hl, "remote.volume"),
           value: vol,
@@ -1293,17 +1236,12 @@ export class FibbersRemote extends LitElement implements LovelaceCard {
           max: 100,
           step: 5,
           valueText: `${vol}%`,
-          // Keyboard: arm the hold now (display advances, held keys keep stepping)
-          // but debounce the write — auto-repeat fired ~30 volume_set calls a
-          // second straight at the committer.
-          onInput: (v) => {
-            this._volHold!.hold(v);
-            this._volInput(v);
-          },
-          onDown: this._volDrag.down,
-          onMove: this._volDrag.move,
-          onUp: this._volDrag.up,
-          onCancel: this._volDrag.cancel,
+          onInput: (v) => s.input(v),
+          onDown: s.drag.down,
+          onMove: s.drag.move,
+          onUp: s.drag.up,
+          onCancel: s.drag.cancel,
+          onLost: s.drag.lost,
         })}<span class="pct">${vol}%</span>`;
     }
     // No level to position a thumb at → a slider-shaped scrub strip instead of a
@@ -1559,15 +1497,12 @@ export class FibbersRemote extends LitElement implements LovelaceCard {
         max: b.max,
         step: b.step,
         valueText,
-        onInput: (nv) => {
-          const sn = this._ctlSnap(entity, nv);
-          s.hold.hold(sn);
-          s.debounced(sn);
-        },
+        onInput: (nv) => s.input(this._ctlSnap(entity, nv)),
         onDown: s.drag.down,
         onMove: s.drag.move,
         onUp: s.drag.up,
         onCancel: s.drag.cancel,
+        onLost: s.drag.lost,
       })}
     </div>`;
   }

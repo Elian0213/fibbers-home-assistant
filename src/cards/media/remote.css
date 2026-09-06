@@ -143,6 +143,12 @@
   margin-inline: auto;
   display: block;
 }
+/* A swipe-enabled wheel owns its touch gestures outright: without touch-action:
+   none the browser claims the swipe for page scrolling and pointercancels it
+   mid-gesture. Tap-only wheels keep the default so the page still scrolls. */
+.wheel.swipe {
+  touch-action: none;
+}
 .wheel .seg {
   fill: var(--color-card2);
   stroke: var(--color-line);
@@ -150,8 +156,11 @@
   cursor: pointer;
   transition: fill 0.1s;
 }
-.wheel .seg:hover {
-  fill: #2e393b;
+/* hover-capable devices only — on touch, :hover sticks after a tap */
+@media (hover: hover) {
+  .wheel .seg:hover {
+    fill: #2e393b;
+  }
 }
 .wheel .seg:active,
 .wheel .seg.flash {
@@ -417,7 +426,9 @@
   align-items: center;
   justify-content: center;
   cursor: ew-resize;
-  touch-action: pan-y;
+  /* none, not pan-y: a slightly-vertical drag on the scrub strip must stay a
+     scrub — pan-y let the browser claim it for scrolling and cancel the drag. */
+  touch-action: none;
 }
 .scrub .groove::before {
   content: "";

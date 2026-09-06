@@ -17,22 +17,23 @@ import { cardShell } from "@shared/shells";
 import { twSheet } from "@shared/tw";
 import {
   sliderTrack,
-  sliderDrag,
+  setupSlider,
+  pointerDrag,
   pillSwitch,
   activateOnKey,
-  SliderHold,
-  type SliderDragHandlers,
+  type SliderController,
+  type PointerDragHandlers,
 } from "@shared/ui";
 import {
   pctFromX,
   isUnavail,
+  brightnessPct,
   debounce,
   clamp,
   pickEntity,
-  capturePointer,
   type Debounced,
 } from "@shared/util";
-import { cx } from "@shared/variants";
+import { cx, pressable } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -61,15 +62,6 @@ const TRACK_W = 76;
 const SNAP_PX = 18;
 
 // tiny colour helpers, for committing a group across lamp kinds — shared/color.ts
-
-// One brightness/temperature slider's controllers + drag state.
-interface SliderBundle {
-  dragging: boolean;
-  dragPct: number;
-  hold: SliderHold;
-  debounced: Debounced<[number]>;
-  drag: SliderDragHandlers;
-}
 
 // Live drag state for the colour/warm wheel.
 interface WheelState {
@@ -112,7 +104,7 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
 
   @state() private _v = 0; // bump to force re-render on drag frames
 
-  private _sl: Record<string, SliderBundle> = {};
+  private _sl: Record<string, SliderController> = {};
 
   private _wheel: WheelState = { kind: null, members: [], dragging: false };
 
@@ -205,43 +197,28 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
     commit: (v: number) => void,
     guard?: () => boolean,
   ): void {
+    // Construct once and reuse (a fresh SliderHold per setConfig would stack
+    // controllers on the host); the commit closure reads live state, so a
+    // re-config needs no rebuild.
     if (this._sl[key]) {
       this._sl[key].hold.clear();
       return;
     }
-    const s = { dragging: false, dragPct: 0 } as SliderBundle;
-    s.hold = new SliderHold(this, { tolerance: 2, timeout: 2500 });
-    // Arm the hold on every commit so the control holds the committed value until
-    // the light reports it (no snap-back to the stale value on release).
-    s.debounced = debounce((v: number) => {
-      s.hold.hold(v);
-      commit(v);
-    }, 120);
-    s.drag = sliderDrag({
+    this._sl[key] = setupSlider({
+      host: this,
       guard: guard || (() => this._unavail()),
       read: (e) => Math.round(pctFromX(e.clientX, e.currentTarget as Element)),
-      frame: (v, dragging) => {
-        s.dragging = dragging;
-        if (v != null) s.dragPct = v;
-        this._v++;
-      },
-      live: (v) => s.debounced(v),
-      end: (v) => {
-        if (v == null) {
-          s.debounced.cancel();
-          return;
-        }
-        s.debounced(v);
-        s.debounced.flush();
-      },
+      base: () => this._pct(key),
+      commit,
+      debounceMs: 120,
+      hold: { tolerance: 2, timeout: 2500 },
     });
-    this._sl[key] = s;
   }
 
   /** Cancel pending writes on unmount. */
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    Object.values(this._sl || {}).forEach((s) => s.debounced.cancel());
+    Object.values(this._sl || {}).forEach((s) => s.dispose());
     if (this._colourCommit) this._colourCommit.cancel();
     if (this._warmCommit) this._warmCommit.cancel();
   }
@@ -493,23 +470,18 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
       this._lamps().forEach((id) => {
         if (!this._lOn(id)) return;
         on += 1;
-        const b = this._lAttr(id, "brightness");
-        if (b != null) {
-          sum += Math.round((Number(b) / 255) * 100);
+        if (this._lAttr(id, "brightness") != null) {
+          sum += brightnessPct(this.hass && this.hass.states[id]);
           withBrightness += 1;
         }
       });
       if (withBrightness) raw = Math.round(sum / withBrightness);
       else raw = on ? 100 : 0;
     }
+    // Only unavailable = gone; an off lamp still holds its dragged value so
+    // dragging it on doesn't snap 60→0→60 during the turn-on round trip.
     return Math.round(
-      s.hold.value(raw, {
-        dragging: s.dragging,
-        dragValue: s.dragPct,
-        // Only unavailable = gone; an off lamp still holds its dragged value so
-        // dragging it on doesn't snap 60→0→60 during the turn-on round trip.
-        gone: key === "grp" ? this._allUnavail() : this._unavail(),
-      }),
+      s.value(raw, key === "grp" ? this._allUnavail() : this._unavail()),
     );
   }
 
@@ -542,15 +514,12 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
         max: 100,
         step: 5,
         valueText,
-        onInput: (v) => {
-          const p = Math.round(v);
-          s.hold.hold(p);
-          s.debounced(p);
-        },
+        onInput: (v) => s.input(Math.round(v)),
         onDown: s.drag.down,
         onMove: s.drag.move,
         onUp: s.drag.up,
         onCancel: s.drag.cancel,
+        onLost: s.drag.lost,
       })}
     </div>`;
   }
@@ -565,7 +534,7 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
         type="button"
         aria-label=${aria}
         class="fib-hit h-8 w-8 flex-none rounded-full border border-[rgba(255,255,255,.15)]
-             shadow-[0_1px_3px_rgba(0,0,0,.4)] transition-transform active:scale-90"
+             shadow-[0_1px_3px_rgba(0,0,0,.4)] transition-transform active:scale-90 ${pressable({ hover: "bright" })}"
         style="background:${bg}"
         @click=${onClick}
       ></button>`;
@@ -747,10 +716,21 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
     });
   }
 
+  // The wheel gesture: pointer bookkeeping (capture on the stable disc, single-
+  // pointer tracking by pointerId, cancel-vs-release, no spurious abort from the
+  // post-release lostpointercapture) lives in the shared pointerDrag primitive —
+  // a second finger or a mid-drag re-render can no longer kill the drag.
+  private _wheelDrag: PointerDragHandlers = pointerDrag({
+    start: (e) => this._wheelStart(e),
+    // Wrap: _wheelMove's second param is the `final` flush flag, NOT drag state.
+    move: (e) => this._wheelMove(e),
+    end: (e) => this._wheelEnd(e),
+  });
+
   // Grab the nearest unit marker, then drag the whole unit (a lamp or a group).
-  private _wheelDown(e: PointerEvent): void {
+  private _wheelStart(e: PointerEvent): boolean {
     const units = this._units();
-    if (!units.length) return;
+    if (!units.length) return false;
     const r = (e.currentTarget as Element).getBoundingClientRect();
     const distTo = (u: WheelUnit): number => {
       const p = this._unitXY(u);
@@ -771,8 +751,7 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
     // Prefer the focused lamp's unit when the pointer lands on it.
     const au = units.find((u) => u.members.includes(this.config.entity));
     if (au && distTo(au) <= 22) best = au;
-    if (!best) return;
-    capturePointer(e.currentTarget as Element, e.pointerId);
+    if (!best) return false;
     this._wheel = {
       kind: best.warm ? "warm" : "colour",
       warm: best.warm,
@@ -784,6 +763,7 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
     };
     this._selectActive(best.rep);
     this._wheelMove(e);
+    return true;
   }
 
   private _wheelMove(e: PointerEvent, final?: boolean): void {
@@ -806,8 +786,15 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
     }
   }
 
-  private _wheelUp(e: PointerEvent): void {
+  // Release (e) → final commit + group snap; cancel (null) → stop tracking, no
+  // merge (the debounced live commits already landed where the drag last was).
+  private _wheelEnd(e: PointerEvent | null): void {
     if (!this._wheel.dragging) return;
+    if (!e) {
+      this._wheel.dragging = false;
+      this._v++;
+      return;
+    }
     this._wheelMove(e, true);
     const rect = (e.currentTarget as Element).getBoundingClientRect();
     // The dragged unit's marker centre (from the live drag state).
@@ -866,11 +853,6 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
           true,
         );
     }
-    this._v++;
-  }
-
-  private _dragCancel(): void {
-    this._wheel.dragging = false;
     this._v++;
   }
 
@@ -933,11 +915,11 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
       aria-label=${t(hl, "light_detail.colour")}
       aria-valuetext=${activeText}
       aria-disabled=${disabled ? "true" : "false"}
-      @pointerdown=${this._wheelDown}
-      @pointermove=${this._wheelMove}
-      @pointerup=${this._wheelUp}
-      @pointercancel=${this._dragCancel}
-      @lostpointercapture=${this._dragCancel}
+      @pointerdown=${this._wheelDrag.down}
+      @pointermove=${this._wheelDrag.move}
+      @pointerup=${this._wheelDrag.up}
+      @pointercancel=${this._wheelDrag.cancel}
+      @lostpointercapture=${this._wheelDrag.lost}
       @keydown=${this._wheelKey}
     >
       ${
@@ -1016,7 +998,8 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
         >
           <button
             type="button"
-            class="absolute inset-0 cursor-pointer rounded-[14px]"
+            class="absolute inset-0 cursor-pointer rounded-[14px] transition-colors
+                   hover:bg-white/[.04]"
             aria-pressed=${isActive ? "true" : "false"}
             aria-label=${nm}
             @click=${() => this._ungroupAndSelect(id)}
@@ -1112,7 +1095,7 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
         <button
           type="button"
           class="flex h-9 w-9 flex-none items-center justify-center rounded-lg
-                 bg-card2 text-ink2 transition-colors hover:text-ink"
+                 bg-card2 text-ink2 transition-colors ${pressable({ hover: "text" })}"
           aria-label=${t(hl, "back.back")}
           @click=${() => closeSheet()}
         >

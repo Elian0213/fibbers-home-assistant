@@ -8,22 +8,9 @@ import { customElement, property, state } from "lit/decorators.js";
 import { t } from "@shared/i18n";
 import { cardShell, iconBoxTpl } from "@shared/shells";
 import { twSheet } from "@shared/tw";
-import {
-  sliderTrack,
-  sliderDrag,
-  SliderHold,
-  type SliderDragHandlers,
-} from "@shared/ui";
-import {
-  fmtNum,
-  clamp,
-  debounce,
-  isUnavail,
-  pctFromX,
-  pickEntity,
-  type Debounced,
-} from "@shared/util";
-import { cx } from "@shared/variants";
+import { sliderTrack, setupSlider, type SliderController } from "@shared/ui";
+import { fmtNum, clamp, isUnavail, pctFromX, pickEntity } from "@shared/util";
+import { cx, pressable } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -76,15 +63,7 @@ export class FibbersNumber extends LitElement implements LovelaceCard {
 
   @state() private config!: NumberConfig;
 
-  @state() private _dragging = false;
-
-  @state() private _dragVal = 0;
-
-  private _debouncedSet!: Debounced<[number]>;
-
-  private _drag!: SliderDragHandlers;
-
-  private _hold?: SliderHold;
+  private _slider?: SliderController;
 
   static styles = [
     twSheet,
@@ -134,36 +113,26 @@ export class FibbersNumber extends LitElement implements LovelaceCard {
       );
     }
     this.config = config;
-    this._dragging = false;
-    this._dragVal = 0;
-    this._debouncedSet = debounce((v: number) => this._setValue(v), 150);
-    // Shared drag gesture, reading a snapped entity-range value instead of a %.
-    this._drag = sliderDrag({
-      guard: () => this._unavail(),
-      read: (e) => this._valFromX(e.clientX, e.currentTarget as Element),
-      frame: (v, dragging) => {
-        this._dragging = dragging;
-        if (v != null) this._dragVal = v;
-      },
-      live: (v) => this._debouncedSet(v),
-      // eslint-disable-next-line consistent-return -- mirrors the guard-return branch of the original
-      end: (v) => {
-        if (v == null) return this._debouncedSet.cancel();
-        this._debouncedSet(v);
-        this._debouncedSet.flush();
-      },
-    });
-    // Construct once (addController has no counterpart); tolerance is set per-read
-    // in _value() from the entity's own range/step.
-    if (!this._hold)
-      this._hold = new SliderHold(this, { tolerance: 0.5, timeout: 5000 });
-    else this._hold.clear();
+    // Construct the control once (a fresh SliderHold per setConfig would stack
+    // controllers on the element); tolerance is set per-read in _value() from the
+    // entity's own range/step. Reads a snapped entity-range value instead of a %.
+    if (!this._slider)
+      this._slider = setupSlider({
+        host: this,
+        guard: () => this._unavail(),
+        read: (e) => this._valFromX(e.clientX, e.currentTarget as Element),
+        base: () => this._value(),
+        clampValue: (v) => this._snap(v),
+        commit: (v) => this._svc(v),
+        hold: { tolerance: 0.5, timeout: 5000 },
+      });
+    else this._slider.hold.clear();
   }
 
   /** Cancel the pending debounced write so a torn-down card can't fire late. */
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    this._debouncedSet.cancel();
+    if (this._slider) this._slider.dispose();
   }
 
   private _st(): HassEntity | undefined {
@@ -196,12 +165,8 @@ export class FibbersNumber extends LitElement implements LovelaceCard {
     const entityVal = Number.isFinite(n) ? n : min;
     // Step-relative tolerance: a fixed 0.5 clears the hold on the first update for
     // an entity whose whole range is ≤ 1, bringing the snap-back back.
-    this._hold!.tolerance = Math.max(step / 2, (max - min) / 1000);
-    return this._hold!.value(entityVal, {
-      dragging: this._dragging,
-      dragValue: this._dragVal,
-      gone: this._unavail(),
-    });
+    this._slider!.hold.tolerance = Math.max(step / 2, (max - min) / 1000);
+    return this._slider!.value(entityVal, this._unavail());
   }
 
   private _snap(v: number): number {
@@ -220,20 +185,21 @@ export class FibbersNumber extends LitElement implements LovelaceCard {
     return this._snap(min + (pctFromX(clientX, track) / 100) * (max - min));
   }
 
-  private _setValue(value: number): void {
-    if (!this.hass) return;
-    this._hold!.hold(value); // hold the set value until the entity reports it
+  // The raw write — the slider control arms/clears the display hold around it.
+  private _svc(value: number): Promise<unknown> | undefined {
+    if (!this.hass) return undefined;
     const domain = this.config.entity.split(".")[0]; // input_number | number
-    const p = this.hass.callService(domain, "set_value", {
+    return this.hass.callService(domain, "set_value", {
       entity_id: this.config.entity,
       value,
     });
-    Promise.resolve(p).catch(() => this._hold!.clear());
   }
 
   private _bump(dir: number): void {
     if (this._unavail()) return;
-    this._setValue(this._snap(this._value() + dir * this._bounds().step));
+    this._slider!.commitNow(
+      this._snap(this._value() + dir * this._bounds().step),
+    );
   }
 
   /** Render the header plus either the stepper buttons or the drag slider per `mode`. */
@@ -305,7 +271,7 @@ export class FibbersNumber extends LitElement implements LovelaceCard {
         ${sliderTrack({
           pct: this._pct(v),
           disabled: unavail,
-          dragging: this._dragging,
+          dragging: this._slider!.dragging,
           cls: "mt-2.5",
           label: name,
           value: v,
@@ -313,18 +279,12 @@ export class FibbersNumber extends LitElement implements LovelaceCard {
           max: b.max,
           step: b.step,
           valueText: val,
-          // Keyboard: arm the hold now (so the display advances and holding a key
-          // keeps stepping) but debounce the write — the raw committer fired ~30
-          // set_value calls a second on auto-repeat.
-          onInput: (nv: number) => {
-            const s = this._snap(nv);
-            this._hold!.hold(s);
-            this._debouncedSet(s);
-          },
-          onDown: this._drag.down,
-          onMove: this._drag.move,
-          onUp: this._drag.up,
-          onCancel: this._drag.cancel,
+          onInput: (nv: number) => this._slider!.input(this._snap(nv)),
+          onDown: this._slider!.drag.down,
+          onMove: this._slider!.drag.move,
+          onUp: this._slider!.drag.up,
+          onCancel: this._slider!.drag.cancel,
+          onLost: this._slider!.drag.lost,
         })}`,
       { cls: cx(unavail && "opacity-50") },
     );
@@ -340,6 +300,7 @@ export class FibbersNumber extends LitElement implements LovelaceCard {
       type="button"
       class="${cx(
         "fib-hit flex h-8 w-8 flex-none items-center justify-center rounded-full bg-card2 text-accent transition-transform active:scale-90",
+        pressable({ hover: "bright" }),
         unavail && "pointer-events-none opacity-40",
       )}"
       aria-label=${dir > 0 ? t(hl, "number.more") : t(hl, "number.less")}

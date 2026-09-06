@@ -5,26 +5,28 @@
 import { LitElement, html, css, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 
-import { runAction, type ActionConfig } from "@shared/actions";
+import {
+  runAction,
+  setLightBrightness,
+  type ActionConfig,
+} from "@shared/actions";
 import { t } from "@shared/i18n";
 import { twSheet } from "@shared/tw";
 import {
   sliderTrack,
-  sliderDrag,
+  setupSlider,
   pillSwitch,
   activateOnKey,
-  SliderHold,
-  type SliderDragHandlers,
+  type SliderController,
 } from "@shared/ui";
 import {
   moreInfo,
   isUnavail,
+  brightnessPct,
   pctFromX,
   pickEntity,
-  debounce,
-  type Debounced,
 } from "@shared/util";
-import { cx, iconBox } from "@shared/variants";
+import { cx, iconBox, pressable } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -63,15 +65,7 @@ export class FibbersLightRow extends LitElement implements LovelaceCard {
 
   @state() private config!: LightRowConfig;
 
-  @state() private _dragging = false;
-
-  @state() private _dragPct = 0;
-
-  private _hold?: SliderHold;
-
-  private _drag!: SliderDragHandlers;
-
-  private _debouncedCommit!: Debounced<[number]>;
+  private _slider?: SliderController;
 
   static styles = [
     twSheet,
@@ -120,55 +114,25 @@ export class FibbersLightRow extends LitElement implements LovelaceCard {
       );
     }
     this.config = config;
-    this._dragging = false;
-    this._dragPct = 0;
-    this._debouncedCommit = debounce((v: number) => this._commit(v), 150);
-    // Shared drag gesture: live-track past the slop, final value wins on release.
-    this._drag = sliderDrag({
-      guard: () => this._unavail(),
-      read: (e) => Math.round(pctFromX(e.clientX, e.currentTarget as Element)),
-      frame: (v, dragging) => {
-        this._dragging = dragging;
-        if (v != null) this._dragPct = v;
-      },
-      live: (v) => this._debouncedCommit(v),
-      end: (v) => {
-        if (v == null) {
-          this._debouncedCommit.cancel();
-          return;
-        }
-        this._debouncedCommit(v); // pending = release value
-        this._debouncedCommit.flush(); // commit now (deduped vs the live commit)
-      },
-    });
-    // Construct the hold once and reuse it — a fresh controller per setConfig (HA
-    // calls it per editor keystroke) would stack controllers on the element.
-    if (!this._hold)
-      this._hold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
-    else this._hold.clear();
+    // Construct the control once and reuse it — a fresh SliderHold per setConfig
+    // (HA calls it per editor keystroke) would stack controllers on the element.
+    // The callbacks close over `this`, so a re-config needs no rebuild.
+    if (!this._slider)
+      this._slider = setupSlider({
+        host: this,
+        guard: () => this._unavail(),
+        read: (e) =>
+          Math.round(pctFromX(e.clientX, e.currentTarget as Element)),
+        base: () => this._displayPct(),
+        commit: (v) => setLightBrightness(this.hass, this.config.entity, v),
+      });
+    else this._slider.hold.clear();
   }
 
   /** Drop any trailing debounced write so a torn-down row can't fire late. */
   disconnectedCallback(): void {
     super.disconnectedCallback();
-    if (this._debouncedCommit) this._debouncedCommit.cancel();
-  }
-
-  /**
-   * Optimistically show `pct` until this row's own entity catches up — called by a
-   * parent light-group so member sliders track a master change immediately instead
-   * of lagging HA's per-member state push and then jumping ("teleport").
-   * @param pct
-   */
-  holdDisplay(pct: number): void {
-    if (!this._hold) return;
-    this._hold.hold(pct);
-    this.requestUpdate();
-  }
-
-  /** Drop the optimistic hold (e.g. the parent's group service call failed). */
-  clearDisplay(): void {
-    if (this._hold) this._hold.clear();
+    if (this._slider) this._slider.dispose();
   }
 
   // on/off-only light (supported_color_modes === ["onoff"]) → plain toggle, not a
@@ -188,18 +152,11 @@ export class FibbersLightRow extends LitElement implements LovelaceCard {
   }
 
   private _pctFromHass(): number {
-    const st = this._st();
-    if (!st || st.state !== "on") return 0;
-    const b = st.attributes.brightness;
-    return b != null ? Math.round((b / 255) * 100) : 100;
+    return brightnessPct(this._st());
   }
 
   private _displayPct(): number {
-    return this._hold!.value(this._pctFromHass(), {
-      dragging: this._dragging,
-      dragValue: this._dragPct,
-      gone: this._unavail(),
-    });
+    return this._slider!.value(this._pctFromHass(), this._unavail());
   }
 
   private _warmth(): string {
@@ -218,21 +175,6 @@ export class FibbersLightRow extends LitElement implements LovelaceCard {
     if (k < 3000) return t(hl, "light_row.warm");
     if (k < 4600) return t(hl, "light_row.neutral");
     return t(hl, "light_row.cool");
-  }
-
-  private _commit(pct: number): void {
-    if (!this.hass) return;
-    this._hold!.hold(pct); // show the committed value until the bulb catches up
-    const entityId = this.config.entity;
-    const p =
-      pct <= 0
-        ? this.hass.callService("light", "turn_off", { entity_id: entityId })
-        : this.hass.callService("light", "turn_on", {
-            entity_id: entityId,
-            brightness_pct: pct,
-          });
-    // A failed service call must not freeze the display on the optimistic value.
-    Promise.resolve(p).catch(() => this._hold!.clear());
   }
 
   private _toggle(): void {
@@ -279,7 +221,7 @@ export class FibbersLightRow extends LitElement implements LovelaceCard {
         iconBox({ tone: "plain", flexNone: false }),
         "fib-hit row-span-2 transition-transform active:scale-90",
         on ? "bg-accentbg" : "bg-card2",
-        unavail ? "pointer-events-none" : "cursor-pointer",
+        unavail ? "pointer-events-none" : pressable({ hover: "bright" }),
       )}"
       @click=${act}
       @keydown=${activateOnKey(act)}
@@ -305,7 +247,8 @@ export class FibbersLightRow extends LitElement implements LovelaceCard {
       tabindex="0"
       aria-label=${`${name} — ${t(hl, "common.more_info")}`}
       class="${cx(
-        "flex cursor-pointer items-center justify-between gap-2",
+        "flex items-center justify-between gap-2 rounded-md px-1 transition-colors",
+        pressable({ hover: "tint" }),
         compact ? "min-h-[26px]" : "min-h-[var(--fib-hit)]",
       )}"
       @click=${() => this._moreInfo()}
@@ -327,28 +270,23 @@ export class FibbersLightRow extends LitElement implements LovelaceCard {
     name: string,
     unavail: boolean,
   ): TemplateResult {
+    const s = this._slider!;
     return sliderTrack({
       pct,
       disabled: unavail,
-      dragging: this._dragging,
+      dragging: s.dragging,
       label: name,
       value: pct,
       min: 0,
       max: 100,
       step: 5,
       valueText: `${pct}%`,
-      // Keyboard: arm the hold now (display advances, held keys keep
-      // stepping) but debounce the write — auto-repeat fired ~30
-      // light.turn_on calls a second straight at the committer.
-      onInput: (v) => {
-        const p = Math.round(v);
-        this._hold!.hold(p);
-        this._debouncedCommit(p);
-      },
-      onDown: this._drag.down,
-      onMove: this._drag.move,
-      onUp: this._drag.up,
-      onCancel: this._drag.cancel,
+      onInput: (v) => s.input(Math.round(v)),
+      onDown: s.drag.down,
+      onMove: s.drag.move,
+      onUp: s.drag.up,
+      onCancel: s.drag.cancel,
+      onLost: s.drag.lost,
     });
   }
 
