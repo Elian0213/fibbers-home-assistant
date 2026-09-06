@@ -50,3 +50,13 @@ jobs:
         run: |
           npm ci
           npm run build-storybook
+
+      - name: Install Playwright chromium
+        working-directory: storybook
+        run: npx playwright install chromium --with-deps
+
+      # Every story is a smoke test + an axe pass (critical/serious fail) —
+      # see storybook/.storybook/test-runner.js.
+      - name: Story smoke + a11y tests
+        working-directory: storybook
+        run: npm run test-storybook:static
