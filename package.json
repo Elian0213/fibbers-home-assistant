@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit",
     "test": "bun test src",
     "test:stories": "cd storybook && npm run test-storybook:ci",
+    "storybook": "bun run build && cd storybook && npm run storybook",
     "gen-icons": "bun scripts/gen-icons.mjs",
     "gen-tw": "bun scripts/gen-tw.mjs",
     "format": "prettier --write \"src/**/*.{js,ts}\" \"docs/*.html\"",
