@@ -1,9 +1,36 @@
 /* ================================================================== *
- * ACTIONS — runs a standard HA action object.
- * Shared by chips + light-row; `fallbackEntity` is used by toggle/more-info.
+ * ACTIONS — runs a standard HA action object, plus the shared light-brightness
+ * committer. Shared by chips + light-row; `fallbackEntity` is used by
+ * toggle/more-info.
  * ================================================================== */
 import { navigate, moreInfo } from "@shared/util";
 import type { HomeAssistant } from "@/types/home-assistant";
+
+/**
+ * Set one light's (or a member list's) brightness: `turn_off` at pct <= 0, else
+ * `turn_on` with `brightness_pct`. Every brightness committer routes through
+ * here so the off-at-zero rule lives in one place. Always resolves to a promise
+ * (a missing hass/target is a resolved no-op) so callers can chain `.catch`.
+ * @param hass
+ * @param entityId — one light id or a list of member ids
+ * @param pct — 0-100
+ */
+export function setLightBrightness(
+  hass: HomeAssistant | null | undefined,
+  entityId: string | string[] | null | undefined,
+  pct: number,
+): Promise<unknown> {
+  if (!hass || !entityId || (Array.isArray(entityId) && !entityId.length))
+    return Promise.resolve();
+  return Promise.resolve(
+    pct <= 0
+      ? hass.callService("light", "turn_off", { entity_id: entityId })
+      : hass.callService("light", "turn_on", {
+          entity_id: entityId,
+          brightness_pct: pct,
+        }),
+  );
+}
 
 /** A standard Home Assistant action config, as read by {@link runAction}. */
 export interface ActionConfig {

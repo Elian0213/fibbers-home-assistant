@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, jest, test } from "bun:test";
 
 import type { HassEntity, HomeAssistant } from "@/types/home-assistant";
 import {
+  brightnessPct,
   clamp,
   cssUrl,
   debounce,
@@ -87,6 +88,33 @@ describe("norm", () => {
   test("empty and root collapse to '/'", () => {
     expect(norm("")).toBe("/");
     expect(norm("/")).toBe("/");
+  });
+});
+
+describe("brightnessPct", () => {
+  test("off or missing → 0", () => {
+    expect(brightnessPct(undefined)).toBe(0);
+    expect(brightnessPct(null)).toBe(0);
+    expect(brightnessPct(ent({ state: "off", attributes: {} }))).toBe(0);
+    expect(brightnessPct(ent({ state: "unavailable", attributes: {} }))).toBe(
+      0,
+    );
+  });
+
+  test("on with brightness → rounded percentage of 255", () => {
+    expect(
+      brightnessPct(ent({ state: "on", attributes: { brightness: 128 } })),
+    ).toBe(50);
+    expect(
+      brightnessPct(ent({ state: "on", attributes: { brightness: 255 } })),
+    ).toBe(100);
+    expect(
+      brightnessPct(ent({ state: "on", attributes: { brightness: 1 } })),
+    ).toBe(0);
+  });
+
+  test("on without a brightness attribute → 100 (on/off-only light)", () => {
+    expect(brightnessPct(ent({ state: "on", attributes: {} }))).toBe(100);
   });
 });
 

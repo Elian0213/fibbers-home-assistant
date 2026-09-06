@@ -138,6 +138,18 @@ export const isUnavail = (st: HassEntity | null | undefined): boolean =>
   !st || st.state === "unavailable" || st.state === "unknown";
 
 /**
+ * A light's brightness as 0-100: 0 when off/missing, the rounded
+ * `brightness/255` percentage when dimmed, and 100 when on without a
+ * `brightness` attribute (an on/off-only light at full).
+ * @param st — a `light.*` state object
+ */
+export const brightnessPct = (st: HassEntity | null | undefined): number => {
+  if (!st || st.state !== "on") return 0;
+  const b = st.attributes.brightness;
+  return b != null ? Math.round((Number(b) / 255) * 100) : 100;
+};
+
+/**
  * Clamp to [lo,hi]. NaN (a bad/absent state, `Number("")`) collapses to `lo`
  * rather than propagating NaN into a `width:NaN%` or `value=NaN`.
  * @param n @param lo @param hi

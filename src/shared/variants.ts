@@ -58,6 +58,28 @@ export const sectionLabel = cva(
   },
 );
 
+/**
+ * The interactive affordance every clickable gets: a pointer cursor (native
+ * <button> shows the plain arrow by default!) plus one hover flavour. Tailwind v4
+ * gates `hover:` behind `@media (hover: hover)`, so none of these stick on touch
+ * screens — keep the `active:` press feedback at the call site for touch users.
+ */
+export const pressable = cva("cursor-pointer", {
+  // No transition-* here: call sites already carry their own (transition-colors /
+  // -transform), and stacking a second transition utility makes the winner depend
+  // on sheet order. A snap-on hover is fine where none exists.
+  variants: {
+    hover: {
+      tint: "hover:bg-card2", // rows, menu options, list items
+      bright: "hover:brightness-110", // icon buttons / tiles with their own bg
+      text: "hover:text-ink", // muted text/icon links
+      none: "",
+    },
+  },
+  defaultVariants: { hover: "tint" },
+});
+
 export type CardVariants = VariantProps<typeof card>;
 export type IconBoxVariants = VariantProps<typeof iconBox>;
 export type SectionLabelVariants = VariantProps<typeof sectionLabel>;
+export type PressableVariants = VariantProps<typeof pressable>;

@@ -12,7 +12,8 @@ import {
 } from "lit";
 
 import { t } from "@shared/i18n";
-import { capturePointer } from "@shared/util";
+import { capturePointer, debounce } from "@shared/util";
+import { pressable } from "@shared/variants";
 
 /**
  * Enter/Space → activate, for elements carrying role="button" instead of a real
@@ -148,18 +149,145 @@ export class SliderHold implements ReactiveController {
   }
 }
 
+/** Live gesture bookkeeping handed to {@link pointerDrag} callbacks. */
+export interface PointerDragState {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  /** True once the pointer has travelled past the slop distance. */
+  moved: boolean;
+}
+
+/** Options (callbacks) for {@link pointerDrag}. */
+export interface PointerDragOptions {
+  /** Movement (px, euclidean) before `moved` flips — a stationary tap stays under it. Default 4. */
+  slop?: number;
+  /**
+   * The element to capture the pointer on. MUST be an element whose identity
+   * survives Lit re-renders mid-drag (a stable container, not a marker that gets
+   * re-created) — losing the captured element kills the gesture. Default:
+   * `e.currentTarget`.
+   */
+  captureEl?: (e: PointerEvent) => Element | null;
+  /** Gesture gate — return false to reject this pointerdown (e.g. unavailable entity). */
+  start?: (e: PointerEvent, s: PointerDragState) => boolean | void;
+  move?: (e: PointerEvent, s: PointerDragState) => void;
+  /** `e` is null for a cancelled gesture (pointercancel / capture loss / abort). */
+  end: (e: PointerEvent | null, s: PointerDragState) => void;
+}
+
+/** The pointer handlers returned by {@link pointerDrag}. */
+export interface PointerDragHandlers {
+  down(e: PointerEvent): void;
+  move(e: PointerEvent): void;
+  up(e: PointerEvent): void;
+  /** Wire to `@pointercancel`. Also callable without an event (host-side). */
+  cancel(e?: PointerEvent): void;
+  /** Wire to `@lostpointercapture` — a no-op after a normal release. */
+  lost(e: PointerEvent): void;
+  /** Host-side reset (e.g. the remote switching devices mid-drag). */
+  abort(): void;
+}
+
+/**
+ * The low-level single-pointer drag gesture every continuous interaction builds
+ * on (value sliders, colour wheel): capture on down, track ONE pointer by its
+ * pointerId — a second finger / palm touch is ignored instead of hijacking the
+ * gesture — and end exactly once.
+ *
+ * Touch requirements, learned the hard way:
+ * - The surface MUST carry `touch-action: none` (`touch-none`). Anything looser
+ *   (`pan-y`) lets the browser claim a slightly-vertical drag for scrolling and
+ *   fire `pointercancel` mid-gesture — the drag dies under the finger.
+ * - `@lostpointercapture` always fires after a normal release too. The active
+ *   flag is cleared BEFORE `end()` runs, so the trailing `lost` is a no-op; only
+ *   a mid-drag capture loss (matching pointerId, still active) cancels.
+ * @param opts — `{ slop?, captureEl?, start?, move?, end }`
+ * @returns `{ down, move, up, cancel, lost, abort }` pointer handlers
+ */
+export function pointerDrag({
+  slop = 4,
+  captureEl,
+  start,
+  move,
+  end,
+}: PointerDragOptions): PointerDragHandlers {
+  let s: PointerDragState | null = null;
+  const finish = (e: PointerEvent | null): void => {
+    if (!s) return;
+    const done = s;
+    s = null; // clear first — the trailing lostpointercapture must see no gesture
+    end(e, done);
+  };
+  return {
+    down(e) {
+      if (s) return; // one pointer owns the gesture; ignore extra fingers
+      const st: PointerDragState = {
+        pointerId: e.pointerId,
+        startX: e.clientX,
+        startY: e.clientY,
+        moved: false,
+      };
+      if (start && start(e, st) === false) return;
+      s = st;
+      capturePointer(
+        (captureEl ? captureEl(e) : null) || (e.currentTarget as Element),
+        e.pointerId,
+      );
+    },
+    move(e) {
+      if (!s || e.pointerId !== s.pointerId) return;
+      if (!s.moved) {
+        const dx = e.clientX - s.startX;
+        const dy = e.clientY - s.startY;
+        s.moved = dx * dx + dy * dy >= slop * slop;
+      }
+      if (move) move(e, s);
+    },
+    up(e) {
+      if (!s || e.pointerId !== s.pointerId) return;
+      finish(e);
+    },
+    cancel(e) {
+      if (!s || (e && e.pointerId !== s.pointerId)) return;
+      finish(null);
+    },
+    lost(e) {
+      // After a normal release `s` is already null; only a genuine mid-drag
+      // capture loss (our pointer, gesture still active) cancels.
+      if (!s || e.pointerId !== s.pointerId) return;
+      finish(null);
+    },
+    abort() {
+      finish(null);
+    },
+  };
+}
+
 /** The pointer handlers returned by {@link sliderDrag}. */
 export interface SliderDragHandlers {
   down(e: PointerEvent): void;
   move(e: PointerEvent): void;
   up(e: PointerEvent): void;
-  cancel(): void;
+  cancel(e?: PointerEvent): void;
+  /** Wire to `@lostpointercapture` — cancels only a genuine mid-drag capture loss. */
+  lost(e: PointerEvent): void;
   abort(): void;
 }
 
 /** Options (callbacks) for {@link sliderDrag}. */
 export interface SliderDragOptions {
+  /** Pointer event → the absolute value at that track position. */
   read: (e: PointerEvent) => number;
+  /**
+   * The value the gesture starts from (usually the currently displayed value).
+   * When given, dragging is RELATIVE: the value follows the finger's delta from
+   * wherever it landed, instead of teleporting to the touch position. A
+   * stationary tap still sets the tapped position (tap-to-set).
+   */
+  base?: () => number;
+  /** Clamp/snap `base + delta` into the value space. Default: clamp to [0,100]. */
+  clampValue?: (v: number) => number;
   frame: (value: number | null, dragging: boolean) => void;
   live: (value: number) => void;
   end: (value: number | null) => void;
@@ -168,68 +296,190 @@ export interface SliderDragOptions {
 
 /**
  * The shared pointer-drag gesture for the value sliders (brightness / number /
- * remote volume): capture on down, live-track through the caller's debounce once
- * the pointer clears a ~4px slop (leading-suppressed — a stationary tap commits
- * exactly once, on release), final value wins on release. One implementation of
- * the bookkeeping that was previously copy-pasted per card.
+ * remote volume), built on {@link pointerDrag}: capture on down, live-track
+ * through the caller's debounce once the pointer clears the slop
+ * (leading-suppressed — a stationary tap commits exactly once, on release),
+ * final value wins on release. With `base` the drag is relative — grab anywhere
+ * on the track and the value adjusts from where it was, no jump.
  *
  *   this._drag = sliderDrag({
  *     guard: () => this._unavail(),                             // optional
  *     read: (e) => Math.round(pctFromX(e.clientX, e.currentTarget)),
+ *     base: () => this._displayPct(),                           // relative drag
  *     frame: (v, dragging) => { this._dragging = dragging; if (v != null) this._dragPct = v; },
  *     live: (v) => this._debouncedCommit(v),                    // streamed mid-drag
  *     end: (v) => { this._debouncedCommit.cancel(); if (v != null) this._commit(v); },
  *   });
- *   // wire: onDown: drag.down, onMove: drag.move, onUp: drag.up, onCancel: drag.cancel
+ *   // wire: onDown: drag.down, onMove: drag.move, onUp: drag.up,
+ *   //       onCancel: drag.cancel, onLost: drag.lost
  *
- * `end(null)` signals a cancelled gesture (pointercancel / external abort): drop
- * the pending debounced write, commit nothing. `abort()` is for host-side resets
- * (e.g. the remote switching devices mid-drag).
- * @param opts — `{ read, frame, live, end, guard? }`
- * @returns `{ down, move, up, cancel, abort }` pointer handlers
+ * The slider surface must carry `touch-none` (see {@link pointerDrag}).
+ * `end(null)` signals a cancelled gesture: drop the pending debounced write,
+ * commit nothing. `abort()` is for host-side resets.
+ * @param opts — `{ read, base?, clampValue?, frame, live, end, guard? }`
+ * @returns `{ down, move, up, cancel, lost, abort }` pointer handlers
  */
 export function sliderDrag({
   read,
+  base,
+  clampValue,
   frame,
   live,
   end,
   guard,
 }: SliderDragOptions): SliderDragHandlers {
-  let active = false;
-  let downX = 0;
-  let moved = false;
-  const cancel = (): void => {
-    if (!active) return;
-    active = false;
-    frame(null, false);
-    end(null);
-  };
-  return {
-    down(e) {
-      if (guard && guard()) return;
-      capturePointer(e.currentTarget as Element, e.pointerId);
-      active = true;
-      downX = e.clientX;
-      moved = false;
-      frame(read(e), true);
+  const clampV =
+    clampValue || ((v: number): number => Math.max(0, Math.min(100, v)));
+  let v0 = 0; // value at gesture start (base, else the tapped position)
+  let read0 = 0; // track value under the pointer at gesture start
+  const valueAt = (e: PointerEvent, s: PointerDragState): number =>
+    // Relative while dragging; a stationary tap (no slop cleared) sets the
+    // tapped position on release instead.
+    s.moved && base ? clampV(v0 + (read(e) - read0)) : clampV(read(e));
+  return pointerDrag({
+    start: (e) => {
+      if (guard && guard()) return false;
+      read0 = read(e);
+      v0 = base ? base() : read0;
+      frame(v0, true); // relative mode: the knob holds its value — no jump
+      return true;
     },
-    move(e) {
-      if (!active) return;
-      const v = read(e);
+    move: (e, s) => {
+      if (!s.moved) return; // sub-slop jitter: neither the knob nor a commit moves
+      const v = valueAt(e, s);
       frame(v, true);
-      if (!moved && Math.abs(e.clientX - downX) < 4) return;
-      moved = true;
       live(v);
     },
-    up(e) {
-      if (!active) return;
-      active = false;
-      const v = read(e);
+    end: (e, s) => {
+      if (!e) {
+        frame(null, false);
+        end(null);
+        return;
+      }
+      const v = valueAt(e, s);
       frame(v, false);
       end(v);
     },
-    cancel,
-    abort: cancel,
+  });
+}
+
+/** Options for {@link setupSlider}. */
+export interface SliderControllerOptions {
+  /** The Lit host — receives the SliderHold controller and re-render requests. */
+  host: ReactiveControllerHost;
+  /** Pointer event → the absolute value at that track position. */
+  read: (e: PointerEvent) => number;
+  /** The currently displayed value — the relative drag starts from it. */
+  base: () => number;
+  /** Clamp/snap into the value space. Default: clamp to [0,100]. */
+  clampValue?: (v: number) => number;
+  /**
+   * The service call for a value. The factory arms the hold before calling and
+   * clears it when the returned promise rejects — the committer stays a plain
+   * service call.
+   */
+  commit: (v: number) => Promise<unknown> | void;
+  guard?: () => boolean;
+  /** Debounce for live/keyboard commits. Default 150ms. */
+  debounceMs?: number;
+  /** SliderHold tuning. Default `{ tolerance: 2, timeout: 5000 }`. */
+  hold?: SliderHoldOptions;
+}
+
+/** The pre-wired slider control returned by {@link setupSlider}. */
+export interface SliderController {
+  /** Pointer handlers for the track (down/move/up/cancel/lost/abort). */
+  drag: SliderDragHandlers;
+  /** The optimistic display hold — exposed for host-side holds/clears. */
+  hold: SliderHold;
+  /** Keyboard path: arm the hold now, debounce the write (auto-repeat safe). */
+  input(v: number): void;
+  /** Immediate commit (hold armed, rejection-cleared) — for stepper buttons. */
+  commitNow(v: number): void;
+  /** The value to display for `entityValue`, drag/hold state applied. */
+  value(entityValue: number, gone?: boolean): number;
+  /** True while a pointer drag is live (grows the knob, shows the bubble). */
+  readonly dragging: boolean;
+  /** Drop any trailing debounced write — call from disconnectedCallback. */
+  dispose(): void;
+}
+
+/**
+ * The full slider wiring every value slider repeated by hand: one SliderHold,
+ * one debounced committer (armed-hold + rejection-clear built in), one
+ * {@link sliderDrag} in relative mode, and the keyboard path. Construct ONCE per
+ * card (`if (!this._slider)`) — setConfig runs per editor keystroke and a fresh
+ * SliderHold each time would stack controllers on the host. Callbacks close over
+ * `this`, so a re-config needs no rebuild; call `.hold.clear()` instead.
+ *
+ *   // setConfig:
+ *   if (!this._slider)
+ *     this._slider = setupSlider({
+ *       host: this,
+ *       guard: () => this._unavail(),
+ *       read: (e) => Math.round(pctFromX(e.clientX, e.currentTarget as Element)),
+ *       base: () => this._displayPct(),
+ *       commit: (v) => setLightBrightness(this.hass, this.config.entity, v),
+ *     });
+ *   else this._slider.hold.clear();
+ * @param opts — see {@link SliderControllerOptions}
+ * @returns the pre-wired {@link SliderController}
+ */
+export function setupSlider(o: SliderControllerOptions): SliderController {
+  const hold = new SliderHold(
+    o.host,
+    o.hold || { tolerance: 2, timeout: 5000 },
+  );
+  let dragging = false;
+  let dragValue = 0;
+  const doCommit = (v: number): void => {
+    hold.hold(v); // show the committed value until the entity catches up
+    const p = o.commit(v);
+    // A failed service call must not freeze the display on the optimistic value.
+    if (p) Promise.resolve(p).catch(() => hold.clear());
+  };
+  const debounced = debounce(
+    doCommit,
+    o.debounceMs != null ? o.debounceMs : 150,
+  );
+  const drag = sliderDrag({
+    read: o.read,
+    base: o.base,
+    clampValue: o.clampValue,
+    guard: o.guard,
+    frame: (v, d) => {
+      dragging = d;
+      if (v != null) dragValue = v;
+      o.host.requestUpdate();
+    },
+    live: (v) => debounced(v),
+    end: (v) => {
+      if (v == null) {
+        debounced.cancel();
+        return;
+      }
+      debounced(v); // pending = release value
+      debounced.flush(); // commit now (deduped vs the live commit)
+    },
+  });
+  return {
+    drag,
+    hold,
+    input(v) {
+      // Arm the hold now (display advances, held keys keep stepping) but debounce
+      // the write — key auto-repeat fired ~30 service calls a second raw.
+      hold.hold(v);
+      debounced(v);
+    },
+    commitNow: doCommit,
+    value: (entityValue, gone) =>
+      hold.value(entityValue, { dragging, dragValue, gone }),
+    get dragging() {
+      return dragging;
+    },
+    dispose() {
+      debounced.cancel();
+    },
   };
 }
 
@@ -292,6 +542,8 @@ export interface SliderTrackOptions {
   onMove?: (e: PointerEvent) => void;
   onUp?: (e: PointerEvent) => void;
   onCancel?: (e: PointerEvent) => void;
+  /** `@lostpointercapture` — pass `drag.lost` so a normal release can't cancel. */
+  onLost?: (e: PointerEvent) => void;
   dragging?: boolean;
   gradient?: string;
   label?: string;
@@ -321,6 +573,7 @@ export function sliderTrack({
   onMove,
   onUp,
   onCancel,
+  onLost,
   dragging = false,
   // A CSS background (e.g. a warm→cool or rainbow gradient) paints the whole track
   // instead of the accent fill — for colour-temperature / hue sliders. The knob
@@ -362,8 +615,10 @@ export function sliderTrack({
   // transparent wrapper (a real touch target); the painted 6px bar is an inert
   // child. pctFromX still measures e.currentTarget (the wrapper) — same width, so
   // the maths is unchanged. `group` lets the bubble reveal on keyboard focus.
+  // touch-none, not pan-y: a slightly-vertical touch drag must stay a drag — with
+  // pan-y the browser claims it for scrolling and pointercancels the gesture.
   return html`<div
-    class="group relative flex h-[var(--fib-hit)] cursor-pointer touch-pan-y items-center
+    class="group relative flex h-[var(--fib-hit)] cursor-pointer touch-none items-center
            ${cls} ${disabled ? "pointer-events-none" : ""}"
     role="slider"
     tabindex=${disabled ? -1 : 0}
@@ -377,7 +632,7 @@ export function sliderTrack({
     @pointermove=${onMove}
     @pointerup=${onUp}
     @pointercancel=${onCancel}
-    @lostpointercapture=${onCancel}
+    @lostpointercapture=${onLost || onCancel}
     @keydown=${keydown}
   >
     <div
@@ -504,7 +759,7 @@ export function overflowChips({
       aria-label=${s.name}
       aria-pressed=${active ? "true" : "false"}
       class="fib-hit inline-flex items-center gap-1.5 rounded-full border px-2.5 py-[5px]
-             text-[10.5px] font-medium ${
+             text-[10.5px] font-medium ${pressable({ hover: "bright" })} ${
                active
                  ? "border-accentline bg-accentbg text-accent"
                  : "border-line bg-card2 text-ink2"
@@ -533,7 +788,9 @@ export function overflowChips({
             type="button"
             aria-expanded=${open ? "true" : "false"}
             class="fib-hit inline-flex items-center gap-1 rounded-full border border-line bg-transparent
-                 px-2.5 py-[5px] text-[10.5px] font-medium text-ink2"
+                 px-2.5 py-[5px] text-[10.5px] font-medium text-ink2 ${pressable(
+                   { hover: "tint" },
+                 )}"
             @click=${onToggle}
           >
             ${
@@ -575,7 +832,7 @@ export function pillSwitch({
   return html`<button
     type="button"
     class="fib-hit relative h-5 w-9 flex-none rounded-full transition-colors
-           ${on ? "bg-accent" : "bg-card2"}"
+           ${pressable({ hover: "bright" })} ${on ? "bg-accent" : "bg-card2"}"
     role="switch"
     aria-checked=${on ? "true" : "false"}
     aria-label=${label || "toggle"}

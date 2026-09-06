@@ -25,9 +25,10 @@ const supportsAdopt =
 // was drawing a rectangle around each sector's bounding box), suppress text
 // selection / the iOS long-press callout on press-and-hold repeat controls, and
 // opt buttons out of double-tap-zoom. `manipulation` deliberately EXCLUDES
-// [role="slider"]: the slider wrappers set `touch-action:pan-y` (a class utility of
+// [role="slider"]: the slider wrappers set `touch-action:none` (a class utility of
 // equal specificity, and BASE_CSS is concatenated after the utilities — so listing
-// slider here would win and re-break vertical page scrolling on the sliders).
+// slider here would win, LOOSEN none back to manipulation, and let the browser
+// pointercancel a slightly-vertical drag for scrolling again).
 const BASE_CSS = `:host{--fib-hit:44px;-webkit-tap-highlight-color:transparent}
 :focus-visible{outline:2px solid var(--color-accent,#74B98A);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*,::before,::after{transition-duration:.01ms !important;animation-duration:.01ms !important}}
