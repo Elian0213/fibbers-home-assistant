@@ -44,8 +44,7 @@
     "offline": "Offline",
     "state_count": "{on} van {total} aan · {pct}%",
     "offline_count": "{off} offline",
-    "expand": "uitklappen",
-    "collapse": "inklappen"
+    "toggle": "Alle lampen aan/uit"
   },
   "greeting": {
     "morning": "Goedemorgen",

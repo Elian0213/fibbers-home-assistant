@@ -44,8 +44,7 @@
     "offline": "Offline",
     "state_count": "{on} of {total} on · {pct}%",
     "offline_count": "{off} offline",
-    "expand": "Expand",
-    "collapse": "Collapse"
+    "toggle": "All lights on/off"
   },
   "greeting": {
     "morning": "Good morning",

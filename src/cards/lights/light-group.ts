@@ -1,36 +1,36 @@
 /* ================================================================== *
  * fibbers-light-group — a master light control, heavier than a row: card
- * surface, room icon, a taller master slider, and members that expand as nested
- * light rows. Drives `brightness_pct` on the group (or an `entities` list).
+ * surface, room icon, a power toggle, and a taller master slider driving
+ * `brightness_pct` on the group (or an `entities` list). Tapping anywhere else
+ * on the tile opens the multi-lamp light-detail sheet for the members.
  * ================================================================== */
 import { LitElement, html, css, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { styleMap } from "lit/directives/style-map.js";
 
+import { setLightBrightness } from "@shared/actions";
 import { t } from "@shared/i18n";
 import { twSheet } from "@shared/tw";
 import {
   stepFromKey,
-  sliderDrag,
-  SliderHold,
-  type SliderDragHandlers,
+  setupSlider,
+  pillSwitch,
+  type SliderController,
 } from "@shared/ui";
 import {
-  store,
   isUnavail,
+  brightnessPct,
+  moreInfo,
   pctFromX,
-  debounce,
   pickEntity,
-  type Debounced,
 } from "@shared/util";
-import { cx, iconBox } from "@shared/variants";
+import { cx } from "@shared/variants";
 import type {
   HomeAssistant,
   LovelaceCard,
   LovelaceCardConfig,
   LovelaceCardEditor,
 } from "@/types/home-assistant";
-import { FibbersLightRow } from "@cards/lights/light-row";
 import "@shared/icon";
 
 const isLight = (id: unknown): id is string =>
@@ -52,21 +52,21 @@ interface GroupState {
   allOff: boolean;
 }
 
-/** YAML/editor config accepted by `fibbers-light-group`. */
+/** YAML/editor config accepted by `fibbers-light-group`. Unknown keys (e.g. the
+ * retired `expanded`/`show_scenes`) are ignored. */
 export interface LightGroupConfig extends LovelaceCardConfig {
   entity?: string;
   entities?: string[];
   members?: string[];
   name?: string;
   icon?: string;
-  expanded?: boolean | "remember";
-  show_scenes?: string[];
   language?: string;
 }
 
 /**
  * fibbers-light-group — a master light control, heavier than a row: card surface,
- * room icon, a taller master slider, and members that expand as nested light rows.
+ * room icon, a power toggle, and a taller master slider. Tapping anywhere except
+ * the slider or the toggle opens the multi-lamp light-detail sheet.
  */
 @customElement("fibbers-light-group")
 export class FibbersLightGroup extends LitElement implements LovelaceCard {
@@ -74,19 +74,7 @@ export class FibbersLightGroup extends LitElement implements LovelaceCard {
 
   @state() private config!: LightGroupConfig;
 
-  @state() private _open = false;
-
-  @state() private _dragging = false;
-
-  @state() private _dragPct = 0;
-
-  private _hold?: SliderHold;
-
-  private _drag!: SliderDragHandlers;
-
-  private _debouncedCommit!: Debounced<[number]>;
-
-  private _rowCache = new Map<string, FibbersLightRow>();
+  private _slider?: SliderController;
 
   private _loggedGhosts = false;
 
@@ -132,53 +120,32 @@ export class FibbersLightGroup extends LitElement implements LovelaceCard {
         "fibbers-light-group: `entity` (a group) or `entities` is required",
       );
     }
-    if (
-      config.expanded != null &&
-      config.expanded !== true &&
-      config.expanded !== false &&
-      config.expanded !== "remember"
-    ) {
-      throw new Error(
-        'fibbers-light-group: `expanded` must be true, false, or "remember"',
-      );
-    }
     this.config = config;
-    this._dragging = false;
-    this._dragPct = 0;
-    // Construct the hold once — addController has no counterpart, so a fresh one
-    // per setConfig (per editor keystroke) would orphan controllers.
-    if (!this._hold)
-      this._hold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
-    else this._hold.clear();
-    this._debouncedCommit = debounce((p: number) => this._commit(p), 150);
-    // Shared drag gesture: live-track past the slop, final value wins on release.
-    this._drag = sliderDrag({
-      read: (e) => Math.round(pctFromX(e.clientX, e.currentTarget as Element)),
-      frame: (v, dragging) => {
-        this._dragging = dragging;
-        if (v != null) this._dragPct = v;
-      },
-      live: (v) => this._debouncedCommit(v),
-      end: (v) => {
-        if (v == null) {
-          this._debouncedCommit.cancel();
-          return;
-        }
-        this._debouncedCommit(v);
-        this._debouncedCommit.flush();
-      },
-    });
-    this._rowCache = new Map();
     this._loggedGhosts = false;
-    if (config.expanded === true) this._open = true;
-    else if (config.expanded === "remember")
-      this._open = !!store.get(this._key(), false);
-    else this._open = false;
+    // Construct the slider control once and reuse it — a fresh SliderHold per
+    // setConfig (HA calls it per editor keystroke) would stack controllers on the
+    // element. The callbacks close over `this`, so a re-config needs no rebuild.
+    if (!this._slider)
+      this._slider = setupSlider({
+        host: this,
+        guard: () => this._state().allOff,
+        read: (e) =>
+          Math.round(pctFromX(e.clientX, e.currentTarget as Element)),
+        base: () => this._displayPct(this._state()),
+        commit: (v) =>
+          setLightBrightness(
+            this.hass,
+            this.config.entity || this._members(),
+            v,
+          ),
+      });
+    else this._slider.hold.clear();
   }
 
-  private _key(): string {
-    const c = this.config;
-    return `fibbers:lightgroup:${c.entity || (c.entities || []).join(",")}`;
+  /** Drop the trailing debounced commit on unmount so a stale value never fires. */
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    if (this._slider) this._slider.dispose();
   }
 
   // Member ids: explicit `members`/`entities`, else the group's own members with
@@ -225,9 +192,8 @@ export class FibbersLightGroup extends LitElement implements LovelaceCard {
         // Only members that actually report a brightness feed the average — an
         // on/off member with no `brightness` used to inject a phantom 100% and
         // drag the master slider up.
-        const b = st.attributes.brightness;
-        if (b != null) {
-          const pct = Math.round((b / 255) * 100);
+        if (st.attributes.brightness != null) {
+          const pct = brightnessPct(st);
           sum += pct;
           withBrightness += 1;
           bmin = Math.min(bmin, pct);
@@ -262,36 +228,9 @@ export class FibbersLightGroup extends LitElement implements LovelaceCard {
       : base;
   }
 
-  // Absolute set on every member (via the group entity when there is one).
-  private _commit(pct: number): void {
-    if (!this.hass) return;
-    this._hold!.hold(pct); // show the committed value until the group catches up
-    // Optimistically hold each expanded member row at the same target so their
-    // sliders move with the master immediately instead of lagging HA's per-member
-    // state push and then jumping ("teleport").
-    this._rowCache.forEach((row) => {
-      if (row && typeof row.holdDisplay === "function") row.holdDisplay(pct);
-    });
-    const entityId = this.config.entity || this._members();
-    const p =
-      pct <= 0
-        ? this.hass.callService("light", "turn_off", { entity_id: entityId })
-        : this.hass.callService("light", "turn_on", {
-            entity_id: entityId,
-            brightness_pct: pct,
-          });
-    Promise.resolve(p).catch(() => {
-      this._hold!.clear();
-      this._rowCache.forEach((row) => {
-        if (row && typeof row.clearDisplay === "function") row.clearDisplay();
-      });
-    });
-  }
-
-  /** Drop the trailing debounced commit on unmount so a stale value never fires. */
-  disconnectedCallback(): void {
-    super.disconnectedCallback();
-    this._debouncedCommit.cancel();
+  // The value the master slider shows: the group average with drag/hold applied.
+  private _displayPct(s: GroupState): number {
+    return Math.round(this._slider!.value(s.pct, s.allOff));
   }
 
   // Keyboard control for the master slider (arrows/Home/End/PageUp-Down by 5%).
@@ -300,52 +239,43 @@ export class FibbersLightGroup extends LitElement implements LovelaceCard {
   private _onKey(e: KeyboardEvent): void {
     const s = this._state();
     if (s.allOff) return;
-    const cur = this._hold!.value(s.pct, {
-      dragging: this._dragging,
-      dragValue: this._dragPct,
-      gone: s.allOff,
-    });
+    const cur = this._displayPct(s);
     const next = stepFromKey(e.key, { value: cur, min: 0, max: 100, step: 5 });
     if (next == null) return;
     e.preventDefault();
-    // Arm the hold now so held-key repeats keep climbing, but debounce the write —
-    // the raw committer fired a light.turn_on per keydown (~30/s on auto-repeat).
-    if (next !== cur) {
-      this._hold!.hold(next);
-      this._debouncedCommit(next);
-    }
+    if (next !== cur) this._slider!.input(next);
   }
 
-  private _toggle(): void {
-    this._open = !this._open;
-    if (this.config.expanded === "remember") store.set(this._key(), this._open);
+  // The power toggle: any member on → all off; all off → all on. Same target as
+  // the master slider (the group entity when there is one, else the members).
+  private _togglePower(s: GroupState): void {
+    if (!this.hass || s.allOff) return;
+    const target = this.config.entity || this._members();
+    Promise.resolve(
+      this.hass.callService("light", s.on > 0 ? "turn_off" : "turn_on", {
+        entity_id: target,
+      }),
+    ).catch(() => {});
   }
 
-  private _scene(id: string): void {
-    if (this.hass) this.hass.callService("scene", "turn_on", { entity_id: id });
-  }
-
-  // Cache one real fibbers-light-row per member so drag state survives re-renders.
-  private _memberRow(id: string): FibbersLightRow {
-    let el = this._rowCache.get(id);
-    if (!el) {
-      el = document.createElement("fibbers-light-row") as FibbersLightRow;
-      el.setConfig({
-        type: "custom:fibbers-light-row",
-        entity: id,
-        compact: true,
-        // Carry the group so opening a member's detail can switch lamps in place.
-        siblings: this._members(),
-        groupName: this.config.name,
-      });
-      this._rowCache.set(id, el);
-    }
-    el.hass = this.hass;
-    return el;
+  // Tap-through on the tile: open the multi-lamp detail sheet, focused on the
+  // first lit member (else the first), carrying the members as siblings.
+  private _moreInfo(): void {
+    const lights = this._members();
+    if (!lights.length) return;
+    const id =
+      lights.find((l) => {
+        const st = this.hass && this.hass.states[l];
+        return !!st && st.state === "on";
+      }) || lights[0];
+    moreInfo(this, id, { siblings: lights, groupName: this.config.name });
   }
 
   // --- render helpers ------------------------------------------------
 
+  // The header row is inert content over the tap-through underlay
+  // (pointer-events-none on the row, set by render); only the power toggle
+  // re-enables its own pointer events on top.
   private _renderHeader(
     hl: unknown,
     s: GroupState,
@@ -353,7 +283,9 @@ export class FibbersLightGroup extends LitElement implements LovelaceCard {
     icon: string,
     lit: boolean,
   ): TemplateResult {
-    return html`<div class="flex items-center gap-3">
+    return html`<div
+      class="pointer-events-none relative flex items-center gap-3"
+    >
       <div
         class="${cx(
           "flex h-9 w-9 flex-none items-center justify-center rounded-[10px]",
@@ -368,11 +300,7 @@ export class FibbersLightGroup extends LitElement implements LovelaceCard {
           icon=${icon}
         ></fib-icon>
       </div>
-      <button
-        type="button"
-        class="min-w-0 flex-1 text-left"
-        @click=${this._toggle}
-      >
+      <div class="min-w-0 flex-1 text-left">
         <div class="truncate text-[13px] font-semibold text-ink">${name}</div>
         <div
           class="${cx(
@@ -382,28 +310,14 @@ export class FibbersLightGroup extends LitElement implements LovelaceCard {
         >
           ${this._secondary(s)}
         </div>
-      </button>
-      <button
-        type="button"
-        class="${cx(
-          iconBox({ tone: "plain" }),
-          "fib-hit text-muted transition-transform active:scale-90",
-        )}"
-        aria-label=${
-          this._open
-            ? t(hl, "light_group.collapse")
-            : t(hl, "light_group.expand")
-        }
-        @click=${this._toggle}
-      >
-        <fib-icon
-          class="${cx(
-            "h-5 w-5 [--mdc-icon-size:20px] transition-transform",
-            this._open && "rotate-180",
-          )}"
-          icon="solar:alt-arrow-down-bold-duotone"
-        ></fib-icon>
-      </button>
+      </div>
+      <span class="pointer-events-auto flex items-center">
+        ${pillSwitch({
+          on: s.on > 0,
+          label: t(hl, "light_group.toggle"),
+          onClick: () => this._togglePower(s),
+        })}
+      </span>
     </div>`;
   }
 
@@ -412,9 +326,12 @@ export class FibbersLightGroup extends LitElement implements LovelaceCard {
     s: GroupState,
     pct: number,
   ): TemplateResult {
+    const { drag } = this._slider!;
+    // touch-none, not pan-y: a slightly-vertical touch drag must stay a drag —
+    // with pan-y the browser claims it for scrolling and cancels the gesture.
     return html`<div
       class="${cx(
-        "group relative mt-2 flex h-[var(--fib-hit)] cursor-pointer touch-pan-y items-center",
+        "group relative mt-2 flex h-[var(--fib-hit)] cursor-pointer touch-none items-center",
         s.allOff && "pointer-events-none opacity-50",
       )}"
       role="slider"
@@ -425,11 +342,11 @@ export class FibbersLightGroup extends LitElement implements LovelaceCard {
       aria-valuenow=${pct}
       aria-valuetext=${`${pct}%`}
       aria-disabled=${s.allOff ? "true" : "false"}
-      @pointerdown=${this._drag.down}
-      @pointermove=${this._drag.move}
-      @pointerup=${this._drag.up}
-      @pointercancel=${this._drag.cancel}
-      @lostpointercapture=${this._drag.cancel}
+      @pointerdown=${drag.down}
+      @pointermove=${drag.move}
+      @pointerup=${drag.up}
+      @pointercancel=${drag.cancel}
+      @lostpointercapture=${drag.lost}
       @keydown=${this._onKey}
     >
       <div
@@ -458,7 +375,9 @@ export class FibbersLightGroup extends LitElement implements LovelaceCard {
            shadow-[0_2px_10px_rgba(0,0,0,.5)] transition-[opacity,transform]
            duration-100 group-focus-visible:scale-100
            group-focus-visible:opacity-100`,
-          this._dragging ? "scale-100 opacity-100" : "scale-90 opacity-0",
+          this._slider!.dragging
+            ? "scale-100 opacity-100"
+            : "scale-90 opacity-0",
         )}"
         style="left:${pct}%"
       >
@@ -469,67 +388,45 @@ export class FibbersLightGroup extends LitElement implements LovelaceCard {
           `absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full
            bg-accent shadow-[0_1px_4px_rgba(0,0,0,.5)]
            transition-[width,height] duration-100`,
-          this._dragging ? "h-[22px] w-[22px]" : "h-[18px] w-[18px]",
+          this._slider!.dragging ? "h-[22px] w-[22px]" : "h-[18px] w-[18px]",
         )}"
         style="left:${pct}%"
       ></div>`;
   }
 
-  private _renderScenes(): TemplateResult | string {
-    const scenes = Array.isArray(this.config.show_scenes)
-      ? this.config.show_scenes
-      : [];
-    if (!scenes.length) return "";
-    return html`<div class="mb-1 flex flex-wrap gap-1.5">
-      ${scenes.map((id) => {
-        const st = this.hass && this.hass.states[id];
-        const label = (st && st.attributes.friendly_name) || id;
-        return html`<button
-          type="button"
-          class="rounded-full border border-line bg-card2 px-2.5 py-1 text-[10.5px]
-               font-medium text-ink2"
-          @click=${() => this._scene(id)}
-        >
-          ${label}
-        </button>`;
-      })}
-    </div>`;
-  }
-
-  private _renderExpanded(): TemplateResult {
-    return html`<div class="ml-[18px] mt-3 border-l border-card2 pl-3">
-      ${this._renderScenes()}
-      ${this._members().map((id) => this._memberRow(id))}
-    </div>`;
-  }
-
-  /** Draw the header, master slider, and (when open) the expanded member rows. */
+  /** Draw the tile: a tap-through underlay (→ the multi-lamp detail sheet) under
+   * the header (icon, name, power toggle) and the master slider. Button-underlay
+   * pattern: a full-size transparent button sits behind pointer-events-none
+   * content, and the toggle/slider re-enable their own pointer events on top —
+   * so nothing is nested inside an interactive element. */
   render(): TemplateResult {
     const cfg = this.config;
     if (!cfg) return html``;
     const hl = cfg.language || this.hass;
     const s = this._state();
     const lit = s.on > 0;
-    const pct = this._hold!.value(s.pct, {
-      dragging: this._dragging,
-      dragValue: this._dragPct,
-      gone: s.allOff,
-    });
+    const pct = this._displayPct(s);
     const name = cfg.name || t(hl, "light_group.default_name");
     const icon = cfg.icon || "solar:lightbulb-bold-duotone";
 
     return html`<div
       class="${cx(
-        "rounded-[15px] border p-[13px]",
+        "relative rounded-[15px] border p-[13px]",
         lit
           ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)]"
           : "border-line bg-card",
         s.allOff && "opacity-[.66]",
       )}"
     >
+      <button
+        type="button"
+        class="absolute inset-0 cursor-pointer rounded-[15px] transition-colors
+               hover:bg-white/[.04]"
+        aria-label=${`${name} — ${t(hl, "common.more_info")}`}
+        @click=${() => this._moreInfo()}
+      ></button>
       ${this._renderHeader(hl, s, name, icon, lit)}
       ${this._renderMasterSlider(name, s, pct)}
-      ${this._open ? this._renderExpanded() : ""}
     </div>`;
   }
 
@@ -543,7 +440,7 @@ export class FibbersLightGroup extends LitElement implements LovelaceCard {
     return { grid_columns: "full", grid_rows: 2 };
   }
 
-  /** Grid-view sizing: full-width, auto height (grows when expanded). */
+  /** Grid-view sizing: full-width, auto height. */
   getGridOptions(): { columns: string; rows: string } {
     return { columns: "full", rows: "auto" };
   }

@@ -6,23 +6,14 @@ export default {
 };
 
 /** A room master: 2 of 4 on at mixed brightness (striped fill), one bulb
- * offline, and a stale ghost id skipped from the count. */
+ * offline, and a stale ghost id skipped from the count. The top-right toggle
+ * switches every member; tapping the tile (anywhere but the slider or the
+ * toggle) opens the multi-lamp light-detail sheet. */
 export const Mixed = story({
   type: "custom:fibbers-light-group",
   entity: "light.woonkamer_lampen",
   name: "Woonkamer",
   icon: "solar:sofa-2-bold-duotone",
-});
-
-/** Expanded — members render as nested light rows under the master, with a
- * couple of scene chips. */
-export const Expanded = story({
-  type: "custom:fibbers-light-group",
-  entity: "light.woonkamer_lampen",
-  name: "Woonkamer",
-  icon: "solar:sofa-2-bold-duotone",
-  expanded: true,
-  show_scenes: ["scene.avond", "scene.helder"],
 });
 
 /** All members on at the same brightness — solid fill, no stripe. */
