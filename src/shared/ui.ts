@@ -354,13 +354,10 @@ export function sliderTrack({
   // The bubble text — the caller's valueText (e.g. "72%", "21.5 °C", "1:24"), else
   // the raw percentage. Shown while dragging (JS flag) or on keyboard focus (CSS).
   const bubbleText = valueText != null ? valueText : `${Math.round(pct)}%`;
-  // aria-valuenow: `nothing` when disabled, else the value-space value if given,
-  // else the rounded percentage. Extracted from the template so it reads as a
-  // plain guard chain rather than a nested ternary — identical rendered output.
-  let ariaValueNow: typeof nothing | number;
-  if (disabled) ariaValueNow = nothing;
-  else if (value != null) ariaValueNow = value;
-  else ariaValueNow = Math.round(pct);
+  // aria-valuenow: the value-space value if given, else the rounded percentage.
+  // Always present — role="slider" REQUIRES it (axe: aria-required-attr), and a
+  // disabled slider still has a position worth announcing.
+  const ariaValueNow = value != null ? value : Math.round(pct);
   // The element carrying role="slider" + the pointer handlers is a 44px-tall
   // transparent wrapper (a real touch target); the painted 6px bar is an inert
   // child. pctFromX still measures e.currentTarget (the wrapper) — same width, so
