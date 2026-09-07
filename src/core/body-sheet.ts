@@ -77,6 +77,39 @@ const layer: SheetLayer = {
 // id, so the hash-clear on close and syncFromHash never mistake it for a sheet.
 const MODAL_ID = " fib-modal";
 
+// --- ad-hoc modal history (browser back / gesture closes the modal) ----------
+// Hash-routed sheets already close on `hashchange`; ad-hoc modals (more-info, the
+// alarm sheet) don't touch the hash, so they back one history entry instead. One
+// pushed entry backs whichever modal is open (a modal→modal switch reuses it), so
+// pressing back — or the Android/edge-swipe gesture — closes the modal rather than
+// leaving the view. Depth-tracked, guarded, and a no-op where history is
+// unavailable (the modal still closes via ×/backdrop/Escape).
+let modalHistoryDepth = 0;
+
+function pushModalHistory(): void {
+  if (modalHistoryDepth > 0) return; // switching modals reuses the single entry
+  try {
+    window.history.pushState({ fibModal: true }, "");
+    modalHistoryDepth = 1;
+  } catch (_) {
+    modalHistoryDepth = 0; // no history → no back-close; other close paths still work
+  }
+}
+
+// Remove the pushed entry when the modal closes by a means OTHER than back
+// (×/backdrop/Escape/drag). When the close WAS the back button, the entry is
+// already gone, so we only clear the counter. Never navigates the real page.
+function popModalHistory(fromPopstate: boolean): void {
+  if (modalHistoryDepth === 0) return;
+  modalHistoryDepth = 0;
+  if (fromPopstate) return; // the pop already happened
+  try {
+    window.history.back();
+  } catch (_) {
+    /* history unavailable — nothing to unwind */
+  }
+}
+
 const reduceMotion = (): boolean =>
   window.matchMedia &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -128,10 +161,15 @@ function finishClose(): void {
  * transition, unless reduced-motion) runs finishClose to unlock the view and return
  * focus to the opener. finishClose is guarded so a switch/unregister can't run it
  * against the wrong sheet.
+ * @param fromPopstate — true when the close was triggered by the back button (the
+ *   modal's history entry is already gone).
+ * @param keepHistory — true when a modal→modal switch should reuse the pushed
+ *   history entry instead of unwinding it.
  */
-export function closeSheet(): void {
+function closeSheetImpl(fromPopstate: boolean, keepHistory: boolean): void {
   if (layer.openId == null) return;
   const id = layer.openId;
+  const wasModal = id === MODAL_ID;
   layer.openId = null;
   if (layer.closeTimer) clearTimeout(layer.closeTimer);
   if (layer.host) layer.host.removeAttribute("data-shown");
@@ -142,8 +180,20 @@ export function closeSheet(): void {
       window.location.pathname + window.location.search,
     );
   }
+  if (wasModal && !keepHistory) popModalHistory(fromPopstate);
   if (reduceMotion()) finishClose();
   else layer.closeTimer = setTimeout(finishClose, 300);
+}
+
+/** Close the open sheet/modal (backdrop / × / Escape / drag / programmatic). */
+export function closeSheet(): void {
+  closeSheetImpl(false, false);
+}
+
+// The back button / edge-swipe popped our pushed entry — close the open modal.
+// Hash sheets are handled by syncFromHash on `hashchange`, not here.
+function onPopState(): void {
+  if (layer.openId === MODAL_ID) closeSheetImpl(true, false);
 }
 
 // Focus trap: while the sheet is open, if focus escapes it (Tab past the last
@@ -436,6 +486,7 @@ function ensureListeners(): void {
   if (listenersOn) return;
   listenersOn = true;
   window.addEventListener("hashchange", syncFromHash);
+  window.addEventListener("popstate", onPopState);
   window.addEventListener("focusin", onFocusIn);
   window.addEventListener("keydown", onKeydown);
   document.addEventListener("visibilitychange", onVisibility);
@@ -444,6 +495,7 @@ function removeSheetListeners(): void {
   if (!listenersOn) return;
   listenersOn = false;
   window.removeEventListener("hashchange", syncFromHash);
+  window.removeEventListener("popstate", onPopState);
   window.removeEventListener("focusin", onFocusIn);
   window.removeEventListener("keydown", onKeydown);
   document.removeEventListener("visibilitychange", onVisibility);
@@ -477,7 +529,10 @@ export function openModal({
 }: ModalSpec): void {
   ensureListeners();
   build();
-  if (layer.openId != null) closeSheet();
+  // A modal→modal switch reuses the single pushed history entry (keepHistory), so
+  // closing the previous one doesn't unwind the entry we're about to reuse.
+  const switchingModal = layer.openId === MODAL_ID;
+  if (layer.openId != null) closeSheetImpl(false, switchingModal);
   const active = deepActiveElement();
   if (!layer.shadow || !layer.shadow.contains(active)) layer.opener = active;
   const card: SheetCard = {
@@ -492,6 +547,9 @@ export function openModal({
   // Opt into the wider desktop dialog (two-column content); cleared on close.
   if (wide) layer.host!.setAttribute("data-wide", "true");
   else layer.host!.removeAttribute("data-wide");
+  // Back a history entry so the browser/OS back button closes the modal (no-op
+  // when switching — the existing entry is reused).
+  pushModalHistory();
   lockView(true);
   renderContent(card);
   reveal();

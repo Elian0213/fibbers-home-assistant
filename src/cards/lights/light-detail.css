@@ -14,21 +14,5 @@
     overflow: visible;
   }
 }
-/* Themed thin scrollbar for the horizontal lamp-tile strip. */
-.lamp-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-line, #333e41) transparent;
-}
-.lamp-scroll::-webkit-scrollbar {
-  height: 6px;
-}
-.lamp-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-.lamp-scroll::-webkit-scrollbar-thumb {
-  background: var(--color-line, #333e41);
-  border-radius: 3px;
-}
-.lamp-scroll:hover::-webkit-scrollbar-thumb {
-  background: var(--color-accent, #74b98a);
-}
+/* The themed thin scrollbar is the shared `.fib-scroll` class (src/shared/tw.ts),
+   used here on the horizontal lamp-tile strip and by the alarm station list. */

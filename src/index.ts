@@ -6,6 +6,7 @@
  */
 import "./shared/icon"; // registers <fib-icon>
 import "./core/editor"; // registers <fibbers-form-editor> for getConfigElement()
+import { FibbersAlarm } from "./cards/inputs/alarm";
 import { FibbersClimate } from "./cards/climate/climate";
 import { FibbersChips } from "./cards/inputs/chips";
 import { FibbersDateTime } from "./cards/inputs/datetime";
@@ -39,7 +40,7 @@ import { nav, goBack, previous } from "./core/nav-stack";
 import { T, styleBlock } from "./shared/tokens";
 import { navigate } from "./shared/util";
 
-const VERSION = "0.10.0";
+const VERSION = "0.11.0";
 
 /* ================================================================== *
  * REGISTRY — `[tag, class, name, description]` per card. The forEach below
@@ -203,6 +204,12 @@ const CARDS: CardEntry[] = [
     FibbersDateTime,
     "Fibbers Datetime",
     "Time / date row for input_datetime.",
+  ],
+  [
+    "fibbers-alarm",
+    FibbersAlarm,
+    "Fibbers Alarm",
+    "Wake-up alarm on one tile — time, days, light + radio — with a settings sheet.",
   ],
   [
     "fibbers-greeting",

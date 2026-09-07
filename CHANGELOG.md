@@ -3,6 +3,46 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.11.0] — 2026-09-07
+
+One alarm card: the whole wake-up at a glance, and the settings you actually change
+one tap away.
+
+### Added
+
+- **`fibbers-alarm` — the wake-up alarm as a single tile.** The time, the day mode, when
+  the light starts and how long it fades to what brightness, whether the radio comes on
+  and at which station and volume, the last run's status, and a master on/off toggle in
+  the corner — all on one card. Tapping it anywhere but the toggle opens a bottom sheet in
+  the same chrome as the room light picker, holding the settings that move week to week:
+  the alarm time (an inline ± stepper), the days, radio on/off, station and volume. A
+  "Volledige configuratie" row at the bottom of the sheet hands off to the full Wekker page
+  for the fade, the end brightness, the lamp list, the automations and the test buttons.
+  The card flags the two ways an alarm silently fails: no reachable wake lamp, and a `FOUT`
+  status from the light automation.
+- **Wake lights by label.** `lights_label:` resolves the card's lamp set from an HA label,
+  the same way `automation.wekker_licht` picks its targets, so the card cannot drift from
+  the automation when a lamp is added (degrades gracefully where the registry labels aren't
+  exposed).
+- **Station logos in the sheet.** The wake-radio picker fetches each station's logo from the
+  radio-browser directory (best-effort, https-only, cached), falling back to a radio-wave
+  icon where a station has no reliable logo — so a strict-CSP dashboard just sees icons.
+
+### Changed
+
+- **The browser/OS back button closes an open Fibbers modal.** Every ad-hoc modal (the
+  room light picker, the more-info replacements for media/climate/sensor, and the new alarm
+  sheet) now backs a history entry, so a hardware back press or edge-swipe closes it instead
+  of leaving the view — matching the hash-routed sheets. One shared mechanism in the sheet
+  layer, not per-card.
+
+### Internal
+
+- Volume and every other slider in the new card ride the 0.10.0 `setupSlider` /
+  `pointerDrag` primitives, and read their bounds and step from the `input_number` entity
+  instead of assuming 0–100. The next-occurrence and step-snapping logic are pure and
+  unit-tested.
+
 ## [0.10.0] — 2026-09-07
 
 Touch UX overhaul — sliders and the colour wheel finally feel right under a finger —

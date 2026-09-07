@@ -158,6 +158,24 @@ export const clamp = (n: number, lo: number, hi: number): number =>
   Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : lo;
 
 /**
+ * Snap `n` to the nearest `min + k*step` and clamp to [min,max] — the shared
+ * value-quantiser for range sliders (brightness is 0-100/step 1; a wake-volume
+ * helper is min 5 / max 60 / step 5). `toFixed(4)` trims binary-float dust
+ * (0.30000000000000004) before clamping.
+ * @param n @param min @param max @param step
+ */
+export const snapToStep = (
+  n: number,
+  min: number,
+  max: number,
+  step: number,
+): number => {
+  const s = Number.isFinite(step) && step > 0 ? step : 1;
+  const snapped = Math.round((n - min) / s) * s + min;
+  return clamp(Number(snapped.toFixed(4)), min, max);
+};
+
+/**
  * A CSS `url("…")` value safe to interpolate into an inline style. encodeURI
  * escapes the `"` (and control chars) that could otherwise break out of the
  * quotes, so a signed entity_picture URL with odd characters can't inject CSS.

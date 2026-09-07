@@ -9,7 +9,7 @@ you came from, drag-away sheets, room tiles that count their own lights, and an 
 from real checks instead of Jinja. It reads in your language, sizes itself, and leaves the rest of
 Home Assistant untouched.
 
-27 cards, one file. No theme repo, no `kiosk-mode`, no wall of `card-mod`.
+28 cards, one file. No theme repo, no `kiosk-mode`, no wall of `card-mod`.
 
 [![Validate](https://github.com/Elian0213/fibbers-home-assistant/actions/workflows/validate.yml/badge.svg)](https://github.com/Elian0213/fibbers-home-assistant/actions/workflows/validate.yml)
 [![CI](https://github.com/Elian0213/fibbers-home-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/Elian0213/fibbers-home-assistant/actions/workflows/ci.yml)
@@ -70,7 +70,7 @@ Fibbers is a **Dashboard** plugin (a Lovelace resource), installed through HACS.
    Add**, URL `/hacsfiles/fibbers-home-assistant/fibbers.js`, type **JavaScript module**.
 4. Hard-refresh the browser (Ctrl/Cmd-Shift-R).
 
-Done — the 27 cards are in the card picker (search "fibbers"). Nothing else about your Home
+Done — the 28 cards are in the card picker (search "fibbers"). Nothing else about your Home
 Assistant changes.
 
 ---
@@ -116,7 +116,7 @@ in the [Storybook](https://elian0213.github.io/fibbers-home-assistant/).
 
 ## The cards
 
-27 cards sharing one design-token set, so they match out of the box. On-screen strings follow your
+28 cards sharing one design-token set, so they match out of the box. On-screen strings follow your
 Home Assistant language (English by default, Dutch translation included); config keys are English.
 
 **Shell & navigation** — the app shell: a pinned bottom bar (sidebar-aware on desktop), a back button, drag-away modal sheets, a section label, and the greeting header. (The bar and an open sheet are up top.)
@@ -166,7 +166,7 @@ Home Assistant language (English by default, Dutch translation included); config
 </tr>
 </table>
 
-**Devices** — a media player, a thermostat, a wake scheduler, and a universal remote.
+**Devices** — a media player, a thermostat, a one-tile wake-up alarm, a wake scheduler, and a universal remote.
 
 <table>
 <tr>
@@ -176,7 +176,7 @@ Home Assistant language (English by default, Dutch translation included); config
 </tr>
 <tr>
 <td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/remote.png" width="240" alt="fibbers-remote"><br><code>fibbers-remote</code><br><sub>universal remote</sub></td>
-<td></td>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/Elian0213/fibbers-home-assistant/main/docs/images/cards/alarm.png" width="240" alt="fibbers-alarm"><br><code>fibbers-alarm</code><br><sub>wake-up alarm</sub></td>
 <td></td>
 </tr>
 </table>

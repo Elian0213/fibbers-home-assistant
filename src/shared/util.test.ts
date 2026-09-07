@@ -15,6 +15,7 @@ import {
   norm,
   pctFromX,
   pickEntity,
+  snapToStep,
   store,
 } from "./util";
 
@@ -88,6 +89,33 @@ describe("norm", () => {
   test("empty and root collapse to '/'", () => {
     expect(norm("")).toBe("/");
     expect(norm("/")).toBe("/");
+  });
+});
+
+describe("snapToStep", () => {
+  test("snaps to the nearest min + k*step", () => {
+    expect(snapToStep(17, 5, 60, 5)).toBe(15);
+    expect(snapToStep(18, 5, 60, 5)).toBe(20);
+    expect(snapToStep(42, 0, 100, 1)).toBe(42);
+  });
+
+  test("clamps to [min,max] after snapping", () => {
+    expect(snapToStep(3, 5, 60, 5)).toBe(5);
+    expect(snapToStep(200, 5, 60, 5)).toBe(60);
+  });
+
+  test("respects an offset min (grid is min + k*step, not 0 + k*step)", () => {
+    // min 5 / step 5 → allowed 5,10,15…; 7 snaps to 5, 8 snaps to 10.
+    expect(snapToStep(7, 5, 60, 5)).toBe(5);
+    expect(snapToStep(8, 5, 60, 5)).toBe(10);
+  });
+
+  test("trims binary-float dust", () => {
+    expect(snapToStep(0.3, 0, 1, 0.1)).toBe(0.3);
+  });
+
+  test("a non-positive step falls back to 1", () => {
+    expect(snapToStep(3.6, 0, 10, 0)).toBe(4);
   });
 });
 
