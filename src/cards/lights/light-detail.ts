@@ -540,7 +540,7 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
       ></button>`;
     const anyTemp = this._lamps().some((id) => this._lHasTemp(id));
     const anyColour = this._lamps().some((id) => this._lHasColor(id));
-    return html`<div class="lamp-scroll flex gap-2 overflow-x-auto pb-1">
+    return html`<div class="fib-scroll flex gap-2 overflow-x-auto pb-1">
       ${
         anyTemp
           ? WHITES.map((w) =>
@@ -975,7 +975,7 @@ export class FibbersLightDetail extends LitElement implements LovelaceCard {
   private _lampTiles(hl: unknown): TemplateResult {
     const active = this.config.entity;
     return html`<div
-      class="lamp-tiles lamp-scroll flex gap-2 overflow-x-auto pb-1"
+      class="lamp-tiles fib-scroll flex gap-2 overflow-x-auto pb-1"
     >
       ${this._lamps().map((id) => {
         const on = this._lOn(id);

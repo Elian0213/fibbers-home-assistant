@@ -268,6 +268,59 @@ export function makeHass(flags = {}) {
 
   add("input_boolean.wake_radio_enabled", "on", { friendly_name: "Radio aan" });
 
+  // fibbers-alarm helpers (the full wake-up set)
+  add("input_datetime.wake_up_time", "09:00:00", {
+    friendly_name: "Wektijd",
+    has_time: true,
+    has_date: false,
+  });
+  add("input_datetime.wake_fade_start", "08:40:00", {
+    friendly_name: "Licht vanaf",
+    has_time: true,
+    has_date: false,
+  });
+  add("input_number.wake_brightness", "100", {
+    friendly_name: "Eindhelderheid",
+    unit_of_measurement: "%",
+    min: 10,
+    max: 100,
+    step: 10,
+  });
+  add("input_number.wake_volume", "15", {
+    friendly_name: "Wekvolume",
+    unit_of_measurement: "%",
+    min: 5,
+    max: 60,
+    step: 5,
+  });
+  add("input_select.wake_radio_station", "IE · SPIN 1038", {
+    friendly_name: "Wekradio zender",
+    options: [
+      "NL · NPO Radio 1",
+      "NL · NPO Radio 2",
+      "NL · 3FM",
+      "NL · Radio 538",
+      "NL · Qmusic",
+      "NL · Sky Radio",
+      "NL · Radio Veronica",
+      "NL · SLAM!",
+      "NL · 100% NL",
+      "NL · Radio 10",
+      "IE · RTÉ Radio 1",
+      "IE · RTÉ 2FM",
+      "IE · Today FM",
+      "IE · Newstalk",
+      "IE · SPIN 1038",
+      "IE · FM104",
+      "IE · 98FM",
+      "IE · Radio Nova",
+    ],
+  });
+  add("input_text.wake_status", "Radio gestart 04:45 · IE · SPIN 1038", {
+    friendly_name: "Wekker status",
+    max: 255,
+  });
+
   add("input_datetime.keuken_dag_start", "07:00:00", {
     friendly_name: "Dag begint om",
     has_time: true,

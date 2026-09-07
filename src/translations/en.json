@@ -46,6 +46,26 @@
     "offline_count": "{off} offline",
     "toggle": "All lights on/off"
   },
+  "alarm": {
+    "title": "Alarm",
+    "alarm_on": "Alarm on",
+    "radio_on": "Radio on",
+    "off": "Off",
+    "today": "today",
+    "tomorrow": "tomorrow",
+    "light_from": "light from {time}",
+    "radio_section": "Wake radio",
+    "radio_off": "Radio off",
+    "volume": "Volume",
+    "station": "Station",
+    "days": "Days",
+    "full_config": "Full configuration",
+    "no_light": "no lamp reachable",
+    "hour_up": "Hour up",
+    "hour_down": "Hour down",
+    "minute_up": "Minute up",
+    "minute_down": "Minute down"
+  },
   "greeting": {
     "morning": "Good morning",
     "afternoon": "Good afternoon",

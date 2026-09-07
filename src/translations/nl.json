@@ -46,6 +46,26 @@
     "offline_count": "{off} offline",
     "toggle": "Alle lampen aan/uit"
   },
+  "alarm": {
+    "title": "Wekker",
+    "alarm_on": "Wekker aan",
+    "radio_on": "Radio aan",
+    "off": "Uit",
+    "today": "vandaag",
+    "tomorrow": "morgen",
+    "light_from": "licht vanaf {time}",
+    "radio_section": "Wekradio",
+    "radio_off": "Radio uit",
+    "volume": "Volume",
+    "station": "Station",
+    "days": "Dagen",
+    "full_config": "Volledige configuratie",
+    "no_light": "geen lamp bereikbaar",
+    "hour_up": "Uur omhoog",
+    "hour_down": "Uur omlaag",
+    "minute_up": "Minuut omhoog",
+    "minute_down": "Minuut omlaag"
+  },
   "greeting": {
     "morning": "Goedemorgen",
     "afternoon": "Goedemiddag",

@@ -35,7 +35,12 @@ const BASE_CSS = `:host{--fib-hit:44px;-webkit-tap-highlight-color:transparent}
 button,[role="button"],[role="tab"],[role="switch"],[role="slider"]{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 button,[role="button"],[role="tab"],[role="switch"]{touch-action:manipulation}
 .fib-hit{position:relative}
-.fib-hit::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:var(--fib-hit);min-height:var(--fib-hit);width:100%;height:100%}`;
+.fib-hit::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:var(--fib-hit);min-height:var(--fib-hit);width:100%;height:100%}
+.fib-scroll{scrollbar-width:thin;scrollbar-color:var(--color-line,#333e41) transparent}
+.fib-scroll::-webkit-scrollbar{width:6px;height:6px}
+.fib-scroll::-webkit-scrollbar-track{background:transparent}
+.fib-scroll::-webkit-scrollbar-thumb{background:var(--color-line,#333e41);border-radius:3px}
+.fib-scroll:hover::-webkit-scrollbar-thumb{background:var(--color-accent,#74b98a)}`;
 
 // Build the shared sheet once at module load: a constructable CSSStyleSheet where
 // supported (also hoisting @property rules to the document), else a Lit unsafeCSS
