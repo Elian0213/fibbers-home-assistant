@@ -3,7 +3,7 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.10.0] — 2026-09-07
 
 Touch UX overhaul — sliders and the colour wheel finally feel right under a finger —
 plus a simpler light-group tile and hover/cursor affordances everywhere.
