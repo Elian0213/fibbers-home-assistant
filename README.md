@@ -38,8 +38,9 @@ handles those without a theme repo, `kiosk-mode`, or `card-mod`:
 - **Cards compute their own state.** Room tiles read your lights (_Off_ / _N of M on_ / _Offline_)
   with no Jinja; the alert card runs real checks for offline lights, low batteries, and pending
   updates.
-- **Strings follow your language.** English by default, with a Dutch translation included. Numbers and
-  dates use your locale; config keys stay English.
+- **Strings follow your Home Assistant language.** Set it once in _Settings → Profile → Language_ and
+  every card follows — the same way cards follow your light/dark theme. English and Dutch ship today,
+  English is the fallback. Numbers and dates use your locale; config keys stay English.
 - **Cards size themselves.** Each reports its own grid size, so a Sections view lays them out with no
   `grid_options`.
 

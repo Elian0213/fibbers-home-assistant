@@ -22,7 +22,7 @@ cards. Two things to know:
 | `fibbers-room`      | Self-computing room tile     | `type: custom:fibbers-room`<br/>`name: Woonkamer`<br/>`entities: [light.x]`                             |
 | `fibbers-light-row` | Light + brightness slider    | `type: custom:fibbers-light-row`<br/>`entity: light.x`                                                  |
 | `fibbers-sheet`     | Hash-routed modal            | `type: custom:fibbers-sheet`<br/>`id: woonkamer`<br/>`cards: [...]`                                     |
-| `fibbers-alert`     | "Aandacht nodig" checks      | `type: custom:fibbers-alert`<br/>`checks: [{ type: updates }]`                                          |
+| `fibbers-alert`     | "Attention needed" checks    | `type: custom:fibbers-alert`<br/>`checks: [{ type: updates }]`                                          |
 | `fibbers-chips`     | Action pill row              | `type: custom:fibbers-chips`<br/>`chips: [{ name: X, action: {...} }]`                                  |
 | `fibbers-scene`     | Scene tiles                  | `type: custom:fibbers-scene`<br/>`scenes: [{ name: Avond, scene: scene.avond }]`                        |
 | `fibbers-media`     | Now-playing + transport      | `type: custom:fibbers-media`<br/>`entity: media_player.woonkamer`                                       |
@@ -38,8 +38,13 @@ Thirteen cards can be configured from **Home Assistant's card UI**, no YAML requ
 `fibbers-nav`, `-section`, `-room`, `-light-group`, `-light-row`, `-stat`, `-number`,
 `-select`, `-toggle`, `-datetime`, `-graph`, `-media` and `-weather`. The rest are YAML-only
 for now (every option is shown on the card's page here, and validated on save). Keys the editor
-doesn't surface — nested lists like `scenes:` or `sources:`, `language`, grid options — are
-preserved untouched when you edit.
+doesn't surface — nested lists like `scenes:` or `sources:`, grid options — are preserved
+untouched when you edit.
+
+**Language** follows your Home Assistant account (Settings → Profile → Language) — set it once and
+every card follows, the same way cards follow your light/dark theme. English and Dutch ship today,
+English is the fallback. Use the **Language** control in the toolbar above to preview other languages
+here in Storybook.
 
 Tapping a **`fibbers-weather`** card opens a detail sheet: feels-like, humidity, wind, pressure
 and sunrise/sunset, an hourly strip, and a multi-day forecast.
