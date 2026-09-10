@@ -1,8 +1,8 @@
 # Contributing to Fibbers
 
 Thanks for taking a look. This is a single Home Assistant HACS **Dashboard (plugin)**
-repository — one JS bundle that ships custom cards _and_ the global theming for a dark,
-app-like dashboard.
+repository — one JS bundle that ships custom cards _and_ automatic light/dark theming for
+an app-like dashboard.
 
 ## Architecture at a glance
 
@@ -98,7 +98,7 @@ real bold-duotone icon (or a non-duotone Solar style). Any `mdi:` / `hass:` icon
 4. Set the repo description + topics (required by HACS), once:
    ```bash
    gh repo edit Elian0213/fibbers-home-assistant \
-     --description "A bottom-nav dashboard plugin for Home Assistant: viewport-pinned bar, modal sheets, self-computing room tiles, dark theming." \
+     --description "A phone-first, bottom-nav dashboard for Home Assistant: a pinned bottom bar, drag-away sheets, and 25+ self-computing cards that match your light/dark theme. One file, no card-mod, no kiosk-mode. Lit + Tailwind." \
      --add-topic home-assistant --add-topic lovelace --add-topic hacs --add-topic custom-card
    ```
 5. **Default HACS store** (optional, one-time, manual): open a PR adding the repo to

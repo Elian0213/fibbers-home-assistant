@@ -5,8 +5,8 @@
 ### A phone-first dashboard plugin for Home Assistant
 
 A bottom navigation bar that stays pinned to the screen, modal sheets you drag up from the bottom,
-and 28 cards that read their own entities. One file, installed through HACS. It changes nothing else
-about your Home Assistant.
+and 25+ cards that read their own entities and match your light/dark theme. One file, installed
+through HACS. It changes nothing else about your Home Assistant.
 
 [![Validate](https://github.com/Elian0213/fibbers-home-assistant/actions/workflows/validate.yml/badge.svg)](https://github.com/Elian0213/fibbers-home-assistant/actions/workflows/validate.yml)
 [![CI](https://github.com/Elian0213/fibbers-home-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/Elian0213/fibbers-home-assistant/actions/workflows/ci.yml)
@@ -57,7 +57,7 @@ Fibbers is a Lovelace resource, installed through HACS.
    URL `/hacsfiles/fibbers-home-assistant/fibbers.js`, type **JavaScript module**.
 4. Hard-refresh the browser (Ctrl/Cmd-Shift-R).
 
-The 28 cards are now in the card picker — search "fibbers".
+The cards are now in the card picker — search "fibbers".
 
 ## Quick start
 
@@ -83,20 +83,21 @@ sections:
   - type: grid
     cards:
       - type: custom:fibbers-nav
-        theme: fibbers # optional dark palette, scoped to this dashboard
+        theme: fibbers # optional — also tint HA's own chrome (cards already match your theme)
         hide_ha_tabs: true
         tabs:
           - { name: Home, icon: solar:home-2-bold-duotone, path: /lovelace/0 }
           - { name: Lights, icon: solar:lightbulb-bolt-bold-duotone, path: /lovelace/1 }
 ```
 
-Most first-run cards (`nav`, `room`, `light-group`, `light-row`, `stat`, `toggle`, `number`,
-`select`, `datetime`, `section`) also open a visual editor in the picker. The rest are YAML-only —
-several are list-shaped (alert checks, chip rows, entity filters) where a form can't help.
+Thirteen cards (`nav`, `room`, `light-group`, `light-row`, `stat`, `graph`, `media`, `weather`,
+`toggle`, `number`, `select`, `datetime`, `section`) also open a visual editor in the picker. The
+rest are YAML-only — several are list-shaped (alert checks, chip rows, entity filters) where a form
+can't help.
 
 ## The cards
 
-28 cards on one design-token set, so they match out of the box. Screenshots and per-card YAML are in
+25+ cards on one design-token set, so they match out of the box. Screenshots and per-card YAML are in
 the **[live demo](https://elian0213.github.io/fibbers-home-assistant/)**; a static overview is in
 **[docs/GALLERY.md](docs/GALLERY.md)**.
 
@@ -112,8 +113,14 @@ page. The `remote` card and its Philips-TV notes are in [docs/remote.md](docs/re
 
 ## Theming
 
-Installing Fibbers changes nothing about the rest of Home Assistant — your sidebar, header, and other
-dashboards keep your own theme. The palette is opt-in per dashboard, via `theme:` on the nav card:
+Cards follow your Home Assistant theme automatically — light on a light HA theme, dark on a dark one,
+with no configuration. Each card reads `hass.themes.darkMode` and switches its palette to match.
+Installing Fibbers changes nothing else about Home Assistant: your sidebar, header, and other
+dashboards keep their own theme.
+
+The nav card's `theme:` option is separate and optional — it tints Home Assistant's _own_ chrome (the
+header, sidebar, more-info dialogs) to match the Fibbers palette, which HA won't do for a plugin on
+its own:
 
 ```yaml
 type: custom:fibbers-nav
@@ -122,7 +129,8 @@ tabs: [...]
 ```
 
 It's injected into `hui-root` only while that dashboard is mounted, and removed when you leave, so it
-never leaks into unrelated views. `auto` follows `prefers-color-scheme`.
+never leaks into unrelated views. `auto` follows Home Assistant's own light/dark setting, falling back
+to `prefers-color-scheme`.
 
 To take it beyond the dashboard (sidebar, header, dialogs), use `theme: fibbers-global` for the
 browser session, or install `themes/fibbers.yaml` as a real Home Assistant theme for a permanent,
