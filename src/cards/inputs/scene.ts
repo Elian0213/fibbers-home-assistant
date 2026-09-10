@@ -7,6 +7,7 @@ import { customElement, property, state } from "lit/decorators.js";
 
 import { t } from "@shared/i18n";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import { cx, pressable } from "@shared/variants";
 import type {
   HomeAssistant,
@@ -45,6 +46,8 @@ export interface ScenesConfig extends LovelaceCardConfig {
 @customElement("fibbers-scene")
 export class FibbersScene extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: ScenesConfig;
 
@@ -144,9 +147,7 @@ export class FibbersScene extends LitElement implements LovelaceCard {
       class="${cx(
         "flex flex-col items-center gap-[7px] rounded-[14px] border p-3.5 text-ink2 transition-transform active:scale-[.96]",
         pressable({ hover: "bright" }),
-        isActive
-          ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)] text-accenttx"
-          : "border-line bg-card",
+        isActive ? "fib-lit text-accenttx" : "border-line bg-card",
       )}"
       @click=${() =>
         this.hass &&

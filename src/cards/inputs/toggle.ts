@@ -7,6 +7,7 @@ import { customElement, property, state } from "lit/decorators.js";
 
 import { cardShell, iconBoxTpl, unavailNotice } from "@shared/shells";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import { pillSwitch } from "@shared/ui";
 import { fmtState, pickEntity } from "@shared/util";
 import type {
@@ -45,6 +46,8 @@ const EDITOR_SCHEMA = [
 @customElement("fibbers-toggle")
 export class FibbersToggle extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: ToggleConfig;
 

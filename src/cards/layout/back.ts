@@ -6,6 +6,7 @@ import { customElement, state } from "lit/decorators.js";
 
 import { nav, previous, goBack, startNav, stopNav } from "@core/nav-stack";
 import { t } from "@shared/i18n";
+import { reflectTheme } from "@shared/theme-host";
 import { twSheet } from "@shared/tw";
 import { norm } from "@shared/util";
 import { pressable } from "@shared/variants";
@@ -57,13 +58,15 @@ export class FibbersBack extends LitElement implements LovelaceCard {
     this._compute();
   }
 
-  /** No-op — the label comes from the nav stack, not hass. */
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  set hass(_hass: HomeAssistant | undefined) {}
+  /** The label comes from the nav stack, not hass — but follow HA's light/dark mode. */
+  set hass(hass: HomeAssistant | undefined) {
+    reflectTheme(this, hass);
+  }
 
   /** Start route tracking + subscribe so the label follows the current previous page. */
   connectedCallback(): void {
     super.connectedCallback();
+    reflectTheme(this, nav.hassRef); // paint the theme before HA's first hass push
     startNav(); // a back card needs the stack maintained even without a nav bar
     this._onRoute = () => this._compute();
     nav.listeners.add(this._onRoute);

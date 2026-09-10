@@ -9,6 +9,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { t } from "@shared/i18n";
 import { cardShell, sectionLabel } from "@shared/shells";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import {
   sliderTrack,
   sliderDrag,
@@ -101,6 +102,8 @@ interface Position {
 @customElement("fibbers-media")
 export class FibbersMedia extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: MediaConfig;
 
@@ -459,7 +462,7 @@ export class FibbersMedia extends LitElement implements LovelaceCard {
     // can't seek.
     if (!this._supports(MF.SEEK)) {
       return html`<div class="mb-3">
-        <div class="h-1.5 w-full rounded-[3px] bg-[#2C3639]">
+        <div class="h-1.5 w-full rounded-[3px] bg-track">
           <div
             class="h-full rounded-[3px] bg-accent"
             style="width:${pct}%"

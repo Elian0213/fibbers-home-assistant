@@ -14,6 +14,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { t } from "@shared/i18n";
 import { cardShell } from "@shared/shells";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import { fmtNum, fetchHistory, pickEntity } from "@shared/util";
 import type {
   HomeAssistant,
@@ -55,6 +56,8 @@ const W = 300;
 @customElement("fibbers-graph")
 export class FibbersGraph extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: GraphConfig;
 

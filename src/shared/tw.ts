@@ -40,7 +40,9 @@ button,[role="button"],[role="tab"],[role="switch"]{touch-action:manipulation}
 .fib-scroll::-webkit-scrollbar{width:6px;height:6px}
 .fib-scroll::-webkit-scrollbar-track{background:transparent}
 .fib-scroll::-webkit-scrollbar-thumb{background:var(--color-line,#333e41);border-radius:3px}
-.fib-scroll:hover::-webkit-scrollbar-thumb{background:var(--color-accent,#74b98a)}`;
+.fib-scroll:hover::-webkit-scrollbar-thumb{background:var(--color-accent,#74b98a)}
+.fib-lit{border-color:#2E5238;background-image:linear-gradient(145deg,#1E3427,#132016)}
+:host([data-fib-theme="light"]) .fib-lit{border-color:#bfe0cc;background-image:linear-gradient(145deg,#e7f4ec,#ddeee3)}`;
 
 // Build the shared sheet once at module load: a constructable CSSStyleSheet where
 // supported (also hoisting @property rules to the document), else a Lit unsafeCSS

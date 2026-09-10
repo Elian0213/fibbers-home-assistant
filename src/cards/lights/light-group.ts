@@ -11,6 +11,7 @@ import { styleMap } from "lit/directives/style-map.js";
 import { setLightBrightness } from "@shared/actions";
 import { t } from "@shared/i18n";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import {
   stepFromKey,
   setupSlider,
@@ -71,6 +72,8 @@ export interface LightGroupConfig extends LovelaceCardConfig {
 @customElement("fibbers-light-group")
 export class FibbersLightGroup extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: LightGroupConfig;
 
@@ -350,7 +353,7 @@ export class FibbersLightGroup extends LitElement implements LovelaceCard {
       @keydown=${this._onKey}
     >
       <div
-        class="pointer-events-none relative h-2.5 w-full rounded-full bg-[#2C3639]"
+        class="pointer-events-none relative h-2.5 w-full rounded-full bg-track"
       >
         ${s.allOff ? "" : this._renderTrackFill(pct, s.mixed)}
       </div>
@@ -412,9 +415,7 @@ export class FibbersLightGroup extends LitElement implements LovelaceCard {
     return html`<div
       class="${cx(
         "relative rounded-[15px] border p-[13px]",
-        lit
-          ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)]"
-          : "border-line bg-card",
+        lit ? "fib-lit" : "border-line bg-card",
         s.allOff && "opacity-[.66]",
       )}"
     >

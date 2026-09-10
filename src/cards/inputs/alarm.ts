@@ -12,6 +12,7 @@ import { openModal } from "@core/body-sheet";
 import { t } from "@shared/i18n";
 import { dayModeToWeekdays, nextAlarm } from "@shared/next-occurrence";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import { pillSwitch } from "@shared/ui";
 import { isUnavail, pickEntity } from "@shared/util";
 import { cx } from "@shared/variants";
@@ -43,6 +44,8 @@ const shortWeekday = (d: Date, lang: string): string =>
 @customElement("fibbers-alarm")
 export class FibbersAlarm extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: AlarmConfig;
 
@@ -248,9 +251,7 @@ export class FibbersAlarm extends LitElement implements LovelaceCard {
     return html`<div
       class="${cx(
         "relative rounded-[15px] border p-[13px]",
-        on && !noLight
-          ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)]"
-          : "border-line bg-card",
+        on && !noLight ? "fib-lit" : "border-line bg-card",
         !on && "opacity-[.66]",
       )}"
     >

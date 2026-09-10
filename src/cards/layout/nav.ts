@@ -5,8 +5,14 @@
 import { LitElement, html, css, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 
-import { attach, detach, renderBar, type NavConfig } from "@core/body-layer";
-import { updateOpenModalHass } from "@core/body-sheet";
+import {
+  attach,
+  detach,
+  reflectBarTheme,
+  renderBar,
+  type NavConfig,
+} from "@core/body-layer";
+import { reflectSheetTheme, updateOpenModalHass } from "@core/body-sheet";
 import { nav } from "@core/nav-stack";
 import type {
   HomeAssistant,
@@ -169,6 +175,8 @@ export class FibbersNav extends LitElement implements LovelaceCard {
   set hass(hass: HomeAssistant) {
     if (this.preview) return; // card picker: never touch the nav singleton
     nav.hassRef = hass;
+    reflectBarTheme(hass); // bar + sheet follow HA light/dark like every card
+    reflectSheetTheme(hass);
     updateOpenModalHass(hass); // keep an open Fibbers more-info modal live
     if (this.config && (this.config.tabs || []).some((t) => t.badge))
       renderBar();

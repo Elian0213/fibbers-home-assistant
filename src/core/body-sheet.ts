@@ -6,10 +6,12 @@
 import { render, html } from "lit";
 
 import { t } from "@shared/i18n";
+import { reflectTheme } from "@shared/theme-host";
 import { T } from "@shared/tokens";
 import { twSheet } from "@shared/tw";
 import { capturePointer } from "@shared/util";
 
+import { nav } from "@core/nav-stack";
 import { lockView } from "@core/view-reserve";
 import type { HomeAssistant } from "@/types/home-assistant";
 import "@shared/icon";
@@ -252,7 +254,7 @@ const SHEET_CSS = `
   :host {
     position: fixed; inset: 0; z-index: 9; display: none;
     font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    color: ${T.ink};
+    color: var(--color-ink, ${T.ink});
     -webkit-font-smoothing: antialiased;
   }
   :host([data-open="true"]) { display: block; }
@@ -268,8 +270,8 @@ const SHEET_CSS = `
   .sheet {
     position: absolute; left: 0; right: 0; bottom: 0;
     max-height: 88vh; display: flex; flex-direction: column;
-    background: ${T.sheet};
-    border-top: 1px solid ${T.line};
+    background: var(--color-sheet, ${T.sheet});
+    border-top: 1px solid var(--color-line, ${T.line});
     border-radius: 24px 24px 0 0;
     padding: 8px 16px calc(16px + env(safe-area-inset-bottom, 0px));
     transform: translateY(100%);
@@ -280,7 +282,7 @@ const SHEET_CSS = `
 
   .grab {
     width: 34px; height: 4px; border-radius: 2px;
-    background: ${T.grab};
+    background: var(--color-grab, ${T.grab});
     margin: 4px auto 10px; flex: 0 0 auto;
     touch-action: none; cursor: grab;
   }
@@ -297,7 +299,7 @@ const SHEET_CSS = `
     .sheet {
       inset: 0; margin: auto; height: fit-content; max-height: 88vh;
       width: min(460px, calc(100vw - 32px));
-      border-radius: 24px; border: 1px solid ${T.line};
+      border-radius: 24px; border: 1px solid var(--color-line, ${T.line});
       opacity: 0; transform: translateY(8px);
       transition: opacity .2s ease, transform .2s ease;
     }
@@ -369,6 +371,7 @@ function build(): void {
   bindDrag(head, sheet);
 
   layer.host = host;
+  reflectTheme(host, nav.hassRef); // follow HA light/dark before the first open
   layer.shadow = shadow;
   layer.backdrop = backdrop;
   layer.panel = sheet;
@@ -560,6 +563,15 @@ export function openModalEntity(): string | null {
   return layer.openId === MODAL_ID && layer.modalCard
     ? (layer.modalCard._entityId ?? null)
     : null;
+}
+
+/**
+ * Reflect HA's light/dark mode onto the sheet host, so the modal chrome follows
+ * the theme like every card does. Called from the nav card's `set hass`.
+ * @param hass — the Home Assistant object (carries `themes.darkMode`)
+ */
+export function reflectSheetTheme(hass: unknown): void {
+  if (layer.host) reflectTheme(layer.host, hass);
 }
 
 /**

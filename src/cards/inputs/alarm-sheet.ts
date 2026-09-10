@@ -12,6 +12,7 @@ import { closeSheet } from "@core/body-sheet";
 import { t } from "@shared/i18n";
 import { radioLogo } from "@shared/radio-logo";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import {
   pillSwitch,
   sliderTrack,
@@ -49,6 +50,8 @@ import "@shared/icon";
 @customElement("fibbers-alarm-sheet")
 export class FibbersAlarmSheet extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: AlarmConfig;
 

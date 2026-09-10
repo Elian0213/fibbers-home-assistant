@@ -7,6 +7,7 @@ import { customElement, property, state } from "lit/decorators.js";
 
 import { cardShell, unavailNotice } from "@shared/shells";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import { moreInfo, fmtState, pickEntity } from "@shared/util";
 import { cx, sectionLabel } from "@shared/variants";
 import type {
@@ -45,6 +46,8 @@ export interface DateTimeConfig extends LovelaceCardConfig {
 @customElement("fibbers-datetime")
 export class FibbersDateTime extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: DateTimeConfig;
 

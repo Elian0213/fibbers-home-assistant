@@ -5,6 +5,7 @@
  * ================================================================== */
 import { render, html, nothing, type LitElement } from "lit";
 
+import { reflectTheme } from "@shared/theme-host";
 import { T } from "@shared/tokens";
 import { twSheet } from "@shared/tw";
 import { norm, here, navigate, deepFind } from "@shared/util";
@@ -84,15 +85,15 @@ const HOST_CSS = `
   @media (prefers-reduced-motion: reduce) { :host { transition: none; } }
   .bar {
     display: flex; align-items: stretch; gap: 2px;
-    background: ${T.nav};
-    border-top: 1px solid ${T.line};
+    background: var(--color-nav, ${T.nav});
+    border-top: 1px solid var(--color-line, ${T.line});
     padding: 7px 6px calc(9px + env(safe-area-inset-bottom, 0px));
-    box-shadow: 0 60px 0 60px ${T.nav};
+    box-shadow: 0 60px 0 60px var(--color-nav, ${T.nav});
     transform: translateZ(0);
   }
   /* desktop sidebar inset: drop the 60px horizontal spread so the overscroll
      floor never bleeds a nav-coloured slab over the sidebar */
-  :host([data-inset="true"]) .bar { box-shadow: 0 60px 0 0 ${T.nav}; }
+  :host([data-inset="true"]) .bar { box-shadow: 0 60px 0 0 var(--color-nav, ${T.nav}); }
 `;
 const hostSheet = new CSSStyleSheet();
 hostSheet.replaceSync(HOST_CSS);
@@ -290,6 +291,15 @@ export function renderBar(): void {
   measureBar();
 }
 
+/**
+ * Reflect HA's light/dark mode onto the bar host, so the nav bar follows the
+ * theme like every card does. Called from the nav card's `set hass`.
+ * @param hass — the Home Assistant object (carries `themes.darkMode`)
+ */
+export function reflectBarTheme(hass: unknown): void {
+  if (bar.host) reflectTheme(bar.host, hass);
+}
+
 function buildBar(): HTMLElement {
   const host = document.createElement("div");
   host.id = "fibbers-nav";
@@ -301,6 +311,7 @@ function buildBar(): HTMLElement {
   div.className = "bar";
   shadow.append(div);
   document.body.appendChild(host);
+  reflectTheme(host, nav.hassRef); // paint the theme before HA's first hass push
 
   // Stored so detach() can disconnect it — an anonymous observer leaked one per
   // attach/detach cycle.

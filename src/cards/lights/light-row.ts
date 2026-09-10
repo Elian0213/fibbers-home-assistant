@@ -12,6 +12,7 @@ import {
 } from "@shared/actions";
 import { t } from "@shared/i18n";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import {
   sliderTrack,
   setupSlider,
@@ -62,6 +63,8 @@ export interface LightRowConfig extends LovelaceCardConfig {
 @customElement("fibbers-light-row")
 export class FibbersLightRow extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: LightRowConfig;
 

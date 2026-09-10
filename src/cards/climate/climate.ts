@@ -8,6 +8,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { t } from "@shared/i18n";
 import { cardShell, sectionLabel, unavailNotice } from "@shared/shells";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import { pickEntity, isUnavail, clamp } from "@shared/util";
 import { cx, pressable } from "@shared/variants";
 import type {
@@ -50,6 +51,8 @@ export interface ClimateConfig extends LovelaceCardConfig {
 @customElement("fibbers-climate")
 export class FibbersClimate extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: ClimateConfig;
 

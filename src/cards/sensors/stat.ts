@@ -7,6 +7,7 @@ import { customElement, property, state } from "lit/decorators.js";
 
 import { runAction, type ActionConfig } from "@shared/actions";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import { activateOnKey } from "@shared/ui";
 import { fmtNum, fmtState, isUnavail, pickEntity } from "@shared/util";
 import { card, cx, pressable } from "@shared/variants";
@@ -89,6 +90,8 @@ const EDITOR_SCHEMA = [
 @customElement("fibbers-stat")
 export class FibbersStat extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: StatConfig;
 

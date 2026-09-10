@@ -7,6 +7,7 @@ import { customElement, property, state } from "lit/decorators.js";
 
 import { cardShell, iconBoxTpl, unavailNotice } from "@shared/shells";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import { pickEntity } from "@shared/util";
 import { cx, pressable } from "@shared/variants";
 import type {
@@ -56,6 +57,8 @@ export interface SelectConfig extends LovelaceCardConfig {
 @customElement("fibbers-select")
 export class FibbersSelect extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: SelectConfig;
 

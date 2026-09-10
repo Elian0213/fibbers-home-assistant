@@ -8,6 +8,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { t } from "@shared/i18n";
 import { cardShell, iconBoxTpl } from "@shared/shells";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import { sliderTrack, setupSlider, type SliderController } from "@shared/ui";
 import { fmtNum, clamp, isUnavail, pctFromX, pickEntity } from "@shared/util";
 import { cx, pressable } from "@shared/variants";
@@ -60,6 +61,8 @@ export interface NumberConfig extends LovelaceCardConfig {
 @customElement("fibbers-number")
 export class FibbersNumber extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: NumberConfig;
 

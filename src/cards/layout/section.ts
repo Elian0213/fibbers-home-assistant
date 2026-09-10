@@ -4,6 +4,7 @@
 import { LitElement, html, css, type TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
 
+import { reflectTheme } from "@shared/theme-host";
 import { twSheet } from "@shared/tw";
 import type {
   HomeAssistant,
@@ -57,9 +58,10 @@ export class FibbersSection extends LitElement implements LovelaceCard {
     this.config = config;
   }
 
-  /** No-op — a static label needs no state. */
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  set hass(_hass: HomeAssistant | undefined) {}
+  /** A static label needs no state — but still follow HA's light/dark mode. */
+  set hass(hass: HomeAssistant | undefined) {
+    reflectTheme(this, hass);
+  }
 
   /** The uppercase mono label. */
   render(): TemplateResult {

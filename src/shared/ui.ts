@@ -637,7 +637,7 @@ export function sliderTrack({
   >
     <div
       class="pointer-events-none relative w-full rounded-[3px]
-             ${gradient ? "h-2.5" : "h-1.5 bg-[#2C3639]"}"
+             ${gradient ? "h-2.5" : "h-1.5 bg-track"}"
       style=${gradient ? `background:${gradient}` : nothing}
     >
       ${

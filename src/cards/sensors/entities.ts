@@ -14,6 +14,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { t, langOf } from "@shared/i18n";
 import { cardShell, iconBoxTpl, sectionLabel } from "@shared/shells";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import { activateOnKey } from "@shared/ui";
 import { moreInfo, fmtState } from "@shared/util";
 import type {
@@ -71,6 +72,8 @@ function ago(iso: string, hl: HomeAssistant | string | undefined): string {
 @customElement("fibbers-entities")
 export class FibbersEntities extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: EntitiesConfig;
 

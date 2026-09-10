@@ -15,6 +15,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { t, langOf } from "@shared/i18n";
 import { cardShell, unavailNotice } from "@shared/shells";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import { pickEntity } from "@shared/util";
 import { sectionLabel } from "@shared/variants";
 import type {
@@ -81,6 +82,8 @@ const dayNl = (iso: string, lang: string): string => {
 @customElement("fibbers-weather")
 export class FibbersWeather extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: WeatherConfig;
 

@@ -8,6 +8,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { t } from "@shared/i18n";
 import { cardShell } from "@shared/shells";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import { pillSwitch } from "@shared/ui";
 import { moreInfo, pickEntity } from "@shared/util";
 import { cx, pressable, sectionLabel } from "@shared/variants";
@@ -52,6 +53,8 @@ export interface SchedulerConfig extends LovelaceCardConfig {
 @customElement("fibbers-scheduler")
 export class FibbersScheduler extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: SchedulerConfig;
 

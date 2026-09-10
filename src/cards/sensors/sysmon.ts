@@ -13,6 +13,7 @@ import { customElement, property, state } from "lit/decorators.js";
 
 import { cardShell, sectionLabel } from "@shared/shells";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import { fmtNum, fmtState, isUnavail, fetchHistory } from "@shared/util";
 import type {
   HomeAssistant,
@@ -47,6 +48,8 @@ const W = 300;
 @customElement("fibbers-sysmon")
 export class FibbersSysmon extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: SysmonConfig;
 

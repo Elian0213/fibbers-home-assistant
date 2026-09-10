@@ -7,6 +7,7 @@ import { customElement, property, state } from "lit/decorators.js";
 
 import { t } from "@shared/i18n";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import { activateOnKey } from "@shared/ui";
 import { moreInfo, isUnavail } from "@shared/util";
 import { pressable } from "@shared/variants";
@@ -157,6 +158,8 @@ function runCheck(
 @customElement("fibbers-alert")
 export class FibbersAlert extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: AlertConfig;
 

@@ -19,6 +19,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { t } from "@shared/i18n";
 import { cardShell } from "@shared/shells";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import { setupSlider, type SliderController } from "@shared/ui";
 import { pctFromX, brightnessPct, clamp, pickEntity } from "@shared/util";
 import { cx } from "@shared/variants";
@@ -71,6 +72,8 @@ export class FibbersLightDetail
   implements LovelaceCard, LightDetailHost
 {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() config!: LightDetailConfig;
 

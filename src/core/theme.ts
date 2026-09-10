@@ -22,6 +22,7 @@ import {
   type ThemeVars,
 } from "@core/global-css";
 import { injectStyle, removeStyle } from "@core/hui-inject";
+import { nav } from "@core/nav-stack";
 
 /** Every theme mode the nav's `theme:` option accepts. */
 export type ThemeMode =
@@ -33,6 +34,11 @@ export type ThemeMode =
   | "none";
 
 const STYLE_ID = "fibbers-theme";
+
+/** HA sets `themes.darkMode` at runtime; the shared `Themes` type omits it. */
+interface HassWithDark {
+  themes?: { darkMode?: boolean };
+}
 
 // Light palette. Derived for contrast on light surfaces rather than inverted: a
 // deeper green accent (readable on white), dark ink on near-white grounds, softer
@@ -101,9 +107,18 @@ function palette(): ThemeVars | null {
   if (state.mode === "fibbers") return DARK_VARS;
   if (state.mode === "fibbers-light") return LIGHT_VARS;
   if (state.mode === "auto") {
+    // Prefer HA's own light/dark setting (authoritative, and independent of the
+    // OS); fall back to the OS colour scheme only when no hass is available yet.
+    // The shared hui-inject observer re-runs this on every HA re-render, so a
+    // darkMode flip repaints the chrome without a dedicated listener.
+    const dm = (nav.hassRef as HassWithDark | null)?.themes?.darkMode;
     const dark =
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches;
+      dm != null
+        ? dm
+        : !!(
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches
+          );
     return dark ? DARK_VARS : LIGHT_VARS;
   }
   return null;

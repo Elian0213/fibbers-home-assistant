@@ -8,6 +8,7 @@ import { customElement, property, state } from "lit/decorators.js";
 
 import { t } from "@shared/i18n";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import { fmtNum, fmtState, isUnavail, pickEntity } from "@shared/util";
 import type {
   HomeAssistant,
@@ -57,6 +58,8 @@ export interface GreetingConfig extends LovelaceCardConfig {
 @customElement("fibbers-greeting")
 export class FibbersGreeting extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: GreetingConfig;
 

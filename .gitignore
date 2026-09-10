@@ -16,3 +16,5 @@ storybook/storybook-static/
 
 # NOTE: dist/fibbers.js is a build artifact but is committed on purpose — HACS
 # serves it directly. bun.lock is committed too, for reproducible CI installs.
+# The dev/watch build emits a source map; never commit it.
+dist/*.map

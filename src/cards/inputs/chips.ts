@@ -7,6 +7,7 @@ import { customElement, property, state } from "lit/decorators.js";
 
 import { runAction, type ActionConfig } from "@shared/actions";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import { cx, pressable } from "@shared/variants";
 import type {
   HomeAssistant,
@@ -37,6 +38,8 @@ export interface ChipsConfig extends LovelaceCardConfig {
 @customElement("fibbers-chips")
 export class FibbersChips extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: ChipsConfig;
 

@@ -7,6 +7,7 @@ import { customElement, property, state } from "lit/decorators.js";
 
 import { t } from "@shared/i18n";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import { moreInfo, isUnavail, pickEntity } from "@shared/util";
 import { cx, pressable } from "@shared/variants";
 import type {
@@ -71,6 +72,8 @@ export interface RoomConfig extends LovelaceCardConfig {
 @customElement("fibbers-room")
 export class FibbersRoom extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: RoomConfig;
 
@@ -220,9 +223,7 @@ export class FibbersRoom extends LitElement implements LovelaceCard {
       class="${cx(
         "block w-full rounded-[15px] border px-[13px] pb-3 pt-[13px] text-left transition-colors active:translate-y-[0.5px]",
         pressable({ hover: "bright" }),
-        s.lit
-          ? "border-[#2E5238] bg-[linear-gradient(145deg,#1E3427,#132016)]"
-          : "border-line bg-card",
+        s.lit ? "fib-lit" : "border-line bg-card",
         s.offline && "opacity-[.66]",
       )}"
       @pointerdown=${this._down}

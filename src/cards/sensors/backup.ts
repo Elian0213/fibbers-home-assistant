@@ -7,6 +7,7 @@ import { customElement, property, state } from "lit/decorators.js";
 
 import { t, langOf } from "@shared/i18n";
 import { twSheet } from "@shared/tw";
+import { ThemeController } from "@shared/theme-host";
 import { isUnavail } from "@shared/util";
 import type {
   HomeAssistant,
@@ -60,6 +61,8 @@ const clock = (iso: string, lang: string): string => {
 @customElement("fibbers-backup")
 export class FibbersBackup extends LitElement implements LovelaceCard {
   @property({ attribute: false }) hass?: HomeAssistant;
+
+  _theme = new ThemeController(this);
 
   @state() private config!: BackupConfig;
 

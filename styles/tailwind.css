@@ -5,7 +5,7 @@
 
 /* Fibbers palette → Tailwind theme, so `bg-card`, `text-accent`, `border-line`
    etc. resolve. Kept in sync with src/tokens.js (the runtime `--fib-*` vars stay
-   for global-css.js / HA theming). */
+   for global-css.js / HA theming). This is the DARK palette (the default). */
 @theme {
   --color-bg: #111516;
   --color-card: #1d2426;
@@ -29,4 +29,41 @@
   --color-green: #63c295;
   --color-red: #ec8377;
   --color-sheet: #171e20;
+  --color-track: #2c3639; /* slider/progress track */
+}
+
+/* LIGHT palette — opt-in via `data-fib-theme="light"` on the card host, which
+   src/shared/theme-host.ts sets from `hass.themes.darkMode`. The `@theme` block
+   above stays dark, so the default (no attribute) is byte-for-byte unchanged for
+   existing installs. This `:host(...)` rule is authored directly (not via the
+   :root→:host rewrite in src/shared/tw.ts, which can't produce the functional
+   `:host()` form) and is adopted into every card's shadow root. `--color-nav`
+   and `--color-grab` have no dark `@theme` entry — their dark values come from the
+   `var(--color-nav, <dark>)` fallbacks in core/body-layer + core/body-sheet. */
+:host([data-fib-theme="light"]) {
+  --color-bg: #eef1f0;
+  --color-card: #ffffff;
+  --color-card2: #eaeeec;
+  --color-line: #dfe4e1;
+  --color-ink: #14201a;
+  --color-ink2: #3e4b47;
+  --color-muted: #5a6763;
+  --color-accent: #2f6b45;
+  --color-accentbg: #e3f0e7;
+  --color-accentline: #b9d8c4;
+  --color-accenttx: #1e4a30;
+  --color-amber: #b7791f;
+  --color-amberbg: #f7ecd6;
+  --color-amberline: #e4ce9e;
+  --color-ambertx: #6b4e12;
+  --color-blue: #2f6fb0;
+  --color-bluebg: #e1edf6;
+  --color-blueline: #b3d0e6;
+  --color-blueink: #1e4e7e;
+  --color-green: #2f6b45;
+  --color-red: #c4443b;
+  --color-sheet: #ffffff;
+  --color-track: #d8ddda;
+  --color-nav: #ffffff;
+  --color-grab: #c4cbc7;
 }
