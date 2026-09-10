@@ -1,4 +1,9 @@
-@import "tailwindcss";
+/* `source(none)` disables Tailwind's automatic content detection, which
+   intermittently scanned the raw *.css files (their `@container` at-rules leaked a
+   spurious `.@container` utility) and made the generated CSS non-deterministic —
+   breaking the committed-dist byte-match in CI. Only the explicit `@source` below
+   is scanned, which holds every real utility (card class strings live in js/ts). */
+@import "tailwindcss" source(none);
 
 /* Scan the card sources so only used utilities are emitted. */
 @source "../src/**/*.{js,ts}";
