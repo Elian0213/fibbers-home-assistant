@@ -3,6 +3,113 @@
 
 const NOW = "2026-08-31T15:00:00+00:00";
 
+// --- live demo state -------------------------------------------------------
+// Real HA echoes a service call back as new entity state; the stub applies a
+// best-effort optimistic update to its own `states` and notifies listeners so the
+// rendered cards re-render — this is what makes the demos interactive (drag a
+// colour, toggle a switch, move a slider and it sticks). story.js registers a
+// listener that re-pushes `hass` to every live card.
+const liveListeners = new Set();
+
+/** Register a callback fired after every stubbed service call. */
+export function onLiveUpdate(cb) {
+  liveListeners.add(cb);
+}
+
+const stamp = (st) => {
+  st.last_changed = new Date().toISOString();
+  st.last_updated = st.last_changed;
+};
+
+/** Apply a service call to the stub's `states`, best-effort, for the domains the
+ *  cards actually drive. Unknown services are a no-op but still notify. */
+function applyService(states, domain, service, data = {}) {
+  for (const id of [].concat(data.entity_id || [])) {
+    const st = states[id];
+    if (!st) continue;
+    const a = st.attributes;
+    if (domain === "light" && service === "turn_on") {
+      st.state = "on";
+      if (data.brightness != null) a.brightness = data.brightness;
+      if (data.brightness_pct != null)
+        a.brightness = Math.round(data.brightness_pct * 2.55);
+      if (data.hs_color) {
+        a.hs_color = data.hs_color;
+        a.color_mode = "hs";
+        delete a.color_temp_kelvin;
+      }
+      if (data.rgb_color) a.rgb_color = data.rgb_color;
+      if (data.color_temp_kelvin != null) {
+        a.color_temp_kelvin = data.color_temp_kelvin;
+        a.color_mode = "color_temp";
+        delete a.hs_color;
+        delete a.rgb_color;
+      }
+    } else if (domain === "light" && service === "turn_off") {
+      st.state = "off";
+    } else if (
+      ["switch", "input_boolean", "fan", "automation", "script"].includes(domain)
+    ) {
+      if (service === "toggle") st.state = st.state === "on" ? "off" : "on";
+      else if (service === "turn_on") st.state = "on";
+      else if (service === "turn_off") st.state = "off";
+    } else if (
+      (domain === "input_number" || domain === "number") &&
+      service === "set_value"
+    ) {
+      st.state = String(data.value);
+    } else if (
+      (domain === "input_select" || domain === "select") &&
+      service === "select_option"
+    ) {
+      st.state = data.option;
+    } else if (domain === "climate" && service === "set_temperature") {
+      if (data.temperature != null) a.temperature = data.temperature;
+    } else if (domain === "climate" && service === "set_hvac_mode") {
+      st.state = data.hvac_mode;
+    } else if (domain === "media_player") {
+      if (service === "media_play_pause")
+        st.state = st.state === "playing" ? "paused" : "playing";
+      else if (service === "media_play") st.state = "playing";
+      else if (service === "media_pause") st.state = "paused";
+      else if (service === "volume_set" && data.volume_level != null)
+        a.volume_level = data.volume_level;
+      else if (service === "select_source" && data.source) a.source = data.source;
+    } else if (domain === "scene" && service === "turn_on") {
+      a.last_activated = new Date().toISOString();
+    }
+    stamp(st);
+  }
+  liveListeners.forEach((cb) => cb());
+}
+
+// Synthetic forecast for the weather card + detail sheet (the real feed is a WS
+// subscription the stub doesn't run). Daily = 7 days with high/low, hourly = 24h.
+function synthForecast(hourly) {
+  const conds = [
+    "partlycloudy",
+    "sunny",
+    "cloudy",
+    "rainy",
+    "partlycloudy",
+    "sunny",
+    "clear-night",
+  ];
+  const n = hourly ? 24 : 7;
+  const step = hourly ? 3600e3 : 86400e3;
+  const t0 = Date.parse(NOW);
+  return Array.from({ length: n }, (_, i) => {
+    const base = 15 + Math.round(6 * Math.sin(i / (hourly ? 4 : 1.5)));
+    const entry = {
+      datetime: new Date(t0 + i * step).toISOString(),
+      condition: conds[i % conds.length],
+      temperature: base,
+    };
+    if (!hourly) entry.templow = base - 6;
+    return entry;
+  });
+}
+
 export function makeHass(flags = {}) {
   const f = {
     tvLed: true,
@@ -153,6 +260,11 @@ export function makeHass(flags = {}) {
     temperature: 18,
     temperature_unit: "°C",
     humidity: 65,
+    apparent_temperature: 16,
+    wind_speed: 12,
+    wind_speed_unit: "km/h",
+    pressure: 1013,
+    pressure_unit: "hPa",
     forecast: [
       {
         datetime: "2026-08-31",
@@ -513,6 +625,13 @@ export function makeHass(flags = {}) {
   });
   add("weather.onbeschikbaar", "unavailable", { friendly_name: "Weerstation" });
 
+  // sun entity for the weather sheet's sunrise/sunset row
+  add("sun.sun", "above_horizon", {
+    friendly_name: "Sun",
+    next_rising: new Date(new Date(NOW).setHours(7, 12, 0, 0)).toISOString(),
+    next_setting: new Date(new Date(NOW).setHours(20, 41, 0, 0)).toISOString(),
+  });
+
   // climate range (heat_cool low–high band) + an unavailable thermostat
   add("climate.serre", "heat_cool", {
     friendly_name: "Thermostaat Serre",
@@ -581,8 +700,10 @@ export function makeHass(flags = {}) {
   return {
     states: S,
     language: "nl",
-    callService: (d, s, x) =>
-      console.log("[callService]", d + "." + s, x || {}),
+    callService: (d, s, x) => {
+      console.log("[callService]", d + "." + s, x || {});
+      applyService(S, d, s, x || {});
+    },
     // synthetic history so fibbers-graph renders against the stub (deterministic wave)
     callWS: async (msg) => {
       if (msg && msg.type === "history/history_during_period") {
@@ -599,6 +720,15 @@ export function makeHass(flags = {}) {
         return out;
       }
       return {};
+    },
+    // A minimal connection stub: the weather cards subscribe to the forecast feed
+    // over the WS connection, so hand them synthetic hourly + daily forecasts.
+    connection: {
+      subscribeMessage: (cb, msg) => {
+        if (msg && msg.type === "weather/subscribe_forecast")
+          cb({ forecast: synthForecast(msg.forecast_type === "hourly") });
+        return Promise.resolve(() => {});
+      },
     },
     localize: (k) => k,
     // A minimal stand-in for HA's own localiser, enough for the stories to show

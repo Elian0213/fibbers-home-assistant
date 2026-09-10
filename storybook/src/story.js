@@ -4,7 +4,7 @@
  *   export const Lit = story({ type: "custom:fibbers-room", name: "Woonkamer", ... });
  */
 import yaml from "js-yaml";
-import { HASS } from "./hass.js";
+import { HASS, onLiveUpdate } from "./hass.js";
 
 const tagOf = (type) => String(type || "").replace(/^custom:/, "");
 
@@ -27,10 +27,28 @@ export function pageColors(ctx) {
     : { bg: "#111516", ink: "#EDF1F1" };
 }
 
+const liveCards = new Set();
+
+/** A fresh hass referencing the (mutable) mock states, with the toolbar's
+ *  dark/light applied. A new object each call so Lit re-renders. */
+function snapshot(base) {
+  return { ...base, themes: { ...(base && base.themes), darkMode: previewDark } };
+}
+
+// A stubbed service call mutates the shared mock states and notifies here; re-push
+// a fresh hass to every still-connected card so the change is visible on screen.
+onLiveUpdate(() => {
+  for (const entry of liveCards) {
+    if (entry.el.isConnected) entry.el.hass = snapshot(entry.base);
+    else liveCards.delete(entry);
+  }
+});
+
 export function renderCard(config, hass = HASS) {
   const el = document.createElement(tagOf(config.type));
   el.setConfig(JSON.parse(JSON.stringify(config)));
-  el.hass = { ...hass, themes: { ...(hass && hass.themes), darkMode: previewDark } };
+  el.hass = snapshot(hass);
+  liveCards.add({ el, base: hass });
   return el;
 }
 
