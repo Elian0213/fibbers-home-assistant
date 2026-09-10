@@ -1,8 +1,15 @@
 import { story } from "../src/story.js";
 
 export default {
-  title: "Cards/Media",
+  title: "Cards/Devices & Media/Media",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: "Media player — now-playing, transport, volume, sources.",
+      },
+    },
+  },
 };
 
 /** Full player: title/artist, transport, volume slider and auto source chips. */

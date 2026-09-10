@@ -1,8 +1,16 @@
 import { story } from "../src/story.js";
 
 export default {
-  title: "Cards/Select",
+  title: "Cards/Inputs & Controls/Select",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          "Option picker (chips or dropdown) for input_select and select.",
+      },
+    },
+  },
 };
 
 /** Few options → a chip row (auto), the active option accented. */

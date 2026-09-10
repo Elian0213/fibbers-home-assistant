@@ -1,9 +1,16 @@
 import { story } from "../src/story.js";
 
 export default {
-  title: "Cards/Nav",
+  title: "Cards/Shell & Navigation/Nav",
   tags: ["autodocs"],
-  parameters: { layout: "fullscreen" },
+  parameters: {
+    layout: "fullscreen",
+    docs: {
+      description: {
+        component: "Bottom navigation bar pinned to the viewport.",
+      },
+    },
+  },
 };
 
 const NAV = {

@@ -2,8 +2,16 @@ import { story } from "../src/story.js";
 import { makeHass } from "../src/hass.js";
 
 export default {
-  title: "Cards/Alarm",
+  title: "Cards/Inputs & Controls/Alarm",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          "Wake-up alarm on one tile — time, days, light + radio — with a settings sheet.",
+      },
+    },
+  },
 };
 
 // The full drop-in config (mirrors the live dashboard).

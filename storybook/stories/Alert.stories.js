@@ -2,8 +2,16 @@ import { story } from "../src/story.js";
 import { HASS, HASS_ALL_CLEAR, HASS_BATT_LOW } from "../src/hass.js";
 
 export default {
-  title: "Cards/Alert",
+  title: "Cards/Status & Data/Alert",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          "Attention card driven by real checks (offline lights, low batteries, updates).",
+      },
+    },
+  },
 };
 
 const CHECKS = {

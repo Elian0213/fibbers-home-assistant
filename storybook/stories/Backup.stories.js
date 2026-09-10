@@ -1,8 +1,15 @@
 import { story } from "../src/story.js";
 
 export default {
-  title: "Cards/Backup",
+  title: "Cards/Status & Data/Backup",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: "Backup status — last run, result and next.",
+      },
+    },
+  },
 };
 
 /** Last backup a few hours ago, next one scheduled — green tile. */

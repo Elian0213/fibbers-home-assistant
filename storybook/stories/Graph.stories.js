@@ -1,8 +1,15 @@
 import { story } from "../src/story.js";
 
 export default {
-  title: "Cards/Graph",
+  title: "Cards/Status & Data/Graph",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: "Single-entity sparkline of recent history.",
+      },
+    },
+  },
 };
 
 /** Default accent sparkline: reads the entity's last 24 h via `history/history_during_period`, unit + current value from the state. */

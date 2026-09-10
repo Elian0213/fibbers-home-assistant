@@ -1,8 +1,15 @@
 import { story } from "../src/story.js";
 
 export default {
-  title: "Cards/Scheduler",
+  title: "Cards/Inputs & Controls/Scheduler",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: "Wake/alarm control driven by HA helpers.",
+      },
+    },
+  },
 };
 
 /** The full card: enabled wake time, fade window and weekday chips. */

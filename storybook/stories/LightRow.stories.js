@@ -1,8 +1,15 @@
 import { story } from "../src/story.js";
 
 export default {
-  title: "Cards/Light Row",
+  title: "Cards/Rooms, Lights & Scenes/Light Row",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: "Light row with a brightness slider, for sheets.",
+      },
+    },
+  },
 };
 
 /** On in a colour mode — value reads "Kleur · 80%"; the slider is set to brightness. */

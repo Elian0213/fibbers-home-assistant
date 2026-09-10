@@ -1,4 +1,4 @@
-import { renderCard } from "../../src/story.js";
+import { renderCard, pageColors } from "../../src/story.js";
 import { HASS_HOME } from "../../src/hass.js";
 
 export default {
@@ -102,11 +102,12 @@ const NAV = {
 
 /** A composed phone "Huis" view — the hero shot for the README. */
 export const Dashboard = {
-  render: () => {
+  render: (_args, ctx) => {
+    const { bg, ink } = pageColors(ctx);
     const wrap = document.createElement("div");
     wrap.style.cssText =
       "max-width:390px;margin:0 auto;padding:16px 14px 96px;display:flex;flex-direction:column;" +
-      "gap:12px;min-height:100dvh;background:#111516;color:#EDF1F1;" +
+      `gap:12px;min-height:100dvh;background:${bg};color:${ink};` +
       "font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;";
 
     wrap.appendChild(renderCard(GREETING, HASS_HOME));

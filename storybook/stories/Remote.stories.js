@@ -1,8 +1,15 @@
 import { story } from "../src/story.js";
 
 export default {
-  title: "Cards/Remote",
+  title: "Cards/Devices & Media/Remote",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: "Universal remote — D-pad and buttons.",
+      },
+    },
+  },
 };
 
 /** Apple TV: wheel + a distinct Back/Home nav row, transport (⏮ ▶ ⏭), and — because

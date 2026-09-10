@@ -1,9 +1,16 @@
 import { story, renderCard } from "../src/story.js";
 
 export default {
-  title: "Cards/Sheet",
+  title: "Cards/Shell & Navigation/Sheet",
   tags: ["autodocs"],
-  parameters: { layout: "fullscreen" },
+  parameters: {
+    layout: "fullscreen",
+    docs: {
+      description: {
+        component: "Hash-routed modal bottom sheet.",
+      },
+    },
+  },
 };
 
 const ROOM = {

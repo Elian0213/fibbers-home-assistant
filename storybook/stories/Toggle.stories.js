@@ -1,8 +1,15 @@
 import { story } from "../src/story.js";
 
 export default {
-  title: "Cards/Toggle",
+  title: "Cards/Inputs & Controls/Toggle",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: "Switch row for input_boolean, switch and automation.",
+      },
+    },
+  },
 };
 
 /** On state: accent icon tile and the pill switched to the right, with a static subline. */

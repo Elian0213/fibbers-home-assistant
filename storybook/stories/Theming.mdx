@@ -4,11 +4,16 @@ import { Meta } from "@storybook/addon-docs/blocks";
 
 # Theming
 
-Loading the plugin injects the full dark theme **globally** — it appends a
-`<style id="fibbers-global">` to `document.head` and sets Home Assistant's own theme custom
-properties on `html` with `!important` (HA applies themes as inline styles on the root, so a
-stylesheet can't win without it). Because custom properties inherit into shadow DOM, this also
-restyles more-info dialogs, switches and sliders. **No separate theme repository, no `card-mod`.**
+Fibbers cards **follow your Home Assistant theme automatically**: light on a light HA theme,
+dark on a dark one. There's nothing to configure and nothing to install — each card reads
+`hass.themes.darkMode` (the same signal the rest of Home Assistant uses) and switches its
+palette to match. In this Storybook, use the **Theme** switch in the toolbar to preview both.
+
+The `theme:` option on the **nav** card is separate and optional: it re-tints Home Assistant's
+own chrome — the header, sidebar, more-info dialogs and native switches/sliders — to match the
+Fibbers palette, which HA doesn't do for a Lovelace plugin on its own. It sets HA's theme custom
+properties (scoped to the dashboard, or on `html` for the `-global` modes). **No separate theme
+repository, no `card-mod`.**
 
 ## The palette
 
@@ -32,6 +37,14 @@ Green is the brand/active colour; amber is kept for warnings only.
 Semantics: **green** = brand / active / positive, **amber** = attention, **red** = error,
 **blue** = info. Lit rooms and active scenes glow
 `linear-gradient(145deg, #1E3427, #132016)` with a `#2E5238` border.
+
+### Light mode
+
+On a light HA theme the same roles resolve to a legible light palette — near-white surfaces
+(`#FFFFFF` cards on an `#EEF1F0` ground), dark ink (`#14201A`), a deeper green accent
+(`#2F6B45`) that reads on white, and darkened amber/red/blue so status colours stay legible.
+The lit-tile glow becomes a soft green wash (`linear-gradient(145deg, #E7F4EC, #DDEEE3)`).
+The switch is automatic — it tracks `hass.themes.darkMode`, so you never set it by hand.
 
 ## A user-selectable theme instead
 

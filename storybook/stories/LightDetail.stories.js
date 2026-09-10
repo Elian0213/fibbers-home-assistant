@@ -1,8 +1,16 @@
 import { story } from "../src/story.js";
 
 export default {
-  title: "Cards/Light Detail",
+  title: "Cards/Rooms, Lights & Scenes/Light Detail",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          "Full single-light control — brightness, colour temperature and colour.",
+      },
+    },
+  },
 };
 
 /** A single colour light: brightness, a draggable colour wheel (hue = angle,

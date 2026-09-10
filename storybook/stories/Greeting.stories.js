@@ -2,8 +2,16 @@ import { story } from "../src/story.js";
 import { HASS_HOME } from "../src/hass.js";
 
 export default {
-  title: "Cards/Greeting",
+  title: "Cards/Shell & Navigation/Greeting",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          "Time-of-day header with a lights / presence / sensor subline.",
+      },
+    },
+  },
 };
 
 /** Time-of-day header with a lights / presence / temperature subline. */

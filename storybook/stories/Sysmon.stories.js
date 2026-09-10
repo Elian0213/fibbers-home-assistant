@@ -1,8 +1,15 @@
 import { story } from "../src/story.js";
 
 export default {
-  title: "Cards/Sysmon",
+  title: "Cards/Status & Data/Sysmon",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: "Host telemetry tiles with an optional sparkline.",
+      },
+    },
+  },
 };
 
 /** Raspberry-Pi telemetry: four metric tiles + a CPU history sparkline. */

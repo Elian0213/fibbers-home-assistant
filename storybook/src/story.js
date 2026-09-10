@@ -8,10 +8,29 @@ import { HASS } from "./hass.js";
 
 const tagOf = (type) => String(type || "").replace(/^custom:/, "");
 
+// The light/dark toolbar toggle (see .storybook/preview.js) flips this before a
+// story renders; renderCard seeds the mock hass's `themes.darkMode` from it so
+// each card's ThemeController switches the palette exactly as it would in HA.
+let previewDark = true;
+
+/** Set by the theme toolbar decorator before each render. */
+export function setPreviewDark(dark) {
+  previewDark = dark;
+}
+
+/** Page/ground colours for a composed page story that paints its own column.
+ *  Reads the theme toolbar value off the story context so Pages/* follow it too. */
+export function pageColors(ctx) {
+  const light = ctx && ctx.globals && ctx.globals.theme === "light";
+  return light
+    ? { bg: "#EEF1F0", ink: "#14201A" }
+    : { bg: "#111516", ink: "#EDF1F1" };
+}
+
 export function renderCard(config, hass = HASS) {
   const el = document.createElement(tagOf(config.type));
   el.setConfig(JSON.parse(JSON.stringify(config)));
-  el.hass = hass;
+  el.hass = { ...hass, themes: { ...(hass && hass.themes), darkMode: previewDark } };
   return el;
 }
 

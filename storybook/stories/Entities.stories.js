@@ -2,8 +2,15 @@ import { story } from "../src/story.js";
 import { HASS, HASS_BATT_LOW, HASS_ALL_CLEAR } from "../src/hass.js";
 
 export default {
-  title: "Cards/Entities",
+  title: "Cards/Status & Data/Entities",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: "Self-maintaining filtered list of entities.",
+      },
+    },
+  },
 };
 
 /** Everything unavailable — fills itself from hass, no hardcoded entity list. */

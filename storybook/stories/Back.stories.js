@@ -1,8 +1,15 @@
 import { story, renderCard } from "../src/story.js";
 
 export default {
-  title: "Cards/Back",
+  title: "Cards/Shell & Navigation/Back",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: "Back control driven by a real navigation stack.",
+      },
+    },
+  },
 };
 
 const BACK = {

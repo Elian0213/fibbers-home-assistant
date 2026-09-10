@@ -1,8 +1,15 @@
 import { story } from "../src/story.js";
 
 export default {
-  title: "Cards/Datetime",
+  title: "Cards/Inputs & Controls/Datetime",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: "Time / date row for input_datetime.",
+      },
+    },
+  },
 };
 
 /** A time-only helper, shown big like the scheduler's wake time. */

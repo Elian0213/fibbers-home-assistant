@@ -1,8 +1,15 @@
 import { story } from "../src/story.js";
 
 export default {
-  title: "Cards/Climate",
+  title: "Cards/Devices & Media/Climate",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: "Thermostat — setpoint and hvac modes.",
+      },
+    },
+  },
 };
 
 /** Heating: current 21.4° above a 21° setpoint, "verwarmen" action, heat chip lit. */

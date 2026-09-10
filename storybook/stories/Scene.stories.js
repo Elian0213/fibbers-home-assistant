@@ -1,8 +1,15 @@
 import { story } from "../src/story.js";
 
 export default {
-  title: "Cards/Scene",
+  title: "Cards/Rooms, Lights & Scenes/Scene",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: "Scene tiles that highlight the active scene.",
+      },
+    },
+  },
 };
 
 /** Three scene tiles; the most recently applied one (Avond, by `last_activated`) is highlighted. */

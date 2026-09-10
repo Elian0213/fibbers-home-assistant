@@ -1,8 +1,15 @@
 import { story } from "../src/story.js";
 
 export default {
-  title: "Cards/Weather",
+  title: "Cards/Status & Data/Weather",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: "Current conditions and a short forecast.",
+      },
+    },
+  },
 };
 
 /** Current conditions plus the default five-day forecast strip. */

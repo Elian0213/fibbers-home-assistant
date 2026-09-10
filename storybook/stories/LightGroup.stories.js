@@ -1,8 +1,16 @@
 import { story } from "../src/story.js";
 
 export default {
-  title: "Cards/Light Group",
+  title: "Cards/Rooms, Lights & Scenes/Light Group",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component:
+          "Master light control — group slider with expandable member rows.",
+      },
+    },
+  },
 };
 
 /** A room master: 2 of 4 on at mixed brightness (striped fill), one bulb

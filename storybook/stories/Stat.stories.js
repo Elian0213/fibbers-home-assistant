@@ -2,8 +2,15 @@ import { story } from "../src/story.js";
 import { HASS } from "../src/hass.js";
 
 export default {
-  title: "Cards/Stat",
+  title: "Cards/Status & Data/Stat",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: "Single value tile — icon, label, value and unit.",
+      },
+    },
+  },
 };
 
 /** Reads an entity — state, unit and name come from Home Assistant. */

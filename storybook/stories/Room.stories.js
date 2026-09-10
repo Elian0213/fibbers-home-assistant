@@ -2,8 +2,15 @@ import { story } from "../src/story.js";
 import { HASS, HASS_ALL_CLEAR } from "../src/hass.js";
 
 export default {
-  title: "Cards/Room",
+  title: "Cards/Rooms, Lights & Scenes/Room",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: "Room tile that computes its own light state.",
+      },
+    },
+  },
 };
 
 /** 2 of 3 lights on — the tile glows green and reads "2 van 3 aan". Tap opens its sheet. */

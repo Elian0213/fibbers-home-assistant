@@ -1,8 +1,15 @@
 import { story } from "../src/story.js";
 
 export default {
-  title: "Cards/Chips",
+  title: "Cards/Rooms, Lights & Scenes/Chips",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: "A row of action pills.",
+      },
+    },
+  },
 };
 
 /** An action pill row mixing toggle, call-service and navigate chips; "Wekker"

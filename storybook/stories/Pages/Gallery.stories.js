@@ -1,4 +1,4 @@
-import { renderCard } from "../../src/story.js";
+import { renderCard, pageColors } from "../../src/story.js";
 import { HASS } from "../../src/hass.js";
 
 export default {
@@ -87,11 +87,12 @@ const CARDS = [
 
 /** A gallery of the cards on the dark theme — the hero shot for the README. */
 export const Gallery = {
-  render: () => {
+  render: (_args, ctx) => {
+    const { bg, ink } = pageColors(ctx);
     const wrap = document.createElement("div");
     wrap.style.cssText =
       "display:grid;grid-template-columns:repeat(2,minmax(320px,1fr));align-items:start;" +
-      "gap:14px;padding:20px;background:#111516;color:#EDF1F1;" +
+      `gap:14px;padding:20px;background:${bg};color:${ink};` +
       "font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;";
     CARDS.forEach((c) => {
       const el = renderCard(c, HASS);

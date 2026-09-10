@@ -1,8 +1,15 @@
 import { story } from "../src/story.js";
 
 export default {
-  title: "Cards/Number",
+  title: "Cards/Inputs & Controls/Number",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: "Slider / stepper for input_number and number.",
+      },
+    },
+  },
 };
 
 /** A drag slider bound to an input_number (1–60 min), across its min/max/step. */

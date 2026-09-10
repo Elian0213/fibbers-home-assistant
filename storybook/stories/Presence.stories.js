@@ -2,8 +2,15 @@ import { story } from "../src/story.js";
 import { HASS, HASS_HOME } from "../src/hass.js";
 
 export default {
-  title: "Cards/Presence",
+  title: "Cards/Status & Data/Presence",
   tags: ["autodocs"],
+  parameters: {
+    docs: {
+      description: {
+        component: "Who's home — person tiles with a summary.",
+      },
+    },
+  },
 };
 
 /** No `people` given — auto-collects every `person.*`. Nobody home → muted summary. */
