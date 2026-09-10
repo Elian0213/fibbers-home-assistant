@@ -53,12 +53,3 @@ export const Sensors = story({
     "sensor.hue_motion_sensor_1_battery",
   ],
 });
-
-/** English subline via a language override on the same live states. */
-export const English = story({
-  type: "custom:fibbers-greeting",
-  name_from: "person.elian",
-  lights: "light.all_color_lights",
-  sensors: ["sensor.hue_motion_sensor_1_temperature"],
-  language: "en",
-});

@@ -30,7 +30,6 @@ const ALARM = {
   volume: "input_number.wake_volume",
   status: "input_text.wake_status",
   config_path: "/dashboard-main/wekker",
-  language: "nl",
 };
 
 // A hass with specific states patched onto a fresh mock.
@@ -52,12 +51,12 @@ const hassWith = (overrides) => {
 export const Armed = story(ALARM);
 
 /** Disarmed — the tile drops into its off treatment, the next-occurrence reads
- * "Uit" and the summaries dim; the toggle stays live. */
+ * "Off" and the summaries dim; the toggle stays live. */
 export const Disarmed = story(ALARM, {
   hass: hassWith({ "input_boolean.wake_alarm_enabled": "off" }),
 });
 
-/** Wake radio off — the radio summary reads "Radio uit". */
+/** Wake radio off — the radio summary reads "Radio off". */
 export const RadioOff = story(ALARM, {
   hass: hassWith({ "input_boolean.wake_radio_enabled": "off" }),
 });
@@ -72,7 +71,6 @@ export const NoRadio = story({
   duration: "input_number.wake_fade",
   brightness: "input_number.wake_brightness",
   days: "input_select.wake_days",
-  language: "nl",
 });
 
 /** An unavailable time entity — the big time falls back to "—" and the next

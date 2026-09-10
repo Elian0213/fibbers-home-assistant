@@ -13,7 +13,7 @@ export default {
   },
 };
 
-/** 2 of 3 lights on — the tile glows green and reads "2 van 3 aan". Tap opens its sheet. */
+/** 2 of 3 lights on — the tile glows green and reads "2 of 3 on". Tap opens its sheet. */
 export const Lit = story({
   type: "custom:fibbers-room",
   name: "Woonkamer",
@@ -22,7 +22,7 @@ export const Lit = story({
   sheet: "woonkamer",
 });
 
-/** All configured lights on — reads "2 van 2 aan", fully lit glow. */
+/** All configured lights on — reads "2 of 2 on", fully lit glow. */
 export const AllOn = story({
   type: "custom:fibbers-room",
   name: "Keuken",
@@ -31,7 +31,7 @@ export const AllOn = story({
   sheet: "keuken",
 });
 
-/** All lights off but reachable — reads "Uit", neutral surface. */
+/** All lights off but reachable — reads "Off", neutral surface. */
 export const Off = story(
   {
     type: "custom:fibbers-room",

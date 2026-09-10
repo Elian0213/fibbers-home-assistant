@@ -18,6 +18,17 @@ export function setPreviewDark(dark) {
   previewDark = dark;
 }
 
+// The language toolbar (see .storybook/preview.js) sets this before a story
+// renders; snapshot seeds the mock hass's `language` / `locale.language` from it,
+// so each card's i18n (`t` / `langOf`) resolves exactly as it would from a real
+// Home Assistant account language. English is the default.
+let previewLang = "en";
+
+/** Set by the language toolbar decorator before each render. */
+export function setPreviewLang(lang) {
+  previewLang = lang || "en";
+}
+
 /** Page/ground colours for a composed page story that paints its own column.
  *  Reads the theme toolbar value off the story context so Pages/* follow it too. */
 export function pageColors(ctx) {
@@ -32,7 +43,12 @@ const liveCards = new Set();
 /** A fresh hass referencing the (mutable) mock states, with the toolbar's
  *  dark/light applied. A new object each call so Lit re-renders. */
 function snapshot(base) {
-  return { ...base, themes: { ...(base && base.themes), darkMode: previewDark } };
+  return {
+    ...base,
+    language: previewLang,
+    locale: { ...(base && base.locale), language: previewLang },
+    themes: { ...(base && base.themes), darkMode: previewDark },
+  };
 }
 
 // A stubbed service call mutates the shared mock states and notifies here; re-push

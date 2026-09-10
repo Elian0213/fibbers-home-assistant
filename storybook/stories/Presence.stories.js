@@ -37,7 +37,7 @@ export const EnkelePersoon = story(
   { hass: HASS },
 );
 
-/** `title: false` drops the "Aanwezigheid" header, leaving only the count + tiles. */
+/** `title: false` drops the "Presence" header, leaving only the count + tiles. */
 export const ZonderTitel = story(
   {
     type: "custom:fibbers-presence",

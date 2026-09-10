@@ -32,7 +32,7 @@ export const AllOn = story({
   icon: "solar:chef-hat-minimalistic-bold-duotone",
 });
 
-/** All members off — neutral surface, reads "Uit". */
+/** All members off — neutral surface, reads "Off". */
 export const AllOff = story({
   type: "custom:fibbers-light-group",
   entity: "light.hal_lampen",

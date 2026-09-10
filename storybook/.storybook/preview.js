@@ -1,6 +1,6 @@
 import "../src/stubs.js"; // ha-icon + loadCardHelpers stubs, then loads the real bundle
 import theme from "./theme.js";
-import { setPreviewDark } from "../src/story.js";
+import { setPreviewDark, setPreviewLang } from "../src/story.js";
 
 /** @type {import('@storybook/web-components-vite').Preview} */
 const preview = {
@@ -78,12 +78,28 @@ const preview = {
         dynamicTitle: true,
       },
     },
+    // Language selector. At runtime cards follow the Home Assistant account
+    // language; here the toolbar seeds the mock hass's language (setPreviewLang,
+    // consumed by src/story.js) so every card renders through the real i18n path.
+    language: {
+      description: "Card language (follows Home Assistant at runtime)",
+      toolbar: {
+        title: "Language",
+        icon: "globe",
+        items: [
+          { value: "en", title: "English" },
+          { value: "nl", title: "Nederlands" },
+        ],
+        dynamicTitle: true,
+      },
+    },
   },
 
   decorators: [
     (story, ctx) => {
       const isLight = ctx.globals.theme === "light";
       setPreviewDark(!isLight); // seed the mock hass darkMode before the story renders
+      setPreviewLang(ctx.globals.language); // seed the mock hass language too
 
       const font =
         "font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif";
@@ -129,6 +145,7 @@ const preview = {
 
   initialGlobals: {
     theme: "dark",
+    language: "en",
   },
 };
 

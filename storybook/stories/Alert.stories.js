@@ -23,7 +23,7 @@ const CHECKS = {
   ],
 };
 
-/** Checks firing — amber "Aandacht nodig" tint, one tappable line per finding. */
+/** Checks firing — amber "Attention needed" tint, one tappable line per finding. */
 export const Findings = story(CHECKS, { hass: HASS });
 
 /** Everything clear — neutral card with a green tick and "Alles in orde". */

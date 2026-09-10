@@ -33,14 +33,6 @@ export const FriendlyNameFallback = story({
   entity: "weather.thuis",
 });
 
-/** `language: en` renders the condition label and weekday names in English. */
-export const English = story({
-  type: "custom:fibbers-weather",
-  entity: "weather.thuis",
-  name: "Home",
-  language: "en",
-});
-
 /** A `sunny` entity — the sun icon with a warm temperature. */
 export const Sunny = story({
   type: "custom:fibbers-weather",

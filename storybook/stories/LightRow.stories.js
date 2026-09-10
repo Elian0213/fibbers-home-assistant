@@ -12,7 +12,7 @@ export default {
   },
 };
 
-/** On in a colour mode — value reads "Kleur · 80%"; the slider is set to brightness. */
+/** On in a colour mode — value reads "Colour · 80%"; the slider is set to brightness. */
 export const Colour = story({
   type: "custom:fibbers-light-row",
   entity: "light.tv_led_strip",
@@ -32,13 +32,13 @@ export const Named = story({
   icon: "solar:lightbulb-bolt-bold-duotone",
 });
 
-/** Off — value reads "Uit" and the icon box is muted. */
+/** Off — value reads "Off" and the icon box is muted. */
 export const Off = story({
   type: "custom:fibbers-light-row",
   entity: "light.woonkamer_computer",
 });
 
-/** Unreachable — value reads "Onbereikbaar" and the slider is disabled. */
+/** Unreachable — value reads "Unavailable" and the slider is disabled. */
 export const Unavailable = story({
   type: "custom:fibbers-light-row",
   entity: "light.hue_go_1",
