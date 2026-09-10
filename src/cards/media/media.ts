@@ -31,6 +31,7 @@ import type {
   HassEntity,
   LovelaceCard,
   LovelaceCardConfig,
+  LovelaceCardEditor,
 } from "@/types/home-assistant";
 import "@shared/icon";
 
@@ -87,6 +88,18 @@ export interface MediaConfig extends LovelaceCardConfig {
   favourites?: Favourite[];
   language?: string;
 }
+
+// ha-form schema for the visual editor. Unlisted keys (sources, group, favourites,
+// language) pass through untouched — a YAML config round-trips.
+const EDITOR_SCHEMA = [
+  {
+    name: "entity",
+    selector: { entity: { domain: "media_player" } },
+    required: true,
+  },
+  { name: "name", selector: { text: {} } },
+  { name: "compact", selector: { boolean: {} } },
+];
 
 /** Current playback position (seconds) and duration, drift-corrected. */
 interface Position {
@@ -157,6 +170,17 @@ export class FibbersMedia extends LitElement implements LovelaceCard {
         "media_player.example",
       ),
     };
+  }
+
+  /** Visual editor element, wired to EDITOR_SCHEMA. */
+  static getConfigElement(): LovelaceCardEditor {
+    const el = document.createElement(
+      "fibbers-form-editor",
+    ) as LovelaceCardEditor & {
+      schema?: unknown;
+    };
+    el.schema = EDITOR_SCHEMA;
+    return el;
   }
 
   /** Validate + store the config; throws on a bad entity/sources/group so the editor surfaces it. */

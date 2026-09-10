@@ -20,6 +20,7 @@ import type {
   HomeAssistant,
   LovelaceCard,
   LovelaceCardConfig,
+  LovelaceCardEditor,
 } from "@/types/home-assistant";
 
 /** YAML/editor config accepted by `fibbers-graph`. */
@@ -48,6 +49,27 @@ const STROKE: Record<string, string> = {
   red: "text-red",
 };
 const W = 300;
+
+// ha-form schema for the visual editor. Unlisted keys (data, height, language,
+// grid options) pass through untouched — a YAML config round-trips.
+const EDITOR_SCHEMA = [
+  { name: "entity", selector: { entity: {} } },
+  { name: "name", selector: { text: {} } },
+  { name: "hours", selector: { number: { min: 1, max: 168, mode: "box" } } },
+  { name: "decimals", selector: { number: { min: 0, max: 4, mode: "box" } } },
+  {
+    name: "color",
+    selector: {
+      select: {
+        mode: "dropdown",
+        options: COLORS.map((c) => ({ value: c, label: c })),
+      },
+    },
+  },
+  { name: "unit", selector: { text: {} } },
+  { name: "show_stats", selector: { boolean: {} } },
+  { name: "fill", selector: { boolean: {} } },
+];
 
 /**
  * fibbers-graph — single-entity history sparkline with min/max labels. History
@@ -100,6 +122,17 @@ export class FibbersGraph extends LitElement implements LovelaceCard {
       ),
       hours: 24,
     };
+  }
+
+  /** Visual editor element, wired to EDITOR_SCHEMA. */
+  static getConfigElement(): LovelaceCardEditor {
+    const el = document.createElement(
+      "fibbers-form-editor",
+    ) as LovelaceCardEditor & {
+      schema?: unknown;
+    };
+    el.schema = EDITOR_SCHEMA;
+    return el;
   }
 
   /** Validate + store the config, resetting fetch bookkeeping; throws on a missing source or bad `color` so the editor surfaces it. */
