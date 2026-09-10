@@ -1,4 +1,4 @@
-import { create } from "@storybook/theming";
+import { create } from "storybook/theming";
 import logo from "./assets/fibbers-logo.svg";
 
 // Fibbers' dark, forest-green identity applied to the Storybook chrome + docs.

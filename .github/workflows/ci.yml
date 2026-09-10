@@ -45,18 +45,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Build Storybook
+      - name: Install Storybook deps
         working-directory: storybook
-        run: |
-          npm ci
-          npm run build-storybook
+        run: npm ci
 
       - name: Install Playwright chromium
         working-directory: storybook
         run: npx playwright install chromium --with-deps
 
-      # Every story is a smoke test + an axe pass (critical/serious fail) —
-      # see storybook/.storybook/test-runner.js.
+      # Every story runs as a browser test (render smoke test) + an axe a11y pass
+      # via @storybook/addon-vitest — see storybook/vitest.config.js and
+      # storybook/.storybook/preview.js (parameters.a11y.test = "error").
       - name: Story smoke + a11y tests
         working-directory: storybook
-        run: npm run test-storybook:static
+        run: npm run test-storybook

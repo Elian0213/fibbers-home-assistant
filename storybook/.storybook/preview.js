@@ -1,20 +1,22 @@
 import "../src/stubs.js"; // ha-icon + loadCardHelpers stubs, then loads the real bundle
 import theme from "./theme.js";
 
-// The test-runner injects its own axe (axe-playwright); the addon's automatic
-// run would collide with it ("Axe is already running"). Manual-only under tests.
-const isTestRunner =
-  typeof navigator !== "undefined" &&
-  navigator.userAgent.includes("StorybookTestRunner");
-
 /** @type {import('@storybook/web-components-vite').Preview} */
 const preview = {
   parameters: {
-    a11y: { manual: isTestRunner },
+    // The Vitest addon runs axe on every story and fails the run on violations.
+    // Keep the dark theme's known muted-text contrast trade-off out of the gate
+    // (documented in docs/accessibility.md); names, roles, aria, nesting stay
+    // enforced.
+    a11y: {
+      test: "error",
+      config: { rules: [{ id: "color-contrast", enabled: false }] },
+    },
     layout: "centered",
     backgrounds: {
-      default: "fibbers",
-      values: [{ name: "fibbers", value: "#111516" }],
+      options: {
+        fibbers: { name: "fibbers", value: "#111516" }
+      }
     },
     // stories are config-driven (each is a fixed YAML), so there are no args/controls
     controls: { hideNoControlsWarning: true },
@@ -60,6 +62,7 @@ const preview = {
       },
     },
   },
+
   decorators: [
     (story, ctx) => {
       const font =
@@ -91,6 +94,12 @@ const preview = {
       return wrap;
     },
   ],
+
+  initialGlobals: {
+    backgrounds: {
+      value: "fibbers"
+    }
+  }
 };
 
 export default preview;
