@@ -3,6 +3,37 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.0] — 2026-09-10
+
+The first stable release. Fibbers cards now follow your Home Assistant theme automatically
+(light or dark), the weather card opens a rich detail sheet, the room light picker gets a
+cleaner lamp strip, and more cards can be configured from the UI.
+
+### Added
+
+- **Automatic light/dark theming.** Every card reads `hass.themes.darkMode` and switches to a
+  legible light palette on a light HA theme, or the dark forest-green palette on a dark one — no
+  config. The nav's `theme:` option still themes Home Assistant's own chrome. Because the cards
+  now render correctly on any theme, Fibbers no longer looks out of place on a light dashboard.
+- **Weather detail sheet.** Tapping a `fibbers-weather` card opens a modal with current
+  conditions (feels-like, humidity, wind, pressure, sunrise/sunset), an hourly strip and a
+  multi-day forecast.
+- **Visual editors** for `fibbers-graph`, `fibbers-media` and `fibbers-weather` — configure them
+  from Home Assistant's card UI, not only YAML.
+
+### Changed
+
+- **Room light picker.** The lamp strip below the wheel restacks each tile to icon → name →
+  toggle (centred) using the entity's own icon, and is drag-scrollable by mouse (touch already
+  panned) with the scrollbar replaced by a soft edge fade. A committed colour is now held
+  optimistically a little longer, so a slow round-trip no longer flashes the previous colour back.
+
+### Internal
+
+- **Storybook overhaul.** The 28 cards are grouped into five categories with per-card docs and a
+  live light/dark toolbar toggle; the mock Home Assistant applies service calls so the demos are
+  interactive, and `bun run storybook` opens the browser on 6007 automatically.
+
 ## [0.12.0] — 2026-09-10
 
 Group lamps by dragging them together in the room light picker — plus a Storybook 10
