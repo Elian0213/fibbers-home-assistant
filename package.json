@@ -16,7 +16,7 @@
     "typecheck": "tsc --noEmit",
     "test": "bun test src",
     "test:stories": "bun run build && cd storybook && npm run test-storybook",
-    "storybook": "concurrently -k -n BUILD,SB \"bun run watch\" \"cd storybook && npm run storybook\"",
+    "storybook": "concurrently -k -n BUILD,SB,OPEN \"bun run watch\" \"cd storybook && npm run storybook\" \"bun scripts/open-storybook.mjs\"",
     "gen-icons": "bun scripts/gen-icons.mjs",
     "gen-tw": "bun scripts/gen-tw.mjs",
     "format": "prettier --write \"src/**/*.{js,ts}\" \"test/fixtures/*.html\"",
