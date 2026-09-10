@@ -17,22 +17,26 @@ import { cardShell, unavailNotice } from "@shared/shells";
 import { twSheet } from "@shared/tw";
 import { ThemeController } from "@shared/theme-host";
 import { pickEntity } from "@shared/util";
-import { sectionLabel } from "@shared/variants";
+import { pressable, sectionLabel } from "@shared/variants";
+
+import { openModal } from "@core/body-sheet";
 import type {
   HomeAssistant,
   HassEntity,
   LovelaceCard,
   LovelaceCardConfig,
+  LovelaceCardEditor,
 } from "@/types/home-assistant";
 import "@shared/icon";
 
-/** A single daily forecast entry from the weather/subscribe_forecast feed. */
-interface ForecastDay {
-  datetime?: string;
-  condition?: string;
-  temperature?: number;
-  templow?: number;
-}
+import {
+  COND_ICON,
+  iconFor,
+  round,
+  dayName,
+  type Forecast,
+} from "./weather-util";
+import "@cards/sensors/weather-sheet"; // registers <fibbers-weather-sheet> for the modal
 
 /** YAML/editor config accepted by `fibbers-weather`. */
 export interface WeatherConfig extends LovelaceCardConfig {
@@ -42,37 +46,17 @@ export interface WeatherConfig extends LovelaceCardConfig {
   language?: string;
 }
 
-const COND_ICON: Record<string, string> = {
-  "clear-night": "solar:moon-bold-duotone",
-  sunny: "solar:sun-bold-duotone",
-  partlycloudy: "solar:cloud-sun-bold-duotone",
-  cloudy: "solar:cloud-bold-duotone",
-  fog: "solar:cloud-bold-duotone",
-  rainy: "solar:cloud-rain-bold-duotone",
-  pouring: "solar:cloud-rain-bold-duotone",
-  "lightning-rainy": "solar:cloud-rain-bold-duotone",
-  lightning: "solar:cloud-rain-bold-duotone",
-  snowy: "solar:cloud-bold-duotone",
-  "snowy-rainy": "solar:cloud-rain-bold-duotone",
-  hail: "solar:cloud-rain-bold-duotone",
-  windy: "solar:cloud-bold-duotone",
-  "windy-variant": "solar:cloud-bold-duotone",
-  exceptional: "solar:cloud-bold-duotone",
-};
-/** Solar icon for an HA condition slug, with a cloud fallback for anything unmapped. */
-const iconFor = (c: string | undefined): string =>
-  COND_ICON[c as string] || "solar:cloud-bold-duotone";
-/** Round to a whole number, or null for a non-numeric input (so callers can show "—"). */
-const round = (n: unknown): number | null =>
-  Number.isFinite(Number(n)) ? Math.round(Number(n)) : null;
-/** Localised short weekday for a forecast datetime (trailing "." stripped); "" on a bad date. */
-const dayNl = (iso: string, lang: string): string => {
-  const parsed = Date.parse(iso);
-  if (Number.isNaN(parsed)) return "";
-  return new Date(parsed)
-    .toLocaleDateString(lang || "en", { weekday: "short" })
-    .replace(".", "");
-};
+// ha-form schema for the visual editor. Unlisted keys (language) pass through
+// untouched — a YAML config round-trips.
+const EDITOR_SCHEMA = [
+  {
+    name: "entity",
+    selector: { entity: { domain: "weather" } },
+    required: true,
+  },
+  { name: "name", selector: { text: {} } },
+  { name: "days", selector: { number: { min: 1, max: 10, mode: "box" } } },
+];
 
 /**
  * fibbers-weather — current temp + condition and a short forecast strip from a
@@ -87,7 +71,7 @@ export class FibbersWeather extends LitElement implements LovelaceCard {
 
   @state() private config!: WeatherConfig;
 
-  @state() private _forecast: ForecastDay[] | null = null;
+  @state() private _forecast: Forecast[] | null = null;
 
   private _subFor?: string | null;
 
@@ -119,6 +103,17 @@ export class FibbersWeather extends LitElement implements LovelaceCard {
     };
   }
 
+  /** Visual editor element, wired to EDITOR_SCHEMA. */
+  static getConfigElement(): LovelaceCardEditor {
+    const el = document.createElement(
+      "fibbers-form-editor",
+    ) as LovelaceCardEditor & {
+      schema?: unknown;
+    };
+    el.schema = EDITOR_SCHEMA;
+    return el;
+  }
+
   /** Validate + store the config and clear any prior forecast; throws when the `weather.*` `entity` is missing so the editor surfaces it. */
   setConfig(config: WeatherConfig): void {
     if (!config || !config.entity) {
@@ -146,7 +141,7 @@ export class FibbersWeather extends LitElement implements LovelaceCard {
     this._subFor = id;
     conn
       .subscribeMessage(
-        (msg: { forecast?: ForecastDay[] } | undefined) => {
+        (msg: { forecast?: Forecast[] } | undefined) => {
           this._forecast = (msg && msg.forecast) || [];
         },
         {
@@ -184,6 +179,25 @@ export class FibbersWeather extends LitElement implements LovelaceCard {
     this._subFor = null;
   }
 
+  /** Open the rich weather detail sheet (hourly + multi-day + current metrics). */
+  private _open(): void {
+    if (!this.hass) return;
+    const cfg = this.config;
+    const st = this.hass.states[cfg.entity];
+    const name =
+      cfg.name ||
+      (st && st.attributes.friendly_name) ||
+      t(cfg.language || this.hass, "weather.default_name");
+    openModal({
+      title: name,
+      icon: iconFor(st && st.state),
+      cards: [{ ...cfg, type: "custom:fibbers-weather-sheet" }],
+      hass: this.hass,
+      entityId: cfg.entity,
+      wide: false,
+    });
+  }
+
   // --- render helpers ------------------------------------------------
 
   private _renderCurrent(st: HassEntity, hl: unknown): TemplateResult {
@@ -216,7 +230,7 @@ export class FibbersWeather extends LitElement implements LovelaceCard {
   }
 
   private _renderForecast(
-    days: ForecastDay[],
+    days: Forecast[],
     hl: unknown,
   ): TemplateResult | string {
     if (!days.length) return "";
@@ -227,7 +241,7 @@ export class FibbersWeather extends LitElement implements LovelaceCard {
             class="flex flex-col items-center gap-1 rounded-[10px] bg-card2 px-0.5 py-2"
           >
             <span class="text-[10px] capitalize text-muted"
-              >${f.datetime ? dayNl(f.datetime, langOf(hl)) : ""}</span
+              >${f.datetime ? dayName(f.datetime, langOf(hl)) : ""}</span
             >
             <fib-icon
               class="h-[18px] w-[18px] [--mdc-icon-size:18px] text-ink2"
@@ -256,7 +270,18 @@ export class FibbersWeather extends LitElement implements LovelaceCard {
 
     const days = (this._forecast || []).slice(0, cfg.days || 5);
     return cardShell(
-      html`${this._renderCurrent(st, hl)}${this._renderForecast(days, hl)}`,
+      html`<button
+        type="button"
+        class="block w-full text-left ${pressable({ hover: "tint" })}"
+        aria-label=${
+          cfg.name ||
+          st.attributes.friendly_name ||
+          t(hl, "weather.default_name")
+        }
+        @click=${() => this._open()}
+      >
+        ${this._renderCurrent(st, hl)}${this._renderForecast(days, hl)}
+      </button>`,
     );
   }
 

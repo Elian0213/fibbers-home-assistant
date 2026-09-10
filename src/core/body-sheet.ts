@@ -471,6 +471,8 @@ export function openSheet(id: string): void {
   build();
   layer.openId = id;
   layer.host!.setAttribute("data-open", "true");
+  // Theme the sheet chrome from the sheet's own hass (a nav card isn't required).
+  if (card._hass) reflectTheme(layer.host!, card._hass);
   lockView(true);
   renderContent(card);
   reveal();
@@ -547,6 +549,9 @@ export function openModal({
   layer.modalCard = card;
   layer.openId = MODAL_ID;
   layer.host!.setAttribute("data-open", "true");
+  // Theme the sheet chrome from the opener's hass, so a modal follows the HA
+  // light/dark theme even when no nav card is present to drive it.
+  if (hass) reflectTheme(layer.host!, hass);
   // Opt into the wider desktop dialog (two-column content); cleared on close.
   if (wide) layer.host!.setAttribute("data-wide", "true");
   else layer.host!.removeAttribute("data-wide");

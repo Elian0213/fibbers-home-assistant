@@ -156,6 +156,15 @@
   },
   "weather": {
     "default_name": "Weather",
+    "feels_like": "Feels like",
+    "humidity": "Humidity",
+    "wind": "Wind",
+    "pressure": "Pressure",
+    "sunrise": "Sunrise",
+    "sunset": "Sunset",
+    "hourly": "Hourly",
+    "daily": "Next days",
+    "now": "Now",
     "conditions": {
       "clear-night": "Clear",
       "sunny": "Sunny",

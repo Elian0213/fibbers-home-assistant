@@ -156,6 +156,15 @@
   },
   "weather": {
     "default_name": "Weer",
+    "feels_like": "Gevoel",
+    "humidity": "Vochtigheid",
+    "wind": "Wind",
+    "pressure": "Luchtdruk",
+    "sunrise": "Zonsopkomst",
+    "sunset": "Zonsondergang",
+    "hourly": "Per uur",
+    "daily": "Komende dagen",
+    "now": "Nu",
     "conditions": {
       "clear-night": "Helder",
       "sunny": "Zonnig",
