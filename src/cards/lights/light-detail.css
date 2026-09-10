@@ -16,3 +16,124 @@
 }
 /* The themed thin scrollbar is the shared `.fib-scroll` class (src/shared/tw.ts),
    used here on the horizontal lamp-tile strip and by the alarm station list. */
+
+/* --- Colour wheel (donut): outer colour ring + warm-white centre -------------- *
+ * The interactive surface is the `.fib-wheel` container (all pointer handlers stay
+ * on it); `.fib-wheel-ring` and `.fib-wheel-center` are decorative, pointer-
+ * transparent layers beneath the markers. The ring-hole and centre sizes are
+ * percentages that mirror RING_IN / CENTER_R in light-detail-math.ts — keep in sync.
+ * ------------------------------------------------------------------------------ */
+.fib-wheel-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    #f00,
+    #ff0,
+    #0f0,
+    #0ff,
+    #00f,
+    #f0f,
+    #f00
+  );
+  /* Punch the donut hole: transparent to 56% of the radius (= RING_IN 28 / 50). */
+  -webkit-mask: radial-gradient(
+    circle closest-side,
+    transparent 0 56%,
+    #000 57%
+  );
+  mask: radial-gradient(circle closest-side, transparent 0 56%, #000 57%);
+  transition:
+    opacity 0.35s ease,
+    filter 0.35s ease;
+  pointer-events: none;
+}
+/* Dragging a warm-only lamp dims the ring to focus attention on the warm centre. */
+.fib-wheel-ring.is-dim {
+  opacity: 0.16;
+  filter: grayscale(100%);
+}
+/* The warm-white centre disc (width = 2·CENTER_R = 44%). Warm markers ride its
+   horizontal diameter: warm (2000 K) left → cool (6535 K) right. */
+.fib-wheel-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44%;
+  height: 44%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: linear-gradient(
+    90deg,
+    #ff9838,
+    #ffd9a0,
+    #fff6ea,
+    #e6efff,
+    #bcd2ff
+  );
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+/* --- Wheel markers ------------------------------------------------------------ *
+ * Positioned by left/top %; the transform owns centring (+ the drag scale). The
+ * spring settle animates position when a marker moves on its own, while the
+ * actively dragged marker gets no position transition so it tracks the finger
+ * exactly — the peak touch feel is unchanged.
+ * ------------------------------------------------------------------------------ */
+.fib-node {
+  transform: translate(-50%, -50%);
+  transition:
+    left 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    top 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+  will-change: left, top, transform;
+}
+.fib-node--dragging {
+  transition:
+    left 0s,
+    top 0s,
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
+  transform: translate(-50%, -50%) scale(1.12);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.6);
+  z-index: 5;
+}
+/* The focused marker's pulsing accent ring. */
+.fib-node--active::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 2px solid var(--color-accent);
+  pointer-events: none;
+  animation: fibNodePulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+/* The group count badge pops in when a merge creates it. */
+.fib-badge {
+  animation: fibPopIn 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes fibNodePulse {
+  0% {
+    transform: scale(0.85);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+}
+@keyframes fibPopIn {
+  0% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

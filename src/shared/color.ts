@@ -40,3 +40,48 @@ export function rgbToKelvin([r, g, b]: [number, number, number]): number {
   const n = (x - 0.332) / (0.1858 - y || 1e-6);
   return 449 * n ** 3 + 3525 * n ** 2 + 6823.3 * n + 5520.33;
 }
+
+/**
+ * [r,g,b] 0-255 → CIE L*a*b* (D65). Lab is perceptually uniform, so a Euclidean
+ * distance in it ({@link deltaE76}) matches "do these read as the same colour" far
+ * better than raw RGB/hue distance — used to auto-cluster same-colour lamps.
+ * @param rgb
+ */
+export function rgbToLab([r, g, b]: [number, number, number]): [
+  number,
+  number,
+  number,
+] {
+  // sRGB companding → linear light.
+  const lin = (c: number): number => {
+    const s = c / 255;
+    return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  };
+  const R = lin(r);
+  const G = lin(g);
+  const B = lin(b);
+  // linear RGB → XYZ (sRGB/D65 matrix).
+  const X = R * 0.4124 + G * 0.3576 + B * 0.1805;
+  const Y = R * 0.2126 + G * 0.7152 + B * 0.0722;
+  const Z = R * 0.0193 + G * 0.1192 + B * 0.9505;
+  // XYZ → Lab, normalised to the D65 white point.
+  const f = (t: number): number =>
+    t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116;
+  const fx = f(X / 0.95047);
+  const fy = f(Y / 1.0);
+  const fz = f(Z / 1.08883);
+  return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
+}
+
+/**
+ * CIE76 colour difference — the Euclidean distance between two Lab colours. ΔE≈1 is
+ * the just-noticeable difference and ΔE≤~2 reads as the same colour; cheap enough to
+ * run per lamp per frame.
+ * @param a @param b — Lab triples from {@link rgbToLab}
+ */
+export function deltaE76(
+  a: [number, number, number],
+  b: [number, number, number],
+): number {
+  return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+}

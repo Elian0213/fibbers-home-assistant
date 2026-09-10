@@ -2,7 +2,7 @@
  * assertions pin relative warmth ordering and a sane white point, not exact CCTs. */
 import { describe, expect, test } from "bun:test";
 
-import { hsToRgb, rgbToKelvin } from "./color";
+import { hsToRgb, rgbToKelvin, rgbToLab, deltaE76 } from "./color";
 
 describe("hsToRgb", () => {
   test("full-saturation primaries land exactly", () => {
@@ -60,5 +60,32 @@ describe("rgbToKelvin", () => {
     for (let i = 1; i < sweep.length; i++) {
       expect(sweep[i - 1]).toBeLessThan(sweep[i]);
     }
+  });
+});
+
+describe("rgbToLab / deltaE76", () => {
+  test("black is L≈0, white is L≈100 with ~neutral a/b", () => {
+    const black = rgbToLab([0, 0, 0]);
+    const white = rgbToLab([255, 255, 255]);
+    expect(black[0]).toBeCloseTo(0, 1);
+    expect(white[0]).toBeCloseTo(100, 0);
+    expect(Math.abs(white[1])).toBeLessThan(1);
+    expect(Math.abs(white[2])).toBeLessThan(1);
+  });
+
+  test("identical colours have ΔE 0; black↔white is a large distance", () => {
+    const red = rgbToLab([200, 40, 40]);
+    expect(deltaE76(red, red)).toBe(0);
+    expect(
+      deltaE76(rgbToLab([0, 0, 0]), rgbToLab([255, 255, 255])),
+    ).toBeCloseTo(100, 0);
+  });
+
+  test("a near-identical colour stays under a few ΔE; a different hue is far", () => {
+    const base = rgbToLab([120, 60, 200]);
+    const nudged = rgbToLab([123, 62, 202]); // sensor-rounding scale
+    const other = rgbToLab([60, 200, 90]); // clearly different colour
+    expect(deltaE76(base, nudged)).toBeLessThan(4);
+    expect(deltaE76(base, other)).toBeGreaterThan(20);
   });
 });

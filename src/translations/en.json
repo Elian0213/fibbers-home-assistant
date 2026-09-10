@@ -32,10 +32,12 @@
     "hue": "Hue",
     "saturation": "Saturation",
     "colour": "Colour",
+    "white": "White",
     "warm": "Warm",
     "neutral": "Neutral",
     "cool": "Cool",
     "lights": "Lights",
+    "n_lamps": "{n} lamps",
     "on_count": "{on} of {total} on"
   },
   "light_group": {

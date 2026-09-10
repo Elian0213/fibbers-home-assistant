@@ -32,10 +32,12 @@
     "hue": "Kleurtoon",
     "saturation": "Verzadiging",
     "colour": "Kleur",
+    "white": "Wit",
     "warm": "Warm",
     "neutral": "Neutraal",
     "cool": "Koel",
     "lights": "Lampen",
+    "n_lamps": "{n} lampen",
     "on_count": "{on} van {total} aan"
   },
   "light_group": {
