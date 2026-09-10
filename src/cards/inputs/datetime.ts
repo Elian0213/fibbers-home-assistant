@@ -36,7 +36,6 @@ export interface DateTimeConfig extends LovelaceCardConfig {
   entity: string;
   name?: string;
   icon?: string;
-  language?: string;
 }
 
 /**
@@ -111,7 +110,7 @@ export class FibbersDateTime extends LitElement implements LovelaceCard {
   render(): TemplateResult {
     const cfg = this.config;
     if (!cfg) return html``;
-    const hl = cfg.language || this.hass;
+    const hl = this.hass;
     const st = this._st();
     if (!st) return unavailNotice(hl);
     const name = cfg.name || st.attributes.friendly_name || cfg.entity;

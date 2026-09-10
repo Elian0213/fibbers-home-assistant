@@ -41,7 +41,6 @@ export interface EntitiesConfig extends LovelaceCardConfig {
   sort?: string;
   secondary?: string;
   max?: number;
-  language?: string;
 }
 
 const DOMAIN_ICON: Record<string, string> = {
@@ -138,7 +137,7 @@ export class FibbersEntities extends LitElement implements LovelaceCard {
         (a, b) => Date.parse(a.last_changed) - Date.parse(b.last_changed),
       );
     } else {
-      const lang = langOf(this.config.language || this.hass);
+      const lang = langOf(this.hass);
       out.sort((a, b) => this._name(a).localeCompare(this._name(b), lang));
     }
     const { max } = this.config;
@@ -162,7 +161,7 @@ export class FibbersEntities extends LitElement implements LovelaceCard {
   }
 
   private _secondary(st: HassEntity): string {
-    const hl = this.config.language || this.hass;
+    const hl = this.hass;
     const s = this.config.secondary || "state";
     if (s === "last_changed") return ago(st.last_changed, hl);
     if (s.startsWith("attribute:")) {

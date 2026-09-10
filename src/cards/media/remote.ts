@@ -241,7 +241,6 @@ export interface RemoteConfig extends LovelaceCardConfig, RemoteDevice {
   devices?: RemoteDevice[];
   remember?: boolean;
   auto_select?: string;
-  language?: string;
 }
 
 /**
@@ -1552,7 +1551,7 @@ export class FibbersRemote extends LitElement implements LovelaceCard {
   render(): TemplateResult {
     const cfg = this.config;
     if (!cfg) return html``;
-    const hl = cfg.language || this.hass;
+    const hl = this.hass;
     const multi = this._devices.length > 1;
     const sources = this._sources(hl);
     const controls = this._controls(hl);

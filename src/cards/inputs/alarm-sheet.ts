@@ -258,7 +258,7 @@ export class FibbersAlarmSheet extends LitElement implements LovelaceCard {
   render(): TemplateResult {
     const cfg = this.config;
     if (!cfg) return html``;
-    const hl = cfg.language || this.hass;
+    const hl = this.hass;
     return html`<div class="flex flex-col gap-4 pt-1">
       ${this._renderMaster(hl)} ${this._renderTime(hl)} ${this._renderDays(hl)}
       ${this._renderRadio(hl)} ${this._renderFooter(hl)}
@@ -311,7 +311,7 @@ export class FibbersAlarmSheet extends LitElement implements LovelaceCard {
 
   // One HH or MM column: up button, the two big digits, down button.
   private _stepper(time: string, field: "h" | "m"): TemplateResult {
-    const hl = this.config.language || this.hass;
+    const hl = this.hass;
     const value = time ? time.split(":")[field === "h" ? 0 : 1] : "--";
     const dH = field === "h" ? 1 : 0;
     const dM = field === "m" ? 1 : 0;

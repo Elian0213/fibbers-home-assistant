@@ -35,7 +35,6 @@ export interface GraphConfig extends LovelaceCardConfig {
   decimals?: number;
   fill?: boolean;
   show_stats?: boolean;
-  language?: string;
 }
 
 const COLORS = ["accent", "amber", "blue", "green", "red"];
@@ -50,8 +49,8 @@ const STROKE: Record<string, string> = {
 };
 const W = 300;
 
-// ha-form schema for the visual editor. Unlisted keys (data, height, language,
-// grid options) pass through untouched — a YAML config round-trips.
+// ha-form schema for the visual editor. Unlisted keys (data, height, grid
+// options) pass through untouched — a YAML config round-trips.
 const EDITOR_SCHEMA = [
   { name: "entity", selector: { entity: {} } },
   { name: "name", selector: { text: {} } },
@@ -237,7 +236,7 @@ export class FibbersGraph extends LitElement implements LovelaceCard {
     const cfg = this.config;
     const series = this._series;
     if (!series || series.length < 2) {
-      const hl = cfg.language || this.hass;
+      const hl = this.hass;
       // Until a fetch actually settles, show a skeleton — not "no history", which
       // used to flash on every cold load while the recorder was still answering.
       return this._settled

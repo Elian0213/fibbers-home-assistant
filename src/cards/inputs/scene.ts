@@ -36,7 +36,6 @@ export interface SceneConfig {
 export interface ScenesConfig extends LovelaceCardConfig {
   scenes: SceneConfig[];
   favourites?: number;
-  language?: string;
 }
 
 /**
@@ -119,7 +118,7 @@ export class FibbersScene extends LitElement implements LovelaceCard {
   render(): TemplateResult {
     const cfg = this.config;
     if (!cfg) return html``;
-    const hl = cfg.language || this.hass;
+    const hl = this.hass;
     const fav = this._fav();
     const active = this._activeIndex();
     const total = cfg.scenes.length;

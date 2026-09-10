@@ -23,7 +23,6 @@ export interface BackConfig extends LovelaceCardConfig {
   fallback?: string;
   labels?: Record<string, string>;
   icon?: string;
-  language?: string;
 }
 
 /**
@@ -89,7 +88,7 @@ export class FibbersBack extends LitElement implements LovelaceCard {
     const prev = previous() || c.fallback;
     const names = c.labels || {};
     const name = prev ? names[norm(prev)] || names[prev] : null;
-    const hl = c.language || nav.hassRef;
+    const hl = nav.hassRef;
     this._label = name ? t(hl, "back.back_to", { name }) : t(hl, "back.back");
   }
 

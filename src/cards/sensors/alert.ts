@@ -33,7 +33,6 @@ export interface AlertCheck {
 /** YAML/editor config accepted by `fibbers-alert`. */
 export interface AlertConfig extends LovelaceCardConfig {
   checks: AlertCheck[];
-  language?: string;
 }
 
 /** One rendered finding row — a label, its detail line, and the entity it taps through to. */
@@ -195,7 +194,7 @@ export class FibbersAlert extends LitElement implements LovelaceCard {
     if (!this.hass) return [];
     const { hass } = this;
     const out: Finding[] = [];
-    const hl = this.config.language || this.hass;
+    const hl = this.hass;
     this._checks.forEach((c) => {
       try {
         out.push(...runCheck(c, hass, hl));
@@ -214,7 +213,7 @@ export class FibbersAlert extends LitElement implements LovelaceCard {
   render(): TemplateResult {
     if (!this.config) return html``;
     const findings = this._findings();
-    const hl = this.config.language || this.hass;
+    const hl = this.hass;
     const alert = findings.length > 0;
     return html`<div
       class="rounded-xl border p-3

@@ -59,7 +59,6 @@ export interface LightDetailConfig extends LovelaceCardConfig {
   title?: string;
   groupName?: string;
   siblings?: string[];
-  language?: string;
 }
 
 /**
@@ -350,7 +349,7 @@ export class FibbersLightDetail
   render(): TemplateResult {
     const cfg = this.config;
     if (!cfg) return html``;
-    const hl = cfg.language || this.hass;
+    const hl = this.hass;
     const unavail = this.unavail();
     const room = this._room();
     let body: TemplateResult | string;

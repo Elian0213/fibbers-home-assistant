@@ -47,7 +47,6 @@ export interface SelectConfig extends LovelaceCardConfig {
   icon?: string;
   mode?: "chips" | "dropdown";
   chips_max?: number;
-  language?: string;
 }
 
 /**
@@ -174,7 +173,7 @@ export class FibbersSelect extends LitElement implements LovelaceCard {
   render(): TemplateResult {
     const cfg = this.config;
     if (!cfg) return html``;
-    const hl = cfg.language || this.hass;
+    const hl = this.hass;
     const st = this._st();
     if (!st) return unavailNotice(hl);
     const options = this._options();

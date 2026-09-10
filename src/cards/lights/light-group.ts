@@ -61,7 +61,6 @@ export interface LightGroupConfig extends LovelaceCardConfig {
   members?: string[];
   name?: string;
   icon?: string;
-  language?: string;
 }
 
 /**
@@ -218,7 +217,7 @@ export class FibbersLightGroup extends LitElement implements LovelaceCard {
   }
 
   private _secondary(s: GroupState): string {
-    const hl = this.config.language || this.hass;
+    const hl = this.hass;
     if (s.allOff) return t(hl, "light_group.offline");
     if (s.on === 0) return t(hl, "light_group.off");
     const base = t(hl, "light_group.state_count", {
@@ -405,7 +404,7 @@ export class FibbersLightGroup extends LitElement implements LovelaceCard {
   render(): TemplateResult {
     const cfg = this.config;
     if (!cfg) return html``;
-    const hl = cfg.language || this.hass;
+    const hl = this.hass;
     const s = this._state();
     const lit = s.on > 0;
     const pct = this._displayPct(s);

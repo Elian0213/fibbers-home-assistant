@@ -23,7 +23,6 @@ export interface AlarmConfig extends LovelaceCardConfig {
   config_path?: string; // navigation path for "full configuration"
   name?: string;
   icon?: string;
-  language?: string;
 }
 
 /**

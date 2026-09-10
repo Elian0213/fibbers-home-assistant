@@ -43,11 +43,10 @@ export interface WeatherConfig extends LovelaceCardConfig {
   entity: string;
   name?: string;
   days?: number;
-  language?: string;
 }
 
-// ha-form schema for the visual editor. Unlisted keys (language) pass through
-// untouched — a YAML config round-trips.
+// ha-form schema for the visual editor. Unlisted keys pass through untouched —
+// a YAML config round-trips.
 const EDITOR_SCHEMA = [
   {
     name: "entity",
@@ -187,7 +186,7 @@ export class FibbersWeather extends LitElement implements LovelaceCard {
     const name =
       cfg.name ||
       (st && st.attributes.friendly_name) ||
-      t(cfg.language || this.hass, "weather.default_name");
+      t(this.hass, "weather.default_name");
     openModal({
       title: name,
       icon: iconFor(st && st.state),
@@ -264,7 +263,7 @@ export class FibbersWeather extends LitElement implements LovelaceCard {
   render(): TemplateResult {
     const cfg = this.config;
     if (!cfg) return html``;
-    const hl = cfg.language || this.hass;
+    const hl = this.hass;
     const st = this.hass && this.hass.states[cfg.entity];
     if (!st) return unavailNotice(hl);
 

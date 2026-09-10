@@ -23,7 +23,6 @@ import "@shared/icon";
 export interface PresenceConfig extends LovelaceCardConfig {
   people?: string[];
   title?: boolean;
-  language?: string;
 }
 
 /**
@@ -73,7 +72,7 @@ export class FibbersPresence extends LitElement implements LovelaceCard {
   }
 
   private _stateLabel(st: HassEntity | undefined): string {
-    const hl = this.config.language || this.hass;
+    const hl = this.hass;
     if (!st) return "—";
     if (st.state === "home") return t(hl, "presence.home");
     if (st.state === "not_home") return t(hl, "presence.away");
@@ -147,7 +146,7 @@ export class FibbersPresence extends LitElement implements LovelaceCard {
   /** Render the home-count header and a wrapped row of tappable person tiles. */
   render(): TemplateResult {
     const people = this._people();
-    const hl = this.config.language || this.hass;
+    const hl = this.hass;
     const homeCount = people.filter((id) =>
       this._isHome(this.hass && this.hass.states[id]),
     ).length;

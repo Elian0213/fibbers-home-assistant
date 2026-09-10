@@ -9,7 +9,7 @@ import { LitElement, html, css, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 
 import { openModal } from "@core/body-sheet";
-import { t } from "@shared/i18n";
+import { t, langOf } from "@shared/i18n";
 import { dayModeToWeekdays, nextAlarm } from "@shared/next-occurrence";
 import { twSheet } from "@shared/tw";
 import { ThemeController } from "@shared/theme-host";
@@ -96,13 +96,7 @@ export class FibbersAlarm extends LitElement implements LovelaceCard {
   }
 
   private get _lang(): string {
-    return (
-      this.config.language ||
-      (this.hass &&
-        ((this.hass.locale && this.hass.locale.language) ||
-          this.hass.language)) ||
-      "en"
-    );
+    return langOf(this.hass);
   }
 
   // Wake lights: explicit `lights`, else resolved from `lights_label` via the
@@ -139,7 +133,7 @@ export class FibbersAlarm extends LitElement implements LovelaceCard {
     if (!this.hass) return;
     const cfg = this.config;
     openModal({
-      title: cfg.name || t(cfg.language || this.hass, "alarm.title"),
+      title: cfg.name || t(this.hass, "alarm.title"),
       icon: cfg.icon || "solar:alarm-bold-duotone",
       // Spread config first so `type` wins — the sheet is its own element.
       cards: [{ ...cfg, type: "custom:fibbers-alarm-sheet" }],
@@ -153,7 +147,7 @@ export class FibbersAlarm extends LitElement implements LovelaceCard {
 
   // "vandaag" / "morgen" / a short weekday, or "Uit" when the alarm is disarmed.
   private _nextText(on: boolean): string {
-    const hl = this.config.language || this.hass;
+    const hl = this.hass;
     if (!on) return t(hl, "alarm.off");
     const time = hhmm(this._st(this.config.time)?.state);
     const daysSt = this._st(this.config.days);
@@ -188,7 +182,7 @@ export class FibbersAlarm extends LitElement implements LovelaceCard {
       : true;
     if (!on)
       return {
-        text: t(cfg.language || this.hass, "alarm.radio_off"),
+        text: t(this.hass, "alarm.radio_off"),
         off: true,
       };
     const parts: string[] = [];
@@ -231,7 +225,7 @@ export class FibbersAlarm extends LitElement implements LovelaceCard {
   render(): TemplateResult {
     const cfg = this.config;
     if (!cfg) return html``;
-    const hl = cfg.language || this.hass;
+    const hl = this.hass;
     const enSt = this._st(cfg.enable);
     const on = enSt ? enSt.state === "on" : true;
     const name = cfg.name || t(hl, "alarm.title");

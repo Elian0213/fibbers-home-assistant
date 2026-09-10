@@ -51,7 +51,6 @@ export interface NumberConfig extends LovelaceCardConfig {
   unit?: string;
   step?: number;
   mode?: "slider" | "stepper";
-  language?: string;
 }
 
 /**
@@ -209,7 +208,7 @@ export class FibbersNumber extends LitElement implements LovelaceCard {
   render(): TemplateResult {
     const cfg = this.config;
     if (!cfg) return html``;
-    const hl = cfg.language || this.hass;
+    const hl = this.hass;
     const st = this._st();
     const unavail = this._unavail();
     const name = cfg.name || (st && st.attributes.friendly_name) || cfg.entity;
@@ -298,7 +297,7 @@ export class FibbersNumber extends LitElement implements LovelaceCard {
     dir: number,
     unavail: boolean,
   ): TemplateResult {
-    const hl = this.config.language || this.hass;
+    const hl = this.hass;
     return html`<button
       type="button"
       class="${cx(

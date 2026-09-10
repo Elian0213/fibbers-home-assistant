@@ -27,7 +27,6 @@ export interface ToggleConfig extends LovelaceCardConfig {
   secondary?: string;
   secondary_entity?: string;
   confirm?: boolean;
-  language?: string;
 }
 
 const EDITOR_SCHEMA = [
@@ -122,7 +121,7 @@ export class FibbersToggle extends LitElement implements LovelaceCard {
   render(): TemplateResult {
     const cfg = this.config;
     if (!cfg) return html``;
-    const hl = cfg.language || this.hass;
+    const hl = this.hass;
     const st = this._st();
     if (!st) return unavailNotice(hl);
     const on = st.state === "on";

@@ -1,9 +1,9 @@
 /* ================================================================== *
  * i18n — the tiny string layer. English is the default; everything else
  * (currently Dutch) is a translation. `t(hl, key, vars)` resolves the language
- * from a hass object (or a bare language string, so a per-card `language:`
- * override can be passed straight through), interpolates `{vars}`, and picks a
- * `<key>_one` sibling when `vars.count === 1`. It never returns the raw key —
+ * from a hass object — following the Home Assistant account language
+ * (`locale.language`) — or a bare language string, interpolates `{vars}`, and
+ * picks a `<key>_one` sibling when `vars.count === 1`. It never returns the raw key —
  * a missing translation falls back to English.
  * ================================================================== */
 import en from "../translations/en.json";
@@ -27,8 +27,9 @@ function catalog(lang: string): Catalog {
 }
 
 /**
- * Resolve a language tag from a hass object, a bare language string, or a per-card
- * override string — so callers can pass `hass` or a raw `language:` straight in.
+ * Resolve a language tag from a hass object — its `locale.language` (the Home
+ * Assistant account language), falling back to legacy `hass.language` — or a bare
+ * language string.
  * @param hl
  * @returns language tag, or "en"
  */

@@ -53,7 +53,6 @@ export interface LightRowConfig extends LovelaceCardConfig {
   compact?: boolean;
   siblings?: string[];
   groupName?: string;
-  language?: string;
 }
 
 /**
@@ -165,7 +164,7 @@ export class FibbersLightRow extends LitElement implements LovelaceCard {
   private _warmth(): string {
     const st = this._st();
     if (!st) return "";
-    const hl = this.config.language || this.hass;
+    const hl = this.hass;
     const mode = st.attributes.color_mode;
     if (mode && ["hs", "rgb", "rgbw", "rgbww", "xy"].includes(mode))
       return t(hl, "light_row.color");
@@ -308,7 +307,7 @@ export class FibbersLightRow extends LitElement implements LovelaceCard {
     const cfg = this.config;
     if (!cfg) return html``;
     const st = this._st();
-    const hl = cfg.language || this.hass;
+    const hl = this.hass;
     const unavail = this._unavail();
     const on = !unavail && st!.state === "on";
     const dimmable = this._dimmable();

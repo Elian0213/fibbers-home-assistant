@@ -41,7 +41,6 @@ const ACTION_KEY: Record<string, string> = {
 export interface ClimateConfig extends LovelaceCardConfig {
   entity: string;
   name?: string;
-  language?: string;
 }
 
 /**
@@ -116,7 +115,7 @@ export class FibbersClimate extends LitElement implements LovelaceCard {
   render(): TemplateResult {
     const cfg = this.config;
     if (!cfg) return html``;
-    const hl = cfg.language || this.hass;
+    const hl = this.hass;
     const st = this._st();
     if (!st) return unavailNotice(hl);
     const unavail = isUnavail(st);

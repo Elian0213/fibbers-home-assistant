@@ -43,7 +43,6 @@ export interface SchedulerConfig extends LovelaceCardConfig {
   duration?: string;
   days?: SchedulerDay[];
   name?: string;
-  language?: string;
 }
 
 /**
@@ -109,7 +108,7 @@ export class FibbersScheduler extends LitElement implements LovelaceCard {
   render(): TemplateResult {
     const cfg = this.config;
     if (!cfg) return html``;
-    const hl = cfg.language || this.hass;
+    const hl = this.hass;
     const enSt = this._state(cfg.enable);
     const on = enSt ? enSt.state === "on" : true;
 

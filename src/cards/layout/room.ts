@@ -62,7 +62,6 @@ export interface RoomConfig extends LovelaceCardConfig {
   entities?: string[];
   area?: string;
   sheet?: string;
-  language?: string;
 }
 
 /**
@@ -159,7 +158,7 @@ export class FibbersRoom extends LitElement implements LovelaceCard {
 
   private _state(): RoomState {
     const { hass } = this;
-    const hl = this.config.language || hass;
+    const hl = hass;
     const lights = this._lights();
     if (!hass || !lights.length)
       return { label: "—", lit: false, offline: false };

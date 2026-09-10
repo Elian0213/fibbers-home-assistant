@@ -86,11 +86,10 @@ export interface MediaConfig extends LovelaceCardConfig {
   sources?: "auto" | (string | ChipItem)[];
   group?: (string | GroupMember)[];
   favourites?: Favourite[];
-  language?: string;
 }
 
-// ha-form schema for the visual editor. Unlisted keys (sources, group, favourites,
-// language) pass through untouched — a YAML config round-trips.
+// ha-form schema for the visual editor. Unlisted keys (sources, group,
+// favourites) pass through untouched — a YAML config round-trips.
 const EDITOR_SCHEMA = [
   {
     name: "entity",
@@ -693,7 +692,7 @@ export class FibbersMedia extends LitElement implements LovelaceCard {
   render(): TemplateResult {
     const cfg = this.config;
     if (!cfg) return html``;
-    const hl = cfg.language || this.hass;
+    const hl = this.hass;
     const st = this._st();
     const a = (st && st.attributes) || {};
     const idle = this._idle();
@@ -719,7 +718,7 @@ export class FibbersMedia extends LitElement implements LovelaceCard {
       !this._supports(MF.GROUPING)
     )
       return "";
-    const hl = cfg.language || this.hass;
+    const hl = this.hass;
     const members = a.group_members || [];
     return html`<div class="mt-3">
       ${sectionLabel(t(hl, "media.speakers"), { cls: "mb-1.5" })}

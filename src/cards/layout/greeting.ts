@@ -47,7 +47,6 @@ export interface GreetingConfig extends LovelaceCardConfig {
   people?: string[];
   sensors?: string[];
   name_from?: string;
-  language?: string;
 }
 
 /**
@@ -118,7 +117,7 @@ export class FibbersGreeting extends LitElement implements LovelaceCard {
   private _subline(): string {
     const { hass } = this;
     if (!hass) return "";
-    const hl = this.config.language || hass;
+    const hl = hass;
     const parts: string[] = [];
 
     const members = this._lightMembers();
@@ -164,7 +163,7 @@ export class FibbersGreeting extends LitElement implements LovelaceCard {
   render(): TemplateResult {
     const cfg = this.config;
     if (!cfg) return html``;
-    const hl = cfg.language || this.hass;
+    const hl = this.hass;
     const period = this._period();
     let title = t(hl, `greeting.${period.key}`);
     if (cfg.name_from) {

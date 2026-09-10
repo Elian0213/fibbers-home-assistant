@@ -23,7 +23,6 @@ export interface BackupConfig extends LovelaceCardConfig {
   result?: string;
   next?: string;
   stale_hours?: number;
-  language?: string;
 }
 
 /** Relative "N ago" text plus raw `hours` for a timestamp; a non-timestamp reports Infinity hours so the caller can warn. */
@@ -94,7 +93,7 @@ export class FibbersBackup extends LitElement implements LovelaceCard {
   render(): TemplateResult {
     const cfg = this.config;
     if (!cfg) return html``;
-    const hl = cfg.language || this.hass;
+    const hl = this.hass;
     const st = this.hass && this.hass.states[cfg.entity];
 
     let value: string;

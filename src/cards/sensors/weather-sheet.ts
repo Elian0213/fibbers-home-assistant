@@ -295,7 +295,7 @@ export class FibbersWeatherSheet extends LitElement implements LovelaceCard {
   render(): TemplateResult {
     const cfg = this.config;
     if (!cfg) return html``;
-    const hl = cfg.language || this.hass;
+    const hl = this.hass;
     const lang = langOf(hl);
     const st = this.hass && this.hass.states[cfg.entity];
     if (!st) return unavailNotice(hl);
