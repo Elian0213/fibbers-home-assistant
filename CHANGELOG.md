@@ -3,6 +3,34 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.12.0] — 2026-09-10
+
+Group lamps by dragging them together in the room light picker — plus a Storybook 10
+test-tooling overhaul and a slimmer, HACS-shaped README.
+
+### Added
+
+- **Drag lamps together to group them.** In the room light picker — opened from a room or
+  light-group tile, or from any `light` when the nav's `more_info: true` — the wheel now carries
+  the hue ring and a white centre in one control. Dragging one lamp's marker onto another snaps
+  them to the same colour, so the cluster moves as one. The lamp tiles below hold a stable order
+  and ring the focused colour-cluster in place, instead of reflowing when you tap a lamp.
+
+### Changed
+
+- **Docs consolidated.** `docs/philips-tv.md` and `docs/remote-commands.md` are merged into one
+  `docs/remote.md`; the README is rewritten to the standard HACS-plugin shape, with the full card
+  gallery in `docs/GALLERY.md` and every screenshot refreshed from Storybook. The standalone
+  browser harnesses moved from `docs/` to `test/fixtures/`.
+
+### Internal
+
+- **Storybook 8 → 10, and story tests on Vitest.** The jest `@storybook/test-runner` is unfixable
+  on Node 20/22 under Storybook 10 (upstream storybook#36116) and is deprecated, so every story now
+  runs through `@storybook/addon-vitest` — a Vitest browser render test plus an axe a11y pass that
+  fails the run on violations. The `light-detail` card is split into a controller, pure helpers and
+  view functions (`light-detail-{wheel,math,lamps,views}.ts`), each unit-tested.
+
 ## [0.11.0] — 2026-09-07
 
 One alarm card: the whole wake-up at a glance, and the settings you actually change
