@@ -29,7 +29,20 @@ cards. Two things to know:
 | `fibbers-remote`    | TV/speaker remote            | `type: custom:fibbers-remote`<br/>`entity: remote.tv`<br/>`media_player: media_player.tv`               |
 | `fibbers-climate`   | Thermostat                   | `type: custom:fibbers-climate`<br/>`entity: climate.woonkamer`                                          |
 
-Each card's own sidebar page shows every option and its live YAML.
+Each card's own sidebar page shows every option and its live YAML — open the **Docs** tab or
+hit **Show code** to copy the exact config.
+
+### Visual editors
+
+Thirteen cards can be configured from **Home Assistant's card UI**, no YAML required —
+`fibbers-nav`, `-section`, `-room`, `-light-group`, `-light-row`, `-stat`, `-number`,
+`-select`, `-toggle`, `-datetime`, `-graph`, `-media` and `-weather`. The rest are YAML-only
+for now (every option is shown on the card's page here, and validated on save). Keys the editor
+doesn't surface — nested lists like `scenes:` or `sources:`, `language`, grid options — are
+preserved untouched when you edit.
+
+Tapping a **`fibbers-weather`** card opens a detail sheet: feels-like, humidity, wind, pressure
+and sunrise/sunset, an hourly strip, and a multi-day forecast.
 
 ### Remote extras (`controls:`)
 
