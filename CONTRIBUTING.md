@@ -36,11 +36,11 @@ bun run check       # prettier --check + build + parse
 There is no Home Assistant instance required to develop. **Storybook** (`cd storybook && npm i &&
 npm run storybook`) is the primary tool — every card, each state as its own story, YAML under
 **Show code**. Two standalone harnesses cover behaviour Storybook can't (they load
-`../dist/fibbers.js` against a stubbed `hass`, no network):
+`../../dist/fibbers.js` against a stubbed `hass`, no network):
 
-- **`docs/fixture.html`** — proves the nav bar pins by reproducing Lovelace's containing block
+- **`test/fixtures/fixture.html`** — proves the nav bar pins by reproducing Lovelace's containing block
   (a transformed ancestor), with a deliberately-naive in-tree control that _must_ fail.
-- **`docs/hatabs-fixture.html`** — asserts the six `hide_ha_tabs` acceptance criteria.
+- **`test/fixtures/hatabs-fixture.html`** — asserts the six `hide_ha_tabs` acceptance criteria.
 
 CI runs prettier, the build, a **"dist is in sync with src"** check (`git diff --exit-code
 dist/fibbers.js`), and a parse check — so always `bun run build` and commit `dist/` with your
