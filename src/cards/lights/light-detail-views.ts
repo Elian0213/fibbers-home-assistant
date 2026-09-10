@@ -6,6 +6,7 @@
  * element implements — mirrors how sliderTrack/pillSwitch take an options object.
  * ================================================================== */
 import { html, type TemplateResult } from "lit";
+import { ref } from "lit/directives/ref.js";
 
 import { closeSheet } from "@core/body-sheet";
 import { t } from "@shared/i18n";
@@ -13,6 +14,7 @@ import {
   sliderTrack,
   pillSwitch,
   activateOnKey,
+  dragScroll,
   type SliderController,
 } from "@shared/ui";
 import { cx, pressable } from "@shared/variants";
@@ -235,7 +237,8 @@ export function lampTiles(host: LightDetailHost, hl: unknown): TemplateResult {
   // highlighted (the focused lamp strongest); the element FLIP-animates the move.
   const front = new Set(host.wheel.membersOf(active));
   return html`<div
-    class="lamp-tiles fib-scroll flex gap-2 overflow-x-auto pb-1"
+    class="lamp-tiles lamp-scroll flex gap-2 overflow-x-auto pb-1"
+    ${ref((el) => el && dragScroll(el as HTMLElement))}
   >
     ${host.lamps().map((id) => {
       const on = lampOn(host.hass, id);
@@ -256,8 +259,8 @@ export function lampTiles(host: LightDetailHost, hl: unknown): TemplateResult {
       // Tiles hold a stable order; the focused colour-group is ringed in place (the
       // focused lamp strongest), which fades in via the tile's transition-colors.
       return html`<div
-        class="relative flex h-[84px] w-[104px] flex-none rounded-[14px]
-               border p-2.5 transition-colors
+        class="relative flex h-[100px] w-[104px] flex-none flex-col items-center
+               justify-between rounded-[14px] border p-2.5 text-center transition-colors
                ${tone} ${unavail ? "opacity-50" : ""}"
       >
         <button
@@ -270,36 +273,21 @@ export function lampTiles(host: LightDetailHost, hl: unknown): TemplateResult {
           @keydown=${activateOnKey(() => host.wheel.focusOrSolo(id))}
         ></button>
         <div
-          class="pointer-events-none relative flex h-full w-full flex-col justify-between"
+          class="pointer-events-none relative flex h-full w-full flex-col items-center justify-between"
         >
-          <div class="flex items-start justify-between gap-1">
-            <span
-              class="relative flex h-8 w-8 flex-none items-center justify-center rounded-full
-                     border border-[rgba(0,0,0,.3)] shadow-[0_1px_3px_rgba(0,0,0,.4)] transition-colors"
-              style="background:${swatchColor(host.hass, id)}"
-            >
-              <fib-icon
-                class="h-4 w-4 [--mdc-icon-size:16px] text-white
-                       drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]"
-                icon=${icon}
-              ></fib-icon>
-              ${groupBadge(host, id)}
-            </span>
-            ${
-              unavail
-                ? html`<span class="text-[9px] uppercase text-muted"
-                    >${t(hl, "light_detail.offline")}</span
-                  >`
-                : html`<span class="pointer-events-auto"
-                    >${pillSwitch({
-                      on,
-                      label: nm,
-                      onClick: () => host.toggle(id),
-                    })}</span
-                  >`
-            }
-          </div>
-          <div class="min-w-0">
+          <span
+            class="relative flex h-8 w-8 flex-none items-center justify-center rounded-full
+                   border border-[rgba(0,0,0,.3)] shadow-[0_1px_3px_rgba(0,0,0,.4)] transition-colors"
+            style="background:${swatchColor(host.hass, id)}"
+          >
+            <fib-icon
+              class="h-4 w-4 [--mdc-icon-size:16px] text-white
+                     drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]"
+              icon=${icon}
+            ></fib-icon>
+            ${groupBadge(host, id)}
+          </span>
+          <div class="min-w-0 w-full">
             <div
               class="truncate text-[11px] ${isActive ? "font-medium text-ink" : "text-ink2"}"
             >
@@ -315,6 +303,19 @@ export function lampTiles(host: LightDetailHost, hl: unknown): TemplateResult {
               }
             </div>
           </div>
+          ${
+            unavail
+              ? html`<span class="text-[9px] uppercase text-muted"
+                  >${t(hl, "light_detail.offline")}</span
+                >`
+              : html`<span class="pointer-events-auto"
+                  >${pillSwitch({
+                    on,
+                    label: nm,
+                    onClick: () => host.toggle(id),
+                  })}</span
+                >`
+          }
         </div>
       </div>`;
     })}

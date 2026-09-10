@@ -39,6 +39,12 @@ import {
 } from "./light-detail-lamps";
 
 // Live drag state for the colour/warm wheel.
+/* How long a committed colour/kelvin is shown optimistically before falling back
+ * to server state — long enough that a slow HA round-trip no longer flashes the
+ * old colour back. It's cleared early the moment the entity lands within tolerance
+ * (see dispHs/dispK), so a fast HA still feels instant. */
+const HOLD_MS = 8000;
+
 export interface WheelState {
   kind: "colour" | "warm" | null;
   warm?: boolean;
@@ -302,7 +308,7 @@ export class WheelController implements ReactiveController {
   // --- commits ------------------------------------------------------------------
 
   private _setColour(id: string, h: number, s: number, flush?: boolean): void {
-    this._cHold.set(id, { h, s, exp: Date.now() + 2500 });
+    this._cHold.set(id, { h, s, exp: Date.now() + HOLD_MS });
     this._colourCommit({ id, h, s });
     if (flush) this._colourCommit.flush();
   }
@@ -310,7 +316,7 @@ export class WheelController implements ReactiveController {
   private _setKelvin(id: string, k: number, flush?: boolean): void {
     const [lo, hi] = lampKRange(this.hass, id);
     const v = clamp(k, lo, hi);
-    this._kHold.set(id, { k: v, exp: Date.now() + 2500 });
+    this._kHold.set(id, { k: v, exp: Date.now() + HOLD_MS });
     this._warmCommit({ id, k: v });
     if (flush) this._warmCommit.flush();
   }

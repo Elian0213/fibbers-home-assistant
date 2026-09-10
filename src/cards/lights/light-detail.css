@@ -13,9 +13,37 @@
     grid-template-columns: repeat(auto-fill, 104px);
     overflow: visible;
   }
+  /* No horizontal scroll in the wide grid — drop the drag affordances. */
+  .lamp-scroll {
+    cursor: default;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
 }
-/* The themed thin scrollbar is the shared `.fib-scroll` class (src/shared/tw.ts),
-   used here on the horizontal lamp-tile strip and by the alarm station list. */
+/* The horizontal lamp strip is drag-scrollable by mouse (dragScroll, src/shared/ui.ts)
+   and pans natively by touch. No scrollbar; a grab cursor + a soft edge fade signal
+   there's more and that it's draggable. */
+.lamp-scroll {
+  scrollbar-width: none;
+  cursor: grab;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 14px,
+    #000 calc(100% - 14px),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 14px,
+    #000 calc(100% - 14px),
+    transparent
+  );
+}
+.lamp-scroll::-webkit-scrollbar {
+  display: none;
+}
 
 /* --- Colour wheel (donut): outer colour ring + warm-white centre -------------- *
  * The interactive surface is the `.fib-wheel` container (all pointer handlers stay

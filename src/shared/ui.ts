@@ -190,6 +190,54 @@ export interface PointerDragHandlers {
 }
 
 /**
+ * Make a horizontal-overflow element drag-scrollable with a mouse (touch/pen keep
+ * their native momentum pan). Idempotent — safe to call from a Lit `ref` on every
+ * render. A drag past a few px swallows the click that follows, so dragging the
+ * strip to scroll doesn't also activate whatever tile ends up under the pointer.
+ * @param el — the horizontally scrollable container
+ */
+export function dragScroll(el: HTMLElement): void {
+  const node = el; // alias so mutations aren't flagged as param reassignment
+  if (node.dataset.dragscroll) return; // wire once
+  node.dataset.dragscroll = "1";
+  let down = false;
+  let startX = 0;
+  let startLeft = 0;
+  let moved = false;
+  node.addEventListener("pointerdown", (e) => {
+    if (e.pointerType !== "mouse") return;
+    down = true;
+    moved = false;
+    startX = e.clientX;
+    startLeft = node.scrollLeft;
+    node.style.cursor = "grabbing";
+  });
+  node.addEventListener("pointermove", (e) => {
+    if (!down) return;
+    const dx = e.clientX - startX;
+    if (Math.abs(dx) > 3) moved = true;
+    node.scrollLeft = startLeft - dx;
+  });
+  const end = (): void => {
+    down = false;
+    node.style.cursor = "";
+  };
+  node.addEventListener("pointerup", end);
+  node.addEventListener("pointercancel", end);
+  node.addEventListener("pointerleave", end);
+  node.addEventListener(
+    "click",
+    (e) => {
+      if (!moved) return;
+      e.stopPropagation();
+      e.preventDefault();
+      moved = false;
+    },
+    true, // capture: run before the tile's own click handler
+  );
+}
+
+/**
  * The low-level single-pointer drag gesture every continuous interaction builds
  * on (value sliders, colour wheel): capture on down, track ONE pointer by its
  * pointerId — a second finger / palm touch is ignored instead of hijacking the
