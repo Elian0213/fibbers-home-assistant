@@ -48,7 +48,9 @@ function applyService(states, domain, service, data = {}) {
     } else if (domain === "light" && service === "turn_off") {
       st.state = "off";
     } else if (
-      ["switch", "input_boolean", "fan", "automation", "script"].includes(domain)
+      ["switch", "input_boolean", "fan", "automation", "script"].includes(
+        domain,
+      )
     ) {
       if (service === "toggle") st.state = st.state === "on" ? "off" : "on";
       else if (service === "turn_on") st.state = "on";
@@ -68,13 +70,28 @@ function applyService(states, domain, service, data = {}) {
     } else if (domain === "climate" && service === "set_hvac_mode") {
       st.state = data.hvac_mode;
     } else if (domain === "media_player") {
-      if (service === "media_play_pause")
+      // Keep media_position_updated_at honest on any transport change so the
+      // remote card's drift-corrected live position behaves like real HA.
+      const touchPos = () => {
+        if (a.media_position != null)
+          a.media_position_updated_at = new Date().toISOString();
+      };
+      if (service === "media_play_pause") {
         st.state = st.state === "playing" ? "paused" : "playing";
-      else if (service === "media_play") st.state = "playing";
-      else if (service === "media_pause") st.state = "paused";
-      else if (service === "volume_set" && data.volume_level != null)
+        touchPos();
+      } else if (service === "media_play") {
+        st.state = "playing";
+        touchPos();
+      } else if (service === "media_pause") {
+        st.state = "paused";
+        touchPos();
+      } else if (service === "media_seek" && data.seek_position != null) {
+        a.media_position = data.seek_position;
+        a.media_position_updated_at = new Date().toISOString();
+      } else if (service === "volume_set" && data.volume_level != null)
         a.volume_level = data.volume_level;
-      else if (service === "select_source" && data.source) a.source = data.source;
+      else if (service === "select_source" && data.source)
+        a.source = data.source;
     } else if (domain === "scene" && service === "turn_on") {
       a.last_activated = new Date().toISOString();
     }
@@ -485,6 +502,25 @@ export function makeHass(flags = {}) {
     media_duration: 3120,
     // prev/next/play/pause/select_source/seek; advertises VOLUME_SET but no level
     supported_features: 450487,
+  });
+  // Netflix-class app: NO media_position/media_duration and NO SEEK bit — pyatv
+  // gets nothing from Netflix's own player, so the touchpad falls back to
+  // press-scrub (pause + paced left/right presses walking the app's own scrubber).
+  add("media_player.appletv_netflix", "playing", {
+    friendly_name: "Apple TV",
+    media_title: "The Bear",
+    app_name: "Netflix",
+    source: "Netflix",
+    source_list: [
+      "Netflix",
+      "YouTube",
+      "Prime Video",
+      "Spotify",
+      "Disney+",
+      "NPO Start",
+      "Videoland",
+    ],
+    supported_features: 450485, // 450487 minus SEEK (bit 2)
   });
   add("remote.philips", "on", { friendly_name: "Philips TV" });
   add("media_player.philips", "on", {

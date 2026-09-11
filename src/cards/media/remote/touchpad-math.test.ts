@@ -13,6 +13,7 @@ import {
   scrubStep,
   livePosition,
   fmtTime,
+  fmtOffset,
   resolveTouchpadOptions,
   MIN_INTERVAL,
   MOMENTUM_MAX,
@@ -184,11 +185,22 @@ describe("scrubStep", () => {
   test("a full-width slow sweep ≈ SCRUB_BASE_S seconds", () => {
     expect(scrubStep(240, 240, 0, 1)).toBeCloseTo(90, 5);
   });
-  test("velocity multiplier caps at 4× (1 + min(v,3))", () => {
-    expect(scrubStep(240, 240, 10, 1)).toBeCloseTo(360, 5);
+  test("velocity multiplier caps at 2.5× (1 + min(v, 1.5))", () => {
+    expect(scrubStep(240, 240, 10, 1)).toBeCloseTo(225, 5);
   });
   test("sensitivity scales the seek", () => {
     expect(scrubStep(240, 240, 0, 2)).toBeCloseTo(180, 5);
+  });
+});
+
+describe("fmtOffset", () => {
+  test("zero, signed seconds, signed minutes, rounding", () => {
+    expect(fmtOffset(0)).toBe("0s");
+    expect(fmtOffset(30)).toBe("+30s");
+    expect(fmtOffset(-30)).toBe("−30s");
+    expect(fmtOffset(80)).toBe("+1:20");
+    expect(fmtOffset(-3700)).toBe("−1:01:40");
+    expect(fmtOffset(9.6)).toBe("+10s");
   });
 });
 

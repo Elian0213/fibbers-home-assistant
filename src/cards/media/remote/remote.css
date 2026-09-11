@@ -617,6 +617,18 @@
   border-radius: 3px;
   background: var(--color-accent);
 }
+/* Press-scrub variant: no absolute position is known — hide the bar and duration,
+   centre the signed relative offset ("−30s" / "+1:20"). */
+.tp-scrub.rel .tp-bar,
+.tp-scrub.rel .tp-dur {
+  display: none;
+}
+.tp-scrub.rel {
+  justify-content: center;
+}
+.tp-scrub.rel .tp-time {
+  font-size: 13px;
+}
 @media (prefers-reduced-motion: reduce) {
   .tp-dot {
     display: none;

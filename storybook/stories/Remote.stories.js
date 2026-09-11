@@ -28,6 +28,22 @@ export const AppleTV = story({
   favourites: ["Netflix", "YouTube", "Prime Video", "Spotify"],
 });
 
+/** Netflix on the Apple TV: the app reports **no position/duration and no SEEK**
+ * to Home Assistant, so a horizontal drag while playing pauses and falls back to
+ * **press-scrub** — paced left/right presses that walk the app's own paused
+ * scrubber (thumbnail preview on the TV), with a relative "−30s"/"+1:20" overlay.
+ * A tap sends select to commit the playhead and resume. */
+export const AppleTVNetflix = story({
+  type: "custom:fibbers-remote",
+  device: "appletv",
+  entity: "remote.appletv",
+  media_player: "media_player.appletv_netflix",
+  icon: "solar:display-bold-duotone",
+  name: "Apple TV",
+  sources: "auto",
+  favourites: ["Netflix", "YouTube", "Prime Video", "Spotify"],
+});
+
 /** The same Apple TV with the classic SVG **wheel** instead of the touchpad
  * (`dpad: both` — tap a sector, swipe, or arrow-key). */
 export const AppleTVWheel = story({

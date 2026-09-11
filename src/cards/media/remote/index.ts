@@ -464,24 +464,30 @@ export class FibbersRemote
     ).catch((e) => this._flashFail(id, key, e, cmd));
   }
 
-  // Live, seekable playback for the touchpad scrub gesture: null unless the player
-  // advertises SEEK and reports a usable position/duration. Position is drift-
-  // corrected (media_position + elapsed since its update) while playing.
+  // Live playback for the touchpad scrub gesture: null only when the device has no
+  // media_player at all. `seekable` requires the SEEK bit AND a usable position/
+  // duration (drift-corrected while playing); unseekable players (Netflix reports
+  // no timeline to pyatv) still report their state so the controller can choose
+  // the press-scrub transport.
   private _playbackInfo(): PlaybackInfo | null {
     const mp = this.mp();
-    if (!mp || !mpSupports(mp, MF_SEEK)) return null;
+    if (!mp) return null;
     const a = mp.attributes;
     const updated = a.media_position_updated_at
       ? Date.parse(a.media_position_updated_at)
       : NaN;
-    const lp = livePosition(
-      Number(a.media_position),
-      updated,
-      mp.state === "playing",
-      Date.now(),
-      Number(a.media_duration),
-    );
-    return lp ? { state: mp.state, pos: lp.pos, dur: lp.dur } : null;
+    const lp = mpSupports(mp, MF_SEEK)
+      ? livePosition(
+          Number(a.media_position),
+          updated,
+          mp.state === "playing",
+          Date.now(),
+          Number(a.media_duration),
+        )
+      : null;
+    return lp
+      ? { state: mp.state, seekable: true, pos: lp.pos, dur: lp.dur }
+      : { state: mp.state, seekable: false, pos: NaN, dur: NaN };
   }
 
   private _flashFail(id: string, key: string, e: unknown, cmd?: string): void {
