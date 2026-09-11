@@ -3,6 +3,19 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.3] — 2026-09-11
+
+### Fixed
+
+- **Touch swipe froze at the drag threshold.** On touch, the tapped tab holds
+  implicit pointer capture (a Pointer Events spec behaviour that mouse input doesn't
+  have). The bar stole that capture the moment a drag locked in, and the resulting
+  `lostpointercapture` from the tab tripped the bar's own cancel handler — so on
+  phones the swipe stalled ~10px in, while mouse drags worked. The bar now leaves
+  touch capture with the tab (its events reach the bar regardless) and only captures
+  the pointer for mouse drags, so the swipe follows your finger across the whole bar
+  on touchscreens too.
+
 ## [1.0.2] — 2026-09-11
 
 ### Fixed
