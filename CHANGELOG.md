@@ -3,6 +3,24 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.1] — 2026-09-11
+
+An Instagram-style swipeable bottom nav bar.
+
+### Added
+
+- **Swipe to switch tabs.** Drag horizontally across the bottom nav bar to move between
+  tabs. The focus indicator is now a single pill that follows your finger, morphs width
+  between tabs, squishes toward a fast throw and springs to rest, rubber-bands at the
+  ends, and flicks or snaps to the target on release — on touch, mouse and trackpad. The
+  arrow keys step between tabs too.
+
+### Changed
+
+- **Animated nav focus.** The active-tab highlight now glides between tabs instead of
+  cutting, tints from the theme accent (light or dark), and honours
+  `prefers-reduced-motion`. Tapping a tab and keyboard activation are unchanged.
+
 ## [1.0.0] — 2026-09-10
 
 The first stable release. Fibbers cards now follow your Home Assistant theme automatically
