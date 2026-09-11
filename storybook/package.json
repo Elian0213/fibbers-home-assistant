@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Storybook showcase for the Fibbers Home Assistant cards — hosted on GitHub Pages.",
   "scripts": {
-    "storybook": "storybook dev -p 6007",
+    "storybook": "storybook dev -p 6009",
     "build-storybook": "storybook build",
     "test-storybook": "vitest run"
   },

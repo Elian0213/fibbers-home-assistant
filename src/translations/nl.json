@@ -140,7 +140,8 @@
     "volume": "Volume",
     "mute": "Dempen",
     "on": "Aan",
-    "off": "Uit"
+    "off": "Uit",
+    "touchpad_hint": "Touchpad — sleep om te bewegen, tik om te kiezen, houd vast voor opties"
   },
   "scene": {
     "show_less": "Minder",

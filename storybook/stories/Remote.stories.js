@@ -12,9 +12,11 @@ export default {
   },
 };
 
-/** Apple TV: wheel + a distinct Back/Home nav row, transport (⏮ ▶ ⏭), and — because
- * the player reports no volume level — the slider-shaped **scrub** strip. Sources
- * collapse to favourites. */
+/** Apple TV: the **touchpad** (the default d-pad for Apple TV) — drag to move focus,
+ * tap to select, hold for the context menu; while playing, a horizontal drag pauses
+ * and scrubs the timeline. Plus a distinct Back/Home nav row, transport (⏮ ▶ ⏭), and
+ * — because the player reports no volume level — the slider-shaped **scrub** strip.
+ * Sources collapse to favourites. */
 export const AppleTV = story({
   type: "custom:fibbers-remote",
   device: "appletv",
@@ -22,6 +24,20 @@ export const AppleTV = story({
   media_player: "media_player.appletv",
   icon: "solar:display-bold-duotone",
   name: "Apple TV",
+  sources: "auto",
+  favourites: ["Netflix", "YouTube", "Prime Video", "Spotify"],
+});
+
+/** The same Apple TV with the classic SVG **wheel** instead of the touchpad
+ * (`dpad: both` — tap a sector, swipe, or arrow-key). */
+export const AppleTVWheel = story({
+  type: "custom:fibbers-remote",
+  device: "appletv",
+  entity: "remote.appletv",
+  media_player: "media_player.appletv",
+  icon: "solar:display-bold-duotone",
+  name: "Apple TV",
+  dpad: "both",
   sources: "auto",
   favourites: ["Netflix", "YouTube", "Prime Video", "Spotify"],
 });

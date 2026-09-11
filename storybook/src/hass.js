@@ -479,7 +479,11 @@ export function makeHass(flags = {}) {
       "NPO Start",
       "Videoland",
     ],
-    // prev/next/play/pause/select_source; advertises VOLUME_SET but reports no level
+    // Seekable playback → the touchpad's scrub gesture engages (drag left/right
+    // while playing pauses + scrubs the timeline).
+    media_position: 912,
+    media_duration: 3120,
+    // prev/next/play/pause/select_source/seek; advertises VOLUME_SET but no level
     supported_features: 450487,
   });
   add("remote.philips", "on", { friendly_name: "Philips TV" });

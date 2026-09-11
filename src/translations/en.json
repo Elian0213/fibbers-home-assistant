@@ -140,7 +140,8 @@
     "volume": "Volume",
     "mute": "Mute",
     "on": "On",
-    "off": "Off"
+    "off": "Off",
+    "touchpad_hint": "Touchpad — drag to move, tap to select, hold for options"
   },
   "scene": {
     "show_less": "Less",

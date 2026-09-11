@@ -1,10 +1,10 @@
 /* Wait for the Storybook dev server to answer, then open it in the default
  * browser. Storybook's own auto-open is suppressed when it runs under
  * `concurrently` (no TTY), so `bun run storybook` opens the tab here instead —
- * one tab on http://localhost:6007. */
+ * one tab on http://localhost:6009. */
 import { exec } from "node:child_process";
 
-const SB_URL = "http://localhost:6007";
+const SB_URL = "http://localhost:6009";
 
 const OPENERS = {
   win32: `start "" "${SB_URL}"`,

@@ -157,7 +157,7 @@ bun run build         # src/ -> dist/fibbers.js
 bun run watch         # rebuild on change
 bun run check         # prettier + typecheck + eslint + unit tests + build + guards
 bun run test:stories  # every story as a browser test + an axe a11y pass (Vitest)
-bun run storybook     # dev Storybook with live rebuild on :6007
+bun run storybook     # dev Storybook with live rebuild on :6009
 ```
 
 Storybook is the primary way to work on cards without a Home Assistant instance — every card against a

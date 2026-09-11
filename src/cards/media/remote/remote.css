@@ -502,3 +502,127 @@
 .ctl-row .key {
   --mdc-icon-size: 20px;
 }
+
+/* ============================================================= *
+ * Touchpad (dpad: touchpad) — an Apple-TV-style clickpad. The surface owns its
+ * touch gestures outright (touch-action: none, no callout/selection/tap-highlight)
+ * so a drag is never stolen by page scroll or the iOS long-press menu. All the
+ * live feedback nodes below are mutated straight by the controller's rAF painter.
+ * ============================================================= */
+.tpad {
+  position: relative;
+  width: 100%;
+  max-width: 238px;
+  aspect-ratio: 1;
+  margin-inline: auto;
+  border-radius: 24px;
+  overflow: hidden;
+  /* Siri-remote dot grid over the card2 surface, with a soft top-left sheen. */
+  background:
+    radial-gradient(
+      120% 120% at 30% 20%,
+      rgb(255 255 255 / 0.03),
+      transparent 55%
+    ),
+    radial-gradient(var(--color-line) 1px, transparent 1.4px) 0 0 / 18px 18px,
+    var(--color-card2);
+  border: 1px solid var(--color-line);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: contain;
+  cursor: pointer;
+}
+.tpad.off {
+  pointer-events: none;
+  opacity: 0.5;
+}
+.tpad:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+/* Direction flash bands — the controller sets opacity:1 at emit time, then clears
+   it so the transition fades them out. */
+.tp-edge {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease-out;
+}
+.tp-edge.up {
+  inset: 0 0 auto 0;
+  height: 22%;
+  background: linear-gradient(to bottom, var(--color-accentbg), transparent);
+}
+.tp-edge.down {
+  inset: auto 0 0 0;
+  height: 22%;
+  background: linear-gradient(to top, var(--color-accentbg), transparent);
+}
+.tp-edge.left {
+  inset: 0 auto 0 0;
+  width: 22%;
+  background: linear-gradient(to right, var(--color-accentbg), transparent);
+}
+.tp-edge.right {
+  inset: 0 0 0 auto;
+  width: 22%;
+  background: linear-gradient(to left, var(--color-accentbg), transparent);
+}
+/* Finger dot — follows the pointer via a transform written directly to style. */
+.tp-dot {
+  position: absolute;
+  left: -18px;
+  top: -18px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-accentbg);
+  border: 1px solid var(--color-accentline);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform;
+  transition: opacity 0.12s ease-out;
+}
+/* Scrub preview overlay (horizontal drag during playback). */
+.tp-scrub {
+  position: absolute;
+  inset: auto 12px 12px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease-out;
+  font-size: 11.5px;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+.tp-scrub.on {
+  opacity: 1;
+}
+.tp-bar {
+  flex: 1;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--color-line);
+  overflow: hidden;
+}
+.tp-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 3px;
+  background: var(--color-accent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .tp-dot {
+    display: none;
+  }
+  .tp-edge,
+  .tp-scrub {
+    transition: none;
+  }
+}
