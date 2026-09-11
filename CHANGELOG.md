@@ -3,6 +3,16 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.2] — 2026-09-11
+
+### Fixed
+
+- **Swipe now works on iOS touch.** The nav bar used `touch-action: pan-y`, which let
+  iOS directional-lock a slightly-off-axis drag and cancel it a few pixels in — so the
+  swipe worked with a mouse but stalled after ~10px on iPhone. The bar and its tab
+  buttons now use `touch-action: none`, so the swipe follows your finger across the
+  whole bar. Tapping a tab and keyboard navigation are unchanged.
+
 ## [1.0.1] — 2026-09-11
 
 An Instagram-style swipeable bottom nav bar.
