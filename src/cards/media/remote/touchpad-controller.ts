@@ -27,7 +27,6 @@ import {
   momentumSchedule,
   scrubStep,
   fmtTime,
-  fmtOffset,
   HOLD_MS,
   TAP_PX,
   V_EPS,
@@ -35,8 +34,6 @@ import {
   FLICK_STALE_MS,
   IN_FLIGHT_MAX,
   SCRUB_SEEK_MS,
-  PRESS_STEP_S,
-  PRESS_MIN_INTERVAL,
   type Axis,
   type TouchpadOptions,
 } from "./touchpad-math";
@@ -53,8 +50,15 @@ export interface PlaybackInfo {
   dur: number;
 }
 
-/** The scrub transport: absolute media_seek, or paced left/right presses. */
-type ScrubTransport = "seek" | "press";
+/**
+ * The scrub transport chosen when a horizontal drag begins during playback:
+ * - `seek` — absolute `media_seek` (the app reports a timeline).
+ * - `inert` — the app reports no timeline (Netflix-class): consume the horizontal
+ *   drag so it does NOT fall through to nav left/right (= 10s skips), but take no
+ *   media action. A real continuous scrub for these apps needs the native-touch
+ *   backend (see `touchpad.native_touch`).
+ */
+type ScrubTransport = "seek" | "inert";
 
 /** The element surface the touchpad controller drives — an adapter over FibbersRemote. */
 export interface TouchpadHost extends ReactiveControllerHost {
@@ -158,8 +162,6 @@ export class TouchpadController implements ReactiveController {
   // scrub state
   private scrubTransport: ScrubTransport = "seek"; // transport of the LIVE scrub
 
-  private lastScrubTransport: ScrubTransport | null = null; // routes the resume tap
-
   private scrubPos = 0;
 
   private scrubDur = 0;
@@ -167,10 +169,6 @@ export class TouchpadController implements ReactiveController {
   private lastSeekAt = -Infinity;
 
   private lastSeekSent = NaN;
-
-  private pressAcc = 0; // px accumulator for the press-scrub drain
-
-  private pressOffset = 0; // accumulated seconds shown in the relative overlay
 
   private resumeHint = false;
 
@@ -308,8 +306,6 @@ export class TouchpadController implements ReactiveController {
     this.resumeHint = false;
     // Continuity state must not survive a device switch or a hidden tab.
     this.lastSeekSent = NaN;
-    this.pressOffset = 0;
-    this.lastScrubTransport = null;
     this.pid = -1;
     this.phase = "idle";
   }
@@ -383,16 +379,11 @@ export class TouchpadController implements ReactiveController {
         const pb = axis === "x" && opts.scrub ? this.host.playback() : null;
         const transport = pb ? this._scrubTransportFor(pb) : null;
         if (pb && transport) {
+          // A horizontal drag during playback scrubs (seek) or is consumed (inert
+          // for timeline-less apps) — it must NEVER fall to nav left/right, which is
+          // what turns a Netflix slide into 10s skips.
           this._startScrub(pb, transport);
         } else {
-          // Unreachable while playing (the gate always yields a transport then) —
-          // tripwire so a regression to "10s skips during playback" is loud.
-          if (pb && pb.state === "playing" && this.host.debug())
-            // eslint-disable-next-line no-console -- behind the `debug:` flag only
-            console.debug(
-              "[fibbers-remote] scrub gate fell through to nav while playing",
-              pb,
-            );
           this.phase = "nav";
           // Seed the accumulator with the travel since down so the first step
           // lands promptly (acceptance: first focus step < 120ms).
@@ -449,77 +440,46 @@ export class TouchpadController implements ReactiveController {
     this._vibrate(8);
   }
 
-  // The scrub transport for the current playback context, or null → nav. Playing
-  // always scrubs (pause first). Paused: press-scrub is always allowed (in a menu,
-  // paced left/right ≈ nav — harmless); seek-scrub only resumes OUR paused session
-  // (resumeHint), so browsing a paused player never yanks its position.
+  // The scrub transport for a horizontal drag in the current playback context, or
+  // null → treat as nav. Playing → seek (real timeline) or inert (no timeline;
+  // consume, don't skip). Paused → seek only to resume OUR own paused session
+  // (resumeHint), else inert (don't yank a browsing player, don't skip). Idle /
+  // menu / off → null so horizontal drags navigate menus (left/right) as normal.
   private _scrubTransportFor(pb: PlaybackInfo): ScrubTransport | null {
-    if (pb.state === "playing") return pb.seekable ? "seek" : "press";
+    if (pb.state === "playing") return pb.seekable ? "seek" : "inert";
     if (pb.state !== "paused") return null;
-    if (!pb.seekable) return "press";
-    return this.resumeHint ? "seek" : null;
+    if (!pb.seekable) return "inert";
+    return this.resumeHint ? "seek" : "inert";
   }
 
   private _startScrub(pb: PlaybackInfo, transport: ScrubTransport): void {
     this.phase = "scrub";
     this.scrubTransport = transport;
-    this.lastScrubTransport = transport;
     if (this.host.debug())
       // eslint-disable-next-line no-console -- behind the `debug:` flag only
       console.debug(
         `[fibbers-remote] scrub entry: state=${pb.state} seekable=${pb.seekable} transport=${transport}`,
       );
+    // inert: consume the horizontal drag (the finger dot still follows) but take
+    // no media action — a real scrub needs the native-touch backend.
+    if (transport === "inert") return;
     const fresh = pb.state === "playing";
     if (fresh) this.host.mediaDo("media_pause"); // a paused entry never re-pauses
-    if (transport === "seek") {
-      // Re-entry continuity: HA's position is stale right after our own seeks —
-      // resume from the last position we sent, not pb.pos, when re-entering paused.
-      this.scrubPos =
-        !fresh && Number.isFinite(this.lastSeekSent)
-          ? this.lastSeekSent
-          : pb.pos;
-      this.scrubDur = pb.dur;
-      this.lastSeekAt = -Infinity;
-      if (fresh) this.lastSeekSent = NaN; // fresh session — no stale continuity
-    } else {
-      this.pressAcc = 0;
-      // Offset continuity across re-entries within OUR paused session only.
-      if (fresh || !this.resumeHint) this.pressOffset = 0;
-    }
+    // Re-entry continuity: HA's position is stale right after our own seeks —
+    // resume from the last position we sent, not pb.pos, when re-entering paused.
+    this.scrubPos =
+      !fresh && Number.isFinite(this.lastSeekSent) ? this.lastSeekSent : pb.pos;
+    this.scrubDur = pb.dur;
+    this.lastSeekAt = -Infinity;
+    if (fresh) this.lastSeekSent = NaN; // fresh session — no stale continuity
     clearTimeout(this.scrubHideT);
     this._showScrub();
     this._paintScrub();
   }
 
   private _driveScrub(dx: number, t: number, sensitivity: number): void {
+    if (this.scrubTransport === "inert") return; // consume, no media action
     const width = this.rect?.width ?? 230;
-    if (this.scrubTransport === "press") {
-      // Paced left/right presses through the same drain as nav (velocity-scaled
-      // step, in-flight cap, parked-finger residual drop) but slower: the app's
-      // own scrubber walks ~10s per press and lags behind a 60ms burst.
-      const vAbs = Math.abs(this.vX);
-      if (vAbs <= V_EPS) {
-        this.pressAcc = 0;
-        return;
-      }
-      this.pressAcc += dx;
-      if (t - this.sentAt < PRESS_MIN_INTERVAL) return; // keep accumulating
-      const r = tryStep(
-        this.pressAcc,
-        stepSize(vAbs, width, sensitivity),
-        t,
-        this.sentAt,
-        this.inFlight,
-      );
-      this.pressAcc = r.acc;
-      if (r.dir !== 0) {
-        this._emit(r.dir); // left/right + flash + haptic + in-flight tracking
-        this.sentAt = t;
-        this.pressOffset += r.dir * PRESS_STEP_S;
-        this._paintScrub();
-      }
-      return;
-    }
     const secs = scrubStep(dx, width, Math.abs(this.vX), sensitivity);
     this.scrubPos = clamp(this.scrubPos + secs, 0, this.scrubDur);
     this._paintScrub();
@@ -578,10 +538,8 @@ export class TouchpadController implements ReactiveController {
     if (zone) {
       this.host.send(zone);
     } else if (this.resumeHint) {
-      // After a press-scrub, select commits the tvOS scrubber playhead and resumes;
-      // after a seek-scrub, the transport-layer play is deterministic.
-      if (this.lastScrubTransport === "press") this.host.send("ok");
-      else this.host.mediaDo("media_play");
+      // We paused for a seek-scrub; resume via the transport layer (deterministic).
+      this.host.mediaDo("media_play");
       this._clearResumeHint();
     } else {
       this.host.send("ok");
@@ -618,13 +576,14 @@ export class TouchpadController implements ReactiveController {
   }
 
   private _finishScrub(): void {
-    // Seek transport commits the last previewed position (on normal release AND
-    // cancel — the user watched the preview move; leaving it uncommitted is worse).
-    // Press transport commits nothing: the presses already landed. Stays paused.
+    this.phase = "idle";
+    if (this.scrubTransport !== "seek") return; // inert: nothing landed, nothing to resume
+    // Commit the last previewed position (on normal release AND cancel — the user
+    // watched the preview move; leaving it uncommitted is worse). Stays paused;
+    // a tap resumes.
     if (
-      this.scrubTransport === "seek" &&
-      (Number.isNaN(this.lastSeekSent) ||
-        Math.abs(this.scrubPos - this.lastSeekSent) >= 0.5)
+      Number.isNaN(this.lastSeekSent) ||
+      Math.abs(this.scrubPos - this.lastSeekSent) >= 0.5
     ) {
       this.host.mediaDo("media_seek", {
         seek_position: Math.round(this.scrubPos),
@@ -632,7 +591,6 @@ export class TouchpadController implements ReactiveController {
       this.lastSeekSent = this.scrubPos;
     }
     this._setResumeHint();
-    this.phase = "idle";
     clearTimeout(this.scrubHideT);
     this.scrubHideT = setTimeout(() => this._hideScrub(), 800);
   }
@@ -678,7 +636,6 @@ export class TouchpadController implements ReactiveController {
   }
 
   private _showScrub(): void {
-    this.scrubBox?.classList.toggle("rel", this.scrubTransport === "press");
     this.scrubBox?.classList.add("on");
   }
 
@@ -687,12 +644,6 @@ export class TouchpadController implements ReactiveController {
   }
 
   private _paintScrub(): void {
-    if (this.scrubTransport === "press") {
-      // No absolute position is known — a signed relative offset only; the bar
-      // and duration are hidden by `.tp-scrub.rel`.
-      if (this.timeEl) this.timeEl.textContent = fmtOffset(this.pressOffset);
-      return;
-    }
     if (this.timeEl) this.timeEl.textContent = fmtTime(this.scrubPos);
     if (this.durEl) this.durEl.textContent = fmtTime(this.scrubDur);
     if (this.fillEl)

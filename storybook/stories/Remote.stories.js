@@ -29,10 +29,12 @@ export const AppleTV = story({
 });
 
 /** Netflix on the Apple TV: the app reports **no position/duration and no SEEK**
- * to Home Assistant, so a horizontal drag while playing pauses and falls back to
- * **press-scrub** — paced left/right presses that walk the app's own paused
- * scrubber (thumbnail preview on the TV), with a relative "−30s"/"+1:20" overlay.
- * A tap sends select to commit the playhead and resume. */
+ * to Home Assistant, so a real timeline scrub is impossible over standard HA
+ * services. A horizontal drag while playing is therefore **inert** — it is
+ * consumed (no accidental 10s left/right skips) but takes no media action; the
+ * finger dot still follows. Vertical drags navigate and edge-taps still skip.
+ * A faithful continuous scrub for these apps needs the native-touch backend hook
+ * (`touchpad.native_touch`). */
 export const AppleTVNetflix = story({
   type: "custom:fibbers-remote",
   device: "appletv",

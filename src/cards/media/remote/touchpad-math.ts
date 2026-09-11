@@ -49,12 +49,6 @@ export const SCRUB_BASE_S = 90; // full surface width ≈ 90s at unit velocity
 // Max multiplier 1 + 1.5 = 2.5× — the earlier 4× overshot by minutes on a fast sweep.
 export const SCRUB_VEL_MAX = 1.5;
 export const SCRUB_SEEK_MS = 400;
-// Press-scrub (apps like Netflix that report no timeline): tvOS moves the paused
-// scrubber ~10s per left/right press — app-controlled, used for the overlay only.
-export const PRESS_STEP_S = 10;
-// Presses are paced slower than nav's 60ms floor: the app's scrubber + a real
-// network round-trip lag behind a burst (the in-flight cap of 2 still applies).
-export const PRESS_MIN_INTERVAL = 150;
 
 /** Result of one drain attempt on the step accumulator. */
 export interface StepResult {
@@ -228,14 +222,6 @@ export function fmtTime(s: number): string {
   const ss = sec % 60;
   const pad = (n: number): string => String(n).padStart(2, "0");
   return h > 0 ? `${h}:${pad(m)}:${pad(ss)}` : `${m}:${pad(ss)}`;
-}
-
-/** Signed press-scrub offset for the overlay: "+30s", "−1:20", "0s". */
-export function fmtOffset(s: number): string {
-  const abs = Math.abs(Math.round(s));
-  if (abs === 0) return "0s";
-  const body = abs < 60 ? `${abs}s` : fmtTime(abs);
-  return (s < 0 ? "−" : "+") + body;
 }
 
 /**
