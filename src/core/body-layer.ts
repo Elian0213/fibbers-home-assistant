@@ -90,13 +90,20 @@ const HOST_CSS = `
     padding: 7px 6px calc(9px + env(safe-area-inset-bottom, 0px));
     box-shadow: 0 60px 0 60px var(--color-nav, ${T.nav});
     transform: translateZ(0);
-    /* a horizontal drag scrubs between tabs; a vertical drag stays the page's */
-    touch-action: pan-y;
+    /* the bar owns its touch gestures: a horizontal drag scrubs between tabs.
+       none, NOT pan-y — on iOS pan-y lets the browser directional-lock a
+       slightly-off-axis drag and pointercancel it ~10px in, killing the swipe
+       under the finger. Matches every other Fibbers drag surface (shared/ui.ts). */
+    touch-action: none;
   }
   /* desktop sidebar inset: drop the 60px horizontal spread so the overscroll
      floor never bleeds a nav-coloured slab over the sidebar */
   :host([data-inset="true"]) .bar { box-shadow: 0 60px 0 0 var(--color-nav, ${T.nav}); }
   .tabs { display: flex; align-items: stretch; gap: 2px; }
+  /* the tab buttons pick up the shadow's global button{touch-action:manipulation}
+     — override so a touch landing on a button doesn't re-enable panning and
+     re-trigger the iOS pointercancel (none keeps taps instant, no 300ms delay). */
+  .tabs button { touch-action: none; }
   /* the single soft-green focus pill that glides to the active tab (Instagram-
      style). z-index:-1 tucks it behind the icons/labels but above the bar fill. */
   .ind {
@@ -432,8 +439,8 @@ function wireSwipe(barDiv: HTMLElement, tabsDiv: HTMLElement): void {
     if (!moved) {
       if (Math.max(Math.abs(dx), Math.abs(dy)) < 6) return; // sub-slop: not a drag yet
       // Directional lock: a mostly-vertical first move isn't a tab swipe — drop
-      // the gesture so pan-y scrolling / the auto-hide can have it. No capture was
-      // taken, so there's nothing to release.
+      // the gesture so it stays a tap (or does nothing). The bar owns its
+      // touch-action, so there's no native scroll to hand back; no capture yet.
       if (Math.abs(dy) > Math.abs(dx)) {
         pid = -1;
         return;
