@@ -3,6 +3,29 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.4] — 2026-09-11
+
+A real Apple-TV-style touchpad for the remote card.
+
+### Added
+
+- **Apple-TV touchpad.** The Apple TV d-pad is now a proper clickpad
+  (`dpad: touchpad`, the default for Apple TV devices): drag to move focus with
+  velocity-paced steps and flick momentum, tap to select, and press-and-hold select
+  to open the tvOS context menu. A finger parked in an edge zone repeats that
+  direction, and edge taps click a direction — just like the physical remote. While
+  something is playing, sliding left/right **pauses and scrubs the timeline** with an
+  on-card preview (like the iPhone Apple TV Remote), instead of skipping. Tune it
+  with a `touchpad:` block (`edge_click`, `momentum`, `haptics`, `sensitivity`,
+  `scrub`). Every other d-pad mode (`swipe`, `buttons`, `both`, `grid`) is unchanged
+  and still selectable, on any platform.
+
+### Changed
+
+- **The remote card was reorganised into focused modules** (a thin element, per-region
+  view components, and pure, unit-tested helpers) for maintainability. No behaviour
+  change to existing remote configurations.
+
 ## [1.0.3] — 2026-09-11
 
 ### Fixed
