@@ -3,6 +3,22 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.5] — 2026-09-11
+
+### Fixed
+
+- **Touchpad scrub now works on Netflix (and re-engages while paused).** Scrub only
+  engaged with a known `media_position`/`media_duration`, but Netflix runs its own
+  tvOS player and reports no timeline — so horizontal slides fell through to nav
+  left/right, which Netflix maps to 10-second skips (momentum turned that into skip
+  storms). Scrub now picks a transport per gesture: **seek-scrub** (timeline known)
+  throttled `media_seek`, re-enterable while paused and continuing from the last
+  position; **press-scrub** (Netflix-class apps) pauses first, then paces left/right
+  presses so tvOS walks the app's own playhead with thumbnail preview — the overlay
+  shows a relative `−30s`/`+1:20` offset and a tap commits and resumes. Playing always
+  scrubs now (never nav), paused re-entry never re-pauses, and continuity resets on
+  device switch/tab hide/content change.
+
 ## [1.0.4] — 2026-09-11
 
 A real Apple-TV-style touchpad for the remote card.
