@@ -447,7 +447,14 @@ function wireSwipe(barDiv: HTMLElement, tabsDiv: HTMLElement): void {
       }
       moved = true;
       dragging = true;
-      capturePointer(barDiv, e.pointerId); // now a real drag → keep the pointer
+      // Capture only for MOUSE. Touch/pen give the pointerdown target (the tab
+      // button) IMPLICIT pointer capture (W3C spec), so every later event
+      // retargets to the button and still bubbles through this bar — the drag
+      // keeps flowing even off the bar, no capture needed. Stealing that capture
+      // here fired a bubbling lostpointercapture from the button into our own
+      // cancel handler (killing the swipe ~10px in on every touchscreen), and
+      // WebKit is buggy about mid-gesture child→ancestor transfers anyway.
+      if (e.pointerType === "mouse") capturePointer(barDiv, e.pointerId);
       if (indEl) {
         indEl.style.transition = "none"; // follow the finger 1:1
         indEl.style.opacity = "1"; // reveal the pill even if no tab was active
@@ -523,7 +530,14 @@ function wireSwipe(barDiv: HTMLElement, tabsDiv: HTMLElement): void {
   barDiv.addEventListener("pointermove", onMove);
   barDiv.addEventListener("pointerup", onUp);
   barDiv.addEventListener("pointercancel", onCancel);
-  barDiv.addEventListener("lostpointercapture", onCancel);
+  // lostpointercapture BUBBLES — a tab button releasing its implicit touch
+  // capture (tap release, or a handoff) reaches this listener too. That's not
+  // our loss: only the bar itself losing capture (a genuine mid-drag mouse
+  // capture loss) cancels the gesture.
+  barDiv.addEventListener("lostpointercapture", (e: PointerEvent) => {
+    if (e.target !== barDiv) return;
+    onCancel(e);
+  });
   // A drag past the slop swallows the click it would otherwise fire on whatever
   // button ends up under the pointer (mirrors dragScroll in shared/ui).
   barDiv.addEventListener(
