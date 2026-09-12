@@ -3,6 +3,44 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] — 2026-09-12
+
+A master switch that tells the truth. The old "Alles uit" chip only killed
+`light.all_color_lights` and left the Apple TV, Philips TV and Sonos running —
+this replaces it with a control that shows exactly what it's about to take down.
+
+### Added
+
+- **`fibbers-master` — full-width master switch.** One card that turns a whole
+  scope off at once: lamps, media players and switches. It resolves four target
+  lists so it never guesses a service — `lights` (`light.turn_off`), `media_off`
+  (`media_player.turn_off`), `media_stop` for a speaker that can't be turned off,
+  a Sonos, (`media_player.media_stop`) and `switches`. The live subline is the
+  part that sells it: with `subtitle: auto` it counts lamps and names the media
+  ("3 lampen · Apple TV · Sonos"), so you can see the blast radius before you
+  touch it, and reads "Alles is al uit" when nothing is on.
+- **Hold-to-confirm + undo.** `confirm: hold` fills the track over `hold_ms`
+  (drains back on early release, no modal); every press first snapshots the
+  active targets to a transient scene, so the subline becomes an "Ongedaan maken"
+  receipt for `undo` seconds. `navigator.vibrate` tick on completion,
+  `prefers-reduced-motion` honoured, `role="switch"` with a keyboard hold path.
+- **Visual editors for five more cards.** `climate`, `backup`, `presence`,
+  `greeting` and `back` now open a form in the picker (nineteen cards total). The
+  master editor edits its nested `targets` through an `ha-form` `expandable` group
+  of domain-filtered entity pickers.
+
+### Changed
+
+- **Completed the red tone token set.** `--fib-red` gained `-bg` / `-line` / `-tx`
+  variants in both light and dark — same derivation as amber and blue — so a red
+  tile (the destructive master instance) reads at the right weight and passes AA.
+
+### Robustness
+
+- `unavailable` / `unknown` targets are ignored everywhere, so an offline lamp
+  can't hold the switch "on"; `standby` (Philips TV) and `idle` (Sonos) read as
+  off; a press with nothing on is a true no-op — no service calls, no empty scene.
+
 ## [1.1.1] — 2026-09-12
 
 ### Fixed
