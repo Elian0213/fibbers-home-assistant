@@ -3,6 +3,35 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] — 2026-09-12
+
+A real, continuous Apple-TV scrub — including Netflix — when the optional
+**[Fibbers Bridge](https://github.com/Elian0213/fibbers-bridge)** backend is installed.
+
+### Added
+
+- **Native-touch scrub (optional companion).** With Fibbers Bridge installed, a
+  horizontal drag on the Apple TV touchpad during playback streams a real 1:1 touch to
+  the TV's own surface (`fibbers_bridge/atv_touch` over the websocket), so it scrubs the
+  app's _own_ timeline continuously — in **any** app, **including Netflix** — exactly like
+  sliding on the physical Siri Remote. The transport is feature-detected per gesture and
+  chosen automatically: press at the finger point, throttled hold frames as it moves, and
+  a release on lift (also on cancel, lost capture, device switch, tab hide, or a mid-drag
+  disengage — a press is never left stranded). Coordinates map 1:1 to pyatv's 0–1000 touch
+  space. On by default when the bridge is present; opt a device out with
+  `touchpad: { native_touch: false }`. Fibbers Bridge is a separate HACS **integration**
+  (custom repository for now); the touchpad works unchanged without it.
+
+### Changed
+
+- **A timeline-less slide is now inert instead of faking skips.** The 1.0.5 press-scrub
+  (pause + paced left/right presses walking the app's own playhead) turned out to _be_
+  Netflix's 10-second skips under a relative-offset overlay, not the continuous scrub it
+  looked like. It's removed: without the bridge, a horizontal drag on a timeline-less app
+  (Netflix-class) is now **consumed but takes no action** — no accidental 10s skips — while
+  apps that report a timeline still **seek-scrub** as before. The faithful continuous scrub
+  for timeline-less apps is the native-touch path above.
+
 ## [1.0.5] — 2026-09-11
 
 ### Fixed

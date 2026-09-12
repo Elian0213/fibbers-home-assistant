@@ -1,6 +1,6 @@
 {
   "name": "fibbers",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "private": true,
   "description": "A bottom-nav dashboard plugin for Home Assistant: a viewport-pinned bottom bar, modal sheets, self-computing room tiles, and automatic light/dark theming. Lit + Tailwind web components, bundled to a single file.",
   "homepage": "https://elian0213.github.io/fibbers-home-assistant/",
