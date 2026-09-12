@@ -91,10 +91,10 @@ sections:
           - { name: Lights, icon: solar:lightbulb-bolt-bold-duotone, path: /lovelace/1 }
 ```
 
-Thirteen cards (`nav`, `room`, `light-group`, `light-row`, `stat`, `graph`, `media`, `weather`,
-`toggle`, `number`, `select`, `datetime`, `section`) also open a visual editor in the picker. The
-rest are YAML-only — several are list-shaped (alert checks, chip rows, entity filters) where a form
-can't help.
+Nineteen cards (`nav`, `back`, `room`, `light-group`, `light-row`, `stat`, `graph`, `media`,
+`weather`, `toggle`, `master`, `number`, `select`, `datetime`, `section`, `climate`, `backup`,
+`presence`, `greeting`) also open a visual editor in the picker. The rest are YAML-only — several are
+list-shaped (alert checks, chip rows, entity filters) where a form can't help.
 
 ## The cards
 
@@ -106,7 +106,7 @@ the **[live demo](https://elian0213.github.io/fibbers-home-assistant/)**; a stat
 - **Rooms, lights & scenes** — `room`, `light-group`, `light-row`, `light-detail`, `scene`, `chips`
 - **Status & data** — `alert`, `stat`, `graph`, `entities`, `presence`, `backup`, `weather`, `sysmon`
 - **Devices** — `media`, `climate`, `remote`, `scheduler`, `alarm`
-- **Inputs** — `number`, `select`, `toggle`, `datetime`
+- **Inputs** — `number`, `select`, `toggle`, `master`, `datetime`
 
 A complete "Huis" view built only from Fibbers is on the
 [Usage](https://elian0213.github.io/fibbers-home-assistant/?path=/docs/getting-started-usage--docs)

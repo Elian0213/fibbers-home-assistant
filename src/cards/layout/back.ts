@@ -14,6 +14,7 @@ import type {
   HomeAssistant,
   LovelaceCard,
   LovelaceCardConfig,
+  LovelaceCardEditor,
 } from "@/types/home-assistant";
 import "@shared/icon";
 
@@ -24,6 +25,13 @@ export interface BackConfig extends LovelaceCardConfig {
   labels?: Record<string, string>;
   icon?: string;
 }
+
+// `labels` (a per-route name map) stays YAML-only — a dict a form can't sensibly edit.
+const EDITOR_SCHEMA = [
+  { name: "label", selector: { text: {} } },
+  { name: "fallback", selector: { text: {} } },
+  { name: "icon", selector: { icon: {} } },
+];
 
 /**
  * fibbers-back — "Back to X" button driven by the nav stack; falls back to
@@ -49,6 +57,15 @@ export class FibbersBack extends LitElement implements LovelaceCard {
   /** Starter config for the card picker. */
   static getStubConfig(): BackConfig {
     return { type: "custom:fibbers-back", fallback: "/lovelace/0" };
+  }
+
+  /** Build the shared form editor bound to this card's schema. */
+  static getConfigElement(): LovelaceCardEditor {
+    const el = document.createElement(
+      "fibbers-form-editor",
+    ) as LovelaceCardEditor & { schema?: unknown };
+    el.schema = EDITOR_SCHEMA;
+    return el;
   }
 
   /** Store config and recompute the label. */

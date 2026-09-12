@@ -125,6 +125,13 @@
     "back": "Terug",
     "back_to": "Terug naar {name}"
   },
+  "master": {
+    "all_off": "Alles is al uit",
+    "n_lamps": "{count} lampen",
+    "n_lamps_one": "1 lamp",
+    "turned_off_at": "Uitgezet om {time}",
+    "undo": "Ongedaan maken"
+  },
   "number": {
     "unavailable": "Onbereikbaar",
     "more": "meer",

@@ -125,6 +125,13 @@
     "back": "Back",
     "back_to": "Back to {name}"
   },
+  "master": {
+    "all_off": "Everything is already off",
+    "n_lamps": "{count} lamps",
+    "n_lamps_one": "1 lamp",
+    "turned_off_at": "Turned off at {time}",
+    "undo": "Undo"
+  },
   "number": {
     "unavailable": "Unavailable",
     "more": "more",

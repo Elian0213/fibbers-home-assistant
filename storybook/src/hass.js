@@ -88,6 +88,12 @@ function applyService(states, domain, service, data = {}) {
       } else if (service === "media_seek" && data.seek_position != null) {
         a.media_position = data.seek_position;
         a.media_position_updated_at = new Date().toISOString();
+      } else if (service === "turn_off") {
+        st.state = "off";
+      } else if (service === "media_stop") {
+        // A Sonos reports "idle" once stopped, not "off" — the master card treats
+        // both as off, but keep the stub honest to the real transport.
+        st.state = "idle";
       } else if (service === "volume_set" && data.volume_level != null)
         a.volume_level = data.volume_level;
       else if (service === "select_source" && data.source)

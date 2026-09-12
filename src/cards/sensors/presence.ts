@@ -16,6 +16,7 @@ import type {
   HassEntity,
   LovelaceCard,
   LovelaceCardConfig,
+  LovelaceCardEditor,
 } from "@/types/home-assistant";
 import "@shared/icon";
 
@@ -24,6 +25,14 @@ export interface PresenceConfig extends LovelaceCardConfig {
   people?: string[];
   title?: boolean;
 }
+
+const EDITOR_SCHEMA = [
+  {
+    name: "people",
+    selector: { entity: { domain: "person", multiple: true } },
+  },
+  { name: "title", selector: { boolean: {} } },
+];
 
 /**
  * fibbers-presence — "who's home" summary over person tiles (home/away, green
@@ -49,6 +58,15 @@ export class FibbersPresence extends LitElement implements LovelaceCard {
   /** Seed config for the card picker — no config needed, it auto-collects people. */
   static getStubConfig(): PresenceConfig {
     return { type: "custom:fibbers-presence" };
+  }
+
+  /** Build the shared form editor bound to this card's schema. */
+  static getConfigElement(): LovelaceCardEditor {
+    const el = document.createElement(
+      "fibbers-form-editor",
+    ) as LovelaceCardEditor & { schema?: unknown };
+    el.schema = EDITOR_SCHEMA;
+    return el;
   }
 
   /** Store the config; throws when `people` is present but not a list so the editor surfaces it. */

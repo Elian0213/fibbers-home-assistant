@@ -16,6 +16,7 @@ import type {
   HassEntity,
   LovelaceCard,
   LovelaceCardConfig,
+  LovelaceCardEditor,
 } from "@/types/home-assistant";
 import "@shared/icon";
 
@@ -42,6 +43,11 @@ export interface ClimateConfig extends LovelaceCardConfig {
   entity: string;
   name?: string;
 }
+
+const EDITOR_SCHEMA = [
+  { name: "entity", selector: { entity: { domain: "climate" } } },
+  { name: "name", selector: { text: {} } },
+];
 
 /**
  * fibbers-climate — thermostat tile: current temp + hvac action, a setpoint −/+
@@ -79,6 +85,15 @@ export class FibbersClimate extends LitElement implements LovelaceCard {
         "climate.example",
       ),
     };
+  }
+
+  /** Build the shared form editor bound to this card's schema. */
+  static getConfigElement(): LovelaceCardEditor {
+    const el = document.createElement(
+      "fibbers-form-editor",
+    ) as LovelaceCardEditor & { schema?: unknown };
+    el.schema = EDITOR_SCHEMA;
+    return el;
   }
 
   /** Validate + store the config; throws when `entity` isn't given (a climate.*). */

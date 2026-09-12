@@ -15,6 +15,7 @@ import type {
   HassEntity,
   LovelaceCard,
   LovelaceCardConfig,
+  LovelaceCardEditor,
 } from "@/types/home-assistant";
 import "@shared/icon";
 
@@ -49,6 +50,16 @@ export interface GreetingConfig extends LovelaceCardConfig {
   name_from?: string;
 }
 
+const EDITOR_SCHEMA = [
+  { name: "lights", selector: { entity: { domain: "light", multiple: true } } },
+  {
+    name: "people",
+    selector: { entity: { domain: "person", multiple: true } },
+  },
+  { name: "sensors", selector: { entity: { multiple: true } } },
+  { name: "name_from", selector: { entity: {} } },
+];
+
 /**
  * fibbers-greeting — time-of-day header plus a lights/presence/sensor subline
  * ("4 of 7 lights on · 2 offline · Elian home · 19.2 °C"). Light groups expand to
@@ -81,6 +92,15 @@ export class FibbersGreeting extends LitElement implements LovelaceCard {
       type: "custom:fibbers-greeting",
       lights: pickEntity("light", entities, entitiesFallback, "light.example"),
     };
+  }
+
+  /** Build the shared form editor bound to this card's schema. */
+  static getConfigElement(): LovelaceCardEditor {
+    const el = document.createElement(
+      "fibbers-form-editor",
+    ) as LovelaceCardEditor & { schema?: unknown };
+    el.schema = EDITOR_SCHEMA;
+    return el;
   }
 
   /** Store the config (all fields optional beyond its presence). */

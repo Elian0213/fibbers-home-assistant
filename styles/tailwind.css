@@ -33,6 +33,9 @@
   --color-blueink: #9bd2ea;
   --color-green: #63c295;
   --color-red: #ec8377;
+  --color-redbg: #3a1a17;
+  --color-redline: #5a2b26;
+  --color-redtx: #f3c3bc;
   --color-sheet: #171e20;
   --color-track: #2c3639; /* slider/progress track */
 }
@@ -67,6 +70,9 @@
   --color-blueink: #1e4e7e;
   --color-green: #2f6b45;
   --color-red: #c4443b;
+  --color-redbg: #fbe6e3;
+  --color-redline: #eebbb5;
+  --color-redtx: #8f2b24;
   --color-sheet: #ffffff;
   --color-track: #d8ddda;
   --color-nav: #ffffff;

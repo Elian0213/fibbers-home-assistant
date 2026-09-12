@@ -30,7 +30,12 @@ export const T = {
   blueLine: "#2C5A70",
   blueInk: "#9BD2EA",
   green: "#63C295",
+  // red — the destructive/master colour; derivations mirror amber (tint surface,
+  // tint border, lifted text) so a red tile reads the same weight as an amber one
   red: "#EC8377",
+  redBg: "#3A1A17", // red tint surface (icon-on box / armed track)
+  redLine: "#5A2B26", // red tint border
+  redTx: "#F3C3BC", // text on a red tint
   sheet: "#171E20",
   nav: "#161C1E",
   grab: "#3E4A4D",
@@ -68,6 +73,9 @@ export function styleBlock(): string {
     --fib-blue-ink: ${T.blueInk};
     --fib-green: ${T.green};
     --fib-red: ${T.red};
+    --fib-red-bg: ${T.redBg};
+    --fib-red-line: ${T.redLine};
+    --fib-red-tx: ${T.redTx};
     --fib-sheet: ${T.sheet};
     --fib-nav: ${T.nav};
     --fib-grab: ${T.grab};

@@ -10,6 +10,7 @@ import { FibbersAlarm } from "./cards/inputs/alarm";
 import { FibbersClimate } from "./cards/climate/climate";
 import { FibbersChips } from "./cards/inputs/chips";
 import { FibbersDateTime } from "./cards/inputs/datetime";
+import { FibbersMaster } from "./cards/inputs/master";
 import { FibbersNumber } from "./cards/inputs/number";
 import { FibbersScene } from "./cards/inputs/scene";
 import { FibbersScheduler } from "./cards/inputs/scheduler";
@@ -198,6 +199,12 @@ const CARDS: CardEntry[] = [
     FibbersToggle,
     "Fibbers Toggle",
     "Switch row for input_boolean, switch and automation.",
+  ],
+  [
+    "fibbers-master",
+    FibbersMaster,
+    "Fibbers Master",
+    "Full-width master switch — lights, media and the lot, with hold-to-confirm and undo.",
   ],
   [
     "fibbers-datetime",

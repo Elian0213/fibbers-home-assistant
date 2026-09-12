@@ -13,6 +13,7 @@ import type {
   HomeAssistant,
   LovelaceCard,
   LovelaceCardConfig,
+  LovelaceCardEditor,
 } from "@/types/home-assistant";
 import "@shared/icon";
 
@@ -24,6 +25,14 @@ export interface BackupConfig extends LovelaceCardConfig {
   next?: string;
   stale_hours?: number;
 }
+
+const EDITOR_SCHEMA = [
+  { name: "entity", selector: { entity: { domain: "sensor" } } },
+  { name: "name", selector: { text: {} } },
+  { name: "result", selector: { entity: {} } },
+  { name: "next", selector: { entity: { domain: "sensor" } } },
+  { name: "stale_hours", selector: { number: { min: 0, mode: "box" } } },
+];
 
 /** Relative "N ago" text plus raw `hours` for a timestamp; a non-timestamp reports Infinity hours so the caller can warn. */
 function ago(
@@ -77,6 +86,15 @@ export class FibbersBackup extends LitElement implements LovelaceCard {
   /** Seed config for the card picker — a placeholder last-backup sensor. */
   static getStubConfig(): BackupConfig {
     return { type: "custom:fibbers-backup", entity: "sensor.backup_last" };
+  }
+
+  /** Build the shared form editor bound to this card's schema. */
+  static getConfigElement(): LovelaceCardEditor {
+    const el = document.createElement(
+      "fibbers-form-editor",
+    ) as LovelaceCardEditor & { schema?: unknown };
+    el.schema = EDITOR_SCHEMA;
+    return el;
   }
 
   /** Validate + store the config; throws when the last-backup `entity` is missing so the editor surfaces it. */
