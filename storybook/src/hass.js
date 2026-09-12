@@ -134,6 +134,7 @@ export function makeHass(flags = {}) {
     battLow: false,
     update: true,
     home: false,
+    bridge: false,
     ...flags,
   };
   const S = {};
@@ -504,8 +505,9 @@ export function makeHass(flags = {}) {
     supported_features: 450487,
   });
   // Netflix-class app: NO media_position/media_duration and NO SEEK bit — pyatv
-  // gets nothing from Netflix's own player, so the touchpad falls back to
-  // press-scrub (pause + paced left/right presses walking the app's own scrubber).
+  // gets nothing from Netflix's own player. Without the Fibbers Bridge backend the
+  // touchpad slide is inert (consumed, no action); with the bridge (`bridge: true`)
+  // it streams a real 1:1 native touch to the Apple TV surface (a true scrub).
   add("media_player.appletv_netflix", "playing", {
     friendly_name: "Apple TV",
     media_title: "The Bear",
@@ -761,14 +763,45 @@ export function makeHass(flags = {}) {
       }
       return {};
     },
+    // Entity registry (device_id per entity) — the touchpad resolves the Apple TV
+    // device from its media_player to address the Fibbers Bridge native-touch ws.
+    entities: {
+      "media_player.appletv": { device_id: "atv_device" },
+      "media_player.appletv_netflix": { device_id: "atv_device" },
+    },
+    // Fibbers Bridge backend present (`bridge: true`) → advertise the ws command so
+    // the touchpad picks the native-touch transport; absent → the card degrades to
+    // the seek-scrub / inert fallback (no `services.fibbers_bridge`).
+    ...(f.bridge
+      ? {
+          services: {
+            fibbers_bridge: { atv_touch: {}, atv_swipe: {}, atv_click: {} },
+          },
+        }
+      : {}),
     // A minimal connection stub: the weather cards subscribe to the forecast feed
-    // over the WS connection, so hand them synthetic hourly + daily forecasts.
+    // over the WS connection; with the bridge, `sendMessagePromise` records each
+    // native touch phase (console + `window.__fibbersNativeTouch`) for the demo/smoke.
     connection: {
       subscribeMessage: (cb, msg) => {
         if (msg && msg.type === "weather/subscribe_forecast")
           cb({ forecast: synthForecast(msg.forecast_type === "hourly") });
         return Promise.resolve(() => {});
       },
+      ...(f.bridge
+        ? {
+            sendMessagePromise: async (msg) => {
+              if (msg && msg.type === "fibbers_bridge/atv_touch") {
+                const rec = { mode: msg.mode, x: msg.x, y: msg.y };
+                console.log("[ws] fibbers_bridge/atv_touch", rec);
+                if (typeof window !== "undefined")
+                  (window.__fibbersNativeTouch ||= []).push(rec);
+                return { ok: true };
+              }
+              return {};
+            },
+          }
+        : {}),
     },
     localize: (k) => k,
     // A minimal stand-in for HA's own localiser, enough for the stories to show

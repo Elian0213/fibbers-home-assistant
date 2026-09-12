@@ -11,6 +11,7 @@ import {
   edgeZone,
   momentumSchedule,
   scrubStep,
+  normCoord,
   livePosition,
   fmtTime,
   resolveTouchpadOptions,
@@ -192,6 +193,21 @@ describe("scrubStep", () => {
   });
 });
 
+describe("normCoord", () => {
+  test("maps the surface to 0–1000 (rounded, clamped)", () => {
+    expect(normCoord(120, 0, 240)).toBe(500); // centre
+    expect(normCoord(0, 0, 240)).toBe(0); // left edge
+    expect(normCoord(240, 0, 240)).toBe(1000); // right edge
+    expect(normCoord(60, 0, 240)).toBe(250); // quarter
+    expect(normCoord(-50, 0, 240)).toBe(0); // past-left clamps
+    expect(normCoord(400, 0, 240)).toBe(1000); // past-right clamps
+    expect(normCoord(180, 100, 240)).toBe(333); // offset origin, rounded
+  });
+  test("degenerate size → centre", () => {
+    expect(normCoord(5, 0, 0)).toBe(500);
+  });
+});
+
 describe("livePosition", () => {
   test("adds elapsed wall time while playing", () => {
     const p = livePosition(300, 1000, true, 6000, 5400);
@@ -226,6 +242,7 @@ describe("resolveTouchpadOptions", () => {
       haptics: true,
       sensitivity: 1,
       scrub: true,
+      native_touch: true,
     });
   });
   test("honours explicit flags and clamps out-of-range sensitivity to 1", () => {

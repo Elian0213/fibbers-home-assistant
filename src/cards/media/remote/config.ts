@@ -82,7 +82,7 @@ export function validateRemoteConfig(config: RemoteConfig): RemoteDevice[] {
     if (d.touchpad != null) {
       if (typeof d.touchpad !== "object" || Array.isArray(d.touchpad)) {
         throw new Error(
-          `fibbers-remote: device[${i}] \`touchpad\` must be an options map (edge_click, momentum, haptics, sensitivity, scrub)`,
+          `fibbers-remote: device[${i}] \`touchpad\` must be an options map (edge_click, momentum, haptics, sensitivity, scrub, native_touch)`,
         );
       }
       const { sensitivity } = d.touchpad;

@@ -1,4 +1,5 @@
 import { story } from "../src/story.js";
+import { makeHass } from "../src/hass.js";
 
 export default {
   title: "Cards/Devices & Media/Remote",
@@ -45,6 +46,28 @@ export const AppleTVNetflix = story({
   sources: "auto",
   favourites: ["Netflix", "YouTube", "Prime Video", "Spotify"],
 });
+
+/** Netflix on the Apple TV **with the [Fibbers Bridge](https://github.com/Elian0213/fibbers-bridge)
+ * backend installed**: the touchpad now streams a real 1:1 **native touch** to the
+ * Apple TV's own surface (`fibbers_bridge/atv_touch` over the websocket), so a
+ * horizontal drag while playing scrubs Netflix's *own* timeline — the exact
+ * physical-Siri-Remote behaviour, in any app. Feature-detected: this story's mock
+ * advertises the bridge (`makeHass({ bridge: true })`); the plain
+ * `AppleTVNetflix` story above has no bridge and stays inert. Watch the console for
+ * the `press → hold… → release` stream. */
+export const AppleTVNetflixBridge = story(
+  {
+    type: "custom:fibbers-remote",
+    device: "appletv",
+    entity: "remote.appletv",
+    media_player: "media_player.appletv_netflix",
+    icon: "solar:display-bold-duotone",
+    name: "Apple TV",
+    sources: "auto",
+    favourites: ["Netflix", "YouTube", "Prime Video", "Spotify"],
+  },
+  { hass: makeHass({ bridge: true }) },
+);
 
 /** The same Apple TV with the classic SVG **wheel** instead of the touchpad
  * (`dpad: both` — tap a sector, swipe, or arrow-key). */

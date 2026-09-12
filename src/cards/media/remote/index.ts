@@ -206,6 +206,8 @@ export class FibbersRemote
         holdRelease: () => this.release(),
         mediaDo: (s, d) => this.mpDo(s, d),
         playback: () => this._playbackInfo(),
+        nativeTouchReady: () => this._nativeTouchReady(),
+        nativeTouch: (mode, x, y) => this._nativeTouch(mode, x, y),
         unavail: () => this.unavail(),
         opts: () => resolveTouchpadOptions(this.dev().touchpad),
         debug: () => !!this.config.debug,
@@ -488,6 +490,53 @@ export class FibbersRemote
     return lp
       ? { state: mp.state, seekable: true, pos: lp.pos, dur: lp.dur }
       : { state: mp.state, seekable: false, pos: NaN, dur: NaN };
+  }
+
+  // True when the Fibbers Bridge backend can stream a native touch for this device:
+  // the touchpad option is on, the socket + ws command exist, and the media_player
+  // resolves to a device_id. Guarded end-to-end so the card degrades silently to the
+  // seek-scrub / inert fallback whenever the bridge isn't installed.
+  private _nativeTouchReady(): boolean {
+    if (!this.hass) return false;
+    if (!resolveTouchpadOptions(this.dev().touchpad).native_touch) return false;
+    const hasCmd = !!this.hass.services?.fibbers_bridge?.atv_touch;
+    const hasSocket =
+      typeof this.hass.connection?.sendMessagePromise === "function";
+    return hasCmd && hasSocket && !!this._nativeTouchDeviceId();
+  }
+
+  // The Apple TV device_id backing the current media_player, from the entity
+  // registry (`hass.entities` — not in the custom-card-helpers type; cast to reach it).
+  private _nativeTouchDeviceId(): string | undefined {
+    const mp = this.dev().media_player;
+    if (!mp || !this.hass) return undefined;
+    const reg = (
+      this.hass as unknown as {
+        entities?: Record<string, { device_id?: string } | undefined>;
+      }
+    ).entities;
+    return reg?.[mp]?.device_id;
+  }
+
+  // Fire-and-forget one native touch phase to the Apple TV surface (0–1000 coords)
+  // over the bridge's websocket. Errors are swallowed — a dropped frame just means
+  // the TV's scrubber lags a beat; the controller still releases cleanly at gesture end.
+  private _nativeTouch(
+    mode: "press" | "hold" | "release",
+    x: number,
+    y: number,
+  ): void {
+    const deviceId = this._nativeTouchDeviceId();
+    if (!deviceId || !this.hass) return;
+    this.hass.connection
+      .sendMessagePromise({
+        type: "fibbers_bridge/atv_touch",
+        device_id: deviceId,
+        x,
+        y,
+        mode,
+      })
+      .catch(() => {});
   }
 
   private _flashFail(id: string, key: string, e: unknown, cmd?: string): void {

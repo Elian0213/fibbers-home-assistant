@@ -22,6 +22,7 @@ export interface TouchpadOptions {
   haptics?: boolean;
   sensitivity?: number;
   scrub?: boolean;
+  native_touch?: boolean;
 }
 
 // step = width/6 at rest → a ~10cm slow drag on a ~230px surface ≈ 5-6 steps;
@@ -49,6 +50,9 @@ export const SCRUB_BASE_S = 90; // full surface width ≈ 90s at unit velocity
 // Max multiplier 1 + 1.5 = 2.5× — the earlier 4× overshot by minutes on a fast sweep.
 export const SCRUB_VEL_MAX = 1.5;
 export const SCRUB_SEEK_MS = 400;
+// Native-touch (Fibbers Bridge) streams a real 1:1 touch to the Apple TV; throttle
+// the `hold` frames to the tvOS animation floor so the socket isn't flooded.
+export const NATIVE_MIN_INTERVAL = 120;
 
 /** Result of one drain attempt on the step accumulator. */
 export interface StepResult {
@@ -190,6 +194,16 @@ export function scrubStep(
   return dxFrame * rate * (1 + Math.min(vAbs, SCRUB_VEL_MAX)) * sensitivity;
 }
 
+/**
+ * Map a pointer position along one axis of the touch surface to pyatv's 0–1000
+ * touch-coordinate space (rounded, clamped) — so a native-touch drag mirrors the
+ * finger 1:1 onto the Apple TV's own surface.
+ */
+export function normCoord(client: number, start: number, size: number): number {
+  if (!(size > 0)) return 500;
+  return clamp(Math.round(((client - start) / size) * 1000), 0, 1000);
+}
+
 /** A live playback position + duration, or null when the media isn't seekable. */
 export interface Position {
   pos: number;
@@ -240,5 +254,6 @@ export function resolveTouchpadOptions(
     haptics: o.haptics !== false,
     sensitivity: Number.isFinite(s) && s >= 0.25 && s <= 4 ? s : 1,
     scrub: o.scrub !== false,
+    native_touch: o.native_touch !== false,
   };
 }

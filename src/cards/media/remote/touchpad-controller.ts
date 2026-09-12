@@ -26,6 +26,7 @@ import {
   edgeZone,
   momentumSchedule,
   scrubStep,
+  normCoord,
   fmtTime,
   HOLD_MS,
   TAP_PX,
@@ -34,6 +35,7 @@ import {
   FLICK_STALE_MS,
   IN_FLIGHT_MAX,
   SCRUB_SEEK_MS,
+  NATIVE_MIN_INTERVAL,
   type Axis,
   type TouchpadOptions,
 } from "./touchpad-math";
@@ -52,13 +54,16 @@ export interface PlaybackInfo {
 
 /**
  * The scrub transport chosen when a horizontal drag begins during playback:
- * - `seek` — absolute `media_seek` (the app reports a timeline).
- * - `inert` — the app reports no timeline (Netflix-class): consume the horizontal
- *   drag so it does NOT fall through to nav left/right (= 10s skips), but take no
- *   media action. A real continuous scrub for these apps needs the native-touch
- *   backend (see `touchpad.native_touch`).
+ * - `native` — stream a real 1:1 touch to the Apple TV's own surface via the
+ *   Fibbers Bridge backend (`fibbers_bridge/atv_touch`). Works in every app incl.
+ *   Netflix; the TV's own scrubber follows the finger. Chosen when the bridge is
+ *   installed + reachable.
+ * - `seek` — absolute `media_seek` (the app reports a timeline; no bridge).
+ * - `inert` — the app reports no timeline and there's no bridge (Netflix-class):
+ *   consume the horizontal drag so it does NOT fall through to nav left/right
+ *   (= 10s skips), but take no media action.
  */
-type ScrubTransport = "seek" | "inert";
+type ScrubTransport = "native" | "seek" | "inert";
 
 /** The element surface the touchpad controller drives — an adapter over FibbersRemote. */
 export interface TouchpadHost extends ReactiveControllerHost {
@@ -74,6 +79,10 @@ export interface TouchpadHost extends ReactiveControllerHost {
   mediaDo(service: string, data?: Record<string, unknown>): void;
   /** Live playback info whenever the device has a media_player, else null. */
   playback(): PlaybackInfo | null;
+  /** True when the Fibbers Bridge native-touch backend is reachable for this device. */
+  nativeTouchReady(): boolean;
+  /** Fire-and-forget a native touch phase (0–1000 coords) at the Apple TV surface. */
+  nativeTouch(mode: "press" | "hold" | "release", x: number, y: number): void;
   /** True when the current device is unavailable (gesture is a no-op). */
   unavail(): boolean;
   /** The resolved touchpad options for the current device. */
@@ -174,6 +183,15 @@ export class TouchpadController implements ReactiveController {
 
   private resumeHintT?: ReturnType<typeof setTimeout>;
 
+  // native-touch (Fibbers Bridge) scrub state — a real 1:1 touch streamed to the ATV
+  private nativePressed = false; // a `press` is live and MUST be released
+
+  private nativeAt = -Infinity; // last `hold` frame timestamp (throttle)
+
+  private nativeX = 500; // last coords sent (reused for the release phase)
+
+  private nativeY = 500;
+
   private scrubHideT?: ReturnType<typeof setTimeout>;
 
   private lat: number[] = [];
@@ -194,6 +212,7 @@ export class TouchpadController implements ReactiveController {
     const gone = !pb || (pb.state !== "paused" && pb.state !== "playing");
     if (this.phase === "scrub" && gone) {
       // content changed / player gone → abandon the scrub, ignore frames until release
+      this._releaseNative(); // never strand a live native press on a mid-drag disengage
       this._hideScrub();
       this.phase = "idle";
     }
@@ -301,6 +320,7 @@ export class TouchpadController implements ReactiveController {
     }
     this.pendingMove = null;
     this.host.holdRelease();
+    this._releaseNative(); // a dangling native press must never survive a teardown
     this._hideDot();
     this._hideScrub();
     this.resumeHint = false;
@@ -379,10 +399,10 @@ export class TouchpadController implements ReactiveController {
         const pb = axis === "x" && opts.scrub ? this.host.playback() : null;
         const transport = pb ? this._scrubTransportFor(pb) : null;
         if (pb && transport) {
-          // A horizontal drag during playback scrubs (seek) or is consumed (inert
-          // for timeline-less apps) — it must NEVER fall to nav left/right, which is
-          // what turns a Netflix slide into 10s skips.
-          this._startScrub(pb, transport);
+          // A horizontal drag during playback scrubs (native/seek) or is consumed
+          // (inert for timeline-less apps) — it must NEVER fall to nav left/right,
+          // which is what turns a Netflix slide into 10s skips.
+          this._startScrub(pb, transport, e);
         } else {
           this.phase = "nav";
           // Seed the accumulator with the travel since down so the first step
@@ -402,7 +422,7 @@ export class TouchpadController implements ReactiveController {
       }
       this._driveNav(t, opts.sensitivity);
     } else if (this.phase === "scrub") {
-      this._driveScrub(dx, t, opts.sensitivity);
+      this._driveScrub(e, dx, t, opts.sensitivity);
     }
 
     this.lastX = e.clientX;
@@ -441,18 +461,25 @@ export class TouchpadController implements ReactiveController {
   }
 
   // The scrub transport for a horizontal drag in the current playback context, or
-  // null → treat as nav. Playing → seek (real timeline) or inert (no timeline;
-  // consume, don't skip). Paused → seek only to resume OUR own paused session
-  // (resumeHint), else inert (don't yank a browsing player, don't skip). Idle /
-  // menu / off → null so horizontal drags navigate menus (left/right) as normal.
+  // null → treat as nav. When the Fibbers Bridge backend is reachable → native (a
+  // real 1:1 touch streamed to the ATV: works in every app incl. Netflix). Else,
+  // playing → seek (real timeline) or inert (no timeline; consume, don't skip);
+  // paused → seek only to resume OUR own paused session (resumeHint), else inert
+  // (don't yank a browsing player, don't skip). Idle / menu / off → null so
+  // horizontal drags navigate menus (left/right) as normal.
   private _scrubTransportFor(pb: PlaybackInfo): ScrubTransport | null {
+    if (pb.state !== "playing" && pb.state !== "paused") return null;
+    if (this.host.nativeTouchReady()) return "native";
     if (pb.state === "playing") return pb.seekable ? "seek" : "inert";
-    if (pb.state !== "paused") return null;
     if (!pb.seekable) return "inert";
     return this.resumeHint ? "seek" : "inert";
   }
 
-  private _startScrub(pb: PlaybackInfo, transport: ScrubTransport): void {
+  private _startScrub(
+    pb: PlaybackInfo,
+    transport: ScrubTransport,
+    e: PointerEvent,
+  ): void {
     this.phase = "scrub";
     this.scrubTransport = transport;
     if (this.host.debug())
@@ -460,6 +487,18 @@ export class TouchpadController implements ReactiveController {
       console.debug(
         `[fibbers-remote] scrub entry: state=${pb.state} seekable=${pb.seekable} transport=${transport}`,
       );
+    // native: press a real 1:1 touch at the finger point on the ATV surface, then
+    // stream `hold` frames as the finger moves (see _driveScrub). No pause/seek and
+    // no overlay — the TV's own scrubber is the feedback; the finger dot still follows.
+    if (transport === "native") {
+      const { x, y } = this._nativeXY(e.clientX, e.clientY);
+      this.nativeX = x;
+      this.nativeY = y;
+      this.nativeAt = -Infinity;
+      this.nativePressed = true;
+      this.host.nativeTouch("press", x, y);
+      return;
+    }
     // inert: consume the horizontal drag (the finger dot still follows) but take
     // no media action — a real scrub needs the native-touch backend.
     if (transport === "inert") return;
@@ -477,7 +516,24 @@ export class TouchpadController implements ReactiveController {
     this._paintScrub();
   }
 
-  private _driveScrub(dx: number, t: number, sensitivity: number): void {
+  private _driveScrub(
+    e: PointerEvent,
+    dx: number,
+    t: number,
+    sensitivity: number,
+  ): void {
+    if (this.scrubTransport === "native") {
+      // Stream the finger's absolute position as `hold` frames, throttled to the
+      // tvOS animation floor so the socket isn't flooded. The TV scrubs 1:1.
+      const { x, y } = this._nativeXY(e.clientX, e.clientY);
+      this.nativeX = x;
+      this.nativeY = y;
+      if (t - this.nativeAt >= NATIVE_MIN_INTERVAL) {
+        this.host.nativeTouch("hold", x, y);
+        this.nativeAt = t;
+      }
+      return;
+    }
     if (this.scrubTransport === "inert") return; // consume, no media action
     const width = this.rect?.width ?? 230;
     const secs = scrubStep(dx, width, Math.abs(this.vX), sensitivity);
@@ -577,6 +633,12 @@ export class TouchpadController implements ReactiveController {
 
   private _finishScrub(): void {
     this.phase = "idle";
+    if (this.scrubTransport === "native") {
+      // Lift the finger off the ATV surface. tvOS commits the scrubber where the
+      // touch ended; a later tap = select (resume) via the normal tap path.
+      this._releaseNative();
+      return;
+    }
     if (this.scrubTransport !== "seek") return; // inert: nothing landed, nothing to resume
     // Commit the last previewed position (on normal release AND cancel — the user
     // watched the preview move; leaving it uncommitted is worse). Stays paused;
@@ -607,6 +669,25 @@ export class TouchpadController implements ReactiveController {
     this.resumeHint = false;
     clearTimeout(this.resumeHintT);
     this.resumeHintT = undefined;
+  }
+
+  // Map a client point to the ATV's 0–1000 touch space using the cached surface rect.
+  private _nativeXY(
+    clientX: number,
+    clientY: number,
+  ): { x: number; y: number } {
+    const r = this.rect;
+    return {
+      x: normCoord(clientX, r?.left ?? 0, r?.width ?? 0),
+      y: normCoord(clientY, r?.top ?? 0, r?.height ?? 0),
+    };
+  }
+
+  // Release a live native press (idempotent). Called on gesture end, cancel, and abort.
+  private _releaseNative(): void {
+    if (!this.nativePressed) return;
+    this.nativePressed = false;
+    this.host.nativeTouch("release", this.nativeX, this.nativeY);
   }
 
   private _vibrate(ms: number): void {

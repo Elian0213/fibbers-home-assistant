@@ -112,6 +112,25 @@ A complete "Huis" view built only from Fibbers is on the
 [Usage](https://elian0213.github.io/fibbers-home-assistant/?path=/docs/getting-started-usage--docs)
 page. The `remote` card and its Philips-TV notes are in [docs/remote.md](docs/remote.md).
 
+## Optional companion — Fibbers Bridge
+
+Everything above works with Fibbers alone. One `remote`-card feature can do _more_ when an optional
+backend is installed: **[Fibbers Bridge](https://github.com/Elian0213/fibbers-bridge)**, a small
+Home Assistant **integration** (also on HACS) that gives the cards low-level powers HA doesn't expose.
+
+- **What it adds today:** a real **native touch** for the Apple TV touchpad. With the bridge installed,
+  a horizontal drag on the `remote` touchpad during playback streams a genuine 1:1 touch to the Apple
+  TV's own surface — so it scrubs the app's _own_ timeline continuously, in **any** app, **including
+  Netflix** (which reports no timeline to Home Assistant and so can't be scrubbed by standard
+  `media_seek`). It's the exact behaviour of sliding on the physical Siri Remote.
+- **It's optional and auto-detected.** Without the bridge the touchpad still works exactly as before:
+  it seek-scrubs apps that report a timeline and stays inert (no accidental 10-second skips) on
+  timeline-less apps. Install the bridge and the native scrub simply switches on — no card config
+  needed. To opt a device out, set `touchpad: { native_touch: false }` on that device.
+- **Install:** it isn't in the HACS default store yet — add it as a **custom repository**
+  (`https://github.com/Elian0213/fibbers-bridge`, category **Integration**), then restart and add the
+  integration. Full steps are in the bridge's own README.
+
 ## Theming
 
 Cards follow your Home Assistant theme automatically — light on a light HA theme, dark on a dark one,
