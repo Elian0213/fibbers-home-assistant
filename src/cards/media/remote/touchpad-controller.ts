@@ -47,6 +47,8 @@ import {
  */
 export interface PlaybackInfo {
   state: string;
+  /** Foreground app bundle id; "" on the tvOS home screen / when unknown. */
+  appId: string;
   seekable: boolean;
   pos: number;
   dur: number;
@@ -465,9 +467,18 @@ export class TouchpadController implements ReactiveController {
   // real 1:1 touch streamed to the ATV: works in every app incl. Netflix). Else,
   // playing → seek (real timeline) or inert (no timeline; consume, don't skip);
   // paused → seek only to resume OUR own paused session (resumeHint), else inert
-  // (don't yank a browsing player, don't skip). Idle / menu / off → null so
-  // horizontal drags navigate menus (left/right) as normal.
+  // (don't yank a browsing player, don't skip). Menu / off → null so horizontal
+  // drags navigate menus (left/right) as normal.
   private _scrubTransportFor(pb: PlaybackInfo): ScrubTransport | null {
+    // Native touch is app- and timeline-agnostic: it only needs an app in the
+    // foreground. Netflix reports `idle` while paused (DeviceState.Idle → IDLE), so
+    // the playing/paused gate below must NOT veto it — that veto is what turned a
+    // paused-Netflix slide into remote left/right (= 10s skips). `app_id` is the real
+    // discriminator: non-empty inside any app, "" only on the tvOS home screen.
+    const inApp =
+      pb.appId !== "" && pb.state !== "off" && pb.state !== "unavailable";
+    if (inApp && this.host.nativeTouchReady()) return "native";
+
     if (pb.state !== "playing" && pb.state !== "paused") return null;
     if (this.host.nativeTouchReady()) return "native";
     if (pb.state === "playing") return pb.seekable ? "seek" : "inert";

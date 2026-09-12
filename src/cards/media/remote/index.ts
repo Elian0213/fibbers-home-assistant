@@ -487,9 +487,13 @@ export class FibbersRemote
           Number(a.media_duration),
         )
       : null;
+    // The foreground app's bundle id — the only reliable "is an app open?" signal for
+    // Netflix-class apps, which report `idle` (no timeline) even while paused. "" on
+    // the tvOS home screen; the scrub gate uses it to pick native touch over nav.
+    const appId = typeof a.app_id === "string" ? a.app_id : "";
     return lp
-      ? { state: mp.state, seekable: true, pos: lp.pos, dur: lp.dur }
-      : { state: mp.state, seekable: false, pos: NaN, dur: NaN };
+      ? { state: mp.state, appId, seekable: true, pos: lp.pos, dur: lp.dur }
+      : { state: mp.state, appId, seekable: false, pos: NaN, dur: NaN };
   }
 
   // True when the Fibbers Bridge backend can stream a native touch for this device:
@@ -519,8 +523,11 @@ export class FibbersRemote
   }
 
   // Fire-and-forget one native touch phase to the Apple TV surface (0–1000 coords)
-  // over the bridge's websocket. Errors are swallowed — a dropped frame just means
-  // the TV's scrubber lags a beat; the controller still releases cleanly at gesture end.
+  // over the bridge's websocket. A rejection (bridge missing, `fibbers_bridge_error`,
+  // a dropped socket frame) is warned once per key via `_flashFail` rather than
+  // swallowed — a silently-dead surface is indistinguishable from a working one, which
+  // hid the whole 0.1.0 bridge breakage. The controller still releases cleanly at
+  // gesture end regardless.
   private _nativeTouch(
     mode: "press" | "hold" | "release",
     x: number,
@@ -536,7 +543,14 @@ export class FibbersRemote
         y,
         mode,
       })
-      .catch(() => {});
+      .catch((e) =>
+        this._flashFail(
+          this.dev().device ?? "atv",
+          "native_touch",
+          e,
+          "fibbers_bridge/atv_touch",
+        ),
+      );
   }
 
   private _flashFail(id: string, key: string, e: unknown, cmd?: string): void {

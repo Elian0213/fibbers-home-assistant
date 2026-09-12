@@ -51,8 +51,10 @@ export const SCRUB_BASE_S = 90; // full surface width ≈ 90s at unit velocity
 export const SCRUB_VEL_MAX = 1.5;
 export const SCRUB_SEEK_MS = 400;
 // Native-touch (Fibbers Bridge) streams a real 1:1 touch to the Apple TV; throttle
-// the `hold` frames to the tvOS animation floor so the socket isn't flooded.
-export const NATIVE_MIN_INTERVAL = 120;
+// the `hold` frames so the socket isn't flooded. pyatv streams its own swipes at
+// ~60 Hz; ~30 Hz (33ms) keeps the drag smooth without one round-trip per rAF frame.
+// `_releaseNative()` always sends the exact final coordinate, so landing is exact.
+export const NATIVE_MIN_INTERVAL = 33;
 
 /** Result of one drain attempt on the step accumulator. */
 export interface StepResult {
