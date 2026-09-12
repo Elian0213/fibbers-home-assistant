@@ -3,6 +3,32 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [1.1.1] — 2026-09-12
+
+### Fixed
+
+- **Paused Netflix no longer skips ±10s when you slide to scrub.** The native-touch
+  scrub added in 1.1.0 was gated on the media_player being `playing`/`paused`, but
+  Netflix runs its own tvOS player and reports `idle` even while paused (it reports no
+  timeline for the same reason) — so a paused-Netflix slide failed the gate, fell
+  through to nav `left`/`right`, and Netflix turned that into its own 10-second skips:
+  the exact bug the native path exists to eliminate. Transport selection now keys off
+  the foreground app instead of playback state — an app is "open" iff it reports a
+  non-empty `app_id` — so the Fibbers Bridge native touch is chosen in **any** app,
+  paused or playing, while the tvOS home screen (empty `app_id`) still navigates menus
+  with `left`/`right` as before.
+
+### Changed
+
+- **Smoother native scrub.** The `hold`-frame throttle dropped from 120 ms (~8 Hz) to
+  33 ms (~30 Hz), closer to pyatv's own ~60 Hz swipe stream, so the TV's scrubber
+  tracks the finger continuously instead of in visible steps. The release phase still
+  sends the exact final coordinate, so landing accuracy is unchanged.
+- **Native-touch failures are now surfaced, not swallowed.** A rejected
+  `fibbers_bridge/atv_touch` (bridge missing or misconfigured, a `fibbers_bridge_error`,
+  a dropped socket frame) now warns once via the card's existing warn-once path instead
+  of failing silently — a broken bridge no longer looks identical to a working surface.
+
 ## [1.1.0] — 2026-09-12
 
 A real, continuous Apple-TV scrub — including Netflix — when the optional
