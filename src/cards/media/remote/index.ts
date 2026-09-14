@@ -25,6 +25,7 @@ import {
   type PropertyValues,
 } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { ref } from "lit/directives/ref.js";
 
 import { twSheet } from "@shared/tw";
 import { ThemeController } from "@shared/theme-host";
@@ -59,6 +60,7 @@ import {
 import { ctlBounds, ctlRawValue, ctlSnap, ctlValFromX } from "./ctl-math";
 import { livePosition, resolveTouchpadOptions } from "./touchpad-math";
 import { TouchpadController, type PlaybackInfo } from "./touchpad-controller";
+import { DeckController, type DeckHost } from "./deck-controller";
 
 import {
   validateRemoteConfig,
@@ -87,7 +89,7 @@ export type { RemoteControl, RemoteDevice, RemoteConfig };
 @customElement("fibbers-remote")
 export class FibbersRemote
   extends LitElement
-  implements LovelaceCard, RemoteHost
+  implements LovelaceCard, RemoteHost, DeckHost
 {
   @property({ attribute: false }) hass?: HomeAssistant;
 
@@ -116,6 +118,10 @@ export class FibbersRemote
   private _vol?: SliderController;
 
   private _touchpad?: TouchpadController;
+
+  private _deck!: DeckController;
+
+  @state() private _announce = "";
 
   private _ctlOpen = new Map<string, boolean>();
 
@@ -171,6 +177,11 @@ export class FibbersRemote
     this._tried = this._tried || new Set();
     this._warned = this._warned || new Set();
     this._resetTransient();
+    // Belt and braces: a live page swipe must not survive a re-config. Registered
+    // here (not in _resetTransient) because select() calls _resetTransient mid-commit
+    // — the deck's own `committing` guard makes even that safe, but this keeps the
+    // abort off the per-switch path entirely.
+    this._deck?.abort();
 
     // Restore the remembered device (keyed on the list, so adding a device doesn't
     // restore a stale index). A restore suppresses auto_select.
@@ -220,6 +231,10 @@ export class FibbersRemote
         opts: () => resolveTouchpadOptions(this.dev().touchpad),
         debug: () => !!this.config.debug,
       });
+
+    // Construct the page-swipe deck once (same reuse reason). The element IS the
+    // DeckHost — `DeckHost extends ReactiveControllerHost`, so pass `this`.
+    if (!this._deck) this._deck = new DeckController(this);
 
     // Controls panel: per-select drawer state + per-slider (light/number) hold + drag
     // gesture. Reuse existing controllers by entity so HA's per-keystroke setConfig
@@ -286,6 +301,7 @@ export class FibbersRemote
       if (document.hidden) {
         this.release();
         this._touchpad?.abort(); // momentum/scrub must not run in a hidden tab
+        this._deck?.abort(); // a half-finished swipe must not resume on return
       }
     };
     document.addEventListener("visibilitychange", this._onHidden);
@@ -401,6 +417,34 @@ export class FibbersRemote
     this._resetTransient();
     this._sel = i;
     if (this.config.remember !== false) store.set(persistKey(this._devices), i);
+  }
+
+  // --- deck host (page-swipe between devices) ------------------------
+
+  /** Deck host: how many devices the page gesture may move between (0 disables it). */
+  count(): number {
+    return this.config.swipe === false ? 0 : this._devices.length;
+  }
+
+  /** Deck host: the selected device index. */
+  index(): number {
+    return this._sel;
+  }
+
+  /** Deck host: whether a committed page change should tick. */
+  haptics(): boolean {
+    return resolveTouchpadOptions(this.dev().touchpad).haptics;
+  }
+
+  /**
+   * Deck host: commit a page change and announce it to the live region. Only the
+   * swipe path announces — the rail's click/keyboard path moves focus onto the newly
+   * selected tab, which screen readers voice natively (announcing twice is worse).
+   */
+  deckSelect(i: number): void {
+    this.select(i);
+    const d = this._devices[i];
+    this._announce = `${d?.name || `#${i + 1}`} — ${i + 1}/${this._devices.length}`;
   }
 
   /** The command family for a device (explicit `device:`, else resolved platform, else generic). */
@@ -839,20 +883,33 @@ export class FibbersRemote
     return html`<div
       class=${cx("card", card(), this.unavail() && "opacity-50")}
     >
-      <div class="layout ${two ? "two" : ""}">
-        <div
-          class="body"
-          role=${multi ? "tabpanel" : nothing}
-          id=${multi ? "fibpanel" : nothing}
-          aria-labelledby=${multi ? `fibtab-${this._sel}` : nothing}
-        >
-          ${renderSwitcher(this, hl)} ${renderHeader(this, hl)}
-          ${renderDpad(this, hl)} ${renderNav(this, hl)}
-          ${renderTransport(this)} ${renderVolRow(this, hl)}
-          ${renderChannelRow(this)}
+      <div
+        class=${cx("layout", two && "two", two && sources && controls && "has-both")}
+      >
+        <div class="body">
+          ${renderSwitcher(this, hl)}
+          <div
+            class="deck"
+            role=${multi ? "tabpanel" : nothing}
+            id=${multi ? "fibpanel" : nothing}
+            aria-labelledby=${multi ? `fibtab-${this._sel}` : nothing}
+            ${ref(this._deck.attach)}
+            @pointerdown=${multi ? this._deck.down : nothing}
+            @pointermove=${multi ? this._deck.move : nothing}
+            @pointerup=${multi ? this._deck.up : nothing}
+            @pointercancel=${multi ? this._deck.cancel : nothing}
+            @lostpointercapture=${multi ? this._deck.lost : nothing}
+          >
+            ${renderHeader(this, hl)} ${renderDpad(this, hl)}
+            ${renderNav(this, hl)} ${renderTransport(this)}
+            ${renderVolRow(this, hl)} ${renderChannelRow(this)}
+          </div>
         </div>
         ${two ? html`<div class="panel">${sources}${controls}</div>` : ""}
       </div>
+      <span class="sr" role="status" aria-live="polite" aria-atomic="true"
+        >${this._announce}</span
+      >
     </div>`;
   }
 

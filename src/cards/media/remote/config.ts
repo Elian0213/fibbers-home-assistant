@@ -43,6 +43,7 @@ export interface RemoteConfig extends LovelaceCardConfig, RemoteDevice {
   devices?: RemoteDevice[];
   remember?: boolean;
   auto_select?: string;
+  swipe?: boolean;
   debug?: boolean;
 }
 

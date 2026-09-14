@@ -60,6 +60,7 @@ function wheel(
       : nothing;
   return html`<svg
     class="wheel ${swipe ? "swipe" : ""}"
+    data-fib-gesture=${swipe ? "own" : nothing}
     viewBox="-104 -104 208 208"
     role="group"
     aria-label=${

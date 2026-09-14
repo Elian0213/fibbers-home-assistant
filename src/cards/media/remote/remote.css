@@ -17,6 +17,36 @@
   display: grid;
   gap: 11px;
   min-width: 0;
+  /* The outgoing panel translates a full width; without this it paints over the
+     sources column and past the card edge. `container-type: inline-size` on .card is
+     layout + inline-size containment, NOT paint containment — it does not clip. */
+  overflow-x: clip;
+}
+/* The page-swipe surface. Vertical pans stay native (the card lives in a scrolling
+   view); horizontal is ours. Children that own their own gestures (.tpad,
+   .wheel.swipe, .scrub .groove, any [role="slider"]) set touch-action: none and win
+   the intersection against this pan-y — do not weaken those. */
+.deck {
+  display: grid;
+  gap: 11px;
+  min-width: 0;
+  touch-action: pan-y;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .deck {
+    will-change: auto;
+  }
+}
+/* Visually-hidden live region — announces swipe-driven device changes (the rail's
+   own click/keyboard path moves focus, which screen readers voice natively). */
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 /* Two columns only when there's a panel (sources) to fill the second track;
    a speaker with no sources stays one centred column, no dead space. */

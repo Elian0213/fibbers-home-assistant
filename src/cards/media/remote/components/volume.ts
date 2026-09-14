@@ -45,6 +45,7 @@ function volScrub(host: RemoteHost, hl: unknown): TemplateResult {
     <div
       class="groove"
       aria-hidden="true"
+      data-fib-gesture="own"
       @pointerdown=${s.down}
       @pointermove=${s.move}
       @pointerup=${s.up}

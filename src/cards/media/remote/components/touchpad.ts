@@ -21,6 +21,7 @@ export function renderTouchpad(o: {
     class="tpad ${o.disabled ? "off" : ""}"
     role="application"
     tabindex="0"
+    data-fib-gesture="own"
     aria-label=${o.label}
     ${ref(ctrl.attach)}
     @keydown=${o.onKey}
