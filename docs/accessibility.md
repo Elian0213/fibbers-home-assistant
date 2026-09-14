@@ -1,7 +1,7 @@
 # Accessibility
 
 Fibbers aims to be fully operable by keyboard and legible to a screen reader.
-This page states what's supported as of 1.1.1; if you hit a gap, please open an
+This page states what's supported as of 2.0.0; if you hit a gap, please open an
 issue — it's treated as a bug, not a nice-to-have.
 
 ## Keyboard
@@ -31,6 +31,33 @@ issue — it's treated as a bug, not a nice-to-have.
   traps it there; **Esc** or the close button dismisses it and returns focus to
   the control that opened it.
 
+### Remote card
+
+`fibbers-remote` adds a keyboard layer active **only while the card has focus**
+(WCAG 2.1.4 Character Key Shortcuts), so it never steals keys from the dashboard.
+Set `keyboard: false` to turn it off.
+
+| Key               | Action                         |
+| ----------------- | ------------------------------ |
+| ↑ ↓ ← →           | d-pad up / down / left / right |
+| Enter             | OK / select                    |
+| Escape, Backspace | Back                           |
+| Space             | Play / Pause                   |
+| `+` / `-`         | Volume up / down               |
+| `m`               | Mute                           |
+| `[` / `]`         | Previous / next device         |
+
+An inner widget that already handles a key wins (the switcher tablist's arrows, the
+touchpad's arrows, a slider's steps) — the card handler defers to it and never
+double-fires.
+
+**Swiping between devices** (`swipe:`) keeps the segmented **switcher rail** as its
+conforming no-gesture alternative (WCAG 2.5.1 Pointer Gestures / 2.5.7 Dragging
+Movements): every device is one Tab-and-Enter away, and the rail doubles as the page
+indicator. Swipe-driven changes — where focus does not move — are announced through a
+visually-hidden `role="status"` live region; the rail's own click/keyboard path moves
+focus onto the selected tab instead, which screen readers voice natively.
+
 ## Screen readers
 
 - Sliders announce a name and a value (`aria-valuenow` + a `%` / unit
@@ -44,7 +71,8 @@ issue — it's treated as a bug, not a nice-to-have.
 ## Motion
 
 - `prefers-reduced-motion: reduce` is honoured: card transitions, the sheet
-  slide, and the nav-bar animation are suppressed for users who ask for it.
+  slide, the nav-bar animation, and the remote's device-page swipe are suppressed
+  for users who ask for it (the swipe becomes an instant device switch).
 
 ## Known limitations
 

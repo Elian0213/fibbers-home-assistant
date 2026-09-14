@@ -48,7 +48,7 @@ import type {
 // CSS-shaped styling utilities can't express. Vite inlines it; one-file bundle unchanged.
 import remoteCss from "./remote.css?inline";
 import "@shared/icon";
-import { OFF_STATES, GONE_STATES, MF_SEEK } from "./const";
+import { OFF_STATES, GONE_STATES, MF_SEEK, MF_PLAY, MF_PAUSE } from "./const";
 import {
   deviceKind,
   cmdFor,
@@ -122,6 +122,8 @@ export class FibbersRemote
   private _deck!: DeckController;
 
   @state() private _announce = "";
+
+  @state() private _input: "" | "mouse" | "touch" = "";
 
   private _ctlOpen = new Map<string, boolean>();
 
@@ -219,7 +221,7 @@ export class FibbersRemote
         removeController: (c) => this.removeController(c),
         updateComplete: this.updateComplete,
         requestUpdate: () => this.requestUpdate(),
-        send: (k) => this.send(k),
+        send: (k) => this.send(k, true),
         sendHold: (k) => this._sendHold(k),
         holdRepeat: (fn) => this.hold(fn),
         holdRelease: () => this.release(),
@@ -294,7 +296,7 @@ export class FibbersRemote
     this._touchpad?.abort();
   }
 
-  /** Release a held button when the tab hides, so a long-press can't keep firing in the background. */
+  /** Release a held button when the tab hides, and track the pointer kind for hit-target sizing. */
   connectedCallback(): void {
     super.connectedCallback();
     this._onHidden = () => {
@@ -305,9 +307,15 @@ export class FibbersRemote
       }
     };
     document.addEventListener("visibilitychange", this._onHidden);
+    // `pointerType` is the only per-interaction signal that's ever right (not
+    // `'ontouchstart' in window`, true in every Chromium build regardless of hardware).
+    this.addEventListener("pointerdown", this._onInput, {
+      capture: true,
+      passive: true,
+    });
   }
 
-  /** Tear down the repeat timer, flash timer, pending volume write and visibility listener. */
+  /** Tear down the repeat timer, flash timer, pending volume write and listeners. */
   disconnectedCallback(): void {
     super.disconnectedCallback();
     this.release(); // a held button must not keep firing after unmount
@@ -318,7 +326,15 @@ export class FibbersRemote
       for (const s of this._ctlSliders.values()) s.dispose();
     if (this._onHidden)
       document.removeEventListener("visibilitychange", this._onHidden);
+    this.removeEventListener("pointerdown", this._onInput, { capture: true });
   }
+
+  // Last-input-wins pointer tracking → `data-input` on .card, which re-sizes the hit
+  // targets (§C.1) for hybrids the media queries can't classify.
+  private _onInput = (e: PointerEvent): void => {
+    const kind = e.pointerType === "mouse" ? "mouse" : "touch";
+    if (this._input !== kind) this._input = kind;
+  };
 
   /** Re-resolve the platform when hass/device changes, and apply one-shot `auto_select: playing`. */
   updated(changed: PropertyValues): void {
@@ -520,10 +536,11 @@ export class FibbersRemote
    * before the await so a rejection that resolves after a device switch flashes/
    * warns the right device, not the one now on screen.
    */
-  async send(key: string): Promise<void> {
+  async send(key: string, silent = false): Promise<void> {
     const cmd = this.cmd(key);
     const id = this.dev().entity;
-    if (!cmd || !id || !this.hass || this.unavail()) return;
+    if (!cmd || !id || !this.hass || this.unavail()) return; // tick AFTER the guard
+    if (!silent) this._tick(8);
     try {
       await this.hass.callService("remote", "send_command", {
         entity_id: id,
@@ -532,6 +549,16 @@ export class FibbersRemote
     } catch (e) {
       this._flashFail(id, key, e, cmd);
     }
+  }
+
+  // Opt-in haptic tick for a discrete key press. Off by default (top-level
+  // `haptics: false`) so an unmodified 1.2.0 config vibrates on nothing; separate
+  // from `touchpad.haptics`, which keeps its own `true` default. The touchpad ticks
+  // for itself, so its adapter passes `silent`.
+  private _tick(ms: number): void {
+    if (this.config.haptics !== true) return;
+    if (typeof navigator !== "undefined" && navigator.vibrate)
+      navigator.vibrate(ms);
   }
 
   // Send a logical key as a long-press: `hold_secs: 1` maps to pyatv InputAction.Hold
@@ -870,6 +897,100 @@ export class FibbersRemote
     active: (): boolean => !!this._scrub,
   };
 
+  // Keyboard control, scoped to when the card has focus (the WCAG 2.1.4 conformance
+  // route, and what stops the card stealing keys from the dashboard). `defaultPrevented`
+  // first: dpadKey and switcherKey both preventDefault, so their arrow handling wins and
+  // this never double-fires. preventDefault only on keys actually handled, or Tab /
+  // find-in-page / HA's own shortcuts break.
+  private _onKey = (e: KeyboardEvent): void => {
+    if (this.config.keyboard === false) return;
+    if (e.defaultPrevented) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const t = e.composedPath()[0] as HTMLElement | undefined;
+    if (
+      t?.isContentEditable ||
+      ["INPUT", "TEXTAREA", "SELECT"].includes(t?.tagName ?? "")
+    )
+      return;
+
+    switch (e.key) {
+      case "ArrowUp":
+      case "ArrowDown":
+      case "ArrowLeft":
+      case "ArrowRight":
+        this.send(e.key.slice(5).toLowerCase());
+        break;
+      case "Enter":
+        this.send("ok");
+        break;
+      case "Escape":
+      case "Backspace":
+        this.send("back");
+        break;
+      case " ":
+        this._playPause();
+        break;
+      case "+":
+      case "=":
+        this._volStep(1);
+        break;
+      case "-":
+      case "_":
+        this._volStep(-1);
+        break;
+      case "m":
+      case "M":
+        this._muteToggle();
+        break;
+      case "[":
+        this.deckSelect(Math.max(0, this._sel - 1));
+        break;
+      case "]":
+        this.deckSelect(Math.min(this._devices.length - 1, this._sel + 1));
+        break;
+      default:
+        return; // unhandled: let it bubble to HA's own shortcuts
+    }
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  // Mirrors components/transport.ts — prefer the media_player when it advertises
+  // PLAY or PAUSE, else the remote command.
+  private _playPause(): void {
+    const mp = this.mp();
+    if (mp && (mpSupports(mp, MF_PLAY) || mpSupports(mp, MF_PAUSE)))
+      this.mpDo("media_play_pause");
+    else this.send("play");
+  }
+
+  // Mirrors components/volume.ts — a real level steps by 5, else the scrub route
+  // (which already respects §A's delegation).
+  private _volStep(dir: number): void {
+    const mp = this.volMp();
+    if (mp && mp.attributes.volume_level != null) {
+      const next = Math.min(
+        100,
+        Math.max(0, Math.round(this.volPct()) + dir * 5),
+      );
+      this._volService("volume_set", { volume_level: next / 100 }).catch(
+        () => {},
+      );
+    } else this.scrub.stepThrottled(dir);
+  }
+
+  // Mirrors renderVolRow's muteClick, including the delegation gate.
+  private _muteToggle(): void {
+    if (!this.volDelegated() && this.cmd("volume_mute")) {
+      this.send("volume_mute");
+      return;
+    }
+    const mp = this.volMp();
+    this.volDo("volume_mute", {
+      is_volume_muted: !(mp && mp.attributes.is_volume_muted),
+    });
+  }
+
   /** Draw the card: optional switcher, header, d-pad, transport, volume, channel and sources. */
   render(): TemplateResult {
     const cfg = this.config;
@@ -882,6 +1003,8 @@ export class FibbersRemote
 
     return html`<div
       class=${cx("card", card(), this.unavail() && "opacity-50")}
+      data-input=${this._input || nothing}
+      @keydown=${this._onKey}
     >
       <div
         class=${cx("layout", two && "two", two && sources && controls && "has-both")}

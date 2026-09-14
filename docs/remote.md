@@ -7,12 +7,12 @@ or supply a `commands:` map.
 
 ## Built-in families
 
-| `device:` | derived from | command names |
-|---|---|---|
-| `appletv` | `apple_tv` | pyatv lowercase: `up` `down` `left` `right` `select` `menu` `home` `play_pause` `next` `previous` `volume_up` `volume_down` `turn_on` `turn_off` |
-| `philips` | `philips_js` | `CursorUp` `CursorDown` `CursorLeft` `CursorRight` `Confirm` `Back` `Home` `VolumeUp` `VolumeDown` `Mute` `Standby` `ChannelStepUp` `ChannelStepDown` `Play` |
-| `androidtv` | `androidtv` | `DPAD_UP` `DPAD_DOWN` `DPAD_LEFT` `DPAD_RIGHT` `DPAD_CENTER` `BACK` `HOME` `MENU` `VOLUME_UP` `VOLUME_DOWN` `MUTE` `CHANNEL_UP` `CHANNEL_DOWN` `MEDIA_*` |
-| `generic` | (unknown) | none — you must supply `commands:` |
+| `device:`   | derived from | command names                                                                                                                                                |
+| ----------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `appletv`   | `apple_tv`   | pyatv lowercase: `up` `down` `left` `right` `select` `menu` `home` `play_pause` `next` `previous` `volume_up` `volume_down` `turn_on` `turn_off`             |
+| `philips`   | `philips_js` | `CursorUp` `CursorDown` `CursorLeft` `CursorRight` `Confirm` `Back` `Home` `VolumeUp` `VolumeDown` `Mute` `Standby` `ChannelStepUp` `ChannelStepDown` `Play` |
+| `androidtv` | `androidtv`  | `DPAD_UP` `DPAD_DOWN` `DPAD_LEFT` `DPAD_RIGHT` `DPAD_CENTER` `BACK` `HOME` `MENU` `VOLUME_UP` `VOLUME_DOWN` `MUTE` `CHANNEL_UP` `CHANNEL_DOWN` `MEDIA_*`     |
+| `generic`   | (unknown)    | none — you must supply `commands:`                                                                                                                           |
 
 Buttons a platform can't do aren't rendered (no channel on Apple TV, no menu on
 Philips). A rejected command is logged once (`console.warn`) with the command and
@@ -23,8 +23,8 @@ the platform, and the button flashes.
 ```yaml
 type: custom:fibbers-remote
 entity: remote.living_room
-device: appletv          # override the guess
-commands:                # override individual keys (merged over the device map)
+device: appletv # override the guess
+commands: # override individual keys (merged over the device map)
   home: top_menu
 ```
 
@@ -39,7 +39,10 @@ const hass = document.querySelector("home-assistant").hass;
 const E = "remote.living_room"; // your entity
 for (const c of ["up", "DPAD_UP", "select", "DPAD_CENTER", "home", "HOME"]) {
   try {
-    await hass.callService("remote", "send_command", { entity_id: E, command: c });
+    await hass.callService("remote", "send_command", {
+      entity_id: E,
+      command: c,
+    });
     console.log(c, "OK");
   } catch (e) {
     console.log(c, "ERR", e.message);
@@ -56,25 +59,50 @@ or `config/entity_registry/get`.
 A card is one device (flat config) or several behind a switcher (`devices:`). Each
 device takes:
 
-| key | type | what it does |
-|---|---|---|
-| `entity` | `remote.*` | the remote the d-pad / nav / transport / volume send through. Omit for a speaker. |
-| `media_player` | `media_player.*` | drives now-playing, the volume **slider** (when it reports `volume_level`), source chips, and lets transport prefer the player's own services. |
-| `device` | enum | `appletv` \| `philips` \| `androidtv` \| `generic` — override the platform guess. |
-| `commands` | map | per-key command overrides, merged over the device family. |
-| `dpad` | enum | `swipe` \| `buttons` \| `both` \| `grid` — d-pad interaction/shape. |
-| `sources` | `"auto"` \| list | source chips (needs `media_player`). `auto` uses the player's `source_list`. |
-| `favourites` | list | the subset shown collapsed before "All N". |
-| `name`, `icon` | string | device label / icon. |
-| `remember` | bool | persist the selected device (default `true`). |
-| `auto_select` | `"playing"` | on mount, open the device whose `media_player` is playing. |
-| `controls` | list | an extra controls panel — see below. |
-| `language` | string | override HA's language for on-screen strings. |
+| key             | type             | what it does                                                                                                                                                                     |
+| --------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `entity`        | `remote.*`       | the remote the d-pad / nav / transport / volume send through. Omit for a speaker.                                                                                                |
+| `media_player`  | `media_player.*` | drives now-playing, the volume **slider** (when it reports `volume_level`), source chips, and lets transport prefer the player's own services.                                   |
+| `volume_entity` | `media_player.*` | delegate **only the volume row** to another player — see [Delegated volume](#delegated-volume).                                                                                  |
+| `device`        | enum             | `appletv` \| `philips` \| `androidtv` \| `generic` — override the platform guess.                                                                                                |
+| `commands`      | map              | per-key command overrides, merged over the device family.                                                                                                                        |
+| `dpad`          | enum             | `swipe` \| `buttons` \| `both` \| `grid` — d-pad interaction/shape.                                                                                                              |
+| `sources`       | `"auto"` \| list | source chips (needs `media_player`). `auto` uses the player's `source_list`.                                                                                                     |
+| `favourites`    | list             | the subset shown collapsed before "All N".                                                                                                                                       |
+| `name`, `icon`  | string           | device label / icon.                                                                                                                                                             |
+| `remember`      | bool             | persist the selected device (default `true`).                                                                                                                                    |
+| `auto_select`   | `"playing"`      | on mount, open the device whose `media_player` is playing.                                                                                                                       |
+| `swipe`         | bool             | card-level; horizontal drag pages between `devices:` (default `true`). `false` disables the gesture — the switcher rail always works regardless.                                 |
+| `keyboard`      | bool             | card-level; when the card has focus, arrows/Enter/Escape drive the d-pad, `+`/`-`/`m` the volume, `[`/`]` the device (default `true`). See [accessibility.md](accessibility.md). |
+| `haptics`       | bool             | card-level; a short vibration on each discrete key press (default `false`; no effect on iOS, which has no `navigator.vibrate`). The touchpad has its own `touchpad.haptics`.     |
+| `controls`      | list             | an extra controls panel — see below.                                                                                                                                             |
+| `language`      | string           | override HA's language for on-screen strings.                                                                                                                                    |
 
 Volume degrades honestly: a `media_player` that reports `volume_level` gets a
 positional slider; one that doesn't (many Apple TVs) gets a **scrub strip** — drag
 to change, the ends are Volume−/Volume+ buttons — because there is no level to place
 a thumb at.
+
+### Delegated volume
+
+`volume_entity` points this device's volume row at a **different** `media_player`.
+Use it when the box you're controlling has no volume of its own — an Apple TV, a
+Chromecast — and the sound actually leaves a TV, a soundbar or an AVR:
+
+```yaml
+- name: Apple TV
+  device: appletv
+  entity: remote.living_room
+  media_player: media_player.living_room
+  volume_entity: media_player.43pus7608_12 # sound leaves the Philips, not the Apple TV
+```
+
+Everything else on the card — now-playing, transport, sources — stays on
+`media_player`. Only the volume row (slider/scrub, mute, percentage) follows
+`volume_entity`, and a `.via` chip names the player it's driving. When it's set, the
+device's own `volume_up` / `volume_down` / `volume_mute` commands are **not** used —
+the delegated player's services are. The row stays put (visible but inert) while the
+delegate is asleep, so nothing jumps as the TV wakes.
 
 ## Extra controls (`controls:`)
 
@@ -83,13 +111,13 @@ backlight, a screen-off switch — in the companion panel. Each entry is
 `{ entity, name?, icon?, type? }`; the kind is inferred from the entity domain
 (`type:` overrides):
 
-| entity domain | renders as | service |
-|---|---|---|
-| `select` / `input_select` | preset chips | `select_option` |
-| `light` | brightness slider | `light.turn_on` (`brightness_pct`) |
-| `number` / `input_number` | value slider | `set_value` |
-| `switch` / `input_boolean` | pill toggle | `toggle` |
-| `button` / `scene` | press key | `press` / `turn_on` |
+| entity domain              | renders as        | service                            |
+| -------------------------- | ----------------- | ---------------------------------- |
+| `select` / `input_select`  | preset chips      | `select_option`                    |
+| `light`                    | brightness slider | `light.turn_on` (`brightness_pct`) |
+| `number` / `input_number`  | value slider      | `set_value`                        |
+| `switch` / `input_boolean` | pill toggle       | `toggle`                           |
+| `button` / `scene`         | press key         | `press` / `turn_on`                |
 
 ```yaml
 type: custom:fibbers-remote
@@ -97,9 +125,9 @@ device: philips
 entity: remote.tv
 media_player: media_player.tv
 controls:
-  - entity: input_select.tv_picture_style   # → preset chips
+  - entity: input_select.tv_picture_style # → preset chips
     name: Beeldstijl
-  - entity: switch.tv_screen_off            # → toggle
+  - entity: switch.tv_screen_off # → toggle
     name: Scherm uit
 ```
 
@@ -111,7 +139,7 @@ card can only render them if **you expose them yourself**, and whether that's ev
 possible depends on your TV's OS:
 
 - **Android-TV Philips (≈2016–2021)** — the JointSpace API has the `menuitems` module,
-  so picture style/brightness *can* be exposed as an `input_select`/`number` (via
+  so picture style/brightness _can_ be exposed as an `input_select`/`number` (via
   [`pylips`](https://github.com/eslavnov/pylips) MQTT or a `rest_command` to
   `…/menuitems/settings/update`). Point a `controls:` entry at it and the card renders
   it. The example above assumes such an entity exists.
@@ -130,13 +158,13 @@ Dark/Bright), picture brightness, and Ambilight are controllable **at all**.
 
 This section exists so we don't have to re-derive it. Short version:
 
-| Capability | Android-TV Philips (≈2016–2021) | **Titan OS Philips (2022+)** |
-| --- | --- | --- |
-| Power / volume / mute / transport | ✅ | ✅ |
-| Source / app select | ✅ | ⚠️ often unresponsive |
-| Ambilight (light + modes) | ✅ | ❌ not exposed |
-| **Picture style / preset** (Dolby Vision Dark/Bright, Movie, …) | 🧪 possible (see below) | ❌ **impossible over the network** |
-| **Picture brightness / contrast** | 🧪 possible (see below) | ❌ **impossible over the network** |
+| Capability                                                      | Android-TV Philips (≈2016–2021) | **Titan OS Philips (2022+)**       |
+| --------------------------------------------------------------- | ------------------------------- | ---------------------------------- |
+| Power / volume / mute / transport                               | ✅                              | ✅                                 |
+| Source / app select                                             | ✅                              | ⚠️ often unresponsive              |
+| Ambilight (light + modes)                                       | ✅                              | ❌ not exposed                     |
+| **Picture style / preset** (Dolby Vision Dark/Bright, Movie, …) | 🧪 possible (see below)         | ❌ **impossible over the network** |
+| **Picture brightness / contrast**                               | 🧪 possible (see below)         | ❌ **impossible over the network** |
 
 The picture-settings controls are **🧪 beta**: even on the models that support them,
 they aren't Home-Assistant entities out of the box — you have to expose them yourself
@@ -221,7 +249,7 @@ network on this TV, by any means.** Correct move: change picture presets on the 
 ### References
 
 - Home Assistant [`philips_js`](https://www.home-assistant.io/integrations/philips_js/) —
-  *"There is no support to control the standard, non-expert, styles of the TV."*
+  _"There is no support to control the standard, non-expert, styles of the TV."_
 - [`eslavnov/pylips`](https://github.com/eslavnov/pylips) — Android-TV JointSpace API,
   incl. `menuitems/settings/*`.
 - [`danielperna84/ha-philipsjs`](https://github.com/danielperna84/ha-philipsjs) — the

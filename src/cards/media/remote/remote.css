@@ -5,6 +5,34 @@
    body is capped — a remote is a handheld object, not a 1000px slab. */
 .card {
   container-type: inline-size;
+  --rc-hit: 44px; /* the computed knob */
+  --fib-hit: var(
+    --rc-hit
+  ); /* …applied to every control in this card's subtree,
+     incl. shared widgets like sliderTrack (h-[var(--fib-hit)]) */
+}
+/* Anything with a coarse pointer AVAILABLE gets the Material 48dp target. Note
+   any-pointer, not pointer: a touchscreen laptop's PRIMARY pointer is its trackpad
+   (fine), so `pointer: coarse` misses it entirely. */
+@media (any-pointer: coarse) {
+  .card {
+    --rc-hit: 48px;
+  }
+}
+/* Shrink only on a device with no coarse pointer at all — a real mouse-only desktop.
+   38px is still well above WCAG 2.5.8 AA (24px); never go below that. */
+@media (any-pointer: fine) and (not (any-pointer: coarse)) {
+  .card {
+    --rc-hit: 38px;
+  }
+}
+/* Runtime correction: last input wins. Handles hybrids, and an iPad whose Magic
+   Keyboard was just attached — which flips the media queries mid-session. */
+.card[data-input="touch"] {
+  --rc-hit: 48px;
+}
+.card[data-input="mouse"] {
+  --rc-hit: 38px;
 }
 .layout {
   display: grid;
@@ -56,6 +84,16 @@
     align-items: start;
   }
 }
+/* On a genuinely wide card, lay the panel's two groups (sources + controls) side by
+   side. `has-both` is required — each of renderSources/renderControls can be empty,
+   and an unconditional two-column rule would leave a dead column. Split inside the
+   panel (not `display: contents`, which would inherit .layout's 13px gap, not 11px). */
+@container (min-width: 900px) {
+  .layout.two.has-both .panel {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
 
 /* device switcher rail */
 .rail {
@@ -69,7 +107,7 @@
 .rail button {
   flex: 1;
   min-width: 0;
-  min-height: 36px;
+  min-height: max(36px, calc(var(--rc-hit) - 10px));
   border: 1px solid transparent;
   border-radius: 10px;
   background: transparent;
@@ -496,6 +534,26 @@
 .scrub .groove:active .grip,
 .scrub.dragging .grip {
   opacity: 1;
+}
+
+/* Hover feedback — desktop's biggest gap: every control gave nothing until pressed.
+   Gated on (hover: hover) so nothing sticks after a tap on touch. */
+@media (hover: hover) {
+  .rail button:hover:not([aria-selected="true"]),
+  .navrow button:hover,
+  .strip button:hover,
+  .steps button:hover,
+  .pad button:hover,
+  .key:hover,
+  .power:hover,
+  .scrub .edge:hover {
+    background: var(--color-hover);
+    color: var(--color-ink);
+  }
+  /* Distinct from .hub:active (#1e3627) so press feedback still reads. */
+  .wheel .hub:hover {
+    fill: #1b2f21;
+  }
 }
 
 /* companion panel (sources) — fills the second column on a wide card */

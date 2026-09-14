@@ -15,6 +15,7 @@
   --color-bg: #111516;
   --color-card: #1d2426;
   --color-card2: #262f31;
+  --color-hover: #2e393b; /* pointer hover fill, between card2 and line */
   --color-line: #333e41;
   --color-ink: #edf1f1;
   --color-ink2: #a9b6b9;
@@ -52,6 +53,7 @@
   --color-bg: #eef1f0;
   --color-card: #ffffff;
   --color-card2: #eaeeec;
+  --color-hover: #e2e7e4; /* pointer hover fill, between card2 and line */
   --color-line: #dfe4e1;
   --color-ink: #14201a;
   --color-ink2: #3e4b47;

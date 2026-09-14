@@ -83,6 +83,24 @@ export const AppleTVWheel = story({
   favourites: ["Netflix", "YouTube", "Prime Video", "Spotify"],
 });
 
+/** Apple TV with **delegated volume** (`volume_entity`): the box itself reports no
+ * `volume_level`, so on its own it falls to the scrub strip — but the sound leaves
+ * the **Philips**, which does report a level. Pointing `volume_entity` at the Philips
+ * gives the row a real positional slider at the TV's level, drives the TV's
+ * volume/mute, and names it in a `.via` chip — while the header, transport and
+ * sources stay on the Apple TV. */
+export const DelegatedVolume = story({
+  type: "custom:fibbers-remote",
+  device: "appletv",
+  entity: "remote.appletv",
+  media_player: "media_player.appletv",
+  volume_entity: "media_player.philips",
+  icon: "solar:display-bold-duotone",
+  name: "Apple TV",
+  sources: "auto",
+  favourites: ["Netflix", "YouTube", "Prime Video", "Spotify"],
+});
+
 /** Philips: reports a volume level → a positional slider (+ mute) and a channel
  * stepper, plus a **controls panel** — a picture-style select as preset chips, a
  * backlight number slider, and a screen-off toggle. */
@@ -102,7 +120,9 @@ export const PhilipsTV = story({
 
 /** Several devices behind a segmented switcher; `auto_select: playing` opens on the
  * device that's currently playing. A media_player-only entry (the Sonos) is a
- * speaker — no d-pad. */
+ * speaker — no d-pad. On a touch device you can also **swipe left/right** on the body
+ * to page between them (`swipe:`, on by default); the rail stays the click/keyboard
+ * alternative. */
 export const MultiDevice = story({
   type: "custom:fibbers-remote",
   remember: false,
