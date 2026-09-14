@@ -26,6 +26,7 @@ export interface RemoteControl {
 export interface RemoteDevice {
   entity?: string;
   media_player?: string;
+  volume_entity?: string;
   name?: string;
   icon?: string;
   device?: string;
@@ -63,6 +64,16 @@ export function validateRemoteConfig(config: RemoteConfig): RemoteDevice[] {
       throw new Error(
         `fibbers-remote: device[${i}] needs \`entity\` (a remote.*) or \`media_player\``,
       );
+    }
+    if (d.volume_entity != null) {
+      if (
+        typeof d.volume_entity !== "string" ||
+        !d.volume_entity.startsWith("media_player.")
+      ) {
+        throw new Error(
+          `fibbers-remote: device[${i}] \`volume_entity\` must be a \`media_player.*\` — it drives media_player.volume_set / volume_mute`,
+        );
+      }
     }
     if (d.device != null && !COMMANDS[d.device]) {
       throw new Error(

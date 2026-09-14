@@ -48,7 +48,14 @@ import type {
 import remoteCss from "./remote.css?inline";
 import "@shared/icon";
 import { OFF_STATES, GONE_STATES, MF_SEEK } from "./const";
-import { deviceKind, cmdFor, deviceUnavail, mpSupports } from "./device";
+import {
+  deviceKind,
+  cmdFor,
+  deviceUnavail,
+  mpSupports,
+  volumeEntityId,
+  volumeDelegated,
+} from "./device";
 import { ctlBounds, ctlRawValue, ctlSnap, ctlValFromX } from "./ctl-math";
 import { livePosition, resolveTouchpadOptions } from "./touchpad-math";
 import { TouchpadController, type PlaybackInfo } from "./touchpad-controller";
@@ -186,7 +193,8 @@ export class FibbersRemote
         read: (e) =>
           Math.round(pctFromX(e.clientX, e.currentTarget as Element)),
         base: () => this.volPct(),
-        commit: (v) => this._mpService("volume_set", { volume_level: v / 100 }),
+        commit: (v) =>
+          this._volService("volume_set", { volume_level: v / 100 }),
         hold: { tolerance: 2 },
       });
     else this._vol.hold.clear();
@@ -416,6 +424,37 @@ export class FibbersRemote
   mp(): HassEntity | null {
     const id = this.dev().media_player;
     return id && this.hass ? this.hass.states[id] : null;
+  }
+
+  /** The media_player this device's volume row drives (`volume_entity`, else its own). */
+  volMp(): HassEntity | null {
+    const id = volumeEntityId(this.dev());
+    return id && this.hass ? this.hass.states[id] : null;
+  }
+
+  // The volume twin of `_mpService`, targeting volMp() rather than mp().
+  private _volService(
+    service: string,
+    data?: Record<string, unknown>,
+  ): Promise<void> {
+    const mp = this.volMp();
+    if (!mp || !this.hass) return Promise.resolve();
+    return Promise.resolve(
+      this.hass.callService("media_player", service, {
+        entity_id: mp.entity_id,
+        ...data,
+      }),
+    );
+  }
+
+  /** Fire-and-forget volume service; swallow the rejection so it isn't unhandled. */
+  volDo(service: string, data?: Record<string, unknown>): void {
+    this._volService(service, data).catch(() => {});
+  }
+
+  /** True when the volume row is driven by a different player than the device's own. */
+  volDelegated(): boolean {
+    return volumeDelegated(this.dev());
   }
 
   private _st(): HassEntity | null {
@@ -698,7 +737,7 @@ export class FibbersRemote
 
   /** The displayed volume % (drag/hold applied) — also the relative-drag base. */
   volPct(): number {
-    const mp = this.mp();
+    const mp = this.volMp();
     const gone = !mp || GONE_STATES.includes(mp.state);
     const raw =
       mp && mp.attributes.volume_level != null
@@ -743,8 +782,10 @@ export class FibbersRemote
     step: (dir: number): void => {
       if (this.unavail()) return;
       const key = dir > 0 ? "volume_up" : "volume_down";
-      if (this.cmd("volume_up")) this.send(key);
-      else this.mpDo(key);
+      // A delegated volume never routes through the device's own remote — the Apple
+      // TV accepts pyatv volume_up and changes nothing, because the sound leaves the TV.
+      if (!this.volDelegated() && this.cmd("volume_up")) this.send(key);
+      else this.volDo(key);
     },
     stepThrottled: (dir: number): void => {
       if (this._scrubLock) return;

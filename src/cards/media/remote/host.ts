@@ -24,6 +24,12 @@ export interface RemoteHost {
   // current device
   dev(): RemoteDevice;
   mp(): HassEntity | null;
+  /** The media_player this device's volume row drives (may differ from `mp()`). */
+  volMp(): HassEntity | null;
+  /** Fire-and-forget media_player call against the volume player. */
+  volDo(service: string, data?: Record<string, unknown>): void;
+  /** True when the volume row is driven by a player other than the device's own. */
+  volDelegated(): boolean;
   kindOf(d: RemoteDevice): string;
   cmd(key: string): string | undefined;
   unavail(): boolean;

@@ -67,6 +67,24 @@ export function deviceUnavail(
   return isUnavail(st);
 }
 
+/**
+ * The entity id whose volume this device's volume row drives: `volume_entity` when
+ * set, else the device's own `media_player`.
+ * @param d — the device
+ */
+export function volumeEntityId(d: RemoteDevice): string | undefined {
+  return d.volume_entity || d.media_player;
+}
+
+/**
+ * True when the volume row is driven by a player other than the device's own — the
+ * signal that the device's own remote volume keys must not be used.
+ * @param d — the device
+ */
+export function volumeDelegated(d: RemoteDevice): boolean {
+  return !!d.volume_entity && d.volume_entity !== d.media_player;
+}
+
 /** True when a media_player advertises a supported_features bit. */
 export function mpSupports(mp: HassEntity | null, bit: number): boolean {
   // eslint-disable-next-line no-bitwise -- supported_features is a bitmask

@@ -13,6 +13,8 @@ import {
   mpSupports,
   allSources,
   favSources,
+  volumeEntityId,
+  volumeDelegated,
 } from "./device";
 
 const platform = new Map<string, string>([
@@ -165,6 +167,51 @@ describe("allSources", () => {
 
   test("no sources → empty", () => {
     expect(allSources({}, null)).toEqual([]);
+  });
+});
+
+describe("volumeEntityId", () => {
+  test("falls back to the device's own media_player", () => {
+    expect(volumeEntityId({ media_player: "media_player.atv" })).toBe(
+      "media_player.atv",
+    );
+  });
+
+  test("prefers an explicit volume_entity", () => {
+    expect(
+      volumeEntityId({
+        media_player: "media_player.atv",
+        volume_entity: "media_player.tv",
+      }),
+    ).toBe("media_player.tv");
+  });
+
+  test("a remote-only device has no volume player", () => {
+    expect(volumeEntityId({ entity: "remote.atv" })).toBeUndefined();
+  });
+});
+
+describe("volumeDelegated", () => {
+  test("true only when volume_entity differs from media_player", () => {
+    expect(
+      volumeDelegated({
+        media_player: "media_player.atv",
+        volume_entity: "media_player.tv",
+      }),
+    ).toBe(true);
+  });
+
+  test("false when the two ids are equal", () => {
+    expect(
+      volumeDelegated({
+        media_player: "media_player.atv",
+        volume_entity: "media_player.atv",
+      }),
+    ).toBe(false);
+  });
+
+  test("false when volume_entity is absent", () => {
+    expect(volumeDelegated({ media_player: "media_player.atv" })).toBe(false);
   });
 });
 

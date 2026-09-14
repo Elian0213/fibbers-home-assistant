@@ -145,6 +145,39 @@ describe("validateRemoteConfig", () => {
       "fibbers-remote: `controls[].type` must be one of",
     );
   });
+
+  test("`volume_entity` must be a media_player", () => {
+    expect(() =>
+      validateRemoteConfig({
+        type: "custom:fibbers-remote",
+        devices: [{ entity: "remote.atv", volume_entity: "remote.tv" }],
+      }),
+    ).toThrow(/`volume_entity` must be a `media_player\.\*`/);
+  });
+
+  test("a media_player `volume_entity` passes through", () => {
+    const cfg = {
+      type: "custom:fibbers-remote",
+      devices: [
+        {
+          entity: "remote.atv",
+          media_player: "media_player.atv",
+          volume_entity: "media_player.tv",
+        },
+      ],
+    };
+    const devices = validateRemoteConfig(cfg);
+    expect(devices[0].volume_entity).toBe("media_player.tv");
+  });
+
+  test("`volume_entity` is optional", () => {
+    const cfg = {
+      type: "custom:fibbers-remote",
+      entity: "remote.atv",
+      media_player: "media_player.atv",
+    };
+    expect(() => validateRemoteConfig(cfg as RemoteConfig)).not.toThrow();
+  });
 });
 
 describe("controlKind", () => {

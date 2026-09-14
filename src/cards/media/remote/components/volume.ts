@@ -2,7 +2,7 @@
  * fibbers-remote — the volume row (mute · slider-or-scrub · percentage) and the
  * channel stepper. Pure view functions over a RemoteHost.
  * ================================================================== */
-import { html, type TemplateResult } from "lit";
+import { html, nothing, type TemplateResult } from "lit";
 
 import { t } from "@shared/i18n";
 import { sliderTrack } from "@shared/ui";
@@ -96,16 +96,24 @@ function volMid(
 // One row shape whether or not the device reports a level, so nothing jumps when a
 // TV sleeps: mute key · slider-or-stepper · percentage. Gated on `volume_level`
 // (not the VOLUME_SET bit — a player can advertise it and never report a level).
+// The whole row reads `host.volMp()`, so `volume_entity` transparently redirects it
+// to another player without the transport/now-playing following.
 /** The volume row: mute · (slider or scrub strip) · percentage. */
 export function renderVolRow(
   host: RemoteHost,
   hl: unknown,
 ): TemplateResult | string {
-  const mp = host.mp();
+  const mp = host.volMp();
+  const delegated = host.volDelegated();
   const hasSlider = mp && mp.attributes.volume_level != null;
-  const remoteVol = !!host.cmd("volume_up");
+  // A delegated volume is always the player's; the device's own remote keys are
+  // deliberately not consulted (see index.ts scrub.step).
+  const remoteVol = !delegated && !!host.cmd("volume_up");
   const mpStep = mpSupports(mp, MF_VOLUME_STEP);
-  if (!hasSlider && !remoteVol && !mpStep) return "";
+  // `delegated && mp` keeps the row mounted when the delegate is asleep: HA drops
+  // `supported_features` and `volume_level` on an `unavailable` entity, so without
+  // this the row would vanish and re-appear as the TV sleeps and wakes.
+  if (!hasSlider && !remoteVol && !mpStep && !(delegated && mp)) return "";
   const muted = mp && mp.attributes.is_volume_muted;
   let canMute: boolean;
   if (hasSlider) canMute = mpSupports(mp, MF_VOLUME_MUTE);
@@ -113,7 +121,7 @@ export function renderVolRow(
   else canMute = mpSupports(mp, MF_VOLUME_MUTE);
   const muteClick = remoteVol
     ? () => host.send("volume_mute")
-    : () => host.mpDo("volume_mute", { is_volume_muted: !muted });
+    : () => host.volDo("volume_mute", { is_volume_muted: !muted });
   const mute = canMute
     ? html`<button
         type="button"
@@ -131,7 +139,19 @@ export function renderVolRow(
         ></fib-icon>
       </button>`
     : "";
-  return html`<div class="row">${mute}${volMid(host, mp, hasSlider, hl)}</div>`;
+  // Delegation must be visible: name the player driving the sound in the row's
+  // aria-label and in a `.via` chip after the percentage (hidden on a narrow card).
+  const viaName = mp ? mp.attributes.friendly_name || mp.entity_id : "";
+  const via = delegated
+    ? html`<span class="via" title=${mp ? mp.entity_id : ""}>${viaName}</span>`
+    : "";
+  return html`<div
+    class="row"
+    role=${delegated ? "group" : nothing}
+    aria-label=${delegated ? t(hl, "remote.volume_via", { name: viaName }) : nothing}
+  >
+    ${mute}${volMid(host, mp, hasSlider, hl)}${via}
+  </div>`;
 }
 
 /** The channel stepper (CH − / +); nothing when the device has no channel commands. */

@@ -342,6 +342,21 @@
   color: var(--color-muted);
   font-variant-numeric: tabular-nums;
 }
+/* delegated-volume chip — names the player the volume actually drives (volume_entity) */
+.via {
+  flex: none;
+  max-width: 92px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11.5px;
+  color: var(--color-muted);
+}
+@container (max-width: 300px) {
+  .via {
+    display: none;
+  }
+}
 /* stepper: same row shape as the slider when the device reports no level */
 .steps {
   flex: 1;
