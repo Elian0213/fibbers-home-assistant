@@ -3,6 +3,62 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.0.0] — 2026-09-14
+
+The remote grows up. Three additions, none of them breaking: it can now drive the
+volume of a _different_ player, you can swipe between devices with a thumb, and it
+finally adapts to the pointer — hover on a mouse, bigger targets on a finger, and a
+full keyboard layer. An unmodified 1.2.0 config renders and behaves exactly as before.
+
+### Added
+
+- **`volume_entity` — delegated volume.** A device can point its volume row at
+  another `media_player`. The Apple TV advertises `VOLUME_SET` but reports no
+  `volume_level`, so its own row fell back to a scrub strip that sent pyatv volume
+  keys the box did nothing useful with — the sound leaves the TV. Set
+  `volume_entity: media_player.<tv>` and the row becomes a real positional slider at
+  the TV's level, drives its volume/mute, and names it in a `.via` chip. Now-playing,
+  transport and sources stay on the device's own `media_player`; the row stays put
+  (visible, inert) while the delegate sleeps, so nothing jumps as it wakes.
+- **Swipe between devices.** A horizontal drag anywhere on the body pages to the
+  next / previous device, the panel following the finger with a resisted, snapping
+  translate; a flick or half a panel of travel commits, the ends rubber-band, and it
+  never wraps. The segmented rail stays exactly where it is — it remains the
+  WCAG 2.5.1 / 2.5.7 conforming alternative and the page indicator. `swipe: false`
+  disables it; `prefers-reduced-motion` makes it an instant switch. Crucially, a drag
+  that starts on a child which owns its own horizontal gesture — the Siri-Remote
+  touchpad, a swipe wheel, the volume groove, any slider — is declined by walking the
+  composed path, so scrubbing Netflix never pages the card sideways.
+- **Pointer-adaptive hit targets + hover.** The card sizes its controls to the
+  pointer driving it — 48px with a coarse pointer, 44px by default, 38px on a
+  mouse-only desktop (never below WCAG 2.5.8's floor) — with a last-input-wins runtime
+  correction for hybrids. Every control gained a `@media (hover: hover)` state (a new
+  `--color-hover` token), closing desktop's biggest gap: controls that gave no
+  feedback until pressed.
+- **Keyboard control.** With the card focused: arrows / Enter / Escape drive the
+  d-pad, Space play/pauses, `+` / `-` change volume, `m` mutes, `[` / `]` switch
+  device. Focus-scoped (WCAG 2.1.4) so it never steals keys from the dashboard, and it
+  defers to any inner widget that already handled the key. Opt out with
+  `keyboard: false`.
+- **Opt-in press haptics.** A new top-level `haptics: false` adds a short vibration
+  to each discrete key press. It's separate from `touchpad.haptics` (unchanged, still
+  defaults on) and off by default, so no existing card starts buzzing. `_sendHold`
+  (long-press) deliberately does not tick. No effect on iOS, which has no
+  `navigator.vibrate`.
+
+### Changed
+
+- The per-device body is now wrapped in a sliding `.deck` element (a transparent grid
+  child — same spacing) so the swipe can animate the live panel without moving the
+  rail. On a genuinely wide card (≥900px) the companion panel lays sources and
+  controls side by side.
+
+### Robustness
+
+- The four Apple-TV touchpad files are frozen and untouched; the touchpad view gains a
+  single opt-out attribute. Swipe-driven device changes are announced through a
+  visually-hidden live region; the rail's own focus move is left to the screen reader.
+
 ## [1.2.0] — 2026-09-12
 
 A master switch that tells the truth. The old "Alles uit" chip only killed
