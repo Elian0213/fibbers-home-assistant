@@ -151,13 +151,13 @@
 .head {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 11px;
 }
 .badge {
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
   flex: none;
-  border-radius: 11px;
+  border-radius: 13px;
   display: grid;
   place-items: center;
   background: var(--color-accentbg);
@@ -169,25 +169,54 @@
   color: var(--color-muted);
   border-color: var(--color-line);
 }
+/* cover art fills the badge while something is playing */
+.badge.art {
+  background-size: cover;
+  background-position: center;
+  border-color: var(--color-line);
+}
 .who {
   min-width: 0;
   flex: 1;
 }
 .who b {
   display: block;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.who span {
-  display: block;
-  font-size: 10.5px;
+/* now-playing subline: a state chip + the title */
+.sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin-top: 2px;
+}
+.chip {
+  flex: none;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-card2);
+  border: 1px solid var(--color-line);
   color: var(--color-muted);
+}
+.chip.live {
+  background: var(--color-accentbg);
+  border-color: var(--color-accentline);
+  color: var(--color-accenttx);
+}
+.sub .tt {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 11px;
+  color: var(--color-muted);
 }
 .power {
   width: var(--fib-hit);
@@ -308,6 +337,58 @@
   font: 600 12.5px/1 inherit;
 }
 
+/* now-playing hero — the primary zone for a speaker / no-d-pad device. Sized to
+   stand as tall as the wheel/touchpad so every remote in a swipe deck matches. */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 238px;
+  padding: 8px 4px;
+  text-align: center;
+  min-width: 0;
+}
+.hero .art {
+  width: 168px;
+  max-width: 70%;
+  aspect-ratio: 1;
+  border-radius: 20px;
+  background: var(--color-card2);
+  border: 1px solid var(--color-line);
+  background-size: cover;
+  background-position: center;
+  display: grid;
+  place-items: center;
+  color: var(--color-muted);
+}
+.hero .art.on {
+  border-color: var(--color-accentline);
+}
+.hero .art fib-icon {
+  --mdc-icon-size: 68px;
+  width: 68px;
+  height: 68px;
+}
+.hero .htitle {
+  max-width: 100%;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hero .hsub {
+  max-width: 100%;
+  font-size: 12px;
+  color: var(--color-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* rows below the wheel, in use order */
 .row {
   display: flex;
@@ -381,9 +462,9 @@
   opacity: 0.4;
 }
 .navrow fib-icon {
-  --mdc-icon-size: 18px;
-  width: 18px;
-  height: 18px;
+  --mdc-icon-size: 20px;
+  width: 20px;
+  height: 20px;
 }
 
 /* icon key (mute) */
@@ -465,9 +546,9 @@
 .key fib-icon,
 .strip fib-icon,
 .steps fib-icon {
-  --mdc-icon-size: 20px;
-  width: 20px;
-  height: 20px;
+  --mdc-icon-size: 22px;
+  width: 22px;
+  height: 22px;
 }
 
 /* volume scrub: a slider-shaped surface with no thumb position (the device
@@ -493,9 +574,9 @@
   cursor: pointer;
 }
 .scrub .edge fib-icon {
-  --mdc-icon-size: 18px;
-  width: 18px;
-  height: 18px;
+  --mdc-icon-size: 20px;
+  width: 20px;
+  height: 20px;
 }
 .scrub .edge:active {
   color: var(--color-accent);

@@ -10,6 +10,7 @@ import { activateOnKey } from "@shared/ui";
 import { SEG, CHEV, ARROW } from "../const";
 import type { RemoteHost } from "../host";
 import { renderTouchpad } from "./touchpad";
+import { renderHero } from "./hero";
 
 // Keyboard for the swipe surface (which has no arrow buttons to Tab to). Only
 // acts on the container's own key events — a keydown bubbling up from a focused
@@ -136,14 +137,18 @@ function pad(host: RemoteHost, has: (k: string) => boolean): TemplateResult {
   </div>`;
 }
 
-/** The d-pad: nothing for a device with no directional commands, else touchpad, wheel or grid. */
+/** The primary zone: nothing / a now-playing hero for a device with no directional
+ *  commands, else the touchpad, wheel or grid. The hero fills a speaker's primary
+ *  zone so every remote in a swipe deck stands the same height. */
 export function renderDpad(
   host: RemoteHost,
   hl: unknown,
 ): TemplateResult | string {
   const has = (k: string): boolean => !!host.cmd(k);
-  // No directional commands (a speaker, or generic with none) → no d-pad.
-  if (!["up", "down", "left", "right", "ok"].some(has)) return "";
+  // No directional commands (a speaker, or generic with none): a media_player device
+  // gets the now-playing hero; a bare remote with nothing to drive gets nothing.
+  if (!["up", "down", "left", "right", "ok"].some(has))
+    return host.mp() ? renderHero(host, hl) : "";
   // Apple TV defaults to the touchpad; every other platform keeps buttons. An
   // explicit `dpad:` always wins.
   const mode =

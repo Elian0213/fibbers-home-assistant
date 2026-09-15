@@ -148,6 +148,9 @@
     "mute": "Mute",
     "on": "On",
     "off": "Off",
+    "playing": "Playing",
+    "paused": "Paused",
+    "idle": "Idle",
     "touchpad_hint": "Touchpad — drag to move, tap to select, hold for options",
     "volume_via": "Volume via {name}"
   },

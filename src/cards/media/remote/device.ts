@@ -85,6 +85,40 @@ export function volumeDelegated(d: RemoteDevice): boolean {
   return !!d.volume_entity && d.volume_entity !== d.media_player;
 }
 
+/** Now-playing summary a header/hero can render without re-deriving it. */
+export interface NowPlaying {
+  /** Primary line: media title, else app, else source. */
+  title: string;
+  /** Secondary line: artist/series when there's a title, else app/source. */
+  subtitle: string;
+  /** Cover art URL (`entity_picture`), or null. */
+  art: string | null;
+  /** True while the player is actively playing. */
+  playing: boolean;
+  /** True when there's real media on (a title or an app), vs merely powered on. */
+  active: boolean;
+}
+
+/** Derive the now-playing summary from a media_player (all-empty when null). */
+export function nowPlaying(mp: HassEntity | null): NowPlaying {
+  const a = (mp?.attributes ?? {}) as Record<string, unknown>;
+  const str = (v: unknown): string => (typeof v === "string" ? v : "");
+  const title = str(a.media_title) || str(a.app_name) || str(a.source);
+  const subtitle = a.media_title
+    ? str(a.media_artist) ||
+      str(a.media_series_title) ||
+      str(a.app_name) ||
+      str(a.source)
+    : "";
+  return {
+    title,
+    subtitle,
+    art: str(a.entity_picture) || null,
+    playing: mp?.state === "playing",
+    active: !!(a.media_title || a.app_name),
+  };
+}
+
 /** True when a media_player advertises a supported_features bit. */
 export function mpSupports(mp: HassEntity | null, bit: number): boolean {
   // eslint-disable-next-line no-bitwise -- supported_features is a bitmask

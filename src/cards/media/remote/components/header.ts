@@ -6,8 +6,17 @@ import { html, nothing, type TemplateResult } from "lit";
 
 import { t } from "@shared/i18n";
 
-import { isDeviceOn, deviceIcon } from "../device";
+import { isDeviceOn, deviceIcon, nowPlaying } from "../device";
 import type { RemoteHost } from "../host";
+
+// The short state chip label: playing/paused/idle when the player reports it, else
+// the plain on/off the header already used.
+function stateText(hl: unknown, state: string | null, on: boolean): string {
+  if (state === "playing") return t(hl, "remote.playing");
+  if (state === "paused") return t(hl, "remote.paused");
+  if (state === "idle") return t(hl, "remote.idle");
+  return t(hl, on ? "remote.on" : "remote.off");
+}
 
 // Roving focus for the switcher tablist; Left/Right/Home/End, activate on move.
 function switcherKey(host: RemoteHost, e: KeyboardEvent): void {
@@ -59,30 +68,42 @@ export function renderSwitcher(
   </div>`;
 }
 
-/** The card header: device badge, name + now-playing line, and (for a remote) power. */
+/** The card header: device badge (cover art when playing), name, a state chip +
+ *  now-playing line, and (for a remote) power. */
 export function renderHeader(host: RemoteHost, hl: unknown): TemplateResult {
   const d = host.dev();
   const mp = host.mp();
   const on = isDeviceOn(host.hass, d);
-  const onOff = t(hl, on ? "remote.on" : "remote.off");
-  let nowLine: string;
-  if (mp)
-    nowLine =
-      mp.attributes.media_title ||
-      mp.attributes.app_name ||
-      mp.attributes.source ||
-      onOff;
-  else nowLine = d.entity ? onOff : "";
+  const np = nowPlaying(mp);
+  const cover = np.active && np.art;
+  // A state chip only reads when the device actually has a state to show.
+  const hasState = !!(mp || d.entity);
+  let chipState = on ? "on" : "off";
+  if (mp) chipState = mp.state;
+  const chip = hasState
+    ? html`<span class="chip ${np.playing ? "live" : ""}"
+        >${stateText(hl, chipState, on)}</span
+      >`
+    : "";
   return html`<div class="head">
-    <div class="badge ${on ? "" : "off"}">
-      <fib-icon
-        class="h-[19px] w-[19px] [--mdc-icon-size:19px]"
-        icon=${deviceIcon(d, host.kindOf(d))}
-      ></fib-icon>
+    <div
+      class="badge ${on ? "" : "off"} ${cover ? "art" : ""}"
+      style=${cover ? `background-image:url("${np.art}")` : nothing}
+    >
+      ${
+        cover
+          ? nothing
+          : html`<fib-icon
+              class="h-[21px] w-[21px] [--mdc-icon-size:21px]"
+              icon=${deviceIcon(d, host.kindOf(d))}
+            ></fib-icon>`
+      }
     </div>
     <div class="who">
       <b>${d.name || t(hl, "remote.default_name")}</b>
-      <span>${nowLine}</span>
+      <span class="sub">
+        ${chip}${np.title ? html`<span class="tt">${np.title}</span>` : ""}
+      </span>
     </div>
     ${
       d.entity
@@ -93,7 +114,7 @@ export function renderHeader(host: RemoteHost, hl: unknown): TemplateResult {
             @click=${() => host.power()}
           >
             <fib-icon
-              class="h-5 w-5 [--mdc-icon-size:20px]"
+              class="h-5 w-5 [--mdc-icon-size:22px]"
               icon="solar:power-bold-duotone"
             ></fib-icon>
           </button>`
