@@ -1,16 +1,19 @@
 /* ================================================================== *
- * fibbers-remote — the device page-swipe deck: a Lit ReactiveController that turns a
- * horizontal drag anywhere on the remote body into a page to the next/previous
- * device. It follows the finger with a bounded, resisted translate written straight
- * to `element.style.transform` (never through Lit, zero re-renders mid-drag) and, on
- * release, animates the single live panel out, swaps its contents via the host, and
- * animates the new one in from the opposite edge.
+ * Shared horizontal slide / paging controller: a Lit ReactiveController that turns a
+ * horizontal drag on a surface into a page to the neighbouring item. It follows the
+ * finger with a bounded, resisted translate written straight to `element.style`
+ * (never through Lit, zero re-renders mid-drag) and, on release, animates the single
+ * live panel out, swaps its contents via the host, and animates the new one in from
+ * the opposite edge. Reused by any card that pages a surface (the remote's device deck).
  *
- * The one rule that protects the touchpad: the gesture DECLINES on pointerdown when
- * the press lands on a child that owns its own horizontal drag (the Siri-Remote
- * touchpad, a swipe wheel, the volume groove, any [role="slider"]). Same-axis nesting
- * can't be solved with touch-action — both gestures are horizontal and the event
- * bubbles to this ancestor regardless — so we walk the composed path and opt out.
+ * The rule that lets a slider live INSIDE a sliding surface: the gesture DECLINES on
+ * pointerdown when the press lands on a child that owns its own horizontal drag (a
+ * touchpad, a swipe wheel, a groove, any [role="slider"]). Same-axis nesting can't be
+ * solved with touch-action — both gestures are horizontal and the event bubbles to
+ * this ancestor regardless — so we walk the composed path and opt out.
+ *
+ * A real drag also swallows the trailing `click` (a capture-phase guard, like the nav
+ * bar's), so a swipe that lifts over a button never also presses it.
  * ================================================================== */
 import type { ReactiveController, ReactiveControllerHost } from "lit";
 
@@ -22,7 +25,7 @@ import {
   resist,
   atEdge,
   commitTarget,
-} from "./deck-math";
+} from "@shared/slide-math";
 
 /** Children that own their own horizontal drag and must not arm the page swipe. */
 const OWN = '[data-fib-gesture="own"],[role="slider"]';
@@ -38,11 +41,11 @@ const FALLBACK_MS = 300;
  * `composedPath()`, not `closest()` — the card is a shadow root and `closest()`
  * stops at the boundary.
  * @param e — the pointerdown event
- * @param root — the deck surface; reaching it means nothing claimed the press
+ * @param root — the slide surface; reaching it means nothing claimed the press
  */
 export function ownedByChild(e: PointerEvent, root: Element): boolean {
   for (const n of e.composedPath()) {
-    if (n === root) return false; // reached the deck: nothing claimed it
+    if (n === root) return false; // reached the surface: nothing claimed it
     // Duck-type `matches` rather than `instanceof Element` — the composed path also
     // carries the document and window, which have no `matches`.
     const el = n as Element;
@@ -51,26 +54,26 @@ export function ownedByChild(e: PointerEvent, root: Element): boolean {
   return false;
 }
 
-/** The card surface the deck drives. `ReactiveControllerHost` supplies
+/** The card surface the slide drives. `ReactiveControllerHost` supplies
  *  addController / removeController / requestUpdate / updateComplete. */
-export interface DeckHost extends ReactiveControllerHost {
-  /** How many devices are in the rail (0 disables the gesture). */
+export interface SlideHost extends ReactiveControllerHost {
+  /** How many pages there are (0 or 1 disables the gesture). */
   count(): number;
   /** The selected index. */
   index(): number;
-  /** Commit a page change (and announce it to the live region). */
-  deckSelect(i: number): void;
+  /** Commit a page change (and announce it, move focus, etc.). */
+  slideSelect(i: number): void;
   /** Whether a haptic tick is wanted for a committed page change. */
   haptics(): boolean;
 }
 
 /**
- * Horizontal page gesture over the remote's device list: follows the finger with a
- * bounded, resisted translate and commits to the neighbouring device on release.
- * Declines outright when the press lands on a child that owns its own drag.
+ * Horizontal page gesture over a list of items: follows the finger with a bounded,
+ * resisted translate and commits to the neighbouring item on release. Declines
+ * outright when the press lands on a child that owns its own drag.
  */
-export class DeckController implements ReactiveController {
-  private host: DeckHost;
+export class SlideController implements ReactiveController {
+  private host: SlideHost;
 
   private surface?: HTMLElement;
 
@@ -97,6 +100,8 @@ export class DeckController implements ReactiveController {
 
   private committing = false;
 
+  private swallow = false; // a real drag just happened → eat the trailing click
+
   private rafId = 0;
 
   private pendingMove: PointerEvent | null = null;
@@ -107,7 +112,7 @@ export class DeckController implements ReactiveController {
 
   private snapTimer?: ReturnType<typeof setTimeout>;
 
-  constructor(host: DeckHost) {
+  constructor(host: SlideHost) {
     this.host = host;
     host.addController(this);
   }
@@ -118,24 +123,48 @@ export class DeckController implements ReactiveController {
     this.abort();
   }
 
-  /** lit `ref` callback: cache the surface (or clear it on unbind). */
+  /** lit `ref` callback: cache the surface (or clear it on unbind), and wire the
+   *  capture-phase click-swallow guard so a drag never doubles as a button press. */
   readonly attach = (el?: Element): void => {
+    if (this.surface)
+      this.surface.removeEventListener("click", this._onClick, true);
     if (!el) {
       this.surface = undefined;
       return;
     }
     this.surface = el as HTMLElement;
+    this.surface.addEventListener("click", this._onClick, true);
     this.reducedMotion =
       typeof window !== "undefined" &&
       !!window.matchMedia &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   };
 
+  // Capture phase on the surface, so it runs before the child button's own @click:
+  // a click that follows a real drag is swallowed once.
+  private readonly _onClick = (e: MouseEvent): void => {
+    if (!this.swallow) return;
+    this.swallow = false;
+    e.stopPropagation();
+    e.preventDefault();
+  };
+
+  /** The live surface's content height (for a host that reserves a stable height). */
+  measure(): number {
+    return this.surface?.scrollHeight ?? 0;
+  }
+
+  /** Reserve a minimum height on the surface so paging never shrinks the card.
+   * @param px — the height to reserve (0 clears it) */
+  reserve(px: number): void {
+    if (this.surface) this.surface.style.minHeight = px ? `${px}px` : "";
+  }
+
   /** Pointer-down: arm the gesture unless a child owns it or a commit is in flight. */
   readonly down = (e: PointerEvent): void => {
     if (this.committing || this.pid !== -1) return;
     if (this.host.count() < 2) return;
-    // The §B.3 gate, first: a press on a self-owning child never arms the deck.
+    // The opt-out gate, first: a press on a self-owning child never arms the slide.
     if (!this.surface || ownedByChild(e, this.surface)) return;
     if (e.pointerType === "mouse" && e.button !== 0) return;
     this.pid = e.pointerId;
@@ -165,6 +194,7 @@ export class DeckController implements ReactiveController {
         return;
       }
       this.axis = "x";
+      this.swallow = true; // a real horizontal drag → swallow the trailing click
       capturePointer(this.surface, e.pointerId);
     }
     // axis === 'x' from here
@@ -213,7 +243,7 @@ export class DeckController implements ReactiveController {
     const target = commitTarget(sel, count, dx, this.width, vX);
     if (this.reducedMotion) {
       this._clearTransform();
-      if (target !== sel) this.host.deckSelect(target);
+      if (target !== sel) this.host.slideSelect(target);
       return;
     }
     if (target === sel) {
@@ -269,11 +299,11 @@ export class DeckController implements ReactiveController {
   // Animate the live panel out one full width, swap its contents through the host,
   // then bring the new panel in from the opposite edge. `dir` is +1 for next / -1 for
   // prev. `committing` stays true across the whole two-leg animation so `abort()` and
-  // the host's own `select()` (which the swap calls) can't clear the transform mid-flight.
+  // the host's own reset (which the swap may call) can't clear the transform mid-flight.
   private _animateCommit(target: number, dir: number): void {
     const el = this.surface;
     if (!el) {
-      this.host.deckSelect(target);
+      this.host.slideSelect(target);
       this.committing = false;
       return;
     }
@@ -282,7 +312,7 @@ export class DeckController implements ReactiveController {
     const onEnd = (): void => {
       clearTimeout(this.commitTimer);
       el.removeEventListener("transitionend", onEnd);
-      this.host.deckSelect(target);
+      this.host.slideSelect(target);
       // Fire-and-forget the second leg once the new panel has rendered.
       this.host.updateComplete.then(() => this._animateIn(-dir));
     };

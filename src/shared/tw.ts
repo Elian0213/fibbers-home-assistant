@@ -29,7 +29,7 @@ const supportsAdopt =
 // equal specificity, and BASE_CSS is concatenated after the utilities — so listing
 // slider here would win, LOOSEN none back to manipulation, and let the browser
 // pointercancel a slightly-vertical drag for scrolling again).
-const BASE_CSS = `:host{--fib-hit:44px;-webkit-tap-highlight-color:transparent}
+const BASE_CSS = `:host{--fib-hit:44px;--fib-gap:11px;--fib-gap-lg:13px;-webkit-tap-highlight-color:transparent}
 :focus-visible{outline:2px solid var(--color-accent,#74B98A);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*,::before,::after{transition-duration:.01ms !important;animation-duration:.01ms !important}}
 button,[role="button"],[role="tab"],[role="switch"],[role="slider"]{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}

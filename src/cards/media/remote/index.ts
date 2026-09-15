@@ -39,6 +39,7 @@ import {
 } from "@shared/util";
 import { setLightBrightness } from "@shared/actions";
 import { card, cx } from "@shared/variants";
+import { SlideController, type SlideHost } from "@shared/slide-controller";
 import type {
   HomeAssistant,
   HassEntity,
@@ -60,7 +61,6 @@ import {
 import { ctlBounds, ctlRawValue, ctlSnap, ctlValFromX } from "./ctl-math";
 import { livePosition, resolveTouchpadOptions } from "./touchpad-math";
 import { TouchpadController, type PlaybackInfo } from "./touchpad-controller";
-import { DeckController, type DeckHost } from "./deck-controller";
 
 import {
   validateRemoteConfig,
@@ -89,7 +89,7 @@ export type { RemoteControl, RemoteDevice, RemoteConfig };
 @customElement("fibbers-remote")
 export class FibbersRemote
   extends LitElement
-  implements LovelaceCard, RemoteHost, DeckHost
+  implements LovelaceCard, RemoteHost, SlideHost
 {
   @property({ attribute: false }) hass?: HomeAssistant;
 
@@ -119,7 +119,11 @@ export class FibbersRemote
 
   private _touchpad?: TouchpadController;
 
-  private _deck!: DeckController;
+  private _slide!: SlideController;
+
+  // The tallest device panel seen so far; the deck reserves it so paging never
+  // shrinks the card (only the current device renders, so heights differ per device).
+  private _slideMinH = 0;
 
   @state() private _announce = "";
 
@@ -181,9 +185,12 @@ export class FibbersRemote
     this._resetTransient();
     // Belt and braces: a live page swipe must not survive a re-config. Registered
     // here (not in _resetTransient) because select() calls _resetTransient mid-commit
-    // — the deck's own `committing` guard makes even that safe, but this keeps the
+    // — the slide's own `committing` guard makes even that safe, but this keeps the
     // abort off the per-switch path entirely.
-    this._deck?.abort();
+    this._slide?.abort();
+    // Re-measure the reserved height from scratch — the device list may have changed.
+    this._slideMinH = 0;
+    this._slide?.reserve(0);
 
     // Restore the remembered device (keyed on the list, so adding a device doesn't
     // restore a stale index). A restore suppresses auto_select.
@@ -234,9 +241,9 @@ export class FibbersRemote
         debug: () => !!this.config.debug,
       });
 
-    // Construct the page-swipe deck once (same reuse reason). The element IS the
-    // DeckHost — `DeckHost extends ReactiveControllerHost`, so pass `this`.
-    if (!this._deck) this._deck = new DeckController(this);
+    // Construct the page-swipe controller once (same reuse reason). The element IS
+    // the SlideHost — `SlideHost extends ReactiveControllerHost`, so pass `this`.
+    if (!this._slide) this._slide = new SlideController(this);
 
     // Controls panel: per-select drawer state + per-slider (light/number) hold + drag
     // gesture. Reuse existing controllers by entity so HA's per-keystroke setConfig
@@ -303,7 +310,7 @@ export class FibbersRemote
       if (document.hidden) {
         this.release();
         this._touchpad?.abort(); // momentum/scrub must not run in a hidden tab
-        this._deck?.abort(); // a half-finished swipe must not resume on return
+        this._slide?.abort(); // a half-finished swipe must not resume on return
       }
     };
     document.addEventListener("visibilitychange", this._onHidden);
@@ -355,6 +362,21 @@ export class FibbersRemote
         return mp && mp.state === "playing";
       });
       if (i >= 0) this.select(i);
+    }
+    this._reserveDeckHeight();
+  }
+
+  // Keep every device panel the same height so paging never shrinks the card. Only
+  // the current device renders, so we grow a reserved min-height to the tallest panel
+  // seen — measured here (after each render, incl. the mid-commit swap, so the incoming
+  // panel is reserved before it slides in). Monotonic: it converges to the tallest
+  // device after one pass and never shrinks. Reset in setConfig.
+  private _reserveDeckHeight(): void {
+    if (!this._slide || this._devices.length < 2) return;
+    const h = this._slide.measure();
+    if (h > this._slideMinH) {
+      this._slideMinH = h;
+      this._slide.reserve(h);
     }
   }
 
@@ -435,29 +457,29 @@ export class FibbersRemote
     if (this.config.remember !== false) store.set(persistKey(this._devices), i);
   }
 
-  // --- deck host (page-swipe between devices) ------------------------
+  // --- slide host (page-swipe between devices) -----------------------
 
-  /** Deck host: how many devices the page gesture may move between (0 disables it). */
+  /** Slide host: how many devices the page gesture may move between (0 disables it). */
   count(): number {
     return this.config.swipe === false ? 0 : this._devices.length;
   }
 
-  /** Deck host: the selected device index. */
+  /** Slide host: the selected device index. */
   index(): number {
     return this._sel;
   }
 
-  /** Deck host: whether a committed page change should tick. */
+  /** Slide host: whether a committed page change should tick. */
   haptics(): boolean {
     return resolveTouchpadOptions(this.dev().touchpad).haptics;
   }
 
   /**
-   * Deck host: commit a page change and announce it to the live region. Only the
+   * Slide host: commit a page change and announce it to the live region. Only the
    * swipe path announces — the rail's click/keyboard path moves focus onto the newly
    * selected tab, which screen readers voice natively (announcing twice is worse).
    */
-  deckSelect(i: number): void {
+  slideSelect(i: number): void {
     this.select(i);
     const d = this._devices[i];
     this._announce = `${d?.name || `#${i + 1}`} — ${i + 1}/${this._devices.length}`;
@@ -943,10 +965,10 @@ export class FibbersRemote
         this._muteToggle();
         break;
       case "[":
-        this.deckSelect(Math.max(0, this._sel - 1));
+        this.slideSelect(Math.max(0, this._sel - 1));
         break;
       case "]":
-        this.deckSelect(Math.min(this._devices.length - 1, this._sel + 1));
+        this.slideSelect(Math.min(this._devices.length - 1, this._sel + 1));
         break;
       default:
         return; // unhandled: let it bubble to HA's own shortcuts
@@ -1016,12 +1038,12 @@ export class FibbersRemote
             role=${multi ? "tabpanel" : nothing}
             id=${multi ? "fibpanel" : nothing}
             aria-labelledby=${multi ? `fibtab-${this._sel}` : nothing}
-            ${ref(this._deck.attach)}
-            @pointerdown=${multi ? this._deck.down : nothing}
-            @pointermove=${multi ? this._deck.move : nothing}
-            @pointerup=${multi ? this._deck.up : nothing}
-            @pointercancel=${multi ? this._deck.cancel : nothing}
-            @lostpointercapture=${multi ? this._deck.lost : nothing}
+            ${ref(this._slide.attach)}
+            @pointerdown=${multi ? this._slide.down : nothing}
+            @pointermove=${multi ? this._slide.move : nothing}
+            @pointerup=${multi ? this._slide.up : nothing}
+            @pointercancel=${multi ? this._slide.cancel : nothing}
+            @lostpointercapture=${multi ? this._slide.lost : nothing}
           >
             ${renderHeader(this, hl)} ${renderDpad(this, hl)}
             ${renderNav(this, hl)} ${renderTransport(this)}

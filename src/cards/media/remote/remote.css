@@ -36,14 +36,14 @@
 }
 .layout {
   display: grid;
-  gap: 13px;
+  gap: var(--fib-gap-lg);
 }
 .body {
   max-width: 320px;
   width: 100%;
   margin-inline: auto;
   display: grid;
-  gap: 11px;
+  gap: var(--fib-gap);
   min-width: 0;
   /* The outgoing panel translates a full width; without this it paints over the
      sources column and past the card edge. `container-type: inline-size` on .card is
@@ -53,10 +53,13 @@
 /* The page-swipe surface. Vertical pans stay native (the card lives in a scrolling
    view); horizontal is ours. Children that own their own gestures (.tpad,
    .wheel.swipe, .scrub .groove, any [role="slider"]) set touch-action: none and win
-   the intersection against this pan-y — do not weaken those. */
+   the intersection against this pan-y — do not weaken those. `min-height` is set
+   imperatively (SlideController.reserve) to the tallest device so paging never
+   shrinks the card; align-content keeps a shorter device pinned to the top of it. */
 .deck {
   display: grid;
-  gap: 11px;
+  gap: var(--fib-gap);
+  align-content: start;
   min-width: 0;
   touch-action: pan-y;
   will-change: transform;
@@ -559,7 +562,7 @@
 /* companion panel (sources) — fills the second column on a wide card */
 .panel {
   display: grid;
-  gap: 11px;
+  gap: var(--fib-gap);
   align-content: start;
   min-width: 0;
 }
@@ -567,7 +570,7 @@
 /* generic controls (select→chips, light/number→slider, switch→toggle) */
 .controls {
   display: grid;
-  gap: 13px;
+  gap: var(--fib-gap-lg);
   min-width: 0;
 }
 .ctl {

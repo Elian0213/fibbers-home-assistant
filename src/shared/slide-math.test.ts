@@ -1,4 +1,4 @@
-/* Unit tests for the pure page-swipe deck math — axis lock, velocity, resistance,
+/* Unit tests for the shared slide/paging math — axis lock, velocity, resistance,
  * edge detection and the commit target. */
 import { describe, expect, test } from "bun:test";
 
@@ -10,7 +10,7 @@ import {
   commitTarget,
   SLOP,
   FLICK_V,
-} from "./deck-math";
+} from "./slide-math";
 
 describe("lockAxis", () => {
   test("inside the slop radius is undecided (null)", () => {
@@ -57,11 +57,11 @@ describe("resist", () => {
 });
 
 describe("atEdge", () => {
-  test("dragging right (dx > 0) at the first device is an edge", () => {
+  test("dragging right (dx > 0) at the first page is an edge", () => {
     expect(atEdge(0, 3, 20)).toBe(true);
   });
 
-  test("dragging left (dx < 0) at the last device is an edge", () => {
+  test("dragging left (dx < 0) at the last page is an edge", () => {
     expect(atEdge(2, 3, -20)).toBe(true);
   });
 
@@ -72,7 +72,7 @@ describe("atEdge", () => {
 });
 
 describe("commitTarget", () => {
-  test("commits to the next device on 51% travel", () => {
+  test("commits to the next page on 51% travel", () => {
     expect(commitTarget(0, 3, -153, 300, 0)).toBe(1);
   });
 
