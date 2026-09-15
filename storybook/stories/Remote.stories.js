@@ -157,8 +157,51 @@ export const MultiDevice = story({
   ],
 });
 
-/** A media_player-only speaker: no remote entity, so no d-pad — just now-playing,
- * transport, a volume slider and sources. */
+/** The real living-room setup, and the point of the swipe deck: three devices of
+ * very different shapes, one card height. Swipe (or use the rail) between the
+ * **Philips TV** (wheel · channel · controls panel), the **Apple TV** (touchpad; its
+ * volume is delegated to the Philips via `volume_entity`, named in the `.via` chip),
+ * and the **Sonos speaker** (no d-pad → a now-playing hero fills its primary zone).
+ * The card reserves the tallest panel, so paging never jumps. */
+export const LivingRoom = story({
+  type: "custom:fibbers-remote",
+  language: "nl",
+  remember: false,
+  devices: [
+    {
+      name: "Philips TV",
+      device: "philips",
+      entity: "remote.philips",
+      media_player: "media_player.philips",
+      icon: "solar:tv-bold-duotone",
+      controls: [
+        { entity: "input_select.tv_picture_style", name: "Beeldstijl" },
+        { entity: "switch.tv_screen_off", name: "Scherm uit" },
+      ],
+    },
+    {
+      name: "Apple TV",
+      device: "appletv",
+      entity: "remote.appletv",
+      media_player: "media_player.appletv",
+      volume_entity: "media_player.philips",
+      icon: "solar:display-bold-duotone",
+      sources: "auto",
+      favourites: ["Netflix", "YouTube", "Prime Video", "Spotify"],
+    },
+    {
+      name: "Keuken",
+      media_player: "media_player.keuken_sonos",
+      icon: "solar:soundwave-bold-duotone",
+      sources: "auto",
+    },
+  ],
+});
+
+/** A media_player-only speaker: no remote entity, so no d-pad — its primary zone is
+ * the **now-playing hero** (cover art · title · artist), sized to stand as tall as a
+ * TV's wheel so it holds the deck's height. Below it: transport, a volume slider and
+ * sources. */
 export const SpeakerOnly = story({
   type: "custom:fibbers-remote",
   media_player: "media_player.keuken_sonos",

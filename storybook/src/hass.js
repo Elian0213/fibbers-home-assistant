@@ -3,6 +3,13 @@
 
 const NOW = "2026-08-31T15:00:00+00:00";
 
+// Self-contained SVG "cover art" (data URIs) so the remote's header badge + speaker
+// hero show real artwork in stories without any network fetch.
+const art = (a, b) =>
+  `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23${a}'/%3E%3Cstop offset='1' stop-color='%23${b}'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='300' height='300' rx='24' fill='url(%23g)'/%3E%3C/svg%3E`;
+const ART_TEAL = art("74b98a", "17281c");
+const ART_AMBER = art("e8a33d", "3a2b12");
+
 // --- live demo state -------------------------------------------------------
 // Real HA echoes a service call back as new entity state; the stub applies a
 // best-effort optimistic update to its own `states` and notifies listeners so the
@@ -493,6 +500,8 @@ export function makeHass(flags = {}) {
     friendly_name: "Apple TV",
     media_title: "The Bear",
     app_name: "Netflix",
+    // Self-contained SVG cover art so the header badge shows art without a network.
+    entity_picture: ART_TEAL,
     source: "Netflix",
     source_list: [
       "Netflix",
@@ -563,6 +572,7 @@ export function makeHass(flags = {}) {
     friendly_name: "Sonos Keuken",
     media_title: "Redbone",
     media_artist: "Childish Gambino",
+    entity_picture: ART_AMBER,
     volume_level: 0.35,
     is_volume_muted: false,
     source: "Spotify",

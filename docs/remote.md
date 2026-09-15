@@ -104,6 +104,16 @@ device's own `volume_up` / `volume_down` / `volume_mute` commands are **not** us
 the delegated player's services are. The row stays put (visible but inert) while the
 delegate is asleep, so nothing jumps as the TV wakes.
 
+## Multiple devices & swiping
+
+With `devices:`, swipe left/right on the body (or use the segmented rail) to page
+between them. Because devices differ in shape, the card **reserves the tallest
+panel's height** so paging never jumps. A device with no d-pad — a speaker, or a
+`media_player`-only entry — fills its primary zone with a **now-playing hero** (cover
+art from `entity_picture`, title and artist), so it stands the same height as a TV's
+wheel/touchpad instead of collapsing to a stub. Disable the gesture with
+`swipe: false`; the rail always works.
+
 ## Extra controls (`controls:`)
 
 `controls:` renders whatever the remote can't infer — a picture-style preset, a
