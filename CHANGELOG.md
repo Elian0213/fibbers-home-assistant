@@ -3,6 +3,22 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.0.1] — 2026-09-16
+
+A polish pass on the device swipe, so it reads like a native pager.
+
+### Changed
+
+- **Smoother device swiping.** Paging between `devices:` now renders the neighbouring
+  panel beside the current one and translates the whole track with the finger, so the
+  device you're swiping to is on screen the instant you drag — no more dragging into
+  blank space. Release runs a single, continuous, velocity-aware ease-out to the target
+  rather than the old slide-out-then-slide-in, and a cut-off flick always _finishes_ the
+  slide (it waits for the incoming panel to mount) instead of jumping to the device. The
+  neighbour is staged lazily — only during a drag — and absolutely positioned, so the
+  current panel never shifts as it appears or is dropped. `swipe: false` and
+  `prefers-reduced-motion` behave exactly as before.
+
 ## [2.0.0] — 2026-09-14
 
 The remote grows up. Three additions, none of them breaking: it can now drive the
