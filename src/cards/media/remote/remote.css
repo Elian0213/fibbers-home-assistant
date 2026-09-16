@@ -57,15 +57,41 @@
    imperatively (SlideController.reserve) to the tallest device so paging never
    shrinks the card; align-content keeps a shorter device pinned to the top of it. */
 .deck {
+  min-width: 0;
+  touch-action: pan-y;
+  /* Clips the two-panel track so the staged neighbour and the outgoing panel never
+     paint past the card edge or over the sources column. */
+  overflow: clip;
+}
+/* The translated track: the current panel in flow, plus (mid-slide) the neighbour
+   absolutely positioned one width to the drag side. A full-width translate pages by one.
+   Absolute-positioning the neighbour keeps the current panel fixed at offset 0 whether
+   or not a neighbour is mounted — so it never jumps as the peek is staged/dropped. */
+.track {
+  position: relative;
+  will-change: transform;
+}
+.slidepanel {
   display: grid;
   gap: var(--fib-gap);
   align-content: start;
   min-width: 0;
-  touch-action: pan-y;
-  will-change: transform;
+}
+/* The neighbour is a preview only — out of flow, one width toward the drag, never taking
+   pointer input mid-slide. Default is the next page (to the right); `before` = previous. */
+.slidepanel.peek {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  width: 100%;
+  pointer-events: none;
+}
+.slidepanel.peek.before {
+  left: auto;
+  right: 100%;
 }
 @media (prefers-reduced-motion: reduce) {
-  .deck {
+  .track {
     will-change: auto;
   }
 }

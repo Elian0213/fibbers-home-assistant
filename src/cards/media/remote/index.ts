@@ -76,6 +76,7 @@ import { renderDpad } from "./components/dpad";
 import { renderNav, renderTransport } from "./components/transport";
 import { renderVolRow, renderChannelRow } from "./components/volume";
 import { renderSources, renderControls } from "./components/panel";
+import { makePeekHost } from "./peek-host";
 
 // Config shapes live in ./config alongside the pure validator; re-export so the
 // module's public type surface is unchanged after the split.
@@ -120,6 +121,11 @@ export class FibbersRemote
   private _touchpad?: TouchpadController;
 
   private _slide!: SlideController;
+
+  // The neighbour device index staged beside the current one during a page swipe, or
+  // null at rest. Only set while a horizontal drag is live (SlideController.peek), so
+  // the deck renders a single panel except mid-slide.
+  @state() private _slidePeek: number | null = null;
 
   // The tallest device panel seen so far; the deck reserves it so paging never
   // shrinks the card (only the current device renders, so heights differ per device).
@@ -188,6 +194,7 @@ export class FibbersRemote
     // — the slide's own `committing` guard makes even that safe, but this keeps the
     // abort off the per-switch path entirely.
     this._slide?.abort();
+    this._slidePeek = null;
     // Re-measure the reserved height from scratch — the device list may have changed.
     this._slideMinH = 0;
     this._slide?.reserve(0);
@@ -373,6 +380,10 @@ export class FibbersRemote
   // device after one pass and never shrinks. Reset in setConfig.
   private _reserveDeckHeight(): void {
     if (!this._slide || this._devices.length < 2) return;
+    // Skip while a neighbour is staged: the surface then spans two panels, so its
+    // height would be the taller of the two — over-reserving to a tall neighbour before
+    // it's ever the current device. Non-peek renders (the common case) converge it.
+    if (this._slidePeek != null) return;
     const h = this._slide.measure();
     if (h > this._slideMinH) {
       this._slideMinH = h;
@@ -472,6 +483,15 @@ export class FibbersRemote
   /** Slide host: whether a committed page change should tick. */
   haptics(): boolean {
     return resolveTouchpadOptions(this.dev().touchpad).haptics;
+  }
+
+  /**
+   * Slide host: render the neighbouring device `i` beside the current one (so it's
+   * already on screen as the track is dragged), or null to collapse back to a single
+   * panel. Only ever set while a drag is live.
+   */
+  peek(i: number | null): void {
+    this._slidePeek = i;
   }
 
   /**
@@ -1013,6 +1033,16 @@ export class FibbersRemote
     });
   }
 
+  // One device panel's controls (header · d-pad · nav · transport · volume · channel),
+  // rendered against `host` — the element itself for the current device, or a read-only
+  // peek host for the neighbour that slides in during a swipe.
+  private _panel(host: RemoteHost): TemplateResult {
+    const hl = this.hass;
+    return html`${renderHeader(host, hl)} ${renderDpad(host, hl)}
+    ${renderNav(host, hl)} ${renderTransport(host)} ${renderVolRow(host, hl)}
+    ${renderChannelRow(host)}`;
+  }
+
   /** Draw the card: optional switcher, header, d-pad, transport, volume, channel and sources. */
   render(): TemplateResult {
     const cfg = this.config;
@@ -1022,6 +1052,30 @@ export class FibbersRemote
     const sources = renderSources(this, hl);
     const controls = renderControls(this, hl);
     const two = !!(sources || controls);
+
+    // The track always holds the current panel first (stable DOM, so its interactive
+    // state survives a re-render), then — mid-slide — the staged neighbour. A previous
+    // neighbour is placed visually before the current panel with flex `order`, not by
+    // reordering the DOM, so the current panel is never torn down and rebuilt.
+    const peek = this._slidePeek;
+    const before = peek != null && peek < this._sel;
+    const current = html`<div
+      class="slidepanel"
+      role=${multi ? "tabpanel" : nothing}
+      id=${multi ? "fibpanel" : nothing}
+      aria-labelledby=${multi ? `fibtab-${this._sel}` : nothing}
+    >
+      ${this._panel(this)}
+    </div>`;
+    const neighbour =
+      peek != null
+        ? html`<div
+            class=${cx("slidepanel", "peek", before && "before")}
+            aria-hidden="true"
+          >
+            ${this._panel(makePeekHost(this, peek))}
+          </div>`
+        : nothing;
 
     return html`<div
       class=${cx("card", card(), this.unavail() && "opacity-50")}
@@ -1035,9 +1089,6 @@ export class FibbersRemote
           ${renderSwitcher(this, hl)}
           <div
             class="deck"
-            role=${multi ? "tabpanel" : nothing}
-            id=${multi ? "fibpanel" : nothing}
-            aria-labelledby=${multi ? `fibtab-${this._sel}` : nothing}
             ${ref(this._slide.attach)}
             @pointerdown=${multi ? this._slide.down : nothing}
             @pointermove=${multi ? this._slide.move : nothing}
@@ -1045,9 +1096,9 @@ export class FibbersRemote
             @pointercancel=${multi ? this._slide.cancel : nothing}
             @lostpointercapture=${multi ? this._slide.lost : nothing}
           >
-            ${renderHeader(this, hl)} ${renderDpad(this, hl)}
-            ${renderNav(this, hl)} ${renderTransport(this)}
-            ${renderVolRow(this, hl)} ${renderChannelRow(this)}
+            <div class="track" ${ref(this._slide.attachTrack)}>
+              ${current}${neighbour}
+            </div>
           </div>
         </div>
         ${two ? html`<div class="panel">${sources}${controls}</div>` : ""}

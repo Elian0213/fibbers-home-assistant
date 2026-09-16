@@ -37,10 +37,11 @@ function makeSurface(width = 300) {
   };
 }
 
-/** A fake host recording every page commit. */
+/** A fake host recording every page commit and every peek (neighbour staging). */
 function makeHost(index: number, count: number) {
   return {
     selects: [] as number[],
+    peeks: [] as (number | null)[],
     addController: () => {},
     removeController: () => {},
     requestUpdate: () => {},
@@ -49,6 +50,9 @@ function makeHost(index: number, count: number) {
     index: () => index,
     slideSelect(i: number): void {
       this.selects.push(i);
+    },
+    peek(i: number | null): void {
+      this.peeks.push(i);
     },
     haptics: () => false,
   };
@@ -82,12 +86,14 @@ function pointer(
 
 function setup(index = 0, count = 3, reduced = false) {
   const surface = makeSurface();
+  const track = { style: {} as Record<string, string> };
   const host = makeHost(index, count);
   const ctrl = new SlideController(host);
   ctrl.attach(surface as unknown as Element);
+  ctrl.attachTrack(track as unknown as Element);
   if (reduced)
     (ctrl as unknown as { reducedMotion: boolean }).reducedMotion = true;
-  return { surface, host, ctrl };
+  return { surface, track, host, ctrl };
 }
 
 describe("ownedByChild", () => {
@@ -145,6 +151,25 @@ describe("SlideController", () => {
     ctrl.down(pointer({ clientX: 300, clientY: 0, surface }));
     ctrl.move(pointer({ clientX: 120, clientY: 0 }));
     ctrl.up(pointer({ clientX: 120, clientY: 0 }));
+    expect(host.selects).toEqual([]);
+  });
+
+  test("a horizontal drag stages the neighbour on lock and clears it on release", () => {
+    const { host, ctrl, surface } = setup(0, 3, true);
+    ctrl.down(pointer({ clientX: 300, clientY: 0, surface }));
+    ctrl.move(pointer({ clientX: 120, clientY: 0 })); // drag left → next page (index 1)
+    expect(host.peeks).toEqual([1]); // staged the neighbour we're dragging toward
+    ctrl.up(pointer({ clientX: 120, clientY: 0 }));
+    expect(host.peeks).toEqual([1, null]); // dropped on release
+    expect(host.selects).toEqual([1]);
+  });
+
+  test("a drag at the edge never stages a (non-existent) neighbour", () => {
+    const { host, ctrl, surface } = setup(2, 3, true);
+    ctrl.down(pointer({ clientX: 300, clientY: 0, surface }));
+    ctrl.move(pointer({ clientX: 120, clientY: 0 })); // drag left, but already last
+    ctrl.up(pointer({ clientX: 120, clientY: 0 }));
+    expect(host.peeks).toEqual([null]); // only the release clear, no stage
     expect(host.selects).toEqual([]);
   });
 

@@ -1,10 +1,13 @@
 /* ================================================================== *
  * Shared horizontal slide / paging controller: a Lit ReactiveController that turns a
- * horizontal drag on a surface into a page to the neighbouring item. It follows the
- * finger with a bounded, resisted translate written straight to `element.style`
- * (never through Lit, zero re-renders mid-drag) and, on release, animates the single
- * live panel out, swaps its contents via the host, and animates the new one in from
- * the opposite edge. Reused by any card that pages a surface (the remote's device deck).
+ * horizontal drag on a surface into a page to the neighbouring item. On the first
+ * horizontal move it asks the host to render the neighbouring panel beside the current
+ * one inside a translatable track, then follows the finger by translating that track
+ * straight through `element.style` (never through Lit, zero re-renders mid-drag) — so
+ * the neighbour is already on screen as you drag, no blank. On release it runs ONE
+ * continuous, velocity-aware ease-out to the chosen page (iOS-style), then swaps the
+ * selection via the host and drops the neighbour. Reused by any card that pages a
+ * surface (the remote's device deck).
  *
  * The rule that lets a slider live INSIDE a sliding surface: the gesture DECLINES on
  * pointerdown when the press lands on a child that owns its own horizontal drag (a
@@ -30,11 +33,13 @@ import {
 /** Children that own their own horizontal drag and must not arm the page swipe. */
 const OWN = '[data-fib-gesture="own"],[role="slider"]';
 
-const SNAP_MS = 180; // spring-back when a drag doesn't commit
-const PAGE_MS = 200; // out / in leg of a committed page change
-const EASE = "cubic-bezier(.22,.61,.36,1)";
-// A backgrounded tab never fires `transitionend`; this is the belt-and-braces timer.
-const FALLBACK_MS = 300;
+const MIN_MS = 180; // shortest snap (a fast flick)
+const MAX_MS = 420; // longest snap (a slow, near-full-width drag)
+const V_FLOOR = 0.1; // px/ms — a velocity floor so a slow release still resolves briskly
+const EASE = "cubic-bezier(.22,.61,.36,1)"; // strong-ish ease-out — native paging feel
+// A backgrounded tab never fires `transitionend`; this pads the dynamic duration for
+// the belt-and-braces timer.
+const FALLBACK_PAD = 120;
 
 /**
  * True when the pointerdown landed on something that owns its own drag. Uses
@@ -63,19 +68,27 @@ export interface SlideHost extends ReactiveControllerHost {
   index(): number;
   /** Commit a page change (and announce it, move focus, etc.). */
   slideSelect(i: number): void;
+  /** Render the neighbouring page `i` beside the current one (null clears it). */
+  peek(i: number | null): void;
   /** Whether a haptic tick is wanted for a committed page change. */
   haptics(): boolean;
 }
 
 /**
- * Horizontal page gesture over a list of items: follows the finger with a bounded,
- * resisted translate and commits to the neighbouring item on release. Declines
- * outright when the press lands on a child that owns its own drag.
+ * Horizontal page gesture over a list of items: stages the neighbour in the drag
+ * direction, follows the finger by translating the track, and commits to that
+ * neighbour on release with a single continuous slide. Declines outright when the
+ * press lands on a child that owns its own drag.
  */
 export class SlideController implements ReactiveController {
   private host: SlideHost;
 
+  // The pointer/measurement surface (the clipping `.deck`): width, capture, click-swallow
+  // and the reserved height live here. The translated element is `track`.
   private surface?: HTMLElement;
+
+  // The translated element (the `.track` inside the surface). Transforms go here.
+  private track?: HTMLElement;
 
   private reducedMotion = false;
 
@@ -98,6 +111,10 @@ export class SlideController implements ReactiveController {
 
   private width = 0;
 
+  // Which neighbour is staged: +1 = next (track order [cur,next], rest offset 0),
+  // -1 = prev (order [prev,cur], rest offset -width), 0 = none (edge → rubber-band).
+  private peekDir: 0 | 1 | -1 = 0;
+
   private committing = false;
 
   private swallow = false; // a real drag just happened → eat the trailing click
@@ -107,10 +124,6 @@ export class SlideController implements ReactiveController {
   private pendingMove: PointerEvent | null = null;
 
   private commitTimer?: ReturnType<typeof setTimeout>;
-
-  private inTimer?: ReturnType<typeof setTimeout>;
-
-  private snapTimer?: ReturnType<typeof setTimeout>;
 
   constructor(host: SlideHost) {
     this.host = host;
@@ -138,6 +151,11 @@ export class SlideController implements ReactiveController {
       typeof window !== "undefined" &&
       !!window.matchMedia &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  };
+
+  /** lit `ref` callback for the translated track element (or clear it on unbind). */
+  readonly attachTrack = (el?: Element): void => {
+    this.track = el ? (el as HTMLElement) : undefined;
   };
 
   // Capture phase on the surface, so it runs before the child button's own @click:
@@ -175,12 +193,13 @@ export class SlideController implements ReactiveController {
     this.currentDx = 0;
     this.axis = null;
     this.vX = 0;
+    this.peekDir = 0;
     this.width = this.surface.getBoundingClientRect().width;
     // Do NOT capture the pointer yet — capturing would steal the press from a button
     // that hasn't been clicked. Capture only when the axis locks to 'x'.
   };
 
-  /** Pointer-move: lock the axis, track velocity, and paint once per frame. */
+  /** Pointer-move: lock the axis, stage the neighbour, track velocity, paint once/frame. */
   readonly move = (e: PointerEvent): void => {
     if (e.pointerId !== this.pid) return;
     if (this.axis === "y") return; // decided to let the dashboard scroll
@@ -196,6 +215,7 @@ export class SlideController implements ReactiveController {
       this.axis = "x";
       this.swallow = true; // a real horizontal drag → swallow the trailing click
       capturePointer(this.surface, e.pointerId);
+      this._stagePeek(dx); // render the neighbour we're dragging toward, if any
     }
     // axis === 'x' from here
     if (e.cancelable) e.preventDefault();
@@ -212,18 +232,41 @@ export class SlideController implements ReactiveController {
       this.rafId = requestAnimationFrame(this.frame);
   };
 
-  // One paint per animation frame, straight to the surface's inline transform.
+  // On the first horizontal move, stage the page in the drag direction (left → next,
+  // right → prev) if one exists. No neighbour (first/last page) → peekDir 0, and the
+  // frame painter rubber-bands the lone panel instead.
+  private _stagePeek(dx: number): void {
+    const dir = dx < 0 ? 1 : -1;
+    const neighbour = this.host.index() + dir;
+    if (neighbour >= 0 && neighbour < this.host.count()) {
+      this.peekDir = dir;
+      this.host.peek(neighbour);
+    } else {
+      this.peekDir = 0;
+    }
+  }
+
+  // One paint per animation frame, straight to the track's inline transform.
   private readonly frame = (): void => {
     this.rafId = 0;
-    if (!this.pendingMove || this.axis !== "x" || !this.surface) return;
+    if (!this.pendingMove || this.axis !== "x" || !this.track) return;
     this.pendingMove = null;
-    const edge = atEdge(this.host.index(), this.host.count(), this.currentDx);
-    const x = resist(this.currentDx, this.width, edge);
-    this.surface.style.transition = "none";
-    this.surface.style.transform = `translate3d(${x}px,0,0)`;
+    let x: number;
+    if (this.peekDir === 0) {
+      // No neighbour staged (edge): rubber-band the lone panel.
+      const edge = atEdge(this.host.index(), this.host.count(), this.currentDx);
+      x = resist(this.currentDx, this.width, edge);
+    } else {
+      // A neighbour is staged (absolutely positioned on the drag side). The current
+      // panel rests at 0; follow the finger toward the neighbour, resisting the other
+      // way (nothing there) so an over-drag can't reveal blank.
+      x = this._clampX(this.currentDx);
+    }
+    this.track.style.transition = "none";
+    this.track.style.transform = `translate3d(${x}px,0,0)`;
   };
 
-  /** Pointer-up: snap back, or animate the commit. */
+  /** Pointer-up: snap back, or run the single continuous commit. */
   readonly up = (e: PointerEvent): void => {
     if (e.pointerId !== this.pid) return;
     const { axis } = this;
@@ -242,22 +285,30 @@ export class SlideController implements ReactiveController {
     const count = this.host.count();
     const target = commitTarget(sel, count, dx, this.width, vX);
     if (this.reducedMotion) {
+      this.host.peek(null);
       this._clearTransform();
       if (target !== sel) this.host.slideSelect(target);
-      return;
-    }
-    if (target === sel) {
-      this._snapBack();
+      this.peekDir = 0;
       return;
     }
     this.committing = true;
+    // No neighbour staged (edge drag), or the drag didn't cross the commit threshold:
+    // spring the current panel back to rest.
+    if (this.peekDir === 0 || target === sel) {
+      this._animateTo(0, null);
+      return;
+    }
     if (
       this.host.haptics() &&
       typeof navigator !== "undefined" &&
       navigator.vibrate
     )
       navigator.vibrate(8);
-    this._animateCommit(target, target > sel ? 1 : -1);
+    // Commit: slide the neighbour fully in — left for a next page, right for a prev. Wait
+    // for the staged neighbour to finish rendering first (a fast cut-off flick can release
+    // before it mounts), so it always slides IN rather than the card jumping to it.
+    const endX = this.peekDir > 0 ? -this.width : this.width;
+    this.host.updateComplete.then(() => this._animateTo(endX, target));
   };
 
   /** Pointer-cancel: drop the gesture. */
@@ -272,84 +323,83 @@ export class SlideController implements ReactiveController {
     this._cancelRaf();
     this._releaseCapture();
     clearTimeout(this.commitTimer);
-    clearTimeout(this.inTimer);
-    clearTimeout(this.snapTimer);
     this.pid = -1;
     this.axis = null;
     this.pendingMove = null;
+    this.peekDir = 0;
+    this.host.peek(null);
     this._clearTransform();
   }
 
-  // Spring the panel back to rest — a drag that didn't cross the commit threshold.
-  private _snapBack(): void {
-    const el = this.surface;
-    if (!el) return;
-    el.style.transition = `transform ${SNAP_MS}ms ease-out`;
-    el.style.transform = "translate3d(0,0,0)";
-    const end = (): void => {
-      clearTimeout(this.snapTimer);
-      el.removeEventListener("transitionend", end);
-      el.style.transition = "";
-      el.style.transform = "";
-    };
-    el.addEventListener("transitionend", end);
-    this.snapTimer = setTimeout(end, SNAP_MS + 60);
+  // Clamp the drag offset to the neighbour's side (the current panel rests at 0, the
+  // neighbour sits one width toward the drag): follow the finger into the neighbour, but
+  // resist (rubber-band) the other way, where there's nothing, so it can't reveal blank.
+  private _clampX(dx: number): number {
+    if (this.peekDir > 0) {
+      // Neighbour on the right (next): valid range [-width, 0].
+      if (dx > 0) return resist(dx, this.width, true);
+      if (dx < -this.width)
+        return -this.width + resist(dx + this.width, this.width, true);
+    } else {
+      // Neighbour on the left (prev): valid range [0, width].
+      if (dx < 0) return resist(dx, this.width, true);
+      if (dx > this.width)
+        return this.width + resist(dx - this.width, this.width, true);
+    }
+    return dx;
   }
 
-  // Animate the live panel out one full width, swap its contents through the host,
-  // then bring the new panel in from the opposite edge. `dir` is +1 for next / -1 for
-  // prev. `committing` stays true across the whole two-leg animation so `abort()` and
-  // the host's own reset (which the swap may call) can't clear the transform mid-flight.
-  private _animateCommit(target: number, dir: number): void {
-    const el = this.surface;
+  // A velocity-aware duration: distance to cover ÷ release speed, clamped. A fast flick
+  // finishes near MIN_MS; a slow, near-full-width drag near MAX_MS.
+  private _dur(endX: number): number {
+    const dist = Math.abs(endX - this.currentDx);
+    const v = Math.max(Math.abs(this.vX), V_FLOOR);
+    return Math.round(Math.min(MAX_MS, Math.max(MIN_MS, dist / v)));
+  }
+
+  // The single commit/snap slide: animate the track to `endX`, then (on transitionend
+  // or the fallback timer) swap the selection through the host, drop the neighbour, and
+  // reset the track to rest. `committing` stays true across the whole thing so `abort()`
+  // and the host's own reset can't clear the transform mid-flight.
+  private _animateTo(endX: number, commitTo: number | null): void {
+    const el = this.track;
     if (!el) {
-      this.host.slideSelect(target);
-      this.committing = false;
+      this._finishSlide(commitTo);
       return;
     }
-    // transitionend and the fallback timer both funnel here; whichever wins tears
-    // down the other, so the swap runs exactly once.
+    const dur = this._dur(endX);
     const onEnd = (): void => {
       clearTimeout(this.commitTimer);
       el.removeEventListener("transitionend", onEnd);
-      this.host.slideSelect(target);
-      // Fire-and-forget the second leg once the new panel has rendered.
-      this.host.updateComplete.then(() => this._animateIn(-dir));
+      this._finishSlide(commitTo);
     };
-    el.style.transition = `transform ${PAGE_MS}ms ${EASE}`;
+    el.style.transition = `transform ${dur}ms ${EASE}`;
     el.addEventListener("transitionend", onEnd);
-    this.commitTimer = setTimeout(onEnd, FALLBACK_MS);
+    this.commitTimer = setTimeout(onEnd, dur + FALLBACK_PAD);
     this._reflow(el); // so the transition applies to the change below
-    el.style.transform = `translate3d(${dir > 0 ? -100 : 100}%,0,0)`;
+    el.style.transform = `translate3d(${endX}px,0,0)`;
   }
 
-  // Second leg: the freshly-selected panel slides in from `fromDir` (±1) to rest.
-  private _animateIn(fromDir: number): void {
-    const el = this.surface;
-    if (!el) {
+  // Swap the selection (when committing), drop the neighbour, and — once the collapsed
+  // single panel has rendered — reset the track to rest. Clearing the transform right
+  // after `updateComplete` (a microtask, before paint) avoids a one-frame blank.
+  private _finishSlide(commitTo: number | null): void {
+    if (commitTo !== null) this.host.slideSelect(commitTo);
+    this.host.peek(null);
+    this.host.updateComplete.then(() => {
+      if (this.track) {
+        this.track.style.transition = "";
+        this.track.style.transform = "";
+      }
+      this.peekDir = 0;
       this.committing = false;
-      return;
-    }
-    el.style.transition = "none";
-    el.style.transform = `translate3d(${fromDir > 0 ? 100 : -100}%,0,0)`;
-    this._reflow(el);
-    el.style.transition = `transform ${PAGE_MS}ms ${EASE}`;
-    el.style.transform = "translate3d(0,0,0)";
-    const end = (): void => {
-      clearTimeout(this.inTimer);
-      el.removeEventListener("transitionend", end);
-      el.style.transition = "";
-      el.style.transform = "";
-      this.committing = false;
-    };
-    el.addEventListener("transitionend", end);
-    this.inTimer = setTimeout(end, FALLBACK_MS);
+    });
   }
 
   private _clearTransform(): void {
-    if (!this.surface) return;
-    this.surface.style.transition = "";
-    this.surface.style.transform = "";
+    if (!this.track) return;
+    this.track.style.transition = "";
+    this.track.style.transform = "";
   }
 
   // A synchronous layout read flushes the pending style change so the next transform
