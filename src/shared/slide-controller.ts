@@ -214,7 +214,14 @@ export class SlideController implements ReactiveController {
       }
       this.axis = "x";
       this.swallow = true; // a real horizontal drag → swallow the trailing click
-      capturePointer(this.surface, e.pointerId);
+      // Capture only for MOUSE (the nav bar's wireSwipe rule). Touch/pen give the
+      // pointerdown target IMPLICIT capture (W3C spec): every later event retargets
+      // to that child and still bubbles through this surface, so the drag keeps
+      // flowing even off the deck — no capture needed. Stealing that capture here
+      // fired a bubbling lostpointercapture from the child into `lost`, aborting
+      // the swipe on the first locked move of every touch drag (and WebKit is
+      // buggy about mid-gesture child→ancestor transfers anyway).
+      if (e.pointerType === "mouse") capturePointer(this.surface, e.pointerId);
       this._stagePeek(dx); // render the neighbour we're dragging toward, if any
     }
     // axis === 'x' from here
@@ -314,8 +321,14 @@ export class SlideController implements ReactiveController {
   /** Pointer-cancel: drop the gesture. */
   readonly cancel = (): void => this.abort();
 
-  /** Lost capture: drop the gesture. */
-  readonly lost = (): void => this.abort();
+  /** Lost capture — but only the surface's own. lostpointercapture BUBBLES: a child
+   *  releasing its implicit touch capture (every tap release) reaches this listener
+   *  too, and that's not our loss. Only the surface itself losing capture (a genuine
+   *  mid-drag mouse capture loss) cancels the gesture. */
+  readonly lost = (e: PointerEvent): void => {
+    if (e.target !== this.surface) return;
+    this.abort();
+  };
 
   /** Kill any live gesture and snap home with no animation. No-op mid-commit. */
   abort(): void {

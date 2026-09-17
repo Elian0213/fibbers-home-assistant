@@ -68,6 +68,7 @@ function pointer(
     clientY: number;
     timeStamp: number;
     path: unknown[];
+    target: unknown;
   }> & { surface?: unknown } = {},
 ): PointerEvent {
   const path = props.path ?? (props.surface ? [props.surface] : []);
@@ -78,6 +79,7 @@ function pointer(
     clientX: props.clientX ?? 0,
     clientY: props.clientY ?? 0,
     timeStamp: props.timeStamp ?? 0,
+    target: props.target,
     cancelable: true,
     preventDefault: () => {},
     composedPath: () => path,
@@ -137,13 +139,50 @@ describe("SlideController", () => {
     expect(surface.captures).toBe(0);
   });
 
-  test("a 60%-width drag pages to the next item exactly once", () => {
+  test("a 60%-width touch drag pages once, without explicit capture", () => {
+    // Touch relies on the pointerdown target's implicit capture (events bubble
+    // through the surface); taking explicit capture is what broke touch swiping.
     const { surface, host, ctrl } = setup(0, 3, true);
     ctrl.down(pointer({ clientX: 300, clientY: 0, surface }));
     ctrl.move(pointer({ clientX: 120, clientY: 0 })); // dx = -180 = -60% of 300
     ctrl.up(pointer({ clientX: 120, clientY: 0 }));
     expect(host.selects).toEqual([1]);
+    expect(surface.captures).toBe(0);
+  });
+
+  test("a mouse drag takes explicit capture on axis lock (no implicit capture)", () => {
+    const { surface, host, ctrl } = setup(0, 3, true);
+    ctrl.down(
+      pointer({ pointerType: "mouse", clientX: 300, clientY: 0, surface }),
+    );
+    ctrl.move(pointer({ pointerType: "mouse", clientX: 120, clientY: 0 }));
+    ctrl.up(pointer({ pointerType: "mouse", clientX: 120, clientY: 0 }));
+    expect(host.selects).toEqual([1]);
     expect(surface.captures).toBe(1);
+  });
+
+  test("a child's bubbling lostpointercapture never aborts a live touch drag", () => {
+    // Implicit touch capture releases on every tap/lift and the event BUBBLES —
+    // a child's release reaching the surface listener must not kill the gesture.
+    const { surface, host, ctrl } = setup(0, 3, true);
+    const child = { matches: () => false };
+    ctrl.down(pointer({ clientX: 300, clientY: 0, surface }));
+    ctrl.move(pointer({ clientX: 120, clientY: 0 }));
+    ctrl.lost(pointer({ target: child }));
+    ctrl.up(pointer({ clientX: 120, clientY: 0 }));
+    expect(host.selects).toEqual([1]); // drag survived and committed
+  });
+
+  test("the surface losing its own capture aborts the drag", () => {
+    const { surface, host, ctrl } = setup(0, 3, true);
+    ctrl.down(
+      pointer({ pointerType: "mouse", clientX: 300, clientY: 0, surface }),
+    );
+    ctrl.move(pointer({ pointerType: "mouse", clientX: 120, clientY: 0 }));
+    ctrl.lost(pointer({ target: surface }));
+    ctrl.up(pointer({ pointerType: "mouse", clientX: 120, clientY: 0 }));
+    expect(host.selects).toEqual([]); // gesture dropped, no page
+    expect(host.peeks[host.peeks.length - 1]).toBe(null); // neighbour cleared
   });
 
   test("a drag past the last item clamps (no page)", () => {
