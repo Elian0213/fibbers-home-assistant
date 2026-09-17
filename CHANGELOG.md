@@ -3,6 +3,23 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.0.3] — 2026-09-18
+
+The nav bar's signature gesture comes to the remote.
+
+### Added
+
+- **Slide over the device rail.** The bottom nav bar's slide-to-switch gesture, now
+  on the remote's device switcher: put a finger anywhere on the rail and drag, and a
+  floating pill follows it, morphing between the tabs — release snaps to the nearest
+  device, a decisive flick advances at least one, and the ends rubber-band. Built on
+  the exact touch model the nav bar (and 2.0.2's deck fix) proved out: no explicit
+  capture on touch — the pointerdown target's implicit capture does the work — and
+  only the rail's _own_ capture loss cancels a drag. A real drag swallows the
+  trailing click, so a swipe that lifts over a tab never also presses it. Taps, the
+  keyboard arrows and the deck swipe below are untouched, and vertical pans still
+  scroll the dashboard.
+
 ## [2.0.2] — 2026-09-18
 
 Device swiping finally works where it matters most: on a touchscreen.
