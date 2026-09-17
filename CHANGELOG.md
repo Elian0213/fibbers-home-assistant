@@ -3,6 +3,28 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.0.2] — 2026-09-18
+
+Device swiping finally works where it matters most: on a touchscreen.
+
+### Fixed
+
+- **Swiping between devices now works on touch.** The page-swipe controller took
+  explicit pointer capture on the deck the moment a drag locked horizontal. On a
+  touchscreen the finger's pointerdown target (a button, the panel) already holds
+  _implicit_ pointer capture — so the steal fired a bubbling `lostpointercapture`
+  from that child straight into the controller's own cancel handler, aborting every
+  swipe a few pixels in. Mouse pointers get no implicit capture, which is why desktop
+  stayed silky while touch was dead. Same bug class the nav bar fixed in 1.0.3, and
+  now the same cure: capture explicitly only for mouse (touch rides the child's
+  implicit capture, whose events bubble through the deck), and only the deck's _own_
+  capture loss cancels a drag.
+
+### Internal
+
+- Dropped the unused `@lit-labs/signals` dependency — never imported, so the bundle
+  is byte-identical; it was install-time weight only.
+
 ## [2.0.1] — 2026-09-16
 
 A polish pass on the device swipe, so it reads like a native pager.
