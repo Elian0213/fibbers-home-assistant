@@ -19,6 +19,7 @@ import {
   volumeDelegated,
 } from "./device";
 import type { RemoteDevice } from "./config";
+import type { RailSwipe } from "./rail-swipe";
 import type { TouchpadController } from "./touchpad-controller";
 import type { RemoteHost } from "./host";
 
@@ -51,6 +52,17 @@ const INERT_TOUCHPAD = {
 } as unknown as TouchpadController;
 
 const INERT_SWIPE = { start: noop, end: noop, cancel: noop };
+
+// A RailSwipe-shaped stub — the switcher renders outside the deck (never against
+// this proxy), but the host contract carries it, so satisfy it inertly.
+const INERT_RAIL = {
+  attach: noop,
+  down: noop,
+  move: noop,
+  up: noop,
+  cancel: noop,
+  lost: noop,
+} as unknown as RailSwipe;
 
 const INERT_SCRUB = {
   step: noop,
@@ -86,6 +98,7 @@ export function makePeekHost(real: RemoteHost, index: number): RemoteHost {
     touchpad: INERT_TOUCHPAD,
     swipe: INERT_SWIPE,
     scrub: INERT_SCRUB,
+    rail: INERT_RAIL,
 
     // reads — resolve the neighbour device
     dev,

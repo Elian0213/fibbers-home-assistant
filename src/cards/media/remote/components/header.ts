@@ -3,6 +3,7 @@
  * (badge · name/now-playing · power). Pure view functions over a RemoteHost.
  * ================================================================== */
 import { html, nothing, type TemplateResult } from "lit";
+import { ref } from "lit/directives/ref.js";
 
 import { t } from "@shared/i18n";
 
@@ -43,12 +44,22 @@ export function renderSwitcher(
   hl: unknown,
 ): TemplateResult | string {
   if (host.devices.length <= 1) return "";
+  // The rind span is the drag pill (RailSwipe positions it imperatively); first
+  // child so the tabs paint over it. Pointer handlers are the slide-to-switch
+  // gesture — taps fall through to each tab's own @click.
   return html`<div
     class="rail"
     role="tablist"
     aria-label=${t(hl, "remote.devices")}
+    ${ref(host.rail.attach)}
     @keydown=${(e: KeyboardEvent) => switcherKey(host, e)}
+    @pointerdown=${host.rail.down}
+    @pointermove=${host.rail.move}
+    @pointerup=${host.rail.up}
+    @pointercancel=${host.rail.cancel}
+    @lostpointercapture=${host.rail.lost}
   >
+    <span class="rind" aria-hidden="true"></span>
     ${host.devices.map((d, i) => {
       const sel = i === host.sel;
       return html`<button

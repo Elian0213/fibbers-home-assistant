@@ -61,6 +61,7 @@ import {
 import { ctlBounds, ctlRawValue, ctlSnap, ctlValFromX } from "./ctl-math";
 import { livePosition, resolveTouchpadOptions } from "./touchpad-math";
 import { TouchpadController, type PlaybackInfo } from "./touchpad-controller";
+import { RailSwipe } from "./rail-swipe";
 
 import {
   validateRemoteConfig,
@@ -121,6 +122,8 @@ export class FibbersRemote
   private _touchpad?: TouchpadController;
 
   private _slide!: SlideController;
+
+  private _railSwipe!: RailSwipe;
 
   // The neighbour device index staged beside the current one during a page swipe, or
   // null at rest. Only set while a horizontal drag is live (SlideController.peek), so
@@ -252,6 +255,11 @@ export class FibbersRemote
     // the SlideHost — `SlideHost extends ReactiveControllerHost`, so pass `this`.
     if (!this._slide) this._slide = new SlideController(this);
 
+    // The rail's slide-to-switch gesture (same once-only construction; it reads
+    // count/index/slideSelect off the element, the same trio the deck swipe uses).
+    if (!this._railSwipe) this._railSwipe = new RailSwipe(this);
+    this._railSwipe.abort(); // a live rail drag must not survive a re-config
+
     // Controls panel: per-select drawer state + per-slider (light/number) hold + drag
     // gesture. Reuse existing controllers by entity so HA's per-keystroke setConfig
     // can't stack a fresh SliderHold on the host; drop controllers for entities that
@@ -318,6 +326,7 @@ export class FibbersRemote
         this.release();
         this._touchpad?.abort(); // momentum/scrub must not run in a hidden tab
         this._slide?.abort(); // a half-finished swipe must not resume on return
+        this._railSwipe?.abort(); // nor a half-finished rail drag
       }
     };
     document.addEventListener("visibilitychange", this._onHidden);
@@ -443,6 +452,11 @@ export class FibbersRemote
   /** The touchpad gesture controller — constructed once in setConfig, before render. */
   get touchpad(): TouchpadController {
     return this._touchpad!;
+  }
+
+  /** The rail's slide-to-switch controller — constructed once in setConfig, before render. */
+  get rail(): RailSwipe {
+    return this._railSwipe;
   }
 
   /** Toggle the source-chip overflow drawer. */

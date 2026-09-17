@@ -8,6 +8,7 @@ import type { SliderController } from "@shared/ui";
 import type { HomeAssistant, HassEntity } from "@/types/home-assistant";
 
 import type { RemoteDevice } from "./config";
+import type { RailSwipe } from "./rail-swipe";
 import type { TouchpadController } from "./touchpad-controller";
 
 /** The card surface the view components read state from and drive actions through. */
@@ -36,6 +37,9 @@ export interface RemoteHost {
 
   // the touchpad gesture controller (dpad: touchpad)
   readonly touchpad: TouchpadController;
+
+  // the rail's slide-to-switch gesture controller
+  readonly rail: RailSwipe;
 
   // actions
   send(key: string): Promise<void>;

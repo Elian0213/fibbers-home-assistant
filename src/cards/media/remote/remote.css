@@ -124,18 +124,45 @@
   }
 }
 
-/* device switcher rail */
+/* device switcher rail — position:relative anchors the drag pill (.rind), and
+   pan-y mirrors the deck: vertical pans stay the dashboard's, horizontal drags are
+   the slide-to-switch gesture (rail-swipe.ts). */
 .rail {
+  position: relative;
   display: flex;
   gap: 5px;
   padding: 4px;
   border-radius: 14px;
   background: var(--color-card2);
   border: 1px solid var(--color-line);
+  touch-action: pan-y;
+}
+/* The drag pill: the selected-tab style on a floating element RailSwipe drives
+   imperatively. First child, so the tabs (and their labels) paint over it. */
+.rail .rind {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 10px;
+  background: var(--color-accentbg);
+  border: 1px solid var(--color-accentline);
+  opacity: 0;
+  pointer-events: none;
+}
+/* Mid-drag the pill IS the selection: mute the static selected tab and let the
+   one under the pill (data-over) read accent instead. */
+.rail[data-drag] button[aria-selected="true"] {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-muted);
+}
+.rail[data-drag] button[data-over] {
+  color: var(--color-accenttx);
 }
 .rail button {
   flex: 1;
   min-width: 0;
+  touch-action: pan-y;
   min-height: max(36px, calc(var(--rc-hit) - 10px));
   border: 1px solid transparent;
   border-radius: 10px;
