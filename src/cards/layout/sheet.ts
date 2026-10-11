@@ -155,11 +155,6 @@ export class FibbersSheet extends LitElement implements LovelaceCard {
     return 1;
   }
 
-  /** Full-width, single-row footprint in the sections/grid layout. */
-  getLayoutOptions(): { grid_columns: string; grid_rows: number } {
-    return { grid_columns: "full", grid_rows: 1 };
-  }
-
   /** Pin to a 1×1 minimum so the invisible card never stretches the grid. */
   getGridOptions(): {
     columns: number;

@@ -361,11 +361,6 @@ export class FibbersAlarm extends LitElement implements LovelaceCard {
     return 4;
   }
 
-  /** Sections view: full width, ~4 rows. */
-  getLayoutOptions(): { grid_columns: string; grid_rows: number } {
-    return { grid_columns: "full", grid_rows: 4 };
-  }
-
   /** Grid layout: min 6 columns, auto height. */
   getGridOptions(): { columns: number; rows: string } {
     return { columns: 6, rows: "auto" };

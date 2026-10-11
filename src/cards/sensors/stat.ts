@@ -276,11 +276,6 @@ export class FibbersStat extends LitElement implements LovelaceCard {
     return 1;
   }
 
-  /** Legacy sections-view sizing (grid_columns/grid_rows). */
-  getLayoutOptions(): { grid_columns: number; grid_rows: number } {
-    return { grid_columns: 6, grid_rows: 1 };
-  }
-
   /** Current sections-view sizing — half-width, auto height, min 3 columns. */
   getGridOptions(): { columns: number; rows: string; min_columns: number } {
     return { columns: 6, rows: "auto", min_columns: 3 };

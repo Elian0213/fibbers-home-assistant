@@ -371,11 +371,6 @@ export class FibbersLightDetail
     return 5;
   }
 
-  /** Sections view: full width, auto height. */
-  getLayoutOptions(): { grid_columns: string; grid_rows: string } {
-    return { grid_columns: "full", grid_rows: "auto" };
-  }
-
   /** Grid view: auto. */
   getGridOptions(): { columns: string; rows: string } {
     return { columns: "full", rows: "auto" };

@@ -271,11 +271,6 @@ export class FibbersEntities extends LitElement implements LovelaceCard {
     return 2;
   }
 
-  /** Legacy sections-view sizing (grid_columns/grid_rows). */
-  getLayoutOptions(): { grid_columns: string; grid_rows: number } {
-    return { grid_columns: "full", grid_rows: 2 };
-  }
-
   /** Current sections-view sizing — full width, auto height. */
   getGridOptions(): { columns: string; rows: string } {
     return { columns: "full", rows: "auto" };

@@ -580,11 +580,6 @@ export class FibbersMaster extends LitElement implements LovelaceCard {
     return 2;
   }
 
-  /** Sections view: full width, two rows. */
-  getLayoutOptions(): { grid_columns: string; grid_rows: number } {
-    return { grid_columns: "full", grid_rows: 2 };
-  }
-
   /** Grid layout: full width, auto height. */
   getGridOptions(): { columns: string; rows: string } {
     return { columns: "full", rows: "auto" };

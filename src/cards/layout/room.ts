@@ -254,11 +254,6 @@ export class FibbersRoom extends LitElement implements LovelaceCard {
     return 1;
   }
 
-  /** Half-width (6-of-12) single-row footprint — two rooms per row. */
-  getLayoutOptions(): { grid_columns: number; grid_rows: number } {
-    return { grid_columns: 6, grid_rows: 1 };
-  }
-
   /** Half-width by default, down to a quarter (min 3) when the grid is tight. */
   getGridOptions(): { columns: number; rows: string; min_columns: number } {
     return { columns: 6, rows: "auto", min_columns: 3 };

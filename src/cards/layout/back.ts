@@ -131,11 +131,6 @@ export class FibbersBack extends LitElement implements LovelaceCard {
     return 1;
   }
 
-  /** Full-width, single-row footprint in the sections/grid layout. */
-  getLayoutOptions(): { grid_columns: string; grid_rows: number } {
-    return { grid_columns: "full", grid_rows: 1 };
-  }
-
   /** Span the full grid width; height follows content. */
   getGridOptions(): { columns: string; rows: string } {
     return { columns: "full", rows: "auto" };

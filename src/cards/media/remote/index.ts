@@ -1139,11 +1139,6 @@ export class FibbersRemote
     return 4;
   }
 
-  /** Sections-view layout: full-width when there's a d-pad, else a narrow speaker column. */
-  getLayoutOptions(): { grid_columns: string | number; grid_rows: string } {
-    return { grid_columns: this._needsDpad() ? "full" : 6, grid_rows: "auto" };
-  }
-
   /** Grid-view sizing: wide for a d-pad, narrower for a speaker-only remote. */
   getGridOptions(): {
     columns: number;

@@ -435,11 +435,6 @@ export class FibbersLightGroup extends LitElement implements LovelaceCard {
     return 2;
   }
 
-  /** Sections-view layout: full-width, two rows tall. */
-  getLayoutOptions(): { grid_columns: string; grid_rows: number } {
-    return { grid_columns: "full", grid_rows: 2 };
-  }
-
   /** Grid-view sizing: full-width, auto height. */
   getGridOptions(): { columns: string; rows: string } {
     return { columns: "full", rows: "auto" };

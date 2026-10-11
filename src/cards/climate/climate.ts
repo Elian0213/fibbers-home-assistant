@@ -267,11 +267,6 @@ export class FibbersClimate extends LitElement implements LovelaceCard {
     return 3;
   }
 
-  /** Masonry layout hint — full width, 3 rows. */
-  getLayoutOptions(): { grid_columns: string; grid_rows: number } {
-    return { grid_columns: "full", grid_rows: 3 };
-  }
-
   /** Sections-view grid hint — full width, auto rows. */
   getGridOptions(): { columns: string; rows: string } {
     return { columns: "full", rows: "auto" };
