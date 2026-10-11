@@ -164,9 +164,20 @@ let drawerMO: MutationObserver | null = null;
 let barRO: ResizeObserver | null = null;
 let insetScheduled = false;
 
+// HA's shell elements, cached: deepFind walks every shadow tree in the document,
+// and the inset is recomputed every frame while the sidebar animates. Re-found
+// only once the cached node has left the DOM (an HA frontend reload).
+const shellCache: Record<string, Element | null> = {};
+function shellEl(tag: "ha-drawer" | "ha-sidebar"): Element | null {
+  const hit = shellCache[tag];
+  if (hit && hit.isConnected) return hit;
+  shellCache[tag] = deepFind(tag);
+  return shellCache[tag];
+}
+
 function computeInset(): number {
   if (!bar.config || bar.config.respect_sidebar === false) return 0;
-  const drawer = deepFind("ha-drawer");
+  const drawer = shellEl("ha-drawer");
   if (drawer && drawer.getAttribute("type") === "modal") return 0; // narrow → overlay
   // HA's dockedSidebar is really a string ("docked" | "always_hidden" | "auto") —
   // custom-card-helpers just types it boolean.
@@ -176,7 +187,7 @@ function computeInset(): number {
       "always_hidden"
   )
     return 0;
-  const sidebar = deepFind("ha-sidebar");
+  const sidebar = shellEl("ha-sidebar");
   const w = sidebar ? sidebar.getBoundingClientRect().width : 0;
   return w > 0 ? Math.round(w) : 0;
 }
@@ -184,7 +195,7 @@ function computeInset(): number {
 // Attach the observers once HA's shell exists; idempotent, safe to re-call.
 function observeSidebar(): void {
   if (!sidebarRO && window.ResizeObserver) {
-    const sidebar = deepFind("ha-sidebar");
+    const sidebar = shellEl("ha-sidebar");
     if (sidebar) {
       // scheduleInset ↔ syncSidebarInset ↔ observeSidebar form a cycle (rAF-broken).
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -193,7 +204,7 @@ function observeSidebar(): void {
     }
   }
   if (!drawerMO && window.MutationObserver) {
-    const drawer = deepFind("ha-drawer");
+    const drawer = shellEl("ha-drawer");
     if (drawer) {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define -- same rAF-broken cycle
       drawerMO = new MutationObserver(scheduleInset); // narrow ↔ wide flip
