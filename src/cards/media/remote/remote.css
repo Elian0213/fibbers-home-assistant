@@ -292,9 +292,12 @@
   place-items: center;
 }
 .power.on {
-  border-color: #3f3335;
-  background: #252021;
-  color: #c98679;
+  border-color: var(--color-redline);
+  background: var(--color-redbg);
+  color: var(--color-red);
+}
+.power.flash {
+  opacity: 0.4;
 }
 
 /* the wheel: one SVG donut, four true sectors + a hub */

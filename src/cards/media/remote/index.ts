@@ -739,23 +739,32 @@ export class FibbersRemote
     }, 500);
   }
 
+   * Philips goes state-driven through its media_player (falling back to the remote):
+   * the blind `Standby` key can't wake a TV in standby — philips_js can't deliver
+   * keys then — while `turn_on` uses the TV's power-state API or fires the
+   * integration's "turn on requested" trigger (a Wake-on-LAN automation).
   /**
    * Toggle power. Apple TV power lives on the remote's own turn_on/turn_off/toggle
    * services, not in the command map; direction follows the remote's own state.
    */
   power(): Promise<void> | void {
-    if (this._device() !== "appletv") return this.send("power");
+    const kind = this._device();
+    if (kind !== "appletv" && kind !== "philips") return this.send("power");
     const id = this.dev().entity;
     // eslint-disable-next-line consistent-return -- guard-return mirrors the original
     if (!id || !this.hass || this.unavail()) return;
-    const st = this._st();
+    const mp = kind === "philips" ? this.mp() : null;
+    const domain = mp ? "media_player" : "remote";
+    const target = mp ? mp.entity_id : id;
+    const st = mp || this._st();
     const on = st ? !OFF_STATES.includes(st.state) : null;
     let svc: string;
-    if (on === null) svc = "toggle";
+    if (on === null) svc = kind === "philips" ? "turn_on" : "toggle";
     else svc = on ? "turn_off" : "turn_on";
-    return this.hass
-      .callService("remote", svc, { entity_id: id })
-      .catch((e) => this._flashFail(id, "power", e, `remote.${svc}`));
+    this._tick(8);
+    return Promise.resolve(
+      this.hass.callService(domain, svc, { entity_id: target }),
+    ).catch((e) => this._flashFail(id, "power", e, `${domain}.${svc}`));
   }
 
   // Returns the call promise so callers can react to a rejection (a stuck optimistic

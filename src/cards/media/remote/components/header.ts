@@ -120,7 +120,7 @@ export function renderHeader(host: RemoteHost, hl: unknown): TemplateResult {
       d.entity
         ? html`<button
             type="button"
-            class="power ${on ? "on" : ""}"
+            class="power ${on ? "on" : ""} ${host.flash === "power" ? "flash" : ""}"
             aria-label="Power"
             @click=${() => host.power()}
           >
