@@ -15,7 +15,11 @@ import {
   favSources,
   volumeEntityId,
   volumeDelegated,
+  powerPlan,
+  RECONNECT_TIMEOUT_MS,
+  type PowerStep,
 } from "./device";
+import type { RemoteDevice } from "./config";
 
 const platform = new Map<string, string>([
   ["remote.tv", "apple_tv"],
@@ -111,6 +115,131 @@ describe("isDeviceOn", () => {
   test("missing entity → false", () => {
     expect(isDeviceOn(hass, { entity: "remote.absent" })).toBe(false);
     expect(isDeviceOn(undefined, { entity: "remote.on" })).toBe(false);
+  });
+
+  test("the media_player wins over a connected-but-asleep Apple TV remote", () => {
+    const h = {
+      states: {
+        "remote.atv": { state: "on", attributes: {} },
+        "media_player.atv": { state: "off", attributes: {} },
+      },
+    } as unknown as HomeAssistant;
+    expect(
+      isDeviceOn(h, { entity: "remote.atv", media_player: "media_player.atv" }),
+    ).toBe(false);
+  });
+});
+
+describe("powerPlan", () => {
+  const ATV: RemoteDevice = {
+    device: "appletv",
+    entity: "remote.living_room",
+    media_player: "media_player.living_room",
+  };
+  const TV: RemoteDevice = {
+    device: "philips",
+    entity: "remote.tv",
+    media_player: "media_player.tv",
+  };
+  const kindOf = (d: RemoteDevice): string => d.device || "generic";
+  const mk = (s: Record<string, string>): HomeAssistant =>
+    ({
+      states: Object.fromEntries(
+        Object.entries(s).map(([k, state]) => [k, { state, attributes: {} }]),
+      ),
+    }) as unknown as HomeAssistant;
+  const plan = (h: HomeAssistant, d: RemoteDevice) =>
+    powerPlan(h, d, kindOf(d), [TV, ATV], kindOf);
+  const svc = (domain: string, service: string, entity: string): PowerStep => ({
+    kind: "call",
+    domain,
+    service,
+    entity,
+  });
+  const wait = (entity: string): PowerStep => ({
+    kind: "wait_on",
+    entity,
+    timeoutMs: RECONNECT_TIMEOUT_MS,
+  });
+
+  test("asleep Apple TV, HA connected → media_player.turn_on (the iOS wake)", () => {
+    const h = mk({
+      "remote.living_room": "on",
+      "media_player.living_room": "off",
+    });
+    expect(plan(h, ATV)).toEqual([
+      svc("media_player", "turn_on", "media_player.living_room"),
+    ]);
+  });
+
+  test("HA disconnected → reconnect, wait, then wake", () => {
+    const h = mk({
+      "remote.living_room": "off",
+      "media_player.living_room": "off",
+    });
+    expect(plan(h, ATV)).toEqual([
+      svc("remote", "turn_on", "remote.living_room"),
+      wait("remote.living_room"),
+      svc("media_player", "turn_on", "media_player.living_room"),
+    ]);
+  });
+
+  test("awake Apple TV → media_player.turn_off, never remote.turn_off", () => {
+    const h = mk({
+      "remote.living_room": "on",
+      "media_player.living_room": "playing",
+    });
+    expect(plan(h, ATV)).toEqual([
+      svc("media_player", "turn_off", "media_player.living_room"),
+    ]);
+  });
+
+  test("Philips follows its media_player state", () => {
+    expect(plan(mk({ "media_player.tv": "standby" }), TV)).toEqual([
+      svc("media_player", "turn_on", "media_player.tv"),
+    ]);
+    expect(plan(mk({ "media_player.tv": "on" }), TV)).toEqual([
+      svc("media_player", "turn_off", "media_player.tv"),
+    ]);
+  });
+
+  test("power_on pointing at the Apple TV wakes it the Apple TV way", () => {
+    const tv = { ...TV, power_on: "media_player.living_room" };
+    const h = mk({
+      "media_player.tv": "standby",
+      "remote.living_room": "off",
+      "media_player.living_room": "off",
+    });
+    expect(plan(h, tv)).toEqual([
+      svc("remote", "turn_on", "remote.living_room"),
+      wait("remote.living_room"),
+      svc("media_player", "turn_on", "media_player.living_room"),
+    ]);
+  });
+
+  test("power_on only applies while off; power_off overrides while on", () => {
+    const tv = {
+      ...TV,
+      power_on: "media_player.living_room",
+      power_off: "switch.tv_plug",
+    };
+    expect(plan(mk({ "media_player.tv": "on" }), tv)).toEqual([
+      svc("switch", "turn_off", "switch.tv_plug"),
+    ]);
+  });
+
+  test("an action override runs as-is", () => {
+    const action = { action: "perform-action", perform_action: "script.tv_on" };
+    expect(
+      plan(mk({ "media_player.tv": "off" }), { ...TV, power_on: action }),
+    ).toEqual([{ kind: "action", action }]);
+  });
+
+  test("other platforms send the power key", () => {
+    const droid = { device: "androidtv", entity: "remote.droid" };
+    expect(plan(mk({ "remote.droid": "on" }), droid)).toEqual([
+      { kind: "key" },
+    ]);
   });
 });
 

@@ -3,6 +3,7 @@
  * element's `setConfig` delegates to. Kept side-effect-free so it's unit-tested
  * directly (config.test.ts) and never touches the live element.
  * ================================================================== */
+import type { ActionConfig } from "@shared/actions";
 import type { LovelaceCardConfig } from "@/types/home-assistant";
 import {
   COMMANDS,
@@ -40,6 +41,10 @@ export interface RemoteDevice {
   sources?: "auto" | (string | ChipItem)[];
   favourites?: string[];
   controls?: RemoteControl[];
+  /** What the power button does while the device is off: an entity id to turn on, or an HA action. */
+  power_on?: string | ActionConfig;
+  /** What the power button does while the device is on: an entity id to turn off, or an HA action. */
+  power_off?: string | ActionConfig;
 }
 
 /** YAML/editor config accepted by `fibbers-remote`. */
@@ -115,11 +120,6 @@ export function validateRemoteConfig(config: RemoteConfig): RemoteDevice[] {
           "fibbers-remote: `touchpad.sensitivity` must be a number between 0.25 and 4",
         );
       }
-    }
-    if (
-      d.sources != null &&
-      d.sources !== "auto" &&
-      !Array.isArray(d.sources)
       const { size } = d.touchpad;
       if (
         size != null &&
@@ -134,6 +134,25 @@ export function validateRemoteConfig(config: RemoteConfig): RemoteDevice[] {
           `fibbers-remote: \`touchpad.size\` must be "compact", "large" or a number of px between ${TOUCHPAD_SIZE_MIN} and ${TOUCHPAD_SIZE_MAX}`,
         );
       }
+    }
+    (["power_on", "power_off"] as const).forEach((k) => {
+      const v = d[k];
+      if (v == null) return;
+      const entityOk = typeof v === "string" && /^[a-z_]+\.[\w]+$/.test(v);
+      const actionOk =
+        typeof v === "object" &&
+        !Array.isArray(v) &&
+        typeof v.action === "string";
+      if (!entityOk && !actionOk) {
+        throw new Error(
+          `fibbers-remote: device[${i}] \`${k}\` must be an entity id (e.g. media_player.living_room) or an action ({ action: perform-action, … })`,
+        );
+      }
+    });
+    if (
+      d.sources != null &&
+      d.sources !== "auto" &&
+      !Array.isArray(d.sources)
     ) {
       throw new Error('fibbers-remote: `sources` must be "auto" or a list');
     }

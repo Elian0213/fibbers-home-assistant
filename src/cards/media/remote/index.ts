@@ -37,7 +37,7 @@ import {
   store,
   capturePointer,
 } from "@shared/util";
-import { setLightBrightness } from "@shared/actions";
+import { runAction, setLightBrightness } from "@shared/actions";
 import { card, cx } from "@shared/variants";
 import { SlideController, type SlideHost } from "@shared/slide-controller";
 import type {
@@ -49,12 +49,13 @@ import type {
 // CSS-shaped styling utilities can't express. Vite inlines it; one-file bundle unchanged.
 import remoteCss from "./remote.css?inline";
 import "@shared/icon";
-import { OFF_STATES, GONE_STATES, MF_SEEK, MF_PLAY, MF_PAUSE } from "./const";
+import { GONE_STATES, MF_SEEK, MF_PLAY, MF_PAUSE } from "./const";
 import {
   deviceKind,
   cmdFor,
   deviceUnavail,
   mpSupports,
+  powerPlan,
   volumeEntityId,
   volumeDelegated,
 } from "./device";
@@ -573,11 +574,6 @@ export class FibbersRemote
     return volumeDelegated(this.dev());
   }
 
-  private _st(): HassEntity | null {
-    const id = this.dev().entity;
-    return id && this.hass ? this.hass.states[id] : null;
-  }
-
   /** True when the current device's primary entity is unavailable. */
   unavail(): boolean {
     return deviceUnavail(this.hass, this.dev());
@@ -737,31 +733,61 @@ export class FibbersRemote
   }
 
   /**
-   * Toggle power. Apple TV power lives on the remote's own turn_on/turn_off/toggle
-   * services, not in the command map; direction follows the remote's own state.
-   * Philips goes state-driven through its media_player (falling back to the remote):
-   * the blind `Standby` key can't wake a TV in standby — philips_js can't deliver
-   * keys then — while `turn_on` uses the TV's power-state API or fires the
-   * integration's "turn on requested" trigger (a Wake-on-LAN automation).
+   * Toggle power by running the device's {@link powerPlan}: an Apple TV wakes and
+   * sleeps through its media_player like the iOS remote (reconnecting Home Assistant
+   * first when needed); Philips goes state-driven through its media_player; a
+   * per-device `power_on` / `power_off` overrides either direction; everything else
+   * sends the `power` key.
    */
-  power(): Promise<void> | void {
-    const kind = this._device();
-    if (kind !== "appletv" && kind !== "philips") return this.send("power");
-    const id = this.dev().entity;
-    // eslint-disable-next-line consistent-return -- guard-return mirrors the original
+  async power(): Promise<void> {
+    const d = this.dev();
+    const id = d.entity;
     if (!id || !this.hass || this.unavail()) return;
-    const mp = kind === "philips" ? this.mp() : null;
-    const domain = mp ? "media_player" : "remote";
-    const target = mp ? mp.entity_id : id;
-    const st = mp || this._st();
-    const on = st ? !OFF_STATES.includes(st.state) : null;
-    let svc: string;
-    if (on === null) svc = kind === "philips" ? "turn_on" : "toggle";
-    else svc = on ? "turn_off" : "turn_on";
+    const steps = powerPlan(this.hass, d, this._device(), this._devices, (x) =>
+      this.kindOf(x),
+    );
+    if (steps.length === 1 && steps[0].kind === "key") {
+      await this.send("power");
+      return;
+    }
     this._tick(8);
-    return Promise.resolve(
-      this.hass.callService(domain, svc, { entity_id: target }),
-    ).catch((e) => this._flashFail(id, "power", e, `${domain}.${svc}`));
+    let label = "power";
+    try {
+      // Sequential on purpose: a wake must reconnect before it can turn_on.
+      for (const s of steps) {
+        if (s.kind === "call") {
+          label = `${s.domain}.${s.service}`;
+          // eslint-disable-next-line no-await-in-loop -- each step depends on the last
+          await this.hass.callService(s.domain, s.service, {
+            entity_id: s.entity,
+          });
+        } else if (s.kind === "wait_on") {
+          label = `${s.entity} reconnect`;
+          // eslint-disable-next-line no-await-in-loop -- see above
+          await this._waitForOn(s.entity, s.timeoutMs);
+        } else if (s.kind === "action") {
+          label = "power action";
+          runAction(s.action, this.hass, this);
+        }
+      }
+    } catch (e) {
+      this._flashFail(id, "power", e, label);
+    }
+  }
+
+  // Resolve once `entity` reports `on` (Home Assistant reconnected to the Apple TV),
+  // reject after `timeoutMs`. hass pushes land on this.hass, so a short poll is enough.
+  private _waitForOn(entity: string, timeoutMs: number): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    return new Promise((resolve, reject) => {
+      const check = (): void => {
+        if (this.hass?.states[entity]?.state === "on") resolve();
+        else if (Date.now() >= deadline)
+          reject(new Error(`${entity} did not reconnect`));
+        else setTimeout(check, 250);
+      };
+      check();
+    });
   }
 
   // Returns the call promise so callers can react to a rejection (a stuck optimistic

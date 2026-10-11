@@ -178,6 +178,35 @@ describe("validateRemoteConfig", () => {
     };
     expect(() => validateRemoteConfig(cfg as RemoteConfig)).not.toThrow();
   });
+
+  test("touchpad.size accepts compact / large / px in range", () => {
+    const ok = (size: unknown) => () =>
+      validateRemoteConfig({
+        type: "custom:fibbers-remote",
+        entity: "remote.tv",
+        touchpad: { size },
+      } as unknown as RemoteConfig);
+    expect(ok("compact")).not.toThrow();
+    expect(ok("large")).not.toThrow();
+    expect(ok(300)).not.toThrow();
+    expect(ok("huge")).toThrow(/`touchpad.size` must be "compact", "large"/);
+    expect(ok(1000)).toThrow(/between 160 and 480/);
+  });
+
+  test("power_on / power_off take an entity id or an action", () => {
+    const cfg = (power_on: unknown) => () =>
+      validateRemoteConfig({
+        type: "custom:fibbers-remote",
+        entity: "remote.tv",
+        power_on,
+      } as unknown as RemoteConfig);
+    expect(cfg("media_player.living_room")).not.toThrow();
+    expect(
+      cfg({ action: "perform-action", perform_action: "script.tv_on" }),
+    ).not.toThrow();
+    expect(cfg("living room")).toThrow(/`power_on` must be an entity id/);
+    expect(cfg({ perform_action: "script.x" })).toThrow(/`power_on`/);
+  });
 });
 
 describe("controlKind", () => {

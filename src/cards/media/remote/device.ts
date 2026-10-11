@@ -3,6 +3,7 @@
  * command family, icon, on/off state, per-key command string, supported-features
  * bits, and the source/favourite chip lists. No element state, so unit-testable.
  * ================================================================== */
+import type { ActionConfig } from "@shared/actions";
 import { isUnavail } from "@shared/util";
 import type { HomeAssistant, HassEntity } from "@/types/home-assistant";
 
@@ -46,15 +47,99 @@ export function cmdFor(
   return (COMMANDS[kind] || {})[key];
 }
 
-/** True when the device's remote or media_player reports a non-off state. */
+/**
+ * True when the device reports a non-off state. The media_player wins when there is
+ * one: an Apple TV's remote entity is `on` whenever Home Assistant is *connected*,
+ * even while the box sleeps — only its media_player knows the power state.
+ */
 export function isDeviceOn(
   hass: HomeAssistant | undefined,
   d: RemoteDevice,
 ): boolean {
   const st =
-    (d.entity && hass && hass.states[d.entity]) ||
-    (d.media_player && hass && hass.states[d.media_player]);
+    (d.media_player && hass && hass.states[d.media_player]) ||
+    (d.entity && hass && hass.states[d.entity]);
   return st ? !OFF_STATES.includes(st.state) : false;
+}
+
+/** One step of a power-button press, executed in order by the element. */
+export type PowerStep =
+  | { kind: "call"; domain: string; service: string; entity: string }
+  | { kind: "wait_on"; entity: string; timeoutMs: number }
+  | { kind: "action"; action: ActionConfig }
+  | { kind: "key" };
+
+/** How long a wake waits for Home Assistant to reconnect to an Apple TV. */
+export const RECONNECT_TIMEOUT_MS = 10000;
+
+const call = (entity: string, service: string): PowerStep => ({
+  kind: "call",
+  domain: entity.split(".")[0],
+  service,
+  entity,
+});
+
+// Wake an Apple TV the way the iOS remote does: media_player.turn_on (pyatv
+// power.turn_on over Companion). It's a no-op while Home Assistant is disconnected
+// — the apple_tv remote entity's turn_on/turn_off only (re)connect — so reconnect
+// first and wait for it when the remote reports `off`.
+function wakeAppleTv(
+  hass: HomeAssistant | undefined,
+  mp: string,
+  remote: string | undefined,
+): PowerStep[] {
+  const steps: PowerStep[] = [];
+  if (remote && hass?.states[remote]?.state === "off") {
+    steps.push(call(remote, "turn_on"), {
+      kind: "wait_on",
+      entity: remote,
+      timeoutMs: RECONNECT_TIMEOUT_MS,
+    });
+  }
+  steps.push(call(mp, "turn_on"));
+  return steps;
+}
+
+/**
+ * The service calls a power-button press makes for `d`. Direction follows
+ * {@link isDeviceOn}. A per-device `power_on` / `power_off` (an entity id or an HA
+ * action) overrides that direction; an entity id that is another configured Apple
+ * TV's media_player is woken the Apple TV way, so a TV that follows its Apple TV
+ * over HDMI-CEC can be switched on from its own page.
+ * @param hass — current hass
+ * @param d — the device whose button was pressed
+ * @param kind — its resolved command family
+ * @param devices — every configured device (to recognise Apple TV targets)
+ * @param kindOf — resolves another device's command family
+ */
+export function powerPlan(
+  hass: HomeAssistant | undefined,
+  d: RemoteDevice,
+  kind: string,
+  devices: RemoteDevice[],
+  kindOf: (x: RemoteDevice) => string,
+): PowerStep[] {
+  const on = isDeviceOn(hass, d);
+  const service = on ? "turn_off" : "turn_on";
+  const override = on ? d.power_off : d.power_on;
+  if (override && typeof override === "object")
+    return [{ kind: "action", action: override }];
+  if (typeof override === "string") {
+    const atv = devices.find(
+      (x) => x.media_player === override && kindOf(x) === "appletv",
+    );
+    if (atv && !on) return wakeAppleTv(hass, override, atv.entity);
+    return [call(override, service)];
+  }
+  if (kind === "appletv" && d.media_player)
+    return on
+      ? [call(d.media_player, "turn_off")]
+      : wakeAppleTv(hass, d.media_player, d.entity);
+  if (kind === "philips" && d.media_player)
+    return [call(d.media_player, service)];
+  if (kind === "appletv" || kind === "philips")
+    return d.entity ? [call(d.entity, service)] : [];
+  return [{ kind: "key" }];
 }
 
 /** True when the device's primary entity (remote if present, else media_player) is unavailable. */
