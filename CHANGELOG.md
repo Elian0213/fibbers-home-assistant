@@ -3,6 +3,46 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.1.0] — 2026-10-11
+
+The remote, fixed where it hurt: a centred touchpad, Philips power that actually
+turns the TV on, and scrubbing that keeps up with your finger.
+Native-touch scrubbing pairs best with Fibbers Bridge 0.7.0.
+
+### Fixed
+
+- **Remote: the touchpad stays centred.** A long now-playing title (or device name)
+  widened the panel's grid column, pushing the touchpad right of centre on a phone;
+  the title now ellipsizes instead.
+- **Remote: Philips power is state-driven.** Power goes through the TV's
+  `media_player.turn_on` / `turn_off` instead of a blind `Standby` key, which
+  philips_js can't deliver to a TV in standby. A failed power call now flashes the
+  button.
+- **Remote: scrubbing.** Live seeks now fire during a drag (only the release seek
+  went out before); a native scrub no longer drops mid-drag when the Apple TV
+  briefly reports `idle` (paused Netflix, loading after a seek); the native touch
+  lands where the finger went down and keeps itself alive while the finger rests;
+  resting a finger during playback starts a scrub instead of popping the context
+  menu.
+- **Master switch colours.** The switch read `--fib-*` variables nothing defined
+  (transparent track, no light theme); it now uses the theme tokens.
+- **Deck slide** no longer snaps early when a child element's transition ends.
+- Media card: re-configuring no longer leaves a stale debounced volume/seek write.
+
+### Removed
+
+- `getLayoutOptions()` from every card (HA 2025.1+ sizes with `getGridOptions`),
+  `styleBlock()` / `window.FIBBERS.styleBlock`, unused helpers and translation keys,
+  `docs/optional-theme.yaml` (superseded by `themes/fibbers.yaml`), the stale
+  `docs/MIGRATION.md`, and two unused lint dependencies.
+
+### Changed
+
+- The version shown in the console and on `window.FIBBERS` comes from
+  `package.json` at build time.
+- graph + sysmon share one history fetcher; HH:MM and date formatters live in
+  `@shared/time`. The nav bar only re-renders when a badge entity changes.
+
 ## [2.0.3] — 2026-09-18
 
 The nav bar's signature gesture comes to the remote.
