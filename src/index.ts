@@ -41,7 +41,7 @@ import { nav, goBack, previous } from "./core/nav-stack";
 import { T } from "./shared/tokens";
 import { navigate } from "./shared/util";
 
-const VERSION = "2.0.3";
+const VERSION = __FIBBERS_VERSION__;
 
 /* ================================================================== *
  * REGISTRY — `[tag, class, name, description]` per card. The forEach below

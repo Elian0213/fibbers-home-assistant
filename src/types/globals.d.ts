@@ -8,6 +8,10 @@ interface CustomCardEntry {
 }
 
 declare global {
+  /** package.json `version`, injected by Vite's `define` at build time. */
+  // eslint-disable-next-line @typescript-eslint/naming-convention -- define-style build constant
+  const __FIBBERS_VERSION__: string;
+
   interface Window {
     /** Home Assistant's custom-card picker registry. */
     customCards?: CustomCardEntry[];

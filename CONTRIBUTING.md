@@ -90,7 +90,7 @@ real bold-duotone icon (or a non-duotone Solar style). Any `mdi:` / `hass:` icon
 
 ## Releasing
 
-1. Bump `version` in `package.json` (and the bundle banner) and update `CHANGELOG.md`.
+1. Bump `version` in `package.json` (the bundle banner and `window.FIBBERS.VERSION` read it) and update `CHANGELOG.md`.
 2. `bun run check` (prettier + eslint + build + icon guard + parse), commit, push to `main` — CI +
    HACS validation run.
 3. Tag and push: `git tag v0.4.0 && git push origin v0.4.0` (the **release** workflow also accepts a

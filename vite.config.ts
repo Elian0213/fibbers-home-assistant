@@ -37,6 +37,8 @@ export default defineConfig(({ mode }) => {
       // Lit reads process.env.NODE_ENV to gate dev-mode warnings; Vite doesn't
       // define it in lib builds, so we do it here (matches the old bun --define).
       "process.env.NODE_ENV": JSON.stringify(dev ? "development" : "production"),
+      // The one version source: package.json (src/index.ts reads it).
+      __FIBBERS_VERSION__: JSON.stringify(pkg.version),
     },
     resolve: {
       alias: {
