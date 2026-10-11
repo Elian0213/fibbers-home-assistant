@@ -43,6 +43,9 @@
   width: 100%;
   margin-inline: auto;
   display: grid;
+  /* An implicit `auto` track grows to its widest child's min-content (a long device
+     name in the rail), shoving the centred touchpad off-centre; pin it to the box. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--fib-gap);
   min-width: 0;
   /* The outgoing panel translates a full width; without this it paints over the
@@ -55,7 +58,7 @@
    .wheel.swipe, .scrub .groove, any [role="slider"]) set touch-action: none and win
    the intersection against this pan-y — do not weaken those. `min-height` is set
    imperatively (SlideController.reserve) to the tallest device so paging never
-   shrinks the card; align-content keeps a shorter device pinned to the top of it. */
+   shrinks the card. */
 .deck {
   min-width: 0;
   touch-action: pan-y;
@@ -73,6 +76,9 @@
 }
 .slidepanel {
   display: grid;
+  /* Same as .body: a long now-playing title must ellipsize, not widen the column
+     (which pushed the margin-inline:auto touchpad right of centre). */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--fib-gap);
   align-content: start;
   min-width: 0;
@@ -130,6 +136,7 @@
 .rail {
   position: relative;
   display: flex;
+  min-width: 0;
   gap: 5px;
   padding: 4px;
   border-radius: 14px;
@@ -204,6 +211,7 @@
 .head {
   display: flex;
   align-items: center;
+  min-width: 0;
   gap: 11px;
 }
 .badge {
