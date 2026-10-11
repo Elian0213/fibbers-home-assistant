@@ -37,10 +37,9 @@ import type {
 } from "@/types/home-assistant";
 import {
   assertAlarmConfig,
-  hhmm,
-  stepTime,
   type AlarmConfig,
 } from "@cards/inputs/alarm-config";
+import { hhmm, stepTime } from "@shared/time";
 import "@shared/icon";
 
 /**

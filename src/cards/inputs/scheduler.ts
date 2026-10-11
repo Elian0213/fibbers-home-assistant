@@ -9,6 +9,7 @@ import { t } from "@shared/i18n";
 import { cardShell } from "@shared/shells";
 import { twSheet } from "@shared/tw";
 import { ThemeController } from "@shared/theme-host";
+import { addMinutes, hhmm } from "@shared/time";
 import { pillSwitch } from "@shared/ui";
 import { moreInfo, pickEntity } from "@shared/util";
 import { cx, pressable, sectionLabel } from "@shared/variants";
@@ -19,19 +20,6 @@ import type {
   LovelaceCardConfig,
 } from "@/types/home-assistant";
 import "@shared/icon";
-
-// Only a real HH:MM prefix — so "unavailable"/"unknown" renders as "—" instead
-// of a garbage "unava" big-time.
-const hhmm = (s: string | null | undefined): string => {
-  const m = typeof s === "string" && s.match(/^(\d{2}:\d{2})/);
-  return m ? m[1] : "";
-};
-const addMinutes = (s: string | null | undefined, mins: number): string => {
-  const [h, m] = hhmm(s).split(":").map(Number);
-  if (!Number.isFinite(h) || !Number.isFinite(m)) return "";
-  const total = (h * 60 + m + Math.round(mins)) % (24 * 60);
-  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
-};
 
 /** A weekday chip: a bare label, or an entity-backed toggle. */
 export type SchedulerDay = string | { entity: string; name: string };

@@ -8,6 +8,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { t, langOf } from "@shared/i18n";
 import { twSheet } from "@shared/tw";
 import { ThemeController } from "@shared/theme-host";
+import { clockTime } from "@shared/time";
 import { isUnavail } from "@shared/util";
 import type {
   HomeAssistant,
@@ -53,14 +54,8 @@ function ago(
   return { text, hours };
 }
 /** Localised HH:MM for a timestamp; echoes the raw string when it isn't one. */
-const clock = (iso: string, lang: string): string => {
-  const time = Date.parse(iso);
-  if (Number.isNaN(time)) return String(iso);
-  return new Date(time).toLocaleTimeString(lang || "en", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
+const clock = (iso: string, lang: string): string =>
+  clockTime(iso, lang) || String(iso);
 
 /**
  * fibbers-backup — last/next backup and result; amber when stale

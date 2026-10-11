@@ -8,6 +8,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import { cardShell, unavailNotice } from "@shared/shells";
 import { twSheet } from "@shared/tw";
 import { ThemeController } from "@shared/theme-host";
+import { hhmm } from "@shared/time";
 import { moreInfo, fmtState, pickEntity } from "@shared/util";
 import { cx, sectionLabel } from "@shared/variants";
 import type {
@@ -18,12 +19,6 @@ import type {
   LovelaceCardEditor,
 } from "@/types/home-assistant";
 import "@shared/icon";
-
-// Only a real HH:MM prefix, so "unavailable" falls through to "—".
-const hhmm = (s: string | null | undefined): string => {
-  const m = typeof s === "string" && s.match(/^(\d{2}:\d{2})/);
-  return m ? m[1] : "";
-};
 
 const EDITOR_SCHEMA = [
   { name: "entity", selector: { entity: {} } },

@@ -23,9 +23,9 @@ import type {
 } from "@/types/home-assistant";
 import {
   assertAlarmConfig,
-  hhmm,
   type AlarmConfig,
 } from "@cards/inputs/alarm-config";
+import { hhmm, weekdayShort } from "@shared/time";
 import "@cards/inputs/alarm-sheet"; // registers <fibbers-alarm-sheet> for the modal
 import "@shared/icon";
 
@@ -33,9 +33,6 @@ import "@shared/icon";
 interface HassWithEntities {
   entities?: Record<string, { labels?: string[] }>;
 }
-
-const shortWeekday = (d: Date, lang: string): string =>
-  d.toLocaleDateString(lang || "en", { weekday: "short" }).replace(".", "");
 
 /**
  * fibbers-alarm — the whole wake-up alarm on one tile, with a master toggle and a
@@ -159,7 +156,7 @@ export class FibbersAlarm extends LitElement implements LovelaceCard {
     if (na.when === "today") return t(hl, "alarm.today");
     if (na.when === "tomorrow") return t(hl, "alarm.tomorrow");
     if (na.when === "later" && na.date)
-      return shortWeekday(na.date, this._lang);
+      return weekdayShort(na.date, this._lang);
     return "—";
   }
 

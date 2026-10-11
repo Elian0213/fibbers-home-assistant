@@ -3,6 +3,7 @@
  * formatting, DOM traversal, HA dialogs, routing. Kept import-free so no card
  * pulls in a dependency it doesn't want.
  * ================================================================== */
+import { langOf } from "@shared/i18n";
 import type { HomeAssistant, HassEntity } from "@/types/home-assistant";
 
 /**
@@ -100,8 +101,7 @@ export const fmtNum = (
   d?: number,
 ): string => {
   if (!Number.isFinite(n)) return String(n);
-  const lang =
-    (hass && ((hass.locale && hass.locale.language) || hass.language)) || "en";
+  const lang = langOf(hass);
   const opts: Intl.NumberFormatOptions =
     d != null ? { minimumFractionDigits: d, maximumFractionDigits: d } : {};
   try {

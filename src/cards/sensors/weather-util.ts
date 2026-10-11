@@ -3,6 +3,8 @@
  * sheet (fibbers-weather-sheet): the condition→icon map and small formatters.
  * ================================================================== */
 
+import { clockTime, weekdayShort } from "@shared/time";
+
 /** A single forecast entry from the weather/subscribe_forecast feed (daily or hourly). */
 export interface Forecast {
   datetime?: string;
@@ -39,20 +41,9 @@ export const round = (n: unknown): number | null =>
   Number.isFinite(Number(n)) ? Math.round(Number(n)) : null;
 
 /** Localised short weekday for a forecast datetime (trailing "." stripped); "" on a bad date. */
-export const dayName = (iso: string, lang: string): string => {
-  const parsed = Date.parse(iso);
-  if (Number.isNaN(parsed)) return "";
-  return new Date(parsed)
-    .toLocaleDateString(lang || "en", { weekday: "short" })
-    .replace(".", "");
-};
+export const dayName = (iso: string, lang: string): string =>
+  weekdayShort(iso, lang);
 
 /** Localised HH:MM for an hourly-forecast / sun-time datetime; "" on a bad date. */
-export const hourLabel = (iso: string, lang: string): string => {
-  const parsed = Date.parse(iso);
-  if (Number.isNaN(parsed)) return "";
-  return new Date(parsed).toLocaleTimeString(lang || "en", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
+export const hourLabel = (iso: string, lang: string): string =>
+  clockTime(iso, lang);
