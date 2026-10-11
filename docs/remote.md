@@ -59,23 +59,26 @@ or `config/entity_registry/get`.
 A card is one device (flat config) or several behind a switcher (`devices:`). Each
 device takes:
 
-| key             | type             | what it does                                                                                                                                                                     |
-| --------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `entity`        | `remote.*`       | the remote the d-pad / nav / transport / volume send through. Omit for a speaker.                                                                                                |
-| `media_player`  | `media_player.*` | drives now-playing, the volume **slider** (when it reports `volume_level`), source chips, and lets transport prefer the player's own services.                                   |
-| `volume_entity` | `media_player.*` | delegate **only the volume row** to another player — see [Delegated volume](#delegated-volume).                                                                                  |
-| `device`        | enum             | `appletv` \| `philips` \| `androidtv` \| `generic` — override the platform guess.                                                                                                |
-| `commands`      | map              | per-key command overrides, merged over the device family.                                                                                                                        |
-| `dpad`          | enum             | `swipe` \| `buttons` \| `both` \| `grid` — d-pad interaction/shape.                                                                                                              |
-| `sources`       | `"auto"` \| list | source chips (needs `media_player`). `auto` uses the player's `source_list`.                                                                                                     |
-| `favourites`    | list             | the subset shown collapsed before "All N".                                                                                                                                       |
-| `name`, `icon`  | string           | device label / icon.                                                                                                                                                             |
-| `remember`      | bool             | persist the selected device (default `true`).                                                                                                                                    |
-| `auto_select`   | `"playing"`      | on mount, open the device whose `media_player` is playing.                                                                                                                       |
-| `swipe`         | bool             | card-level; horizontal drag pages between `devices:` (default `true`). `false` disables the gesture — the switcher rail always works regardless.                                 |
-| `keyboard`      | bool             | card-level; when the card has focus, arrows/Enter/Escape drive the d-pad, `+`/`-`/`m` the volume, `[`/`]` the device (default `true`). See [accessibility.md](accessibility.md). |
-| `haptics`       | bool             | card-level; a short vibration on each discrete key press (default `false`; no effect on iOS, which has no `navigator.vibrate`). The touchpad has its own `touchpad.haptics`.     |
-| `controls`      | list             | an extra controls panel — see below.                                                                                                                                             |
+| key             | type             | what it does                                                                                                                                                                                              |
+| --------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `entity`        | `remote.*`       | the remote the d-pad / nav / transport / volume send through. Omit for a speaker.                                                                                                                         |
+| `media_player`  | `media_player.*` | drives now-playing, the volume **slider** (when it reports `volume_level`), source chips, and lets transport prefer the player's own services.                                                            |
+| `volume_entity` | `media_player.*` | delegate **only the volume row** to another player — see [Delegated volume](#delegated-volume).                                                                                                           |
+| `device`        | enum             | `appletv` \| `philips` \| `androidtv` \| `generic` — override the platform guess.                                                                                                                         |
+| `commands`      | map              | per-key command overrides, merged over the device family.                                                                                                                                                 |
+| `dpad`          | enum             | `swipe` \| `buttons` \| `both` \| `grid` — d-pad interaction/shape.                                                                                                                                       |
+| `sources`       | `"auto"` \| list | source chips (needs `media_player`). `auto` uses the player's `source_list`.                                                                                                                              |
+| `favourites`    | list             | the subset shown collapsed before "All N".                                                                                                                                                                |
+| `name`, `icon`  | string           | device label / icon.                                                                                                                                                                                      |
+| `remember`      | bool             | persist the selected device (default `true`).                                                                                                                                                             |
+| `auto_select`   | `"playing"`      | on mount, open the device whose `media_player` is playing.                                                                                                                                                |
+| `swipe`         | bool             | card-level; horizontal drag pages between `devices:` (default `true`). `false` disables the gesture — the switcher rail always works regardless.                                                          |
+| `keyboard`      | bool             | card-level; when the card has focus, arrows/Enter/Escape drive the d-pad, `+`/`-`/`m` the volume, `[`/`]` the device (default `true`). See [accessibility.md](accessibility.md).                          |
+| `haptics`       | bool             | card-level; a short vibration on each discrete key press (default `false`; no effect on iOS, which has no `navigator.vibrate`). The touchpad has its own `touchpad.haptics`.                              |
+| `controls`      | list             | an extra controls panel — see below.                                                                                                                                                                      |
+| `touchpad`      | map              | Apple TV touchpad options: `size` (`compact` = 238px default · `large` = the full remote column · a px number 160–480), plus `edge_click`, `momentum`, `haptics`, `sensitivity`, `scrub`, `native_touch`. |
+| `power_on`      | entity \| action | what the power button does while the device is **off** — see [Power](#power).                                                                                                                             |
+| `power_off`     | entity \| action | what the power button does while the device is **on** — see [Power](#power).                                                                                                                              |
 
 Volume degrades honestly: a `media_player` that reports `volume_level` gets a
 positional slider; one that doesn't (many Apple TVs) gets a **scrub strip** — drag
@@ -102,6 +105,42 @@ Everything else on the card — now-playing, transport, sources — stays on
 device's own `volume_up` / `volume_down` / `volume_mute` commands are **not** used —
 the delegated player's services are. The row stays put (visible but inert) while the
 delegate is asleep, so nothing jumps as the TV wakes.
+
+### Power
+
+The power button follows the device's state (its `media_player` when it has one):
+
+- **Apple TV** wakes and sleeps through its `media_player` — `media_player.turn_on`
+  is pyatv's `power.turn_on()` over Companion, the same wake the iOS remote sends. The
+  Apple TV **remote entity's** `turn_on` / `turn_off` don't touch the box at all: they
+  only connect / disconnect Home Assistant. So the card never calls `remote.turn_off`,
+  and when Home Assistant _is_ disconnected it reconnects first (`remote.turn_on`,
+  then waits up to 10 s) before waking.
+- **Philips** calls `media_player.turn_on` / `turn_off`. Turn-on needs the TV's
+  power-state API (standby with network) or a Wake-on-LAN automation on the
+  integration's "turn on requested" trigger.
+- **Everything else** sends the family's `power` key.
+
+`power_on` / `power_off` override one direction. Each takes an **entity id** (its
+domain's `turn_on` / `turn_off` is called — an Apple TV `media_player` from this card
+is woken the Apple TV way above) or a full **HA action**. The common case is a TV that
+follows its Apple TV over HDMI-CEC:
+
+```yaml
+- name: Philips TV
+  device: philips
+  entity: remote.43pus7608_12_afstandsbediening
+  media_player: media_player.43pus7608_12
+  power_on: media_player.living_room # wake the Apple TV; the TV follows via HDMI-CEC
+- name: Apple TV
+  device: appletv
+  entity: remote.living_room
+  media_player: media_player.living_room
+  touchpad:
+    size: large
+```
+
+Or run a script: `power_on: { action: perform-action, perform_action: script.tv_on }`.
 
 ## Multiple devices & swiping
 
