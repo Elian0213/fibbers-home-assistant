@@ -18,3 +18,6 @@ storybook/storybook-static/
 # serves it directly. bun.lock is committed too, for reproducible CI installs.
 # The dev/watch build emits a source map; never commit it.
 dist/*.map
+
+# personal HA dashboard export (real person/entity ids) — never commit
+my_homeassistant_dashboard.yml
