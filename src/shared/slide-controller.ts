@@ -381,7 +381,10 @@ export class SlideController implements ReactiveController {
       return;
     }
     const dur = this._dur(endX);
-    const onEnd = (): void => {
+    const onEnd = (e?: TransitionEvent): void => {
+      // transitionend bubbles: a child's own transition (a wheel segment's fill)
+      // must not end the slide early and snap the track.
+      if (e && (e.target !== el || e.propertyName !== "transform")) return;
       clearTimeout(this.commitTimer);
       el.removeEventListener("transitionend", onEnd);
       this._finishSlide(commitTo);
