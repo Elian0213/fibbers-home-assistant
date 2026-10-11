@@ -14,7 +14,8 @@ import { customElement, property, state } from "lit/decorators.js";
 import { cardShell, sectionLabel } from "@shared/shells";
 import { twSheet } from "@shared/tw";
 import { ThemeController } from "@shared/theme-host";
-import { fmtNum, fmtState, isUnavail, fetchHistory } from "@shared/util";
+import { HistoryController, sparklinePaths } from "@shared/history";
+import { fmtNum, fmtState, isUnavail } from "@shared/util";
 import type {
   HomeAssistant,
   LovelaceCard,
@@ -53,19 +54,7 @@ export class FibbersSysmon extends LitElement implements LovelaceCard {
 
   @state() private config!: SysmonConfig;
 
-  @state() private _series: number[] | null = null;
-
-  @state() private _settled = false;
-
-  private _fetchedFor?: string | null;
-
-  private _lastTry = 0;
-
-  private _fetchedAt = 0;
-
-  private _misses = 0;
-
-  private _gen = 0;
+  private _history = new HistoryController(this);
 
   static styles = [
     twSheet,
@@ -94,59 +83,17 @@ export class FibbersSysmon extends LitElement implements LovelaceCard {
       throw new Error("fibbers-sysmon: `metrics` must be a non-empty list");
     }
     this.config = config;
-    this._series = null;
-    this._fetchedFor = null;
-    this._lastTry = 0;
-    this._fetchedAt = 0;
-    this._misses = 0;
-    this._settled = false;
-    this._gen = (this._gen || 0) + 1; // discard any in-flight fetch for the old config
+    this._history.reset();
   }
 
   /** On each hass push, refresh the sparkline history (only when `graph` is set). */
   updated(changed: PropertyValues): void {
-    if (changed.has("hass") && this.config.graph) this._maybeFetch();
-  }
-
-  private async _maybeFetch(): Promise<void> {
-    const id = this.config.graph;
-    if (!id || !this.hass || !this.hass.callWS) return;
-    const now = Date.now();
-    // Cache expiry: refetch when the window is ~a 20th stale (min 60s).
-    const maxAge = Math.max(
-      60e3,
-      ((this.config.graph_hours || 24) * 3600e3) / 20,
-    );
-    if (this._fetchedFor === id && now - this._fetchedAt < maxAge) return;
-    // Fast retry on a cold miss (recorder lag); slow 8s backoff only once we have a
-    // series (a genuinely history-less entity).
-    const backoff = this._series
-      ? 8000
-      : Math.min(500 * 2 ** this._misses, 8000);
-    if (this._lastTry && now - this._lastTry < backoff) return;
-    this._lastTry = now;
-    // eslint-disable-next-line no-multi-assign -- bump the fetch generation and capture it in one step
-    const gen = (this._gen += 1);
-    try {
-      const nums = await fetchHistory(
+    if (changed.has("hass") && this.config.graph)
+      this._history.fetch(
         this.hass,
-        id,
+        this.config.graph,
         this.config.graph_hours || 24,
       );
-      if (gen !== this._gen) return; // a newer config/fetch superseded this one
-      if (nums.length) {
-        this._series = nums;
-        this._fetchedFor = id;
-        this._fetchedAt = Date.now();
-        this._misses = 0;
-      } else {
-        this._misses += 1;
-      }
-    } catch (_e) {
-      if (gen === this._gen) this._misses += 1;
-    } finally {
-      if (gen === this._gen) this._settled = true;
-    }
   }
 
   private _val(m: SysmonMetric): { text: string; unit: string } {
@@ -160,38 +107,26 @@ export class FibbersSysmon extends LitElement implements LovelaceCard {
   }
 
   private _sparkline(): TemplateResult | string {
-    const series = this._series;
+    const { series, settled } = this._history;
     if (!series || series.length < 2) {
       // A configured sparkline that hasn't loaded yet gets a skeleton (not a
       // collapsed gap); no `graph:` at all renders nothing.
-      if (!this.config.graph || this._settled) return "";
+      if (!this.config.graph || settled) return "";
       return html`<div
         class="mt-3 h-10 animate-pulse rounded-[6px] bg-card2"
       ></div>`;
     }
     const h = 40;
-    let min = Math.min(...series);
-    let max = Math.max(...series);
-    const pad = (max - min || 1) * 0.12;
-    min -= pad;
-    max += pad;
-    const n = series.length;
-    const pts = series.map(
-      (v, i) =>
-        `${((i / (n - 1)) * W).toFixed(1)},${(h - ((v - min) / (max - min || 1)) * h).toFixed(1)}`,
-    );
+    const { line, area } = sparklinePaths(series, W, h);
     return html`<svg
       viewBox="0 0 ${W} ${h}"
       preserveAspectRatio="none"
       class="mt-3 block w-full text-blue"
       style="height:${h}px"
     >
+      <path d=${area} style="fill:currentColor;opacity:.12"></path>
       <path
-        d="M0,${h} L${pts.join(" L")} L${W},${h} Z"
-        style="fill:currentColor;opacity:.12"
-      ></path>
-      <path
-        d="M${pts.join(" L")}"
+        d=${line}
         style="fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke"
       ></path>
     </svg>`;
