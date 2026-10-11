@@ -10,7 +10,10 @@
  * and overshoots after the finger stops. Faster drag → smaller step → more
  * elements per centimetre (the acceleration curve the real Siri remote has).
  * ================================================================== */
+import { emaVelocity } from "@shared/slide-math";
 import { clamp } from "@shared/util";
+
+export { emaVelocity };
 
 /** The locked drag axis, or null before the first decisive movement. */
 export type Axis = "x" | "y" | null;
@@ -27,49 +30,42 @@ export interface TouchpadOptions {
 
 // step = width/6 at rest → a ~10cm slow drag on a ~230px surface ≈ 5-6 steps;
 // width/16 is the fastest-drag floor (more elements per cm on a quick flick).
-export const STEP_BASE_DIV = 6;
-export const STEP_MIN_DIV = 16;
+const STEP_BASE_DIV = 6;
+const STEP_MIN_DIV = 16;
 // tvOS focus animation floor; emitting faster just queues + overshoots.
 export const MIN_INTERVAL = 60;
 export const AXIS_LOCK_PX = 12;
 export const AXIS_BREAK = 2.5;
 export const TAP_PX = 10;
 export const HOLD_MS = 500;
-export const VMAX = 2; // px/ms velocity ceiling for step scaling
+const VMAX = 2; // px/ms velocity ceiling for step scaling
 export const V_EPS = 0.05; // EMA below this = finger parked → stop draining
 export const FLICK_V = 0.6; // px/ms release velocity to enter momentum
 export const FLICK_STALE_MS = 80;
 export const IN_FLIGHT_MAX = 2;
 export const ACC_CLAMP_STEPS = 3;
-export const EDGE_BAND = 0.22;
-export const EDGE_HOLD_MS = 500;
-export const MOMENTUM_GROWTH = 1.25;
+const EDGE_BAND = 0.22;
+const MOMENTUM_GROWTH = 1.25;
 export const MOMENTUM_STOP_MS = 260;
 export const MOMENTUM_MAX = 12;
 export const SCRUB_BASE_S = 90; // full surface width ≈ 90s at unit velocity
 // Max multiplier 1 + 1.5 = 2.5× — the earlier 4× overshot by minutes on a fast sweep.
-export const SCRUB_VEL_MAX = 1.5;
+const SCRUB_VEL_MAX = 1.5;
 export const SCRUB_SEEK_MS = 400;
 // Native-touch (Fibbers Bridge) streams a real 1:1 touch to the Apple TV; throttle
 // the `hold` frames so the socket isn't flooded. pyatv streams its own swipes at
 // ~60 Hz; ~30 Hz (33ms) keeps the drag smooth without one round-trip per rAF frame.
 // `_releaseNative()` always sends the exact final coordinate, so landing is exact.
 export const NATIVE_MIN_INTERVAL = 33;
-
-/** Result of one drain attempt on the step accumulator. */
 // A resting finger produces no pointermove, so re-send the last `hold` at this pace
 // while a native scrub is live — tvOS keeps its scrubber engaged on a steady stream.
 export const NATIVE_KEEPALIVE_MS = 150;
+
+/** Result of one drain attempt on the step accumulator. */
 export interface StepResult {
   dir: -1 | 0 | 1; // 0 = nothing emitted (rate-limited or dropped)
   acc: number; // the accumulator after this attempt
   consumed: boolean; // a step was removed from the accumulator (emitted or dropped)
-}
-
-/** Exponential-moving-average velocity (px/ms); dt ≤ 0 leaves it unchanged. */
-export function emaVelocity(v: number, d: number, dt: number): number {
-  if (dt <= 0) return v;
-  return 0.7 * v + 0.3 * (d / dt);
 }
 
 /**

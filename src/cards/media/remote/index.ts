@@ -736,13 +736,13 @@ export class FibbersRemote
     }, 500);
   }
 
+  /**
+   * Toggle power. Apple TV power lives on the remote's own turn_on/turn_off/toggle
+   * services, not in the command map; direction follows the remote's own state.
    * Philips goes state-driven through its media_player (falling back to the remote):
    * the blind `Standby` key can't wake a TV in standby — philips_js can't deliver
    * keys then — while `turn_on` uses the TV's power-state API or fires the
    * integration's "turn on requested" trigger (a Wake-on-LAN automation).
-  /**
-   * Toggle power. Apple TV power lives on the remote's own turn_on/turn_off/toggle
-   * services, not in the command map; direction follows the remote's own state.
    */
   power(): Promise<void> | void {
     const kind = this._device();
@@ -943,13 +943,8 @@ export class FibbersRemote
       if (!s.moved && Math.abs(e.clientX - s.lastX) < SLOP) return;
       s.moved = true;
       if (Math.abs(e.clientX - s.lastX) >= STEP_PX && !this._scrubLock) {
-        this.scrub.step(e.clientX > s.lastX ? 1 : -1);
+        this.scrub.stepThrottled(e.clientX > s.lastX ? 1 : -1);
         s.lastX = e.clientX;
-        this._scrubLock = true;
-        clearTimeout(this._scrubLockT);
-        this._scrubLockT = setTimeout(() => {
-          this._scrubLock = false;
-        }, 120);
       }
     },
     up: (): void => {
