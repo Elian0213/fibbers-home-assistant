@@ -15,6 +15,7 @@ import {
 import { reflectSheetTheme, updateOpenModalHass } from "@core/body-sheet";
 import { nav } from "@core/nav-stack";
 import type {
+  HassEntity,
   HomeAssistant,
   LovelaceCard,
   LovelaceCardConfig,
@@ -65,6 +66,9 @@ export class FibbersNav extends LitElement implements LovelaceCard {
   @state() private config!: NavCardConfig;
 
   private _cell: HTMLElement | null = null;
+
+  // The badge entities' state objects as of the last bar render (see `set hass`).
+  private _badgeStates: (HassEntity | undefined)[] = [];
 
   static styles = [
     css`
@@ -168,6 +172,7 @@ export class FibbersNav extends LitElement implements LovelaceCard {
       throw new Error("fibbers-nav: `extra_bottom` must be a number of pixels");
     }
     this.config = config;
+    this._badgeStates = []; // re-render the badges against the new tabs
     if (this.isConnected && !this.preview) attach(this, this.config);
   }
 
@@ -178,8 +183,18 @@ export class FibbersNav extends LitElement implements LovelaceCard {
     reflectBarTheme(hass); // bar + sheet follow HA light/dark like every card
     reflectSheetTheme(hass);
     updateOpenModalHass(hass); // keep an open Fibbers more-info modal live
-    if (this.config && (this.config.tabs || []).some((t) => t.badge))
-      renderBar();
+    // HA replaces a state object whenever it changes, so identity is enough to
+    // skip the re-render on the (many) pushes that don't touch a badge entity.
+    const badges = (this.config?.tabs || [])
+      .filter((t) => t.badge)
+      .map((t) => hass.states[t.badge!.entity]);
+    if (
+      badges.length !== this._badgeStates.length ||
+      badges.some((st, i) => st !== this._badgeStates[i])
+    ) {
+      this._badgeStates = badges;
+      if (badges.length) renderBar();
+    }
   }
 
   /** Collapse the empty <hui-card> wrapper (bar lives in document.body) and attach the bar. */
