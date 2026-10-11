@@ -126,7 +126,10 @@ export class FibbersWeatherSheet extends LitElement implements LovelaceCard {
         }
         this._unsubs.push(unsub);
       })
-      .catch(() => {});
+      .catch(() => {
+        // let a later hass update retry (the tile card does the same)
+        if (this._subFor === id) this._subFor = null;
+      });
   }
 
   private _unsubAll(): void {
