@@ -700,6 +700,8 @@ export class FibbersRemote
     y: number,
   ): void {
     const deviceId = this._nativeTouchDeviceId();
+    // The entity id, as everywhere else: `_flashFail` only flashes the device on screen.
+    const id = this.dev().entity || this.dev().media_player || "atv";
     if (!deviceId || !this.hass) return;
     this.hass.connection
       .sendMessagePromise({
@@ -710,12 +712,7 @@ export class FibbersRemote
         mode,
       })
       .catch((e) =>
-        this._flashFail(
-          this.dev().device ?? "atv",
-          "native_touch",
-          e,
-          "fibbers_bridge/atv_touch",
-        ),
+        this._flashFail(id, "native_touch", e, "fibbers_bridge/atv_touch"),
       );
   }
 

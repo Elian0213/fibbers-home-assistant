@@ -36,6 +36,7 @@ import {
   IN_FLIGHT_MAX,
   SCRUB_SEEK_MS,
   NATIVE_MIN_INTERVAL,
+  NATIVE_KEEPALIVE_MS,
   type Axis,
   type TouchpadOptions,
 } from "./touchpad-math";
@@ -194,6 +195,10 @@ export class TouchpadController implements ReactiveController {
 
   private nativeY = 500;
 
+  private nativeKeepT?: ReturnType<typeof setInterval>; // re-sends `hold` while the finger rests
+
+  private scrubFrom = 0; // position a seek-scrub started from (first live-seek baseline)
+
   private scrubHideT?: ReturnType<typeof setTimeout>;
 
   private lat: number[] = [];
@@ -212,7 +217,7 @@ export class TouchpadController implements ReactiveController {
   hostUpdated(): void {
     const pb = this.host.playback();
     const gone = !pb || (pb.state !== "paused" && pb.state !== "playing");
-    if (this.phase === "scrub" && gone) {
+    if (this.phase === "scrub" && this._scrubLost(pb)) {
       // content changed / player gone → abandon the scrub, ignore frames until release
       this._releaseNative(); // never strand a live native press on a mid-drag disengage
       this._hideScrub();
@@ -298,6 +303,7 @@ export class TouchpadController implements ReactiveController {
   /** Pointer-cancel: clean end with zero velocity (no tap, no momentum). */
   readonly cancel = (e: PointerEvent): void => {
     if (e.pointerId !== this.pid) return;
+    e.stopPropagation(); // ours alone — the deck's SlideController must not abort too
     this._endGesture(e, true);
   };
 
@@ -354,14 +360,25 @@ export class TouchpadController implements ReactiveController {
 
   // The long-press timer fired without the finger moving past the tap slop: a
   // centre press opens the tvOS context menu; an edge press repeats that direction.
+  // During playback a resting finger is the start of a scrub (Siri-remote style:
+  // rest, then slide), so the centre hold must not pop the context menu over it —
+  // with the bridge it lands the native touch now (the TV shows its scrubber), else
+  // it stays pending so the slide that follows still scrubs.
   private _onHold(): void {
     if (this.phase !== "pending") return;
     const o = this.host.opts();
     const zone = o.edge_click ? this._edgeAt(this.downX, this.downY) : null;
+    const pb = !zone && o.scrub ? this.host.playback() : null;
+    const transport = pb ? this._scrubTransportFor(pb) : null;
     if (zone) {
       this.phase = "edgeHold";
       this.host.holdRepeat(() => this.host.send(zone));
       this._vibrate(8);
+    } else if (pb && transport === "native") {
+      this._startScrub(pb, transport, this.downX, this.downY);
+      this._vibrate(8);
+    } else if (transport) {
+      this.holdTimer = undefined; // stay pending: a following slide scrubs
     } else {
       this.phase = "holdFired";
       this.host.sendHold("ok");
@@ -404,7 +421,7 @@ export class TouchpadController implements ReactiveController {
           // A horizontal drag during playback scrubs (native/seek) or is consumed
           // (inert for timeline-less apps) — it must NEVER fall to nav left/right,
           // which is what turns a Netflix slide into 10s skips.
-          this._startScrub(pb, transport, e);
+          this._startScrub(pb, transport, e.clientX, e.clientY);
         } else {
           this.phase = "nav";
           // Seed the accumulator with the travel since down so the first step
@@ -486,10 +503,22 @@ export class TouchpadController implements ReactiveController {
     return this.resumeHint ? "seek" : "inert";
   }
 
+  // True when a live scrub's media went away under it. A native scrub only needs
+  // an app in the foreground (paused Netflix and pyatv's post-seek Loading both
+  // report `idle`); a seek scrub tolerates that same transient `idle` too — aborting
+  // on it dropped the final commit and the resume hint mid-drag.
+  private _scrubLost(pb: PlaybackInfo | null): boolean {
+    if (!pb) return true;
+    if (["off", "standby", "unavailable", "unknown"].includes(pb.state))
+      return true;
+    return this.scrubTransport === "native" && pb.appId === "";
+  }
+
   private _startScrub(
     pb: PlaybackInfo,
     transport: ScrubTransport,
-    e: PointerEvent,
+    clientX: number,
+    clientY: number,
   ): void {
     this.phase = "scrub";
     this.scrubTransport = transport;
@@ -498,16 +527,27 @@ export class TouchpadController implements ReactiveController {
       console.debug(
         `[fibbers-remote] scrub entry: state=${pb.state} seekable=${pb.seekable} transport=${transport}`,
       );
-    // native: press a real 1:1 touch at the finger point on the ATV surface, then
-    // stream `hold` frames as the finger moves (see _driveScrub). No pause/seek and
-    // no overlay — the TV's own scrubber is the feedback; the finger dot still follows.
+    // native: press a real 1:1 touch where the finger first went DOWN (not where the
+    // axis locked, 12px later), then catch up with a `hold` at the current point —
+    // the ATV sees the whole path, like a real Siri remote. `hold` frames then stream
+    // as the finger moves (see _driveScrub), plus a keep-alive while it rests. No
+    // pause/seek and no overlay — the TV's own scrubber is the feedback.
     if (transport === "native") {
-      const { x, y } = this._nativeXY(e.clientX, e.clientY);
+      const o = this._nativeXY(this.downX, this.downY);
+      this.nativePressed = true;
+      this.host.nativeTouch("press", o.x, o.y);
+      const { x, y } = this._nativeXY(clientX, clientY);
       this.nativeX = x;
       this.nativeY = y;
-      this.nativeAt = -Infinity;
-      this.nativePressed = true;
-      this.host.nativeTouch("press", x, y);
+      if (x !== o.x || y !== o.y) this.host.nativeTouch("hold", x, y);
+      this.nativeAt = now();
+      clearInterval(this.nativeKeepT);
+      this.nativeKeepT = setInterval(() => {
+        if (!this.nativePressed || now() - this.nativeAt < NATIVE_KEEPALIVE_MS)
+          return;
+        this.host.nativeTouch("hold", this.nativeX, this.nativeY);
+        this.nativeAt = now();
+      }, NATIVE_KEEPALIVE_MS);
       return;
     }
     // inert: consume the horizontal drag (the finger dot still follows) but take
@@ -520,6 +560,7 @@ export class TouchpadController implements ReactiveController {
     this.scrubPos =
       !fresh && Number.isFinite(this.lastSeekSent) ? this.lastSeekSent : pb.pos;
     this.scrubDur = pb.dur;
+    this.scrubFrom = this.scrubPos;
     this.lastSeekAt = -Infinity;
     if (fresh) this.lastSeekSent = NaN; // fresh session — no stale continuity
     clearTimeout(this.scrubHideT);
@@ -539,9 +580,9 @@ export class TouchpadController implements ReactiveController {
       const { x, y } = this._nativeXY(e.clientX, e.clientY);
       this.nativeX = x;
       this.nativeY = y;
-      if (t - this.nativeAt >= NATIVE_MIN_INTERVAL) {
+      if (now() - this.nativeAt >= NATIVE_MIN_INTERVAL) {
         this.host.nativeTouch("hold", x, y);
-        this.nativeAt = t;
+        this.nativeAt = now();
       }
       return;
     }
@@ -550,9 +591,15 @@ export class TouchpadController implements ReactiveController {
     const secs = scrubStep(dx, width, Math.abs(this.vX), sensitivity);
     this.scrubPos = clamp(this.scrubPos + secs, 0, this.scrubDur);
     this._paintScrub();
+    // Before the first live seek of a session there is no `lastSeekSent` (NaN, and
+    // any comparison with NaN is false — which silently held every live seek back
+    // until release); measure from where the scrub started instead.
+    const sent = Number.isFinite(this.lastSeekSent)
+      ? this.lastSeekSent
+      : this.scrubFrom;
     if (
       t - this.lastSeekAt >= SCRUB_SEEK_MS &&
-      Math.abs(this.scrubPos - this.lastSeekSent) >= 1
+      Math.abs(this.scrubPos - sent) >= 1
     ) {
       this.host.mediaDo("media_seek", {
         seek_position: Math.round(this.scrubPos),
@@ -696,6 +743,8 @@ export class TouchpadController implements ReactiveController {
 
   // Release a live native press (idempotent). Called on gesture end, cancel, and abort.
   private _releaseNative(): void {
+    clearInterval(this.nativeKeepT);
+    this.nativeKeepT = undefined;
     if (!this.nativePressed) return;
     this.nativePressed = false;
     this.host.nativeTouch("release", this.nativeX, this.nativeY);

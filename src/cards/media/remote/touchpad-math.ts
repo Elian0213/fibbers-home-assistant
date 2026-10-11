@@ -57,6 +57,9 @@ export const SCRUB_SEEK_MS = 400;
 export const NATIVE_MIN_INTERVAL = 33;
 
 /** Result of one drain attempt on the step accumulator. */
+// A resting finger produces no pointermove, so re-send the last `hold` at this pace
+// while a native scrub is live — tvOS keeps its scrubber engaged on a steady stream.
+export const NATIVE_KEEPALIVE_MS = 150;
 export interface StepResult {
   dir: -1 | 0 | 1; // 0 = nothing emitted (rate-limited or dropped)
   acc: number; // the accumulator after this attempt
