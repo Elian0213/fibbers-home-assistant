@@ -108,22 +108,3 @@ export function sectionLabel(
     ${text}
   </div>`;
 }
-
-/**
- * A `label … value` flex row (settings lists, detail panes).
- * @param label — left side
- * @param value — right side
- * @param cls — extra classes on the row
- */
-export function labelValueRow(
-  label: unknown,
-  value: unknown,
-  cls = "",
-): TemplateResult {
-  return html`<div
-    class="${cx("flex items-center justify-between gap-2", cls)}"
-  >
-    <span class="text-[12px] font-medium text-ink">${label}</span>
-    <span class="whitespace-nowrap text-[11px] text-muted">${value}</span>
-  </div>`;
-}

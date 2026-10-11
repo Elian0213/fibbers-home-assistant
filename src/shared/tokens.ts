@@ -1,7 +1,7 @@
 /* ================================================================== *
- * TOKENS — the Fibbers palette, one source of truth. `T.x` is the raw hex/rgba
- * for interpolation; `styleBlock()` emits the same values as `--fib-*` custom
- * properties so cards can `var(--fib-x)` instead.
+ * TOKENS — the Fibbers palette as raw hex/rgba for interpolation (the nav bar's
+ * iOS-tuned CSS). Cards read the theme-aware `--color-*` custom properties from
+ * styles/tailwind.css instead, so they follow light/dark.
  * ================================================================== */
 
 /** The Fibbers colour palette — raw hex/rgba values, keyed by role. */
@@ -41,44 +41,3 @@ export const T = {
   grab: "#3E4A4D",
   rowLine: "#262F31",
 } as const;
-
-/**
- * The palette as `:host` custom properties, emitted once per shadow root.
- * Later cards (Phase 2+) drop `styleBlock()` at the top of their `<style>` and
- * read `var(--fib-x)` instead of interpolating `T.x` into every rule — one
- * source of truth for the tokens. The nav bar predates this and keeps its own
- * interpolated CSS on purpose; it is iOS-tuned and not worth disturbing.
- */
-export function styleBlock(): string {
-  return `:host {
-    --fib-bg: ${T.bg};
-    --fib-card: ${T.card};
-    --fib-card-2: ${T.card2};
-    --fib-line: ${T.line};
-    --fib-ink: ${T.ink};
-    --fib-ink-2: ${T.ink2};
-    --fib-muted: ${T.muted};
-    --fib-accent: ${T.accent};
-    --fib-accent-soft: ${T.accentSoft};
-    --fib-accent-bg: ${T.accentBg};
-    --fib-accent-line: ${T.accentLine};
-    --fib-accent-tx: ${T.accentTx};
-    --fib-amber: ${T.amber};
-    --fib-amber-bg: ${T.amberBg};
-    --fib-amber-line: ${T.amberLine};
-    --fib-amber-tx: ${T.amberTx};
-    --fib-blue: ${T.blue};
-    --fib-blue-bg: ${T.blueBg};
-    --fib-blue-line: ${T.blueLine};
-    --fib-blue-ink: ${T.blueInk};
-    --fib-green: ${T.green};
-    --fib-red: ${T.red};
-    --fib-red-bg: ${T.redBg};
-    --fib-red-line: ${T.redLine};
-    --fib-red-tx: ${T.redTx};
-    --fib-sheet: ${T.sheet};
-    --fib-nav: ${T.nav};
-    --fib-grab: ${T.grab};
-    --fib-row-line: ${T.rowLine};
-  }`;
-}

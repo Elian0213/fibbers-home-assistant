@@ -29,16 +29,13 @@
     "power": "Power",
     "brightness": "Brightness",
     "temperature": "Temperature",
-    "hue": "Hue",
-    "saturation": "Saturation",
     "colour": "Colour",
     "white": "White",
     "warm": "Warm",
     "neutral": "Neutral",
     "cool": "Cool",
     "lights": "Lights",
-    "n_lamps": "{n} lamps",
-    "on_count": "{on} of {total} on"
+    "n_lamps": "{n} lamps"
   },
   "light_group": {
     "default_name": "Lights",
@@ -176,7 +173,6 @@
     "sunset": "Sunset",
     "hourly": "Hourly",
     "daily": "Next days",
-    "now": "Now",
     "conditions": {
       "clear-night": "Clear",
       "sunny": "Sunny",
@@ -196,7 +192,6 @@
     }
   },
   "media": {
-    "default_name": "Media",
     "idle": "Nothing playing",
     "speakers": "Speakers",
     "seek": "Seek",

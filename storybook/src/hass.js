@@ -848,7 +848,6 @@ export function makeHass(flags = {}) {
 }
 
 export const HASS = makeHass(); // tv on, hue offline, battery ok, update pending
-export const HASS_OFFLINE = makeHass({ hueGo: false });
 export const HASS_ALL_CLEAR = makeHass({
   hueGo: true,
   update: false,

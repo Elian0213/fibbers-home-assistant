@@ -29,16 +29,13 @@
     "power": "Aan/uit",
     "brightness": "Helderheid",
     "temperature": "Temperatuur",
-    "hue": "Kleurtoon",
-    "saturation": "Verzadiging",
     "colour": "Kleur",
     "white": "Wit",
     "warm": "Warm",
     "neutral": "Neutraal",
     "cool": "Koel",
     "lights": "Lampen",
-    "n_lamps": "{n} lampen",
-    "on_count": "{on} van {total} aan"
+    "n_lamps": "{n} lampen"
   },
   "light_group": {
     "default_name": "Lampen",
@@ -176,7 +173,6 @@
     "sunset": "Zonsondergang",
     "hourly": "Per uur",
     "daily": "Komende dagen",
-    "now": "Nu",
     "conditions": {
       "clear-night": "Helder",
       "sunny": "Zonnig",
@@ -196,7 +192,6 @@
     }
   },
   "media": {
-    "default_name": "Media",
     "idle": "Niets aan het spelen",
     "speakers": "Luidsprekers",
     "seek": "Zoeken",

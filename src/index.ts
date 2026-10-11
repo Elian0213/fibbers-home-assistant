@@ -38,7 +38,7 @@ import { FibbersWeather } from "./cards/sensors/weather";
 import { bar } from "./core/body-layer";
 import { injectGlobalCss } from "./core/global-css";
 import { nav, goBack, previous } from "./core/nav-stack";
-import { T, styleBlock } from "./shared/tokens";
+import { T } from "./shared/tokens";
 import { navigate } from "./shared/util";
 
 const VERSION = "2.0.3";
@@ -258,7 +258,6 @@ window.FIBBERS = {
   previous,
   navigate,
   tokens: T,
-  styleBlock,
   injectGlobalCss,
   bar,
 };
