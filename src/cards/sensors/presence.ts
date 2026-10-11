@@ -10,7 +10,7 @@ import { cardShell } from "@shared/shells";
 import { twSheet } from "@shared/tw";
 import { ThemeController } from "@shared/theme-host";
 import { moreInfo, cssUrl } from "@shared/util";
-import { sectionLabel } from "@shared/variants";
+import { sectionLabelCls } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -108,7 +108,7 @@ export class FibbersPresence extends LitElement implements LovelaceCard {
       ${
         this.config.title === false
           ? ""
-          : html`<span class="${sectionLabel()}"
+          : html`<span class="${sectionLabelCls()}"
               >${t(hl, "presence.title")}</span
             >`
       }

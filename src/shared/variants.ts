@@ -45,7 +45,7 @@ export const iconBox = cva("flex items-center justify-center rounded-lg", {
 });
 
 /** Uppercase section label. Most sites use the wide tracking; a few the tight one. */
-export const sectionLabel = cva(
+export const sectionLabelCls = cva(
   "text-[10px] font-semibold uppercase text-muted",
   {
     variants: {
@@ -81,5 +81,4 @@ export const pressable = cva("cursor-pointer", {
 
 export type CardVariants = VariantProps<typeof card>;
 export type IconBoxVariants = VariantProps<typeof iconBox>;
-export type SectionLabelVariants = VariantProps<typeof sectionLabel>;
-export type PressableVariants = VariantProps<typeof pressable>;
+export type SectionLabelVariants = VariantProps<typeof sectionLabelCls>;

@@ -14,7 +14,7 @@ import {
   cx,
   iconBox,
   pressable,
-  sectionLabel as sectionLabelCls,
+  sectionLabelCls,
   type CardVariants,
   type IconBoxVariants,
   type SectionLabelVariants,

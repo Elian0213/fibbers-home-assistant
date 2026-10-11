@@ -17,7 +17,7 @@ import { cardShell, unavailNotice } from "@shared/shells";
 import { twSheet } from "@shared/tw";
 import { ThemeController } from "@shared/theme-host";
 import { pickEntity } from "@shared/util";
-import { pressable, sectionLabel } from "@shared/variants";
+import { pressable, sectionLabelCls } from "@shared/variants";
 
 import { openModal } from "@core/body-sheet";
 import type {
@@ -221,7 +221,7 @@ export class FibbersWeather extends LitElement implements LovelaceCard {
         </div>
       </div>
       <div class="ml-auto text-right">
-        <span class="${sectionLabel({ tracking: "tight" })}"
+        <span class="${sectionLabelCls({ tracking: "tight" })}"
           >${cfg.name || a.friendly_name || t(hl, "weather.default_name")}</span
         >
       </div>

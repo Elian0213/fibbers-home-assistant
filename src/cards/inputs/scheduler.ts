@@ -12,7 +12,7 @@ import { ThemeController } from "@shared/theme-host";
 import { addMinutes, hhmm } from "@shared/time";
 import { pillSwitch } from "@shared/ui";
 import { moreInfo, pickEntity } from "@shared/util";
-import { cx, pressable, sectionLabel } from "@shared/variants";
+import { cx, pressable, sectionLabelCls } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -116,7 +116,7 @@ export class FibbersScheduler extends LitElement implements LovelaceCard {
         )}"
         icon="solar:alarm-bold-duotone"
       ></fib-icon>
-      <span class="${cx("flex-1", sectionLabel())}"
+      <span class="${cx("flex-1", sectionLabelCls())}"
         >${cfg.name || t(hl, "scheduler.default_name")}</span
       >
       ${

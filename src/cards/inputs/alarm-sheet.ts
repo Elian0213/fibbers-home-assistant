@@ -29,7 +29,7 @@ import {
   debounce,
   type Debounced,
 } from "@shared/util";
-import { cx, pressable, sectionLabel } from "@shared/variants";
+import { cx, pressable, sectionLabelCls } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -392,7 +392,7 @@ export class FibbersAlarmSheet extends LitElement implements LovelaceCard {
     if (!cfg.radio_enable && !cfg.station && !cfg.volume) return "";
     const radioOn = this._on(cfg.radio_enable, true);
     return html`<div class="flex flex-col gap-3 border-t border-line pt-3">
-      <span class="${sectionLabel()}">${t(hl, "alarm.radio_section")}</span>
+      <span class="${sectionLabelCls()}">${t(hl, "alarm.radio_section")}</span>
       ${
         cfg.radio_enable
           ? html`<div class="flex items-center justify-between gap-3">

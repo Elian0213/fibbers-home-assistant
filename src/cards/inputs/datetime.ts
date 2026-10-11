@@ -10,7 +10,7 @@ import { twSheet } from "@shared/tw";
 import { ThemeController } from "@shared/theme-host";
 import { hhmm } from "@shared/time";
 import { moreInfo, fmtState, pickEntity } from "@shared/util";
-import { cx, sectionLabel } from "@shared/variants";
+import { cx, sectionLabelCls } from "@shared/variants";
 import type {
   HomeAssistant,
   HassEntity,
@@ -120,7 +120,7 @@ export class FibbersDateTime extends LitElement implements LovelaceCard {
             class="h-4 w-4 [--mdc-icon-size:16px] text-accent"
             icon=${icon}
           ></fib-icon>
-          <span class="${sectionLabel()}">${name}</span>
+          <span class="${sectionLabelCls()}">${name}</span>
         </div>
         <button
           type="button"

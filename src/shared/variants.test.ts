@@ -2,7 +2,7 @@
  * cva's emit order is an implementation detail, the utilities are not. */
 import { describe, expect, test } from "bun:test";
 
-import { card, cx, iconBox, sectionLabel } from "./variants";
+import { card, cx, iconBox, sectionLabelCls } from "./variants";
 
 const setOf = (s: string): Set<string> =>
   new Set(s.split(/\s+/).filter(Boolean));
@@ -66,15 +66,15 @@ describe("iconBox", () => {
   });
 });
 
-describe("sectionLabel", () => {
+describe("sectionLabelCls", () => {
   test("default uses the wide 0.08em tracking", () => {
-    expect(setOf(sectionLabel())).toEqual(
+    expect(setOf(sectionLabelCls())).toEqual(
       setOf("text-[10px] font-semibold uppercase text-muted tracking-[0.08em]"),
     );
   });
 
   test("tight swaps to 0.06em", () => {
-    const classes = setOf(sectionLabel({ tracking: "tight" }));
+    const classes = setOf(sectionLabelCls({ tracking: "tight" }));
     expect(classes.has("tracking-[0.06em]")).toBe(true);
     expect(classes.has("tracking-[0.08em]")).toBe(false);
   });
