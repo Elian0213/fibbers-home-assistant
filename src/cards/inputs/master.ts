@@ -174,7 +174,7 @@ export class FibbersMaster extends LitElement implements LovelaceCard {
         height: 38px;
         flex: none;
         border-radius: 19px;
-        background: var(--fib-line);
+        background: var(--color-line);
         overflow: hidden;
         transition: background-color 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
       }
@@ -196,7 +196,7 @@ export class FibbersMaster extends LitElement implements LovelaceCard {
         width: 30px;
         height: 30px;
         border-radius: 50%;
-        background: var(--fib-card-2);
+        background: var(--color-card2);
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.35),
           0 1px 3px rgba(0, 0, 0, 0.35);
@@ -536,7 +536,7 @@ export class FibbersMaster extends LitElement implements LovelaceCard {
         "flex items-center gap-3 rounded-[14px] border px-[15px] py-[14px]",
         cardTone,
       )}"
-      style="--fib-tone: var(--fib-${tone})"
+      style="--fib-tone: var(--color-${tone})"
       role="switch"
       tabindex="0"
       aria-checked=${on ? "true" : "false"}
