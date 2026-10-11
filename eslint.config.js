@@ -152,7 +152,7 @@ export default defineConfig([
       "no-restricted-syntax": "off",
       "no-restricted-globals": "off",
       "no-plusplus": "off",
-      "no-await-in-loop": "off", // sequential browser automation in test-runner.js
+      "no-await-in-loop": "off", // sequential browser automation in story tests
       "no-continue": "off",
       "prefer-template": "off",
       "func-names": "off",

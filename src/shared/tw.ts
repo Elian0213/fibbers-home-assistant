@@ -1,6 +1,6 @@
 /* ================================================================== *
  * TAILWIND — one shared adopted stylesheet for every shadow root.
- * Compiled src/tailwind.gen.js → one constructable sheet all cards adopt.
+ * Compiled src/generated/tailwind.gen.js → one constructable sheet all cards adopt.
  * Tailwind v4's `@property` defaults don't reach shadow roots, so they're hoisted
  * to a document-level sheet; `:root` tokens are rewritten to `:host`.
  * ================================================================== */
@@ -20,7 +20,7 @@ const supportsAdopt =
 // root font-size is 14px on some setups, making h-11/`2.75rem` only 38.5px). One
 // knob: the .fib-hit expander and every slider/button min-size read from it.
 //
-// Touch polish for every control (previously nav-bar-only, in core/body-layer.js):
+// Touch polish for every control (previously nav-bar-only, in core/body-layer.ts):
 // kill the browser's tap-highlight overlay (inherited onto the SVG wheel, where it
 // was drawing a rectangle around each sector's bounding box), suppress text
 // selection / the iOS long-press callout on press-and-hold repeat controls, and

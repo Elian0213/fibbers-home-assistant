@@ -10,8 +10,8 @@
 #   2. Developer Tools → YAML → Reload Themes  (or restart)
 #   3. Profile → Theme → Fibbers  (Auto follows your dark/light system setting)
 #
-# The palette mirrors src/shared/tokens.js + the DARK_VARS/LIGHT_VARS in
-# src/core/*.js — keep them in sync if you change one.
+# The palette mirrors src/shared/tokens.ts + the DARK_VARS/LIGHT_VARS in
+# src/core/global-css.ts / theme.ts — keep them in sync if you change one.
 
 Fibbers:
   modes:

@@ -165,7 +165,6 @@ export const MultiDevice = story({
  * The card reserves the tallest panel, so paging never jumps. */
 export const LivingRoom = story({
   type: "custom:fibbers-remote",
-  language: "nl",
   remember: false,
   devices: [
     {

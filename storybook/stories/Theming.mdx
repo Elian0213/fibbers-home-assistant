@@ -48,14 +48,16 @@ The switch is automatic — it tracks `hass.themes.darkMode`, so you never set i
 
 ## A user-selectable theme instead
 
-The injector is the default, but a standalone theme file is available if you'd rather select one
-in your profile: copy
-[`docs/optional-theme.yaml`](https://github.com/Elian0213/fibbers-home-assistant/blob/main/docs/optional-theme.yaml)
-to `/config/themes/fibbers.yaml` and pick it under **Profile → Theme**. It sets the same values.
+The nav card's `theme:` only applies once a dashboard has loaded. For a permanent green Home
+Assistant — including a cold load of `/config` — copy
+[`themes/fibbers.yaml`](https://github.com/Elian0213/fibbers-home-assistant/blob/main/themes/fibbers.yaml)
+to `/config/themes/` and pick **Fibbers** under **Profile → Theme** (dark + light).
 
-## Turning the injector off
+## Blocking the global modes
 
-Set this before the plugin loads (for example if you already run a theme you like):
+`theme: fibbers-global` / `fibbers-global-light` repaint all of Home Assistant for the session. To
+stop any dashboard from doing that (for example if you already run a theme you like), set this
+before the plugin loads:
 
 ```js
 window.FIBBERS_DISABLE_GLOBAL_CSS = true;

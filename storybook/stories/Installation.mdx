@@ -29,17 +29,12 @@ no `kiosk-mode`, no separate theme repository).
 
 ## Requirements
 
-- Home Assistant **2024.11** or newer (verified on 2026.8.x).
+- Home Assistant **2025.1** or newer (verified on 2026.8.x).
 - Any modern browser; the bottom bar is tuned for the iOS companion app.
 
-## Turning theming off
+## Theming
 
-Loading the plugin injects a dark theme globally. To opt out (e.g. you already run a theme),
-set this before the plugin loads:
-
-```js
-window.FIBBERS_DISABLE_GLOBAL_CSS = true;
-```
-
-See [Theming](?path=/docs/getting-started-theming--docs) for what the injector covers, and
+Loading the plugin leaves the rest of Home Assistant untouched; cards follow your HA light/dark
+theme on their own. See [Theming](?path=/docs/getting-started-theming--docs) for the optional
+`theme:` on the nav card and the installable HA theme, and
 [Usage](?path=/docs/getting-started-usage--docs) for a full dashboard example.

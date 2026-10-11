@@ -61,7 +61,7 @@ export default defineConfig(({ mode }) => {
         fileName: () => "fibbers.js",
       },
       rollupOptions: {
-        // Bundle everything (lit, @lit-labs/signals, …) into one self-contained
+        // Bundle everything (lit, class-variance-authority, …) into one self-contained
         // IIFE — HACS serves a single file. Nothing is externalized.
         output: { banner: BANNER },
       },

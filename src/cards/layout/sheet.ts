@@ -1,6 +1,6 @@
 /* ================================================================== *
  * fibbers-sheet — invisible card; registers {id, title, cards[]} with the sheet
- * layer (body-sheet.js), which opens on hash `#<id>`.
+ * layer (core/body-sheet.ts), which opens on hash `#<id>`.
  * ================================================================== */
 import { LitElement, html, css, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
@@ -29,7 +29,7 @@ export interface SheetCardConfig extends LovelaceCardConfig {
 
 /**
  * fibbers-sheet — invisible card that registers {id, title, cards[]} with the
- * sheet layer (core/body-sheet.js), which opens on hash `#<id>`.
+ * sheet layer (core/body-sheet.ts), which opens on hash `#<id>`.
  */
 @customElement("fibbers-sheet")
 export class FibbersSheet extends LitElement implements LovelaceCard {

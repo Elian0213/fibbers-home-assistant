@@ -11,8 +11,8 @@
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
 
-    // Incremental migration: typed .ts checked strictly, remaining .js resolved
-    // (as `any`) but not type-checked, so cards can migrate one at a time.
+    // The only .js left in src/ is generated (src/generated/*.gen.js): resolved
+    // as `any`, never type-checked.
     "allowJs": true,
     "checkJs": false,
 

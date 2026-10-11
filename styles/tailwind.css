@@ -9,8 +9,8 @@
 @source "../src/**/*.{js,ts}";
 
 /* Fibbers palette → Tailwind theme, so `bg-card`, `text-accent`, `border-line`
-   etc. resolve. Kept in sync with src/tokens.js (the runtime `--fib-*` vars stay
-   for global-css.js / HA theming). This is the DARK palette (the default). */
+   etc. resolve. Kept in sync with `T` in src/shared/tokens.ts and DARK_VARS in
+   src/core/global-css.ts. This is the DARK palette (the default). */
 @theme {
   --color-bg: #111516;
   --color-card: #1d2426;

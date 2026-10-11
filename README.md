@@ -184,8 +184,7 @@ stubbed `hass`, each state its own story. Two standalone harnesses under
 [`test/fixtures/`](test/fixtures/) cover the nav-pin and `hide_ha_tabs` behaviour Storybook can't.
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the architecture and release steps,
-[`docs/navigation.md`](docs/navigation.md) for the nav/stack model, and
-[`docs/MIGRATION.md`](docs/MIGRATION.md) for replacing your current dashboard cards.
+and [`docs/navigation.md`](docs/navigation.md) for the nav/stack model.
 
 ## License
 

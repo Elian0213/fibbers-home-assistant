@@ -76,7 +76,6 @@ device takes:
 | `keyboard`      | bool             | card-level; when the card has focus, arrows/Enter/Escape drive the d-pad, `+`/`-`/`m` the volume, `[`/`]` the device (default `true`). See [accessibility.md](accessibility.md). |
 | `haptics`       | bool             | card-level; a short vibration on each discrete key press (default `false`; no effect on iOS, which has no `navigator.vibrate`). The touchpad has its own `touchpad.haptics`.     |
 | `controls`      | list             | an extra controls panel — see below.                                                                                                                                             |
-| `language`      | string           | override HA's language for on-screen strings.                                                                                                                                    |
 
 Volume degrades honestly: a `media_player` that reports `volume_level` gets a
 positional slider; one that doesn't (many Apple TVs) gets a **scrub strip** — drag

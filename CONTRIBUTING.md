@@ -10,7 +10,7 @@ an app-like dashboard.
   compiled into a shared adopted stylesheet. Source lives in `src/` as small ES modules and is
   bundled into a single committed IIFE at `dist/fibbers.js` by `bun build` (production Lit, no
   minify, no polyfills).
-- **`src/` layout**: `index.js` (the card registry) · `cards/<domain>/` (cards by domain:
+- **`src/` layout**: `index.ts` (the card registry) · `cards/<domain>/` (cards by domain:
   `lights`, `media`, `climate`, `sensors`, `inputs`, `layout`) · `core/` (body-portal singletons,
   theming, navigation) · `shared/` (widgets + helpers cards import — `ui`, `util`, `i18n`, `icon`,
   `actions`, `tw`, `tokens`) · `generated/` (`tailwind.gen.js`, `icons.core.gen.js`) ·
@@ -48,20 +48,10 @@ dist/fibbers.js`), and a parse check — so always `bun run build` and commit `d
 
 ## Design tokens
 
-Defined once in `src/shared/tokens.js` and emitted per shadow root by `styleBlock()`. Use the exact
-values; new cards read `var(--fib-x)`.
-
-```
---fib-bg          #111516   page ground          --fib-accent      #74B98A   brand accent (soft green)
---fib-card        #1D2426   card surface         --fib-accent-bg   #17281C   green tint (icon-on box)
---fib-card-2      #262F31   chip / inset         --fib-accent-line #2B4A34   green tint border
---fib-line        #333E41   borders              --fib-accent-tx   #CFE6D5   text on green tint
---fib-ink         #EDF1F1   primary text         --fib-amber       #E8A33D   WARNING only (alert)
---fib-ink-2       #A9B6B9   secondary text       --fib-blue        #5AAFD6   info / active-secondary
---fib-muted       #7D8B8E   labels/inactive      --fib-green        #63C295   success
---fib-sheet       #171E20   sheet surface        --fib-red          #EC8377   error / offline
---fib-nav         #161C1E   bottom bar surface   --fib-grab         #3E4A4D   sheet grab handle
-```
+Cards style with the theme-aware `--color-*` custom properties defined in `styles/tailwind.css`
+(a dark set and a light set, swapped by `ThemeController`) — usually through their Tailwind
+utilities (`bg-card2`, `text-muted`, `border-line`, …). Never hardcode a hex in a card. The raw
+palette also lives in `src/shared/tokens.ts` (`T`) for the nav bar's interpolated CSS.
 
 Semantics: **green** = brand / active / positive, **amber** = attention/warning (the alert card
 only), **red** = error, **blue** = info. Lit rooms/scenes glow

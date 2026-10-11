@@ -1,6 +1,6 @@
 /* ================================================================== *
- * fibbers-nav — thin controller for the singleton bar (body-layer.js). No UI of
- * its own; the bar reserves its own bottom space on the view (view-reserve.js).
+ * fibbers-nav — thin controller for the singleton bar (core/body-layer.ts). No UI of
+ * its own; the bar reserves its own bottom space on the view (core/view-reserve.ts).
  * ================================================================== */
 import { LitElement, html, css, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
@@ -56,7 +56,7 @@ const EDITOR_SCHEMA = [
 export interface NavCardConfig extends LovelaceCardConfig, NavConfig {}
 
 /**
- * fibbers-nav — thin controller for the singleton bottom bar (core/body-layer.js);
+ * fibbers-nav — thin controller for the singleton bottom bar (core/body-layer.ts);
  * no UI of its own, it just attaches/detaches the body-portal bar.
  */
 @customElement("fibbers-nav")
