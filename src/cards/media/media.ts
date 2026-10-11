@@ -206,15 +206,20 @@ export class FibbersMedia extends LitElement implements LovelaceCard {
     this._seeking = false;
     this._dragSeek = 0;
     this._srcOpen = false;
-    // Construct the holds once — addController has no counterpart, so a fresh pair
-    // per setConfig (per editor keystroke) would orphan controllers.
-    if (!this._volHold) {
-      this._volHold = new SliderHold(this, { tolerance: 2 });
-      this._seekHold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
-    } else {
+    // Construct the holds, debouncers and drags once — addController has no
+    // counterpart, so a fresh set per setConfig (per editor keystroke) would orphan
+    // controllers, and a replaced debouncer could still fire its pending write
+    // against the old config. Every callback closes over `this`, so a re-config
+    // needs no rebuild.
+    if (this._volHold) {
       this._volHold.clear();
       this._seekHold?.clear();
+      this._volInput.cancel();
+      this._seekInput.cancel();
+      return;
     }
+    this._volHold = new SliderHold(this, { tolerance: 2 });
+    this._seekHold = new SliderHold(this, { tolerance: 2, timeout: 5000 });
     // Keyboard nudges on the sliders shouldn't fire a service call per keydown.
     this._volInput = debounce((v: number) => this._setVol(v), 150);
     this._seekInput = debounce((v: number) => this._seek(v), 150);
