@@ -25,7 +25,6 @@
     "check": "prettier --check \"src/**/*.{js,ts}\" \"test/fixtures/*.html\" && bun run typecheck && bun run lint && bun test src && bun run build && bun scripts/check-icons.mjs && bun scripts/check-i18n.mjs && node -e \"new Function(require('fs').readFileSync('dist/fibbers.js','utf8'))\""
   },
   "devDependencies": {
-    "@eslint/js": "^9",
     "@iconify-json/solar": "1.2.10",
     "@tailwindcss/cli": "4.3.3",
     "@types/bun": "^1.4.1",
@@ -35,7 +34,6 @@
     "eslint-config-airbnb-extended": "^3.2.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-check-file": "^3.3.2",
-    "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsdoc": "^64.3.4",
     "eslint-plugin-lit": "^2.3.1",
     "eslint-plugin-lit-a11y": "^5.1.1",
