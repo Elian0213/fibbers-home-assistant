@@ -29,6 +29,20 @@ export const AppleTV = story({
   favourites: ["Netflix", "YouTube", "Prime Video", "Spotify"],
 });
 
+/** `touchpad: { size: large }` — the surface fills the remote column (like the iPhone
+ * remote) instead of the compact 238px; nav, transport and volume stay below it. */
+export const AppleTVLargeTouchpad = story({
+  type: "custom:fibbers-remote",
+  device: "appletv",
+  entity: "remote.appletv",
+  media_player: "media_player.appletv",
+  icon: "solar:display-bold-duotone",
+  name: "Apple TV",
+  touchpad: { size: "large" },
+  sources: "auto",
+  favourites: ["Netflix", "YouTube", "Prime Video", "Spotify"],
+});
+
 /** Netflix on the Apple TV: the app reports **no position/duration and no SEEK**
  * to Home Assistant, so a real timeline scrub is impossible over standard HA
  * services. A horizontal drag while playing is therefore **inert** — it is

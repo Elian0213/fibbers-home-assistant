@@ -12,7 +12,11 @@ import {
   SLIDER_CONTROLS,
   type ChipItem,
 } from "./const";
-import type { TouchpadOptions } from "./touchpad-math";
+import {
+  TOUCHPAD_SIZE_MAX,
+  TOUCHPAD_SIZE_MIN,
+  type TouchpadOptions,
+} from "./touchpad-math";
 
 /** A single extra entity surfaced in the optional `controls:` panel. */
 export interface RemoteControl {
@@ -96,7 +100,7 @@ export function validateRemoteConfig(config: RemoteConfig): RemoteDevice[] {
     if (d.touchpad != null) {
       if (typeof d.touchpad !== "object" || Array.isArray(d.touchpad)) {
         throw new Error(
-          `fibbers-remote: device[${i}] \`touchpad\` must be an options map (edge_click, momentum, haptics, sensitivity, scrub, native_touch)`,
+          `fibbers-remote: device[${i}] \`touchpad\` must be an options map (edge_click, momentum, haptics, sensitivity, scrub, native_touch, size)`,
         );
       }
       const { sensitivity } = d.touchpad;
@@ -116,6 +120,20 @@ export function validateRemoteConfig(config: RemoteConfig): RemoteDevice[] {
       d.sources != null &&
       d.sources !== "auto" &&
       !Array.isArray(d.sources)
+      const { size } = d.touchpad;
+      if (
+        size != null &&
+        size !== "compact" &&
+        size !== "large" &&
+        (typeof size !== "number" ||
+          !Number.isFinite(size) ||
+          size < TOUCHPAD_SIZE_MIN ||
+          size > TOUCHPAD_SIZE_MAX)
+      ) {
+        throw new Error(
+          `fibbers-remote: \`touchpad.size\` must be "compact", "large" or a number of px between ${TOUCHPAD_SIZE_MIN} and ${TOUCHPAD_SIZE_MAX}`,
+        );
+      }
     ) {
       throw new Error('fibbers-remote: `sources` must be "auto" or a list');
     }

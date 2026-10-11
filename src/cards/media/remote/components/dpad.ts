@@ -9,6 +9,7 @@ import { activateOnKey } from "@shared/ui";
 
 import { SEG, CHEV, ARROW } from "../const";
 import type { RemoteHost } from "../host";
+import { resolveTouchpadOptions, touchpadMaxWidth } from "../touchpad-math";
 import { renderTouchpad } from "./touchpad";
 import { renderHero } from "./hero";
 
@@ -160,6 +161,9 @@ export function renderDpad(
       onKey: (e) => dpadKey(host, e),
       label: t(hl, "remote.touchpad_hint"),
       disabled: host.unavail(),
+      maxWidth: touchpadMaxWidth(
+        resolveTouchpadOptions(host.dev().touchpad).size,
+      ),
     });
   return mode === "grid" ? pad(host, has) : wheel(host, has, mode);
 }

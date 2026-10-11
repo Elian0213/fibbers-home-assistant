@@ -15,6 +15,8 @@ export function renderTouchpad(o: {
   onKey: (e: KeyboardEvent) => void;
   label: string;
   disabled: boolean;
+  /** CSS max-width for the surface (see touchpadMaxWidth). */
+  maxWidth: string;
 }): TemplateResult {
   const { ctrl } = o;
   return html`<div
@@ -23,6 +25,7 @@ export function renderTouchpad(o: {
     tabindex="0"
     data-fib-gesture="own"
     aria-label=${o.label}
+    style="--tpad-max:${o.maxWidth}"
     ${ref(ctrl.attach)}
     @keydown=${o.onKey}
     @pointerdown=${ctrl.down}

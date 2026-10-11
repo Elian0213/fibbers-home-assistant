@@ -19,6 +19,7 @@ import {
   MOMENTUM_MAX,
   MOMENTUM_STOP_MS,
   ACC_CLAMP_STEPS,
+  touchpadMaxWidth,
 } from "./touchpad-math";
 
 describe("emaVelocity", () => {
@@ -243,6 +244,7 @@ describe("resolveTouchpadOptions", () => {
       sensitivity: 1,
       scrub: true,
       native_touch: true,
+      size: "compact",
     });
   });
   test("honours explicit flags and clamps out-of-range sensitivity to 1", () => {
@@ -252,5 +254,18 @@ describe("resolveTouchpadOptions", () => {
     expect(resolveTouchpadOptions({ sensitivity: 2 }).sensitivity).toBe(2);
     expect(resolveTouchpadOptions({ sensitivity: 10 }).sensitivity).toBe(1);
     expect(resolveTouchpadOptions({ sensitivity: 0.1 }).sensitivity).toBe(1);
+  });
+});
+
+describe("touchpadMaxWidth", () => {
+  test("compact is the historic 238px, large fills the column", () => {
+    expect(touchpadMaxWidth("compact")).toBe("238px");
+    expect(touchpadMaxWidth(undefined)).toBe("238px");
+    expect(touchpadMaxWidth("large")).toBe("100%");
+  });
+  test("a number is px, clamped to 160–480", () => {
+    expect(touchpadMaxWidth(300)).toBe("300px");
+    expect(touchpadMaxWidth(90)).toBe("160px");
+    expect(touchpadMaxWidth(900)).toBe("480px");
   });
 });

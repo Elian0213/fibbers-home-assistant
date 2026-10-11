@@ -26,6 +26,25 @@ export interface TouchpadOptions {
   sensitivity?: number;
   scrub?: boolean;
   native_touch?: boolean;
+  /** "compact" (238px, the default), "large" (the full remote column) or px. */
+  size?: "compact" | "large" | number;
+}
+
+/** Bounds for a numeric `touchpad.size` (px). */
+export const TOUCHPAD_SIZE_MIN = 160;
+export const TOUCHPAD_SIZE_MAX = 480;
+
+/**
+ * The touchpad's CSS max-width for a `size`: compact keeps the historic 238px,
+ * large fills the remote column (which caps it at 320px), a number is px. The
+ * surface stays square; the gesture maths scales off the measured rect.
+ * @param size — the resolved `touchpad.size`
+ */
+export function touchpadMaxWidth(size: TouchpadOptions["size"]): string {
+  if (size === "large") return "100%";
+  if (typeof size === "number")
+    return `${clamp(Math.round(size), TOUCHPAD_SIZE_MIN, TOUCHPAD_SIZE_MAX)}px`;
+  return "238px";
 }
 
 // step = width/6 at rest → a ~10cm slow drag on a ~230px surface ≈ 5-6 steps;
@@ -256,5 +275,6 @@ export function resolveTouchpadOptions(
     sensitivity: Number.isFinite(s) && s >= 0.25 && s <= 4 ? s : 1,
     scrub: o.scrub !== false,
     native_touch: o.native_touch !== false,
+    size: o.size === "large" || typeof o.size === "number" ? o.size : "compact",
   };
 }

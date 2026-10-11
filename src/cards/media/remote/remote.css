@@ -763,7 +763,8 @@
 .tpad {
   position: relative;
   width: 100%;
-  max-width: 238px;
+  /* touchpad.size → --tpad-max (compact 238px · large = the full column · px) */
+  max-width: var(--tpad-max, 238px);
   aspect-ratio: 1;
   margin-inline: auto;
   border-radius: 24px;
