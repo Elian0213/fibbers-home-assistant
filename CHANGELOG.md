@@ -3,6 +3,31 @@
 All notable changes to this project are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [2.2.0] — 2026-10-11
+
+The power button wakes the Apple TV the way the iOS remote does, and the touchpad
+can be as big as the iPhone's.
+
+### Fixed
+
+- **Apple TV power wakes the box.** The power button called the Apple TV
+  *remote* entity's `turn_on` / `turn_off`, which in Home Assistant only connect or
+  disconnect HA — it never woke the Apple TV, and "off" just dropped HA's
+  connection. It now goes through the `media_player` (`turn_on` = pyatv's
+  Companion wake, the same as iOS; `turn_off` = sleep), reconnecting Home Assistant
+  first when it was disconnected. A TV that follows the Apple TV over HDMI-CEC
+  comes on with it.
+- **On/off state.** The badge and power button read the device's `media_player`
+  when it has one, so a sleeping Apple TV shows as off rather than "connected".
+
+### Added
+
+- **`power_on` / `power_off` per device** — an entity id (an Apple TV
+  `media_player` on the card is woken the Apple TV way) or any HA action. Point a
+  TV's `power_on` at its Apple TV and the TV's own page turns everything on.
+- **`touchpad.size`** — `compact` (238px, the default), `large` (fills the remote
+  column) or a px number; nav, transport and volume stay below it.
+
 ## [2.1.0] — 2026-10-11
 
 The remote, fixed where it hurt: a centred touchpad, Philips power that actually
